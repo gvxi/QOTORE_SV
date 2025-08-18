@@ -13,7 +13,7 @@ export const onRequestPost: PagesFunction<{
   SUPABASE_SERVICE_ROLE_KEY: string;
 }> = async ({ request, env }) => {
   try {
-    // --- Parse request body safely ---
+    // --- Parse JSON body ---
     const rawBody = await request.json();
     if (
       typeof rawBody !== 'object' ||
@@ -27,10 +27,6 @@ export const onRequestPost: PagesFunction<{
 
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     const now = new Date();
-
-    if (!username || !password) {
-      return new Response(JSON.stringify({ message: 'Missing username or password' }), { status: 400 });
-    }
 
     const supabase = getServerClient({
       SUPABASE_URL: env.SUPABASE_URL,
@@ -110,7 +106,7 @@ export const onRequestPost: PagesFunction<{
     // --- Create JWT token ---
     const token = await createToken({ username }, env.TK_PASS);
 
-    // Set HttpOnly cookie
+    // Set HttpOnly cookie (valid for 1 hour)
     const response = new Response(JSON.stringify({ message: 'Login successful' }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -120,6 +116,9 @@ export const onRequestPost: PagesFunction<{
 
   } catch (err) {
     console.error('Login error:', err);
-    return new Response(JSON.stringify({ message: 'Server error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ message: 'Server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 };
