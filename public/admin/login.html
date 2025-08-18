@@ -23,7 +23,6 @@ const form = document.getElementById('loginForm');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Collect username and password
   const formData = new FormData(form);
   const data = {
     username: formData.get('username'),
@@ -37,14 +36,13 @@ form.addEventListener('submit', async (e) => {
       body: JSON.stringify(data)
     });
 
+    // Read body once
+    const raw = await res.text();
     let result;
     try {
-      result = await res.json();
-    } catch (jsonErr) {
-      const text = await res.text();
-      alert('Server returned invalid JSON:\n' + text);
-      console.error('Invalid JSON response:', text);
-      return;
+      result = JSON.parse(raw);
+    } catch {
+      result = { message: 'Invalid JSON response from server', debug: raw };
     }
 
     if (res.ok) {
