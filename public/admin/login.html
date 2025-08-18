@@ -36,25 +36,24 @@ form.addEventListener('submit', async (e) => {
       body: JSON.stringify(data)
     });
 
-    // Read body once
     const raw = await res.text();
     let result;
     try {
       result = JSON.parse(raw);
     } catch {
-      result = { message: 'Invalid JSON response from server', debug: raw };
+      result = { message: 'Invalid JSON response from server', raw };
     }
 
     if (res.ok) {
-      alert('Login successful!');
+      alert(result.message || 'Login successful');
       window.location.href = '/admin/index.html';
     } else {
-      alert(result.message + (result.debug ? '\nDebug: ' + result.debug : ''));
+      alert(result.message || 'Login failed');
+      console.error('Debug:', result);
     }
 
   } catch (err) {
-    alert('Network or unexpected server error:\n' + err);
-    console.error(err);
+    alert('Network error: ' + err);
   }
 });
 </script>
