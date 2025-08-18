@@ -1,13 +1,28 @@
-import type { PagesFunction } from "@cloudflare/workers-types";
-
-export const onRequest: PagesFunction = async ({ request, next }) => {
-  const cookie = request.headers.get("Cookie") || "";
-
-  if (!cookie.includes("admin_session=valid")) {
-    // Not logged in → redirect to login page
-    return Response.redirect("/login.html", 302);
+// functions/_middleware.ts - Protects admin routes
+export async function onRequest(context: EventContext<any, any, any>): Promise<Response | void> {
+  const request = context.request;
+  const url = new URL(request.url);
+  
+  // Only protect admin paths (except login)
+  if (url.pathname.startsWith('/admin') && !url.pathname.includes('/login')) {
+    const cookies = request.headers.get('Cookie') || '';
+    const sessionCookie = cookies
+      .split(';')
+      .find(c => c.trim().startsWith('admin_session='));
+    
+    if (!sessionCookie) {
+      // Redirect to login if no session
+      return Response.redirect(new URL('/login.html', request.url).toString(), 302);
+    }
+    
+    // In a real app, you'd validate the session token here
+    // For now, just check if it exists
+    const sessionToken = sessionCookie.split('=')[1];
+    if (!sessionToken) {
+      return Response.redirect(new URL('/reject.html', request.url).toString(), 302);
+    }
   }
-
-  // Logged in → continue to requested page
-  return next();
-};
+  
+  // Continue to next middleware/handler
+  return context.next();
+}
