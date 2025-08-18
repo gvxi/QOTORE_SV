@@ -22,6 +22,8 @@ const form = document.getElementById('loginForm');
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  // Collect username and password
   const formData = new FormData(form);
   const data = {
     username: formData.get('username'),
@@ -29,6 +31,7 @@ form.addEventListener('submit', async (e) => {
   };
 
   try {
+    // Send login request
     const res = await fetch('/functions/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -38,16 +41,21 @@ form.addEventListener('submit', async (e) => {
     const result = await res.json();
 
     if (res.ok) {
+      // Success → redirect to admin panel
       alert('Login successful!');
-      window.location.href = '/admin/index.html'; // redirect to admin panel
+      window.location.href = '/admin/index.html';
     } else {
-      alert(result.message || 'Login failed');
+      // Error → show message + debug info
+      alert(result.message + (result.debug ? '\nDebug: ' + result.debug : ''));
     }
+
   } catch (err) {
+    // Network or unexpected error
+    alert('Server error: ' + err);
     console.error(err);
-    alert('Server error');
   }
 });
 </script>
+
 </body>
 </html>
