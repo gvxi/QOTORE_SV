@@ -18,45 +18,45 @@ button { padding: 5px 10px; }
 </form>
 
 <script>
-const form = document.getElementById('loginForm');
+const form = document.getElementById("loginForm");
 
-form.addEventListener('submit', async (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const formData = new FormData(form);
-  const data = {
-    username: formData.get('username'),
-    password: formData.get('password')
-  };
+  const data = new FormData(form);
+  const username = data.get("username");
+  const password = data.get("password");
 
   try {
-    const res = await fetch('/functions/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+    const res = await fetch("/functions/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
     });
 
-    const raw = await res.text();
+    let resultText = await res.text();
     let result;
+
     try {
-      result = JSON.parse(raw);
+      result = JSON.parse(resultText);
     } catch {
-      result = { message: 'Invalid JSON response from server', raw };
+      alert("❌ Server returned invalid JSON:\n\n" + resultText);
+      return;
     }
 
     if (res.ok) {
-      alert(result.message || 'Login successful');
-      window.location.href = '/admin/index.html';
+      alert("✅ " + (result.message || "Login successful"));
+      // Redirect to admin panel
+      window.location.href = "/admin/index.html";
     } else {
-      alert(result.message || 'Login failed');
-      console.error('Debug:', result);
+      alert("❌ " + (result.error || "Login failed"));
     }
-
   } catch (err) {
-    alert('Network error: ' + err);
+    alert("⚠️ Network error: " + err.message);
   }
 });
 </script>
 
+</form>
 </body>
 </html>
