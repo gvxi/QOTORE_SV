@@ -1,3 +1,4 @@
+import type { PagesFunction } from '@cloudflare/workers-types';
 import { getServerClient } from '../_lib/supabase';
 
 export const onRequestGet: PagesFunction<{
@@ -18,7 +19,15 @@ export const onRequestGet: PagesFunction<{
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 
-  return new Response(JSON.stringify(data), {
+  // Generate full public URL for images
+  const result = data.map(f => ({
+    ...f,
+    image_url: f.image_path
+      ? `https://ixrxsgnbgwpirusokvnj.supabase.co/storage/v1/object/public/${f.image_path}`
+      : null,
+  }));
+
+  return new Response(JSON.stringify(result), {
     headers: { 'content-type': 'application/json' },
   });
 };
