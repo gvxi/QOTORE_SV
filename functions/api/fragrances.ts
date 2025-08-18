@@ -2,7 +2,7 @@ import type { PagesFunction } from '@cloudflare/workers-types';
 import { getServerClient } from '../_lib/supabase';
 
 // Replace with your Supabase project ref from dashboard
-const SUPABASE_PUBLIC_URL = 'https://<your-supabase-project-ref>.supabase.co/storage/v1/object/public';
+const SUPABASE_PUBLIC_URL = 'https://ixrxsgnbgwpirusokvnj.supabase.co/storage/v1/object/public';
 
 type Variant = {
   id: number;
