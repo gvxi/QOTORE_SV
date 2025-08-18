@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin - Add Fragrance</title>
+<title>Admin Panel</title>
 <style>
 body { font-family: sans-serif; padding: 20px; }
-input, textarea { display: block; margin-bottom: 10px; width: 300px; }
-button { padding: 5px 10px; }
 .hidden { display: none; }
 </style>
 </head>
@@ -28,6 +26,7 @@ button { padding: 5px 10px; }
     <button type="button" id="addVariant">Add Another Variant</button>
     <button type="submit">Submit</button>
   </form>
+  <button id="logout">Logout</button>
 </div>
 
 <script>
@@ -39,11 +38,16 @@ function getCookie(name) {
 
 const token = getCookie('admin_token');
 if (!token) {
-  // No token → redirect to reject page
-  window.location.href = '/admin/reject.html';
+  window.location.href = '/admin/login.html'; // redirect if not logged in
 } else {
   document.getElementById('content').classList.remove('hidden');
 }
+
+// --- Logout ---
+document.getElementById('logout').addEventListener('click', () => {
+  document.cookie = 'admin_token=; Max-Age=0; Path=/;';
+  window.location.href = '/admin/login.html';
+});
 
 // --- Variant Form Logic ---
 const form = document.getElementById('fragranceForm');
@@ -64,7 +68,6 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = new FormData(form);
 
-  // Call your admin Cloudflare function to add fragrance
   const res = await fetch('/functions/admin/add-fragrance', {
     method: 'POST',
     body: data
