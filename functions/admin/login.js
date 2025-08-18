@@ -5,6 +5,14 @@ export async function onRequestPost(context) {
   try {
     const { request, env } = context;
     
+    // CORS headers for all responses
+    const corsHeaders = {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    };
+    
     // Check environment variables
     const ADMIN_USER = env.ADMIN_USER;
     const ADMIN_PASS = env.ADMIN_PASS;
@@ -17,15 +25,10 @@ export async function onRequestPost(context) {
     if (!ADMIN_USER || !ADMIN_PASS) {
       console.error('Missing environment variables');
       return new Response(JSON.stringify({ 
-        error: "Server configuration error - missing credentials" 
+        error: "Server configuration error - please check environment variables" 
       }), {
         status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
+        headers: corsHeaders
       });
     }
     
@@ -33,17 +36,14 @@ export async function onRequestPost(context) {
     let requestBody;
     try {
       const text = await request.text();
-      console.log('Request body:', text);
+      console.log('Request body received:', text);
       
       if (!text || text.trim() === '') {
         return new Response(JSON.stringify({ 
           error: "No data provided" 
         }), {
           status: 400,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
+          headers: corsHeaders
         });
       }
       
@@ -54,15 +54,11 @@ export async function onRequestPost(context) {
         error: "Invalid JSON format" 
       }), {
         status: 400,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers: corsHeaders
       });
     }
     
     const { username, password } = requestBody;
-    console.log('Credentials received:', { username: !!username, password: !!password });
     
     // Validate input
     if (!username || !password) {
@@ -70,18 +66,15 @@ export async function onRequestPost(context) {
         error: "Username and password are required" 
       }), {
         status: 400,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers: corsHeaders
       });
     }
     
     // Check credentials
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
-      console.log('Login successful');
+    if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
+      console.log('Login successful for user:', username);
       
-      // Generate simple session token
+      // Generate session token
       const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       return new Response(JSON.stringify({ 
@@ -90,22 +83,17 @@ export async function onRequestPost(context) {
       }), {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': `admin_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`,
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': 'true'
+          ...corsHeaders,
+          'Set-Cookie': `admin_session=${sessionToken}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`
         }
       });
     } else {
-      console.log('Invalid credentials');
+      console.log('Invalid credentials provided');
       return new Response(JSON.stringify({ 
-        error: "Invalid credentials" 
+        error: "Invalid username or password" 
       }), {
         status: 401,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers: corsHeaders
       });
     }
     
@@ -116,7 +104,7 @@ export async function onRequestPost(context) {
       details: error.message
     }), {
       status: 500,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       }
@@ -124,7 +112,7 @@ export async function onRequestPost(context) {
   }
 }
 
-// Handle OPTIONS requests for CORS
+// Handle CORS preflight requests
 export async function onRequestOptions(context) {
   return new Response(null, {
     status: 200,
@@ -132,7 +120,7 @@ export async function onRequestOptions(context) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400',
-    },
+      'Access-Control-Max-Age': '86400'
+    }
   });
 }
