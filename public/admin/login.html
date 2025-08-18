@@ -31,27 +31,31 @@ form.addEventListener('submit', async (e) => {
   };
 
   try {
-    // Send login request
     const res = await fetch('/functions/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
 
-    const result = await res.json();
+    let result;
+    try {
+      result = await res.json();
+    } catch (jsonErr) {
+      const text = await res.text();
+      alert('Server returned invalid JSON:\n' + text);
+      console.error('Invalid JSON response:', text);
+      return;
+    }
 
     if (res.ok) {
-      // Success → redirect to admin panel
       alert('Login successful!');
       window.location.href = '/admin/index.html';
     } else {
-      // Error → show message + debug info
       alert(result.message + (result.debug ? '\nDebug: ' + result.debug : ''));
     }
 
   } catch (err) {
-    // Network or unexpected error
-    alert('Server error: ' + err);
+    alert('Network or unexpected server error:\n' + err);
     console.error(err);
   }
 });
