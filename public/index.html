@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fragrances Store</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
+    h1 { text-align: center; }
+    .fragrance { background: #fff; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .fragrance img { width: 100px; height: 100px; object-fit: cover; border-radius: 5px; }
+    .details { flex: 1; }
+    .variants { margin-top: 10px; }
+    .variant { display: inline-block; margin-right: 10px; margin-bottom: 5px; padding: 5px 10px; background: #007bff; color: #fff; border-radius: 5px; cursor: pointer; text-decoration: none; }
+    .variant:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>Fragrances Store</h1>
+  <div id="fragrances"></div>
+
+  <script>
+    const apiUrl = '/api/fragrances'; // Cloudflare Pages function URL
+
+    async function fetchFragrances() {
+      const res = await fetch(apiUrl);
+      const fragrances = await res.json();
+      const container = document.getElementById('fragrances');
+      container.innerHTML = '';
+
+      fragrances.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'fragrance';
+
+        const img = document.createElement('img');
+        img.src = f.image_url || '';
+        img.alt = f.name;
+
+        const details = document.createElement('div');
+        details.className = 'details';
+        const title = document.createElement('h2');
+        title.textContent = f.name;
+        const desc = document.createElement('p');
+        desc.textContent = f.description || '';
+
+        details.appendChild(title);
+        details.appendChild(desc);
+
+        const variantsDiv = document.createElement('div');
+        variantsDiv.className = 'variants';
+        f.variants.forEach(v => {
+          const link = document.createElement('a');
+          link.href = `/buy/${v.id}?qty=1`; // default qty = 1
+          link.className = 'variant';
+          link.textContent = `${v.size_ml}ml - ${(v.price_cents/100).toFixed(2)} OMR`;
+          variantsDiv.appendChild(link);
+        });
+
+        details.appendChild(variantsDiv);
+        div.appendChild(img);
+        div.appendChild(details);
+        container.appendChild(div);
+      });
+    }
+
+    fetchFragrances();
+  </script>
+</body>
+</html>
