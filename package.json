@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "@supabase/supabase-js": "^2.55.0"
+    "@supabase/supabase-js": "^2.55.0",
+    "@tsndr/cloudflare-worker-jwt": "^3.2.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250816.0"

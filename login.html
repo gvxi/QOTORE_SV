@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login</title>
+</head>
+<body>
+  <h1>Admin Login</h1>
+  <form id="loginForm">
+    <label>Username: <input type="text" name="username" required></label><br>
+    <label>Password: <input type="password" name="password" required></label><br>
+    <button type="submit">Login</button>
+  </form>
+  <p id="message"></p>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      const res = await fetch('/functions/admin/login', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        // Redirect to admin page on success
+        window.location.href = '/admin';
+      } else {
+        message.textContent = data.message;
+      }
+    });
+  </script>
+</body>
+</html>
