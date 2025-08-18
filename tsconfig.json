@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": ["esnext"],
+    "strict": true,
+    "types": ["@cloudflare/workers-types"]  // <-- add this line
+  },
+  "include": ["functions/**/*", "src/**/*"]
+}
