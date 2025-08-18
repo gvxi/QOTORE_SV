@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Add Fragrance</title>
+<style>
+body { font-family: sans-serif; padding: 20px; }
+input, textarea { display: block; margin-bottom: 10px; width: 300px; }
+button { padding: 5px 10px; }
+</style>
+</head>
+<body>
+<h1>Add New Fragrance</h1>
+<form id="fragranceForm">
+  <input type="text" name="name" placeholder="Fragrance Name" required />
+  <input type="text" name="slug" placeholder="Slug (unique)" required />
+  <textarea name="description" placeholder="Description"></textarea>
+  <input type="file" name="image" accept="image/*" required />
+  <h3>Variants</h3>
+  <div id="variantsContainer">
+    <div class="variant">
+      <input type="number" name="size_ml[]" placeholder="Size ml" required />
+      <input type="number" name="price_cents[]" placeholder="Price (cents)" required />
+    </div>
+  </div>
+  <button type="button" id="addVariant">Add Another Variant</button>
+  <button type="submit">Submit</button>
+</form>
+
+<script>
+const form = document.getElementById('fragranceForm');
+const addBtn = document.getElementById('addVariant');
+const variantsContainer = document.getElementById('variantsContainer');
+
+addBtn.addEventListener('click', () => {
+  const div = document.createElement('div');
+  div.className = 'variant';
+  div.innerHTML = `
+    <input type="number" name="size_ml[]" placeholder="Size ml" required />
+    <input type="number" name="price_cents[]" placeholder="Price (cents)" required />
+  `;
+  variantsContainer.appendChild(div);
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = new FormData(form);
+
+  // Call your admin Cloudflare function
+  const res = await fetch('/admin/add-fragrance', {
+    method: 'POST',
+    body: data
+  });
+
+  const result = await res.json();
+  alert(result.message || 'Done');
+});
+</script>
+</body>
+</html>
