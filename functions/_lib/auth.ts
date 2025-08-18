@@ -1,12 +1,12 @@
-import jwt from 'jsonwebtoken';
+import { sign, verify } from '@tsndr/cloudflare-worker-jwt';
 
-const SECRET = 'YOUR_SUPER_SECRET_KEY'; // keep in environment variables
+// Create token with 1-hour expiration
+export async function createToken(payload: object, secret: string) {
+  const exp = Math.floor(Date.now() / 1000) + 60 * 60; // 1 hour
+  return await sign({ ...payload, exp }, secret);
+}
 
-export function verifyAdminToken(token: string) {
-  try {
-    const payload = jwt.verify(token, SECRET);
-    return true;
-  } catch (e) {
-    return false;
-  }
+// Verify token (returns true/false)
+export async function verifyAdminToken(token: string, secret: string) {
+  return await verify(token, secret);
 }
