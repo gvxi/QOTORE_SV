@@ -7,5 +7,5 @@
     "strict": true,
     "types": ["@cloudflare/workers-types"]  // <-- add this line
   },
-  "include": ["functions/**/*", "src/**/*"]
+  "include": ["functions/**/*", "src/**/*", "public/test.js"]
 }
