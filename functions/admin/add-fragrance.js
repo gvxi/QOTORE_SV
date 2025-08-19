@@ -1,4 +1,4 @@
-// functions/admin/add-fragrance.js - Save fragrances to Supabase
+// functions/admin/add-fragrance.js - Simplified version without brand_id
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -9,7 +9,7 @@ export async function onRequestPost(context) {
   try {
     console.log('Add fragrance request received');
     
-    // Check authentication (middleware should handle this, but double-check)
+    // Check authentication
     const request = context.request;
     const cookies = request.headers.get('Cookie') || '';
     const sessionCookie = cookies
@@ -29,7 +29,7 @@ export async function onRequestPost(context) {
     // Get Supabase credentials
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY; // Use service role for admin operations
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error('Missing Supabase environment variables');
@@ -106,58 +106,15 @@ export async function onRequestPost(context) {
 
     console.log('Saving fragrance to Supabase:', { name, slug, variantCount: validVariants.length });
 
-    // Step 1: Handle brand (if provided)
-    let brandId = null;
-    if (brand && brand.trim()) {
-      console.log('Looking for brand:', brand);
-      
-      // Check if brand exists
-      const brandResponse = await fetch(`${SUPABASE_URL}/rest/v1/brands?name=eq.${encodeURIComponent(brand.trim())}`, {
-        headers: {
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-        }
-      });
-
-      if (brandResponse.ok) {
-        const existingBrands = await brandResponse.json();
-        
-        if (existingBrands.length > 0) {
-          brandId = existingBrands[0].id;
-          console.log('Found existing brand ID:', brandId);
-        } else {
-          // Create new brand
-          console.log('Creating new brand:', brand);
-          const createBrandResponse = await fetch(`${SUPABASE_URL}/rest/v1/brands`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': SUPABASE_SERVICE_ROLE_KEY,
-              'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify({ name: brand.trim() })
-          });
-
-          if (createBrandResponse.ok) {
-            const newBrand = await createBrandResponse.json();
-            brandId = newBrand[0].id;
-            console.log('Created new brand ID:', brandId);
-          } else {
-            console.error('Failed to create brand:', await createBrandResponse.text());
-          }
-        }
-      }
-    }
-
-    // Step 2: Create fragrance
+    // Create fragrance (simplified - no brand_id)
     const fragrancePayload = {
       name: name.trim(),
       slug: slug.trim().toLowerCase(),
       description: description.trim(),
-      image_path: image?.trim() || null, // This will be the full path like "fragrance-images/slug.png"
-      brand_id: brandId,
-      created_at: new Date().toISOString() // Add timestamp
+      image_path: image?.trim() || null,
+      brand: brand?.trim() || null, // Store brand as simple text
+      hidden: false,
+      created_at: new Date().toISOString()
     };
 
     console.log('Creating fragrance with payload:', fragrancePayload);
@@ -201,18 +158,18 @@ export async function onRequestPost(context) {
     const fragranceId = createdFragrance[0].id;
     console.log('Created fragrance with ID:', fragranceId);
 
-    // Step 3: Create variants
+    // Create variants
     const variantsPayload = validVariants.map(variant => {
       if (variant.is_whole_bottle) {
         return {
           fragrance_id: fragranceId,
-          size_ml: null, // Whole bottle has no specific ml size
-          price_cents: null, // No price for whole bottle
+          size_ml: null,
+          price_cents: null,
           sku: variant.sku || null,
           is_whole_bottle: true
         };
       } else {
-        const priceInCents = Math.round(parseFloat(variant.price) * 1000); // Convert OMR to fils (1 OMR = 1000 fils)
+        const priceInCents = Math.round(parseFloat(variant.price) * 1000);
         
         return {
           fragrance_id: fragranceId,
@@ -241,14 +198,13 @@ export async function onRequestPost(context) {
       const errorText = await variantsResponse.text();
       console.error('Failed to create variants:', errorText);
       
-      // Fragrance was created but variants failed - this is a partial success
       return new Response(JSON.stringify({
         error: 'Fragrance created but variants failed to save',
         details: errorText,
         fragranceId: fragranceId,
         partialSuccess: true
       }), {
-        status: 207, // Multi-status
+        status: 207,
         headers: corsHeaders
       });
     }
@@ -256,39 +212,15 @@ export async function onRequestPost(context) {
     const createdVariants = await variantsResponse.json();
     console.log('Created variants:', createdVariants.length);
 
-    // Step 4: Initialize stock (optional)
-    if (createdVariants.length > 0) {
-      const stockPayload = createdVariants.map(variant => ({
-        variant_id: variant.id,
-        quantity: 0 // Default stock
-      }));
-
-      const stockResponse = await fetch(`${SUPABASE_URL}/rest/v1/stock`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-        },
-        body: JSON.stringify(stockPayload)
-      });
-
-      if (!stockResponse.ok) {
-        console.log('Stock initialization failed (non-critical):', await stockResponse.text());
-      } else {
-        console.log('Stock initialized for variants');
-      }
-    }
-
     // Success response
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Fragrance added successfully to database!',
+      message: 'Fragrance added successfully!',
       data: {
         id: fragranceId,
         name: createdFragrance[0].name,
         slug: createdFragrance[0].slug,
-        brand: brand || null,
+        brand: createdFragrance[0].brand,
         image_path: createdFragrance[0].image_path,
         created_at: createdFragrance[0].created_at,
         variantCount: createdVariants.length,
@@ -339,7 +271,6 @@ export async function onRequestOptions() {
 
 // Test endpoint
 export async function onRequestGet(context) {
-  // Check if authenticated
   const cookies = context.request.headers.get('Cookie') || '';
   const sessionCookie = cookies
     .split(';')
