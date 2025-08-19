@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Fragrance Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 20%, 40%, 60%, 80% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-5px);
+            }
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔑 Admin Login</h1>
+            <p>Enter your credentials to access the admin panel</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    required 
+                    autocomplete="username"
+                    placeholder="Enter your username"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                >
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                Sign In
+            </button>
+        </form>
+
+        <div class="back-link">
+            <a href="/index.html">← Back to Store</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const errorDiv = document.getElementById('error-message');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // Check if already logged in
+            const cookies = document.cookie.split(';');
+            const adminSession = cookies.find(cookie => 
+                cookie.trim().startsWith('admin_session=')
+            );
+            
+            if (adminSession) {
+                // Already logged in, redirect to admin
+                window.location.href = '/admin/index.html';
+                return;
+            }
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(loginForm);
+                    const username = formData.get('username')?.toString().trim();
+                    const password = formData.get('password')?.toString().trim();
+                    
+                    // Clear previous errors
+                    hideError();
+                    
+                    // Basic validation
+                    if (!username || !password) {
+                        showError('Please enter both username and password');
+                        return;
+                    }
+                    
+                    // Show loading state
+                    setLoadingState(true);
+                    
+                    try {
+                        const response = await fetch('/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include', // Important for cookies
+                            body: JSON.stringify({ username, password })
+                        });
+                        
+                        let data;
+                        const responseText = await response.text();
+                        
+                        if (!responseText) {
+                            throw new Error('Empty response from server');
+                        }
+                        
+                        try {
+                            data = JSON.parse(responseText);
+                        } catch (jsonError) {
+                            console.error('JSON parse error:', jsonError);
+                            console.error('Response text:', responseText);
+                            throw new Error('Invalid response format from server');
+                        }
+                        
+                        if (response.ok && data.success) {
+                            // Login successful - show success and redirect
+                            loginBtn.innerHTML = '✅ Login Successful!';
+                            setTimeout(() => {
+                                window.location.href = '/admin/index.html';
+                            }, 500);
+                        } else {
+                            // Login failed
+                            showError(data.error || 'Login failed');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        showError(error.message || 'Connection error. Please try again.');
+                    } finally {
+                        // Reset button state after a delay if still on page
+                        setTimeout(() => {
+                            setLoadingState(false);
+                        }, 500);
+                    }
+                });
+            }
+            
+            function showError(message) {
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                    // Scroll error into view
+                    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    alert(message);
+                }
+            }
+            
+            function hideError() {
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                    errorDiv.textContent = '';
+                }
+            }
+            
+            function setLoadingState(loading) {
+                if (loading) {
+                    loginBtn.innerHTML = '<span class="loading"></span>Signing In...';
+                    loginBtn.disabled = true;
+                } else {
+                    loginBtn.innerHTML = 'Sign In';
+                    loginBtn.disabled = false;
+                }
+            }
+            
+            // Clear error when user starts typing
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', hideError);
+            });
+            
+            // Focus on username field
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>
