@@ -12,7 +12,7 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ 
       success: true,
       message: 'Logged out successfully',
-      redirectUrl: '/login.html'
+      redirectUrl: '/'
     }), {
       status: 200,
       headers: {
