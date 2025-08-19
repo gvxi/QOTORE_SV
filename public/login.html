@@ -28,18 +28,6 @@
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
         }
 
         .login-header {
@@ -51,12 +39,6 @@
             color: #333;
             font-size: 28px;
             margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .login-header p {
-            color: #666;
-            font-size: 14px;
         }
 
         .form-group {
@@ -68,24 +50,19 @@
             margin-bottom: 8px;
             color: #333;
             font-weight: 500;
-            font-size: 14px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px;
             border: 2px solid #e1e5e9;
             border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            background: #f8f9fa;
         }
 
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
         }
 
         .login-btn {
@@ -98,68 +75,35 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            position: relative;
-            overflow: hidden;
         }
 
-        .login-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
+        .login-btn:hover {
+            opacity: 0.9;
         }
 
         .login-btn:disabled {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .success-message {
-            background: #e8f5e8;
-            border: 1px solid #4caf50;
-            color: #2e7d32;
-            padding: 12px 16px;
+        .message {
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
             font-size: 14px;
             display: none;
-            animation: slideIn 0.3s ease-in-out;
         }
 
-        .error-message {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-            animation: shake 0.5s ease-in-out;
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
-        @keyframes shake {
-            0%, 20%, 40%, 60%, 80% {
-                transform: translateX(0);
-            }
-            10%, 30%, 50%, 70%, 90% {
-                transform: translateX(-5px);
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .back-link {
@@ -170,97 +114,35 @@
         .back-link a {
             color: #667eea;
             text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s ease;
         }
 
-        .back-link a:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 2px solid white;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .status-indicator {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #ccc;
-        }
-
-        .status-indicator.online {
-            background: #4caf50;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
-        }
-
-        .status-indicator.offline {
-            background: #f44336;
-            box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.3);
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 30px 20px;
-            }
-
-            .login-header h1 {
-                font-size: 24px;
-            }
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="status-indicator" id="statusIndicator"></div>
-        
         <div class="login-header">
             <h1>🔑 Admin Login</h1>
-            <p>Enter your credentials to access the admin panel</p>
         </div>
 
-        <div id="success-message" class="success-message"></div>
-        <div id="error-message" class="error-message"></div>
+        <div class="status" id="status">Checking login function...</div>
+        
+        <div id="message" class="message"></div>
 
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    required 
-                    autocomplete="username"
-                    placeholder="Enter your username"
-                >
+                <input type="text" id="username" name="username" required value="admin">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    required 
-                    autocomplete="current-password"
-                    placeholder="Enter your password"
-                >
+                <input type="password" id="password" name="password" required value="admin">
             </div>
 
             <button type="submit" class="login-btn" id="loginBtn">
@@ -274,181 +156,104 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginForm = document.getElementById('loginForm');
-            const errorDiv = document.getElementById('error-message');
-            const successDiv = document.getElementById('success-message');
-            const loginBtn = document.getElementById('loginBtn');
-            const statusIndicator = document.getElementById('statusIndicator');
-            
-            // Check login function status
-            checkLoginFunctionStatus();
-            
-            // Check if already logged in
-            const cookies = document.cookie.split(';');
-            const adminSession = cookies.find(cookie => 
-                cookie.trim().startsWith('admin_session=')
-            );
-            
-            if (adminSession) {
-                showSuccess('Already logged in! Redirecting to admin panel...');
-                setTimeout(() => {
-                    window.location.href = '/admin/index.html';
-                }, 1500);
-                return;
-            }
-            
-            if (loginForm) {
-                loginForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(loginForm);
-                    const username = formData.get('username')?.toString().trim();
-                    const password = formData.get('password')?.toString().trim();
-                    
-                    // Clear previous messages
-                    hideMessages();
-                    
-                    // Basic validation
-                    if (!username || !password) {
-                        showError('Please enter both username and password');
-                        return;
-                    }
-                    
-                    // Show loading state
-                    setLoadingState(true);
-                    
-                    try {
-                        console.log('Sending login request for user:', username);
-                        
-                        const response = await fetch('/loginf', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            credentials: 'include',
-                            body: JSON.stringify({ username, password })
-                        });
-                        
-                        console.log('Response status:', response.status);
-                        
-                        const responseText = await response.text();
-                        console.log('Response text length:', responseText.length);
-                        console.log('Response text:', responseText);
-                        
-                        if (!responseText || responseText.trim() === '') {
-                            throw new Error('Empty response from server - function may not be deployed correctly');
-                        }
-                        
-                        let data;
-                        try {
-                            data = JSON.parse(responseText);
-                        } catch (jsonError) {
-                            console.error('JSON parse error:', jsonError);
-                            throw new Error(`Server returned invalid JSON: ${responseText.substring(0, 100)}`);
-                        }
-                        
-                        if (response.ok && data.success) {
-                            // Login successful
-                            showSuccess(data.message || 'Login successful!');
-                            loginBtn.innerHTML = '✅ Success! Redirecting...';
-                            
-                            // Redirect after short delay
-                            setTimeout(() => {
-                                window.location.href = data.redirectUrl || '/admin/index.html';
-                            }, 1000);
-                        } else {
-                            // Login failed - show specific error
-                            showError(data.error || `Login failed (${response.status})`);
-                        }
-                        
-                    } catch (error) {
-                        console.error('Login error:', error);
-                        showError(`Connection error: ${error.message}`);
-                    } finally {
-                        // Reset button state after delay
-                        setTimeout(() => {
-                            setLoadingState(false);
-                        }, 1000);
-                    }
-                });
-            }
-            
-            async function checkLoginFunctionStatus() {
-                try {
-                    const response = await fetch('/loginf', {
-                        method: 'GET',
-                        credentials: 'include'
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        statusIndicator.className = 'status-indicator online';
-                        statusIndicator.title = 'Login function is online';
-                        
-                        // Check environment variables
-                        if (data.environmentCheck) {
-                            const { hasAdminUser, hasAdminPass } = data.environmentCheck;
-                            if (!hasAdminUser || !hasAdminPass) {
-                                showError('Server configuration incomplete - contact administrator');
-                                statusIndicator.className = 'status-indicator offline';
-                                statusIndicator.title = 'Environment variables not configured';
-                            }
-                        }
-                    } else {
-                        statusIndicator.className = 'status-indicator offline';
-                        statusIndicator.title = 'Login function is offline';
-                    }
-                } catch (error) {
-                    statusIndicator.className = 'status-indicator offline';
-                    statusIndicator.title = 'Cannot connect to login function';
-                }
-            }
-            
-            function showError(message) {
-                hideMessages();
-                if (errorDiv) {
-                    errorDiv.textContent = message;
-                    errorDiv.style.display = 'block';
-                    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-            
-            function showSuccess(message) {
-                hideMessages();
-                if (successDiv) {
-                    successDiv.textContent = message;
-                    successDiv.style.display = 'block';
-                }
-            }
-            
-            function hideMessages() {
-                if (errorDiv) {
-                    errorDiv.style.display = 'none';
-                    errorDiv.textContent = '';
-                }
-                if (successDiv) {
-                    successDiv.style.display = 'none';
-                    successDiv.textContent = '';
-                }
-            }
-            
-            function setLoadingState(loading) {
-                if (loading) {
-                    loginBtn.innerHTML = '<span class="loading"></span>Signing In...';
-                    loginBtn.disabled = true;
-                } else {
-                    loginBtn.innerHTML = 'Sign In';
-                    loginBtn.disabled = false;
-                }
-            }
-            
-            // Clear messages when user starts typing
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('input', hideMessages);
+        console.log('Script started');
+        
+        // Check if already logged in
+        if (document.cookie.includes('admin_session=')) {
+            console.log('Already logged in, redirecting...');
+            window.location.href = '/admin/index.html';
+        }
+        
+        // Test login function status
+        fetch('/loginf')
+            .then(r => r.json())
+            .then(data => {
+                console.log('Login function status:', data);
+                document.getElementById('status').textContent = '✅ Login function ready';
+                document.getElementById('status').style.color = 'green';
+            })
+            .catch(e => {
+                console.error('Login function test failed:', e);
+                document.getElementById('status').textContent = '❌ Login function offline';
+                document.getElementById('status').style.color = 'red';
             });
+
+        // Simple form handler
+        document.getElementById('loginForm').onsubmit = async function(e) {
+            console.log('Form submitted');
+            e.preventDefault();
             
-            // Focus on username field
-            document.getElementById('username').focus();
-        });
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const messageDiv = document.getElementById('message');
+            const button = document.getElementById('loginBtn');
+            
+            console.log('Attempting login for:', username);
+            
+            // Show loading
+            button.textContent = 'Signing In...';
+            button.disabled = true;
+            messageDiv.style.display = 'none';
+            
+            try {
+                console.log('Sending request...');
+                
+                const response = await fetch('/loginf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+                
+                console.log('Got response:', response.status);
+                
+                const result = await response.text();
+                console.log('Response text:', result);
+                
+                if (!result) {
+                    throw new Error('Empty response');
+                }
+                
+                const data = JSON.parse(result);
+                console.log('Parsed data:', data);
+                
+                if (data.success) {
+                    // Success
+                    messageDiv.textContent = '✅ ' + data.message;
+                    messageDiv.className = 'message success';
+                    messageDiv.style.display = 'block';
+                    
+                    button.textContent = '✅ Success!';
+                    
+                    setTimeout(() => {
+                        console.log('Redirecting to admin...');
+                        window.location.href = '/admin/index.html';
+                    }, 1000);
+                } else {
+                    // Error
+                    messageDiv.textContent = '❌ ' + data.error;
+                    messageDiv.className = 'message error';
+                    messageDiv.style.display = 'block';
+                    
+                    button.textContent = 'Sign In';
+                    button.disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                messageDiv.textContent = '❌ Error: ' + error.message;
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                
+                button.textContent = 'Sign In';
+                button.disabled = false;
+            }
+        };
+        
+        console.log('Script setup complete');
+    </script>
+</body>
+</html>
