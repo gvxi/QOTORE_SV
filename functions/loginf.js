@@ -116,7 +116,8 @@ export async function onRequestPost(context) {
         status: 200,
         headers: {
           ...corsHeaders,
-          'Set-Cookie': `admin_session=${sessionToken}; Path=/; Max-Age=86400; HttpOnly; Secure; SameSite=Lax`
+          // Try different cookie settings for Cloudflare Pages
+          'Set-Cookie': `admin_session=${sessionToken}; Path=/; Max-Age=86400; SameSite=Lax`
         }
       });
     } else {

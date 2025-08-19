@@ -436,27 +436,43 @@
         });
 
         function checkAuthentication() {
+            console.log('Checking authentication...');
+            console.log('All cookies:', document.cookie);
+            
             const cookies = document.cookie.split(';');
             const adminSession = cookies.find(cookie => 
                 cookie.trim().startsWith('admin_session=')
             );
             
+            console.log('Admin session cookie:', adminSession);
+            
             if (!adminSession) {
-                // Give a small delay to allow cookie to be set after redirect
+                console.log('No session found on first check, waiting...');
+                
+                // Give more time for cookie to be set after redirect
                 setTimeout(() => {
+                    console.log('Rechecking cookies after delay...');
+                    console.log('All cookies (recheck):', document.cookie);
+                    
                     const cookiesRecheck = document.cookie.split(';');
                     const adminSessionRecheck = cookiesRecheck.find(cookie => 
                         cookie.trim().startsWith('admin_session=')
                     );
                     
+                    console.log('Admin session cookie (recheck):', adminSessionRecheck);
+                    
                     if (!adminSessionRecheck) {
-                        alert('Session expired. Please log in again.');
+                        console.log('Still no session found, redirecting to login');
+                        alert('Session not found. Please log in again.');
                         window.location.href = '/login.html';
+                    } else {
+                        console.log('Session found on recheck, proceeding...');
                     }
-                }, 500);
+                }, 1500); // Increased delay
                 return false;
             }
             
+            console.log('Session found immediately, proceeding...');
             return true;
         }
 

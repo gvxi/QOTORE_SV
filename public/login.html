@@ -152,12 +152,12 @@
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required value="admin">
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required value="admin">
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
             </div>
 
             <button type="submit" class="login-btn" id="loginBtn">
@@ -244,9 +244,22 @@
                     
                     button.textContent = '✅ Success!';
                     
+                    // Debug: Check if cookie was set
                     setTimeout(() => {
-                        console.log('Redirecting to admin...');
-                        window.location.href = '/admin/index.html';
+                        console.log('Current cookies after login:', document.cookie);
+                        const hasCookie = document.cookie.includes('admin_session=');
+                        console.log('Has admin session cookie:', hasCookie);
+                        
+                        if (hasCookie) {
+                            console.log('Cookie found, redirecting to admin...');
+                            window.location.href = '/admin/index.html';
+                        } else {
+                            console.error('Cookie not set! Check server response headers');
+                            messageDiv.textContent = '⚠️ Login successful but session not set. Redirecting anyway...';
+                            setTimeout(() => {
+                                window.location.href = '/admin/index.html';
+                            }, 2000);
+                        }
                     }, 1000);
                 } else {
                     // Error
@@ -270,7 +283,7 @@
             }
         };
         
-        console.log('success');
+        console.log('complete');
     </script>
 </body>
 </html>
