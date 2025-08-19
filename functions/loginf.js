@@ -1,5 +1,31 @@
-// functions/loginf.js - Complete login function
+// functions/loginf.js - Ultra-simple debug version
+console.log('loginf.js file loaded');
+
+export function onRequestGet(context) {
+  console.log('GET request to loginf');
+  
+  return new Response(JSON.stringify({
+    status: 'loginf function is working!',
+    timestamp: new Date().toISOString(),
+    environment: {
+      hasAdminUser: !!context.env.ADMIN_USER,
+      hasAdminPass: !!context.env.ADMIN_PASS,
+      adminUser: context.env.ADMIN_USER ? 'SET' : 'NOT SET',
+      adminPass: context.env.ADMIN_PASS ? 'SET' : 'NOT SET'
+    }
+  }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
+}
+
+// functions/loginf.js - Working version with proper authentication
 export async function onRequestPost(context) {
+  console.log('Login POST request received');
+  
   const corsHeaders = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -7,22 +33,23 @@ export async function onRequestPost(context) {
   };
 
   try {
-    console.log('Login attempt started');
+    const { env, request } = context;
     
-    // Get environment variables - NO FALLBACKS for security
-    const { env } = context;
+    // Get environment variables
     const ADMIN_USER = env.ADMIN_USER;
     const ADMIN_PASS = env.ADMIN_PASS;
     
-    // Check if environment variables are set
+    console.log('Environment check:', { 
+      hasUser: !!ADMIN_USER, 
+      hasPass: !!ADMIN_PASS,
+      userLength: ADMIN_USER ? ADMIN_USER.length : 0,
+      passLength: ADMIN_PASS ? ADMIN_PASS.length : 0
+    });
+    
     if (!ADMIN_USER || !ADMIN_PASS) {
-      console.error('Environment variables missing');
+      console.error('Missing environment variables');
       return new Response(JSON.stringify({ 
-        error: 'Server configuration error - admin credentials not configured',
-        debug: {
-          hasAdminUser: !!ADMIN_USER,
-          hasAdminPass: !!ADMIN_PASS
-        }
+        error: 'Server configuration error - admin credentials not configured'
       }), {
         status: 500,
         headers: corsHeaders
@@ -32,7 +59,9 @@ export async function onRequestPost(context) {
     // Parse request body
     let requestBody;
     try {
-      const text = await context.request.text();
+      const text = await request.text();
+      console.log('Request body received, length:', text.length);
+      
       if (!text || text.trim() === '') {
         return new Response(JSON.stringify({ 
           error: 'No data provided' 
@@ -41,7 +70,9 @@ export async function onRequestPost(context) {
           headers: corsHeaders
         });
       }
+      
       requestBody = JSON.parse(text);
+      console.log('Parsed request body:', { username: requestBody.username, hasPassword: !!requestBody.password });
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       return new Response(JSON.stringify({ 
@@ -56,6 +87,7 @@ export async function onRequestPost(context) {
     
     // Validate input
     if (!username || !password) {
+      console.log('Missing username or password');
       return new Response(JSON.stringify({ 
         error: 'Username and password are required' 
       }), {
@@ -65,6 +97,11 @@ export async function onRequestPost(context) {
     }
     
     // Check credentials
+    console.log('Checking credentials for user:', username);
+    console.log('Expected user:', ADMIN_USER);
+    console.log('Username match:', username.trim() === ADMIN_USER);
+    console.log('Password match:', password === ADMIN_PASS);
+    
     if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
       console.log('Login successful for user:', username);
       
@@ -104,39 +141,15 @@ export async function onRequestPost(context) {
   }
 }
 
-// Handle CORS preflight
 export function onRequestOptions() {
+  console.log('OPTIONS request to loginf');
+  
   return new Response(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Max-Age': '86400'
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
     }
-  });
-}
-
-// Test GET endpoint to verify function and environment variables
-export function onRequestGet(context) {
-  const { env } = context;
-  
-  return new Response(JSON.stringify({
-    message: 'Login function is working!',
-    methods: ['POST for login', 'OPTIONS for CORS'],
-    environmentCheck: {
-      hasAdminUser: !!env.ADMIN_USER,
-      hasAdminPass: !!env.ADMIN_PASS,
-      adminUserLength: env.ADMIN_USER ? env.ADMIN_USER.length : 0,
-      adminPassLength: env.ADMIN_PASS ? env.ADMIN_PASS.length : 0
-    },
-    endpoints: {
-      login: 'POST /loginf',
-      test: 'GET /loginf'
-    },
-    note: 'Set ADMIN_USER and ADMIN_PASS environment variables in Cloudflare Pages settings'
-  }), {
-    headers: { 'Content-Type': 'application/json' }
   });
 }
