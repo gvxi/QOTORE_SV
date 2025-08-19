@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Fragrance Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header h1 {
+            color: #333;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-btn, .logout-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .logout-btn {
+            background: #ff4757;
+            color: white;
+        }
+
+        .logout-btn:hover {
+            background: #ff3838;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header h2 {
+            color: #333;
+            font-size: 20px;
+        }
+
+        .card-icon {
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .variants-container {
+            border: 2px dashed #e1e5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .variant-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .variant-input input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .variant-input input:first-child {
+            flex: 2;
+        }
+
+        .remove-variant {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .remove-variant:hover {
+            background: #ff3838;
+        }
+
+        .add-variant {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .add-variant:hover {
+            background: #26d465;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .success-message, .error-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .session-info {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .admin-nav {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .variant-input {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .variant-input input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <h1>🏪 Fragrance Store Admin</h1>
+        <nav class="admin-nav">
+            <a href="/index.html" class="nav-btn">View Store</a>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </nav>
+    </header>
+
+    <div class="admin-container">
+        <!-- Session Status -->
+        <div class="session-info">
+            <span>🟢</span>
+            <span>Admin session active</span>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalFragrances">-</div>
+                <div class="stat-label">Total Fragrances</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalVariants">-</div>
+                <div class="stat-label">Total Variants</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="lastAdded">-</div>
+                <div class="stat-label">Last Added</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Add Fragrance Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <span class="card-icon">➕</span>
+                    <h2>Add New Fragrance</h2>
+                </div>
+
+                <div id="success-message" class="success-message"></div>
+                <div id="error-message" class="error-message"></div>
+
+                <form id="addFragranceForm">
+                    <div class="form-group">
+                        <label for="name">Fragrance Name*</label>
+                        <input type="text" id="name" name="name" required placeholder="e.g., Chanel No. 5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slug">URL Slug*</label>
+                        <input type="text" id="slug" name="slug" required placeholder="e.g., chanel-no-5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description*</label>
+                        <textarea id="description" name="description" required placeholder="Describe the fragrance..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image">Image URL</label>
+                        <input type="url" id="image" name="image" placeholder="https://example.com/image.jpg">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Variants (Size & Price)*</label>
+                        <div class="variants-container" id="variantsContainer">
+                            <div class="variant-input">
+                                <input type="text" placeholder="Size (e.g., 50ml)" required>
+                                <input type="number" placeholder="Price" step="0.01" min="0" required>
+                                <button type="button" class="remove-variant">Remove</button>
+                            </div>
+                        </div>
+                        <button type="button" id="addVariantBtn" class="add-variant">+ Add Another Variant</button>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        Add Fragrance
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <span class="card-icon">⚡</span>
+                    <h2>Quick Actions</h2>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <button class="nav-btn" onclick="location.reload()">🔄 Refresh Dashboard</button>
+                    <button class="nav-btn" onclick="testConnection()">🔍 Test API Connection</button>
+                    <button class="nav-btn" onclick="clearForm()">🗑️ Clear Form</button>
+                    <button class="nav-btn" onclick="exportData()">📊 Export Data</button>
+                </div>
+
+                <div id="connection-status" style="margin-top: 1rem; padding: 10px; border-radius: 6px; font-size: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication on page load
+            checkAuthentication();
+            
+            // Initialize the admin dashboard
+            initializeAdminDashboard();
+        });
+
+        function checkAuthentication() {
+            const cookies = document.cookie.split(';');
+            const adminSession = cookies.find(cookie => 
+                cookie.trim().startsWith('admin_session=')
+            );
+            
+            if (!adminSession) {
+                alert('Session expired. Please log in again.');
+                window.location.href = '/login.html';
+                return false;
+            }
+            
+            return true;
+        }
+
+        function initializeAdminDashboard() {
+            const addFragranceForm = document.getElementById('addFragranceForm');
+            const addVariantBtn = document.getElementById('addVariantBtn');
+            const variantsContainer = document.getElementById('variantsContainer');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Auto-generate slug from name
+            const nameInput = document.getElementById('name');
+            const slugInput = document.getElementById('slug');
+            
+            nameInput.addEventListener('input', function() {
+                const slug = this.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                slugInput.value = slug;
+            });
+            
+            // Add variant functionality
+            if (addVariantBtn && variantsContainer) {
+                addVariantBtn.addEventListener('click', function() {
+                    const variantDiv = document.createElement('div');
+                    variantDiv.className = 'variant-input';
+                    variantDiv.innerHTML = `
+                        <input type="text" placeholder="Size (e.g., 100ml)" required>
+                        <input type="number" placeholder="Price" step="0.01" min="0" required>
+                        <button type="button" class="remove-variant">Remove</button>
+                    `;
+                    
+                    // Add remove functionality
+                    variantDiv.querySelector('.remove-variant').addEventListener('click', function() {
+                        variantDiv.remove();
+                        updateStats();
+                    });
+                    
+                    variantsContainer.appendChild(variantDiv);
+                    updateStats();
+                });
+                
+                // Add remove functionality to existing variant
+                document.querySelector('.remove-variant').addEventListener('click', function() {
+                    const variants = document.querySelectorAll('.variant-input');
+                    if (variants.length > 1) {
+                        this.closest('.variant-input').remove();
+                        updateStats();
+                    } else {
+                        alert('At least one variant is required');
+                    }
+                });
+            }
+            
+            // Handle form submission
+            if (addFragranceForm) {
+                addFragranceForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    if (!checkAuthentication()) return;
+                    
+                    const formData = new FormData(addFragranceForm);
+                    const name = formData.get('name')?.toString().trim();
+                    const slug = formData.get('slug')?.toString().trim();
+                    const description = formData.get('description')?.toString().trim();
+                    const image = formData.get('image')?.toString().trim();
+                    
+                    // Collect variants
+                    const variants = [];
+                    const variantInputs = document.querySelectorAll('.variant-input');
+                    
+                    variantInputs.forEach(variantDiv => {
+                        const inputs = variantDiv.querySelectorAll('input');
+                        const size = inputs[0].value.trim();
+                        const price = parseFloat(inputs[1].value);
+                        
+                        if (size && !isNaN(price) && price > 0) {
+                            variants.push({ size, price });
+                        }
+                    });
+                    
+                    // Validation
+                    if (!name || !slug || !description || variants.length === 0) {
+                        showError('Please fill in all required fields and add at least one valid variant');
+                        return;
+                    }
+                    
+                    setSubmitLoading(true);
+                    hideMessages();
+                    
+                    try {
+                        const response = await fetch('/admin/add-fragrance', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                name,
+                                slug,
+                                description,
+                                image,
+                                variants
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok && data.success) {
+                            showSuccess(data.message || 'Fragrance added successfully!');
+                            addFragranceForm.reset();
+                            
+                            // Reset variants to just one
+                            const allVariants = document.querySelectorAll('.variant-input');
+                            for (let i = 1; i < allVariants.length; i++) {
+                                allVariants[i].remove();
+                            }
+                            allVariants[0].querySelectorAll('input').forEach(input => input.value = '');
+                            
+                            updateStats();
+                        } else {
+                            if (response.status === 401) {
+                                alert('Session expired. Please log in again.');
+                                window.location.href = '/login.html';
+                            } else {
+                                showError(data.error || 'Failed to add fragrance');
+                            }
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error adding fragrance:', error);
+                        showError('Connection error. Please try again.');
+                    } finally {
+                        setSubmitLoading(false);
+                    }
+                });
+            }
+            
+            // Handle logout
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async function() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        try {
+                            await fetch('/logout', {
+                                method: 'POST',
+                                credentials: 'include'
+                            });
+                        } catch (error) {
+                            console.error('Logout error:', error);
+                        }
+                        
+                        // Clear session and redirect
+                        document.cookie = 'admin_session=; Path=/; Max-Age=0';
+                        window.location.href = '/login.html';
+                    }
+                });
+            }
+            
+            // Initial stats update
+            updateStats();
+            
+            // Test API connection on load
+            setTimeout(testConnection, 1000);
+        }
+
+        function updateStats() {
+            const variants = document.querySelectorAll('.variant-input').length;
+            document.getElementById('totalVariants').textContent = variants;
+            document.getElementById('totalFragrances').textContent = '1';
+            document.getElementById('lastAdded').textContent = 'Today';
+        }
+
+        async function testConnection() {
+            const statusDiv = document.getElementById('connection-status');
+            
+            try {
+                const response = await fetch('/admin/add-fragrance', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '🟢 API Connection: Online';
+                    statusDiv.style.background = '#e8f5e8';
+                    statusDiv.style.color = '#2e7d32';
+                    statusDiv.style.border = '1px solid #4caf50';
+                } else {
+                    throw new Error('API offline');
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '🔴 API Connection: Offline';
+                statusDiv.style.background = '#fee';
+                statusDiv.style.color = '#c33';
+                statusDiv.style.border = '1px solid #fcc';
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('addFragranceForm').reset();
+            const allVariants = document.querySelectorAll('.variant-input');
+            for (let i = 1; i < allVariants.length; i++) {
+                allVariants[i].remove();
+            }
+            hideMessages();
+            updateStats();
+        }
+
+        function exportData() {
+            alert('Export feature coming soon!');
+        }
+
+        function showError(message) {
+            hideMessages();
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function showSuccess(message) {
+            hideMessages();
+            const successDiv = document.getElementById('success-message');
+            if (successDiv) {
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+            }
+        }
+
+        function hideMessages() {
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+            
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+            }
+            if (successDiv) {
+                successDiv.style.display = 'none';
+                successDiv.textContent = '';
+            }
+        }
+
+        function setSubmitLoading(loading) {
+            const submitBtn = document.getElementById('submitBtn');
+            if (loading) {
+                submitBtn.innerHTML = '<span class="loading"></span>Adding Fragrance...';
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.innerHTML = 'Add Fragrance';
+                submitBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

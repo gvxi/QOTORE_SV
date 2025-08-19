@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - Fragrance Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .reject-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reject-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff4757, #ff3838);
+        }
+
+        .reject-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: shake 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-5px); }
+        }
+
+        .reject-header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .reject-header p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .error-details {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .help-text {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .help-text a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .reject-container {
+                padding: 30px 20px;
+            }
+
+            .reject-header h1 {
+                font-size: 24px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="reject-container">
+        <div class="reject-icon">🚫</div>
+        
+        <div class="reject-header">
+            <h1>Access Denied</h1>
+            <p>You don't have permission to access this admin area.</p>
+        </div>
+
+        <div class="error-details">
+            <strong>Possible reasons:</strong><br>
+            • Your session has expired<br>
+            • Invalid authentication credentials<br>
+            • You're not authorized for admin access
+        </div>
+
+        <div class="action-buttons">
+            <a href="/login.html" class="btn btn-primary">
+                🔑 Login Again
+            </a>
+            <a href="/index.html" class="btn btn-secondary">
+                🏠 Back to Store
+            </a>
+        </div>
+
+        <div class="help-text">
+            If you believe this is an error, please contact the administrator.<br>
+            <a href="mailto:admin@example.com">admin@example.com</a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-redirect after 10 seconds
+        let countdown = 10;
+        const countdownElement = document.createElement('div');
+        countdownElement.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+        `;
+        document.body.appendChild(countdownElement);
+
+        function updateCountdown() {
+            countdownElement.textContent = `Redirecting to login in ${countdown}s`;
+            countdown--;
+            
+            if (countdown < 0) {
+                window.location.href = '/login.html';
+            }
+        }
+
+        updateCountdown();
+        const countdownInterval = setInterval(updateCountdown, 1000);
+
+        // Clear session cookie if it exists
+        document.cookie = 'admin_session=; Path=/; Max-Age=0';
+
+        // Clear countdown on user interaction
+        document.addEventListener('click', () => {
+            clearInterval(countdownInterval);
+            countdownElement.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

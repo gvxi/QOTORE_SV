@@ -1,87 +1,636 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Fragrances Store</title>
-  <style>
-    body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
-    h1 { text-align: center; }
-    .admin-btn {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      text-decoration: none;
-      text-align: center;
-      width: 150px;
-    }
-    .admin-btn:hover { background: #555; }
-    .fragrance { background: #fff; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .fragrance img { width: 100px; height: 100px; object-fit: cover; border-radius: 5px; }
-    .details { flex: 1; }
-    .variants { margin-top: 10px; }
-    .variant { display: inline-block; margin-right: 10px; margin-bottom: 5px; padding: 5px 10px; background: #007bff; color: #fff; border-radius: 5px; cursor: pointer; text-decoration: none; }
-    .variant:hover { background: #0056b3; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qotore - Premium Fragrance Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-link {
+            background: rgba(255, 255, 255, 0.2) !important;
+            font-size: 14px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300"><path fill="%23f0f2f5" d="M0,160L48,154.7C96,149,192,139,288,149.3C384,160,480,192,576,186.7C672,181,768,139,864,133.3C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"/></svg>');
+            background-size: cover;
+            background-position: center;
+            padding: 80px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 1rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .section-header p {
+            font-size: 18px;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            height: 250px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .product-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-variants {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .variant {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+
+        .variant:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-top: 10px;
+        }
+
+        /* Error State */
+        .error-message {
+            text-align: center;
+            padding: 4rem 0;
+            color: #dc3545;
+        }
+
+        .error-message h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .error-message p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .retry-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .retry-button:hover {
+            background: #5a6fd8;
+        }
+
+        /* Footer */
+        .footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer p {
+            opacity: 0.8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .main-container {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Admin indicator */
+        .admin-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .admin-indicator.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <h1>Fragrances Store</h1>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="#" class="logo">
+                🌸 Qotore
+            </a>
+            <div class="nav-links">
+                <a href="#fragrances">Fragrances</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+                <a href="/login.html" class="admin-link">🔑 Admin</a>
+            </div>
+        </nav>
+    </header>
 
-  <!-- Admin Login Button -->
-  <a href="/admin/login.html" class="admin-btn">Admin Login</a>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Premium Fragrances</h1>
+            <p>Discover our curated collection of luxury fragrances from around the world</p>
+            <a href="#fragrances" class="cta-button">Explore Collection</a>
+        </div>
+    </section>
 
-  <div id="fragrances"></div>
+    <!-- Main Content -->
+    <main class="main-container">
+        <section id="fragrances">
+            <div class="section-header">
+                <h2>Our Fragrance Collection</h2>
+                <p>Each fragrance tells a unique story. Find your signature scent from our carefully selected collection.</p>
+            </div>
 
-  <script>
-    const apiUrl = '/api/fragrances'; // Cloudflare Pages function URL
+            <!-- Loading State -->
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading fragrances...</p>
+            </div>
 
-    async function fetchFragrances() {
-      const res = await fetch(apiUrl);
-      const fragrances = await res.json();
-      const container = document.getElementById('fragrances');
-      container.innerHTML = '';
+            <!-- Error State -->
+            <div id="error" class="error-message" style="display: none;">
+                <h3>🚫 Unable to load fragrances</h3>
+                <p>Please check your connection and try again.</p>
+                <button class="retry-button" onclick="loadFragrances()">Retry</button>
+            </div>
 
-      fragrances.forEach(f => {
-        const div = document.createElement('div');
-        div.className = 'fragrance';
+            <!-- Products Grid -->
+            <div id="products-grid" class="products-grid" style="display: none;">
+                <!-- Products will be loaded here -->
+            </div>
 
-        const img = document.createElement('img');
-        img.src = f.image_url || '';
-        img.alt = f.name;
+            <!-- Empty State -->
+            <div id="empty-state" class="error-message" style="display: none;">
+                <h3>📦 No fragrances available</h3>
+                <p>Check back soon for new additions to our collection!</p>
+            </div>
+        </section>
+    </main>
 
-        const details = document.createElement('div');
-        details.className = 'details';
-        const title = document.createElement('h2');
-        title.textContent = f.name;
-        const desc = document.createElement('p');
-        desc.textContent = f.description || '';
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Qotore Fragrance Store. All rights reserved.</p>
+    </footer>
 
-        details.appendChild(title);
-        details.appendChild(desc);
+    <!-- Admin Indicator -->
+    <div id="admin-indicator" class="admin-indicator">
+        👑 Admin logged in
+    </div>
 
-        const variantsDiv = document.createElement('div');
-        variantsDiv.className = 'variants';
-        f.variants.forEach(v => {
-          const link = document.createElement('a');
-          link.href = `/buy/${v.id}?qty=1`; // default qty = 1
-          link.className = 'variant';
-          link.textContent = `${v.size_ml}ml - ${(v.price_cents/100).toFixed(2)} OMR`;
-          variantsDiv.appendChild(link);
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if admin is logged in
+            checkAdminStatus();
+            
+            // Load fragrances
+            loadFragrances();
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
         });
 
-        details.appendChild(variantsDiv);
-        div.appendChild(img);
-        div.appendChild(details);
-        container.appendChild(div);
-      });
-    }
+        function checkAdminStatus() {
+            const cookies = document.cookie.split(';');
+            const adminSession = cookies.find(cookie => 
+                cookie.trim().startsWith('admin_session=')
+            );
+            
+            if (adminSession) {
+                const indicator = document.getElementById('admin-indicator');
+                indicator.classList.add('show');
+                
+                // Update admin link to go to dashboard instead
+                const adminLink = document.querySelector('.admin-link');
+                adminLink.href = '/admin/index.html';
+                adminLink.innerHTML = '👑 Admin Dashboard';
+            }
+        }
 
-    fetchFragrances();
-  </script>
+        async function loadFragrances() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const productsGrid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-state');
+
+            // Show loading state
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            productsGrid.style.display = 'none';
+            emptyState.style.display = 'none';
+
+            try {
+                // Try to fetch fragrances from API
+                const response = await fetch('/api/fragrances');
+                
+                if (response.ok) {
+                    const fragrances = await response.json();
+                    displayFragrances(fragrances);
+                } else {
+                    // If API fails, show sample fragrances
+                    console.log('API not available, showing sample data');
+                    displaySampleFragrances();
+                }
+            } catch (fetchError) {
+                console.log('Fetch error, showing sample data:', fetchError);
+                // Show sample fragrances if API is not available
+                displaySampleFragrances();
+            }
+        }
+
+        function displayFragrances(fragrances) {
+            const loading = document.getElementById('loading');
+            const productsGrid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-state');
+
+            loading.style.display = 'none';
+
+            if (!fragrances || fragrances.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            productsGrid.innerHTML = '';
+            productsGrid.style.display = 'grid';
+
+            fragrances.forEach(fragrance => {
+                const card = createProductCard(fragrance);
+                productsGrid.appendChild(card);
+            });
+        }
+
+        function displaySampleFragrances() {
+            // Sample fragrance data for demonstration
+            const sampleFragrances = [
+                {
+                    id: 1,
+                    name: "Chanel No. 5",
+                    description: "A timeless classic that epitomizes elegance and sophistication. This iconic fragrance features a complex blend of floral notes with hints of vanilla and sandalwood.",
+                    image: "",
+                    variants: [
+                        { size: "30ml", price: 89.99 },
+                        { size: "50ml", price: 129.99 },
+                        { size: "100ml", price: 179.99 }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "Dior Sauvage",
+                    description: "A fresh and raw fragrance that captures the spirit of wide-open spaces. Features bergamot, pepper, and ambroxan for a bold, masculine scent.",
+                    image: "",
+                    variants: [
+                        { size: "60ml", price: 94.99 },
+                        { size: "100ml", price: 134.99 }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "Tom Ford Black Orchid",
+                    description: "A luxurious and sensual fragrance that combines rich dark chocolate, vanilla, and black truffle with floral notes of orchid and lotus.",
+                    image: "",
+                    variants: [
+                        { size: "30ml", price: 99.99 },
+                        { size: "50ml", price: 169.99 }
+                    ]
+                },
+                {
+                    id: 4,
+                    name: "Creed Aventus",
+                    description: "A sophisticated scent inspired by the dramatic life of a historic emperor. Features pineapple, birch, and musk for a bold, confident fragrance.",
+                    image: "",
+                    variants: [
+                        { size: "50ml", price: 299.99 },
+                        { size: "100ml", price: 449.99 }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: "YSL Black Opium",
+                    description: "An addictive gourmand fragrance with coffee, vanilla, and white flowers. A modern take on the oriental fragrance family.",
+                    image: "",
+                    variants: [
+                        { size: "30ml", price: 79.99 },
+                        { size: "50ml", price: 109.99 },
+                        { size: "90ml", price: 149.99 }
+                    ]
+                },
+                {
+                    id: 6,
+                    name: "Hermès Terre d'Hermès",
+                    description: "An earthy and woody fragrance that tells the story of man and earth. Features orange, pepper, and vetiver for a warm, grounding scent.",
+                    image: "",
+                    variants: [
+                        { size: "50ml", price: 89.99 },
+                        { size: "100ml", price: 139.99 }
+                    ]
+                }
+            ];
+
+            displayFragrances(sampleFragrances);
+        }
+
+        function createProductCard(fragrance) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            // Find price range
+            const prices = fragrance.variants.map(v => v.price);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const priceDisplay = minPrice === maxPrice ? 
+                `$${minPrice.toFixed(2)}` : 
+                `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
+
+            card.innerHTML = `
+                <div class="product-image">
+                    ${fragrance.image ? 
+                        `<img src="${fragrance.image}" alt="${fragrance.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                         <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 64px; color: #666;">🌸</div>` :
+                        '🌸'
+                    }
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">${fragrance.name}</h3>
+                    <p class="product-description">${fragrance.description}</p>
+                    <div class="product-variants">
+                        ${fragrance.variants.map(variant => 
+                            `<span class="variant">${variant.size} - $${variant.price.toFixed(2)}</span>`
+                        ).join('')}
+                    </div>
+                    <div class="product-price">${priceDisplay}</div>
+                </div>
+            `;
+
+            // Add click event for future product detail view
+            card.addEventListener('click', () => {
+                console.log('Clicked on:', fragrance.name);
+                // Future: Show product detail modal or navigate to product page
+            });
+
+            return card;
+        }
+
+        function showError() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            
+            loading.style.display = 'none';
+            error.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
