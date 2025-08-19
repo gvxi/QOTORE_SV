@@ -213,57 +213,102 @@
         }
 
         .variants-container {
-            border: 2px dashed #e1e5e9;
+            border: 2px solid #e1e5e9;
             border-radius: 8px;
-            padding: 1rem;
+            padding: 1.5rem;
             margin-bottom: 1rem;
+            background: #f8f9fa;
         }
 
-        .variant-input {
+        .variant-option {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            justify-content: space-between;
             align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e1e5e9;
         }
 
-        .variant-input input {
+        .variant-option:last-child {
+            border-bottom: none;
+        }
+
+        .variant-option.whole-bottle {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .variant-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             flex: 1;
-            margin-bottom: 0;
         }
 
-        .variant-input input:first-child {
-            flex: 2;
+        .variant-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
         }
 
-        .remove-variant {
-            background: #ff4757;
-            color: white;
-            border: none;
+        .variant-toggle label {
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .variant-option input[type="number"] {
+            width: 120px;
             padding: 8px 12px;
+            border: 1px solid #dee2e6;
             border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-
-        .remove-variant:hover {
-            background: #ff3838;
-        }
-
-        .add-variant {
-            background: #2ed573;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
             font-size: 14px;
-            width: 100%;
-            margin-bottom: 1rem;
+            text-align: right;
         }
 
-        .add-variant:hover {
-            background: #26d465;
+        .variant-option input[type="number"]:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .price-note {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 14px;
+            padding: 8px 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .variants-help {
+            color: #666;
+            font-size: 12px;
+            margin-top: 8px;
+            display: block;
+        }
+
+        .currency-label {
+            position: relative;
+        }
+
+        .currency-label::before {
+            content: "OMR";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .currency-label input {
+            padding-left: 40px;
         }
 
         .submit-btn {
@@ -467,15 +512,41 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Variants (Size & Price)*</label>
+                        <label>Variants & Pricing (OMR)*</label>
                         <div class="variants-container" id="variantsContainer">
-                            <div class="variant-input">
-                                <input type="text" placeholder="Size (e.g., 50ml)" required>
-                                <input type="number" placeholder="Price" step="0.01" min="0" required>
-                                <button type="button" class="remove-variant">Remove</button>
+                            <div class="variant-option">
+                                <div class="variant-toggle">
+                                    <input type="checkbox" id="variant_5ml" checked>
+                                    <label for="variant_5ml">5ml Sample</label>
+                                </div>
+                                <input type="number" id="price_5ml" placeholder="Price in OMR" step="0.001" min="0" value="2.500">
+                            </div>
+                            
+                            <div class="variant-option">
+                                <div class="variant-toggle">
+                                    <input type="checkbox" id="variant_10ml" checked>
+                                    <label for="variant_10ml">10ml Sample</label>
+                                </div>
+                                <input type="number" id="price_10ml" placeholder="Price in OMR" step="0.001" min="0" value="4.500">
+                            </div>
+                            
+                            <div class="variant-option">
+                                <div class="variant-toggle">
+                                    <input type="checkbox" id="variant_30ml" checked>
+                                    <label for="variant_30ml">30ml Sample</label>
+                                </div>
+                                <input type="number" id="price_30ml" placeholder="Price in OMR" step="0.001" min="0" value="12.000">
+                            </div>
+                            
+                            <div class="variant-option whole-bottle">
+                                <div class="variant-toggle">
+                                    <input type="checkbox" id="variant_whole" checked>
+                                    <label for="variant_whole">Whole Bottle (Original packaging)</label>
+                                </div>
+                                <span class="price-note">Contact for pricing</span>
                             </div>
                         </div>
-                        <button type="button" id="addVariantBtn" class="add-variant">+ Add Another Variant</button>
+                        <small class="variants-help">Turn variants on/off and set prices in Omani Rial (OMR). At least one variant must be enabled.</small>
                     </div>
 
                     <button type="submit" class="submit-btn" id="submitBtn">
@@ -540,11 +611,10 @@
 
         function initializeAdminDashboard() {
             const addFragranceForm = document.getElementById('addFragranceForm');
-            const addVariantBtn = document.getElementById('addVariantBtn');
-            const variantsContainer = document.getElementById('variantsContainer');
             const logoutBtn = document.getElementById('logoutBtn');
             
             initializeImageUpload();
+            initializeVariants();
             
             // Auto-generate slug from name
             const nameInput = document.getElementById('name');
@@ -556,36 +626,6 @@
                     .replace(/[^a-z0-9]+/g, '-')
                     .replace(/^-+|-+$/g, '');
                 slugInput.value = slug;
-            });
-            
-            // Add variant functionality
-            addVariantBtn.addEventListener('click', function() {
-                const variantDiv = document.createElement('div');
-                variantDiv.className = 'variant-input';
-                variantDiv.innerHTML = `
-                    <input type="text" placeholder="Size (e.g., 100ml)" required>
-                    <input type="number" placeholder="Price" step="0.01" min="0" required>
-                    <button type="button" class="remove-variant">Remove</button>
-                `;
-                
-                variantDiv.querySelector('.remove-variant').addEventListener('click', function() {
-                    variantDiv.remove();
-                    updateStats();
-                });
-                
-                variantsContainer.appendChild(variantDiv);
-                updateStats();
-            });
-            
-            // Remove functionality for existing variant
-            document.querySelector('.remove-variant').addEventListener('click', function() {
-                const variants = document.querySelectorAll('.variant-input');
-                if (variants.length > 1) {
-                    this.closest('.variant-input').remove();
-                    updateStats();
-                } else {
-                    alert('At least one variant is required');
-                }
             });
             
             // Handle form submission
@@ -600,17 +640,37 @@
                 const description = document.getElementById('description').value.trim();
                 const imageFile = document.getElementById('image').files[0];
                 
-                // Collect variants
+                // Collect enabled variants
                 const variants = [];
-                const variantInputs = document.querySelectorAll('.variant-input');
                 
-                variantInputs.forEach(variantDiv => {
-                    const inputs = variantDiv.querySelectorAll('input');
-                    const size = inputs[0].value.trim();
-                    const price = parseFloat(inputs[1].value);
-                    
-                    if (size && !isNaN(price) && price > 0) {
-                        variants.push({ size, price });
+                // Check each fixed variant
+                const variantSizes = ['5ml', '10ml', '30ml', 'whole'];
+                const variantLabels = {'5ml': '5ml', '10ml': '10ml', '30ml': '30ml', 'whole': 'Whole Bottle'};
+                
+                variantSizes.forEach(size => {
+                    const checkbox = document.getElementById(`variant_${size}`);
+                    if (checkbox && checkbox.checked) {
+                        if (size === 'whole') {
+                            // Whole bottle has no price
+                            variants.push({ 
+                                size: variantLabels[size], 
+                                price: null,
+                                size_ml: null,
+                                is_whole_bottle: true
+                            });
+                        } else {
+                            const priceInput = document.getElementById(`price_${size}`);
+                            const price = parseFloat(priceInput.value);
+                            
+                            if (!isNaN(price) && price > 0) {
+                                variants.push({ 
+                                    size: variantLabels[size], 
+                                    price: price,
+                                    size_ml: parseInt(size.replace('ml', '')),
+                                    is_whole_bottle: false
+                                });
+                            }
+                        }
                     }
                 });
                 
@@ -673,12 +733,8 @@
                         showSuccess(data.message || 'Fragrance added successfully!');
                         addFragranceForm.reset();
                         
-                        // Clear variants except the first one
-                        const allVariants = document.querySelectorAll('.variant-input');
-                        for (let i = 1; i < allVariants.length; i++) {
-                            allVariants[i].remove();
-                        }
-                        allVariants[0].querySelectorAll('input').forEach(input => input.value = '');
+                        // Reset variants to default state
+                        resetVariantsToDefault();
                         
                         // Clear image preview
                         if (window.clearImagePreview) {
@@ -801,9 +857,138 @@
             window.clearImagePreview = clearImagePreview;
         }
 
+        function initializeVariants() {
+            // Enable/disable price inputs based on checkbox state
+            const variantSizes = ['5ml', '10ml', '30ml'];
+            
+            variantSizes.forEach(size => {
+                const checkbox = document.getElementById(`variant_${size}`);
+                const priceInput = document.getElementById(`price_${size}`);
+                
+                checkbox.addEventListener('change', function() {
+                    priceInput.disabled = !this.checked;
+                    if (!this.checked) {
+                        priceInput.value = '';
+                    } else {
+                        // Set default prices when enabled
+                        const defaults = {'5ml': '2.500', '10ml': '4.500', '30ml': '12.000'};
+                        if (!priceInput.value) {
+                            priceInput.value = defaults[size];
+                        }
+                    }
+                    updateStats();
+                });
+                
+                // Initial state
+                priceInput.disabled = !checkbox.checked;
+            });
+            
+            // Whole bottle checkbox
+            const wholeCheckbox = document.getElementById('variant_whole');
+            wholeCheckbox.addEventListener('change', updateStats);
+            
+            updateStats();
+        }
+
+        function resetVariantsToDefault() {
+            // Reset all checkboxes to checked
+            document.getElementById('variant_5ml').checked = true;
+            document.getElementById('variant_10ml').checked = true;
+            document.getElementById('variant_30ml').checked = true;
+            document.getElementById('variant_whole').checked = true;
+            
+            // Reset prices to defaults
+            document.getElementById('price_5ml').value = '2.500';
+            document.getElementById('price_10ml').value = '4.500';
+            document.getElementById('price_30ml').value = '12.000';
+            
+            // Enable all price inputs
+            document.getElementById('price_5ml').disabled = false;
+            document.getElementById('price_10ml').disabled = false;
+            document.getElementById('price_30ml').disabled = false;
+        }
+            const fileInput = document.getElementById('image');
+            const fileDisplay = document.getElementById('fileDisplay');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const removeImageBtn = document.getElementById('removeImage');
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handleImageFile(file);
+                }
+            });
+
+            fileDisplay.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            fileDisplay.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.add('dragover');
+            });
+
+            fileDisplay.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.remove('dragover');
+            });
+
+            fileDisplay.addEventListener('drop', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    fileInput.files = files;
+                    handleImageFile(file);
+                }
+            });
+
+            removeImageBtn.addEventListener('click', function() {
+                clearImagePreview();
+            });
+
+            function handleImageFile(file) {
+                if (!file.type.includes('png')) {
+                    showError('Only PNG files are allowed');
+                    return;
+                }
+
+                const maxSize = 5 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    showError('Image too large. Maximum size is 5MB.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    fileDisplay.style.display = 'none';
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function clearImagePreview() {
+                fileInput.value = '';
+                previewImg.src = '';
+                fileDisplay.style.display = 'block';
+                imagePreview.style.display = 'none';
+                fileDisplay.classList.remove('dragover');
+            }
+
+            window.clearImagePreview = clearImagePreview;
+
         function updateStats() {
-            const variants = document.querySelectorAll('.variant-input').length;
-            document.getElementById('totalVariants').textContent = variants;
+            // Count enabled variants
+            const enabledVariants = ['5ml', '10ml', '30ml', 'whole'].filter(size => {
+                const checkbox = document.getElementById(`variant_${size}`);
+                return checkbox && checkbox.checked;
+            }).length;
+            
+            document.getElementById('totalVariants').textContent = enabledVariants;
             document.getElementById('totalFragrances').textContent = '1 (in form)';
             document.getElementById('lastAdded').textContent = 'Ready to add';
         }
@@ -876,10 +1061,7 @@
 
         function clearForm() {
             document.getElementById('addFragranceForm').reset();
-            const allVariants = document.querySelectorAll('.variant-input');
-            for (let i = 1; i < allVariants.length; i++) {
-                allVariants[i].remove();
-            }
+            resetVariantsToDefault();
             
             if (window.clearImagePreview) {
                 window.clearImagePreview();

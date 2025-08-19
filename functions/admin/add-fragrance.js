@@ -88,9 +88,11 @@ export async function onRequestPost(context) {
     
     // Validate variants
     const validVariants = variants.filter(v => {
-      const size = parseInt(v.size.replace('ml', ''));
+      if (v.is_whole_bottle) {
+        return true; // Whole bottle is always valid (no price needed)
+      }
       const price = parseFloat(v.price);
-      return !isNaN(size) && !isNaN(price) && size > 0 && price > 0;
+      return !isNaN(price) && price > 0 && v.size_ml > 0;
     });
     
     if (validVariants.length === 0) {
@@ -201,15 +203,25 @@ export async function onRequestPost(context) {
 
     // Step 3: Create variants
     const variantsPayload = validVariants.map(variant => {
-      const sizeInMl = parseInt(variant.size.replace('ml', ''));
-      const priceInCents = Math.round(parseFloat(variant.price) * 100);
-      
-      return {
-        fragrance_id: fragranceId,
-        size_ml: sizeInMl,
-        price_cents: priceInCents,
-        sku: variant.sku || null
-      };
+      if (variant.is_whole_bottle) {
+        return {
+          fragrance_id: fragranceId,
+          size_ml: null, // Whole bottle has no specific ml size
+          price_cents: null, // No price for whole bottle
+          sku: variant.sku || null,
+          is_whole_bottle: true
+        };
+      } else {
+        const priceInCents = Math.round(parseFloat(variant.price) * 1000); // Convert OMR to fils (1 OMR = 1000 fils)
+        
+        return {
+          fragrance_id: fragranceId,
+          size_ml: variant.size_ml,
+          price_cents: priceInCents,
+          sku: variant.sku || null,
+          is_whole_bottle: false
+        };
+      }
     });
 
     console.log('Creating variants:', variantsPayload);
@@ -280,10 +292,19 @@ export async function onRequestPost(context) {
         image_path: createdFragrance[0].image_path,
         created_at: createdFragrance[0].created_at,
         variantCount: createdVariants.length,
-        variants: createdVariants.map(v => ({
-          size: `${v.size_ml}ml`,
-          price: v.price_cents / 100
-        }))
+        variants: createdVariants.map(v => {
+          if (v.is_whole_bottle) {
+            return {
+              size: 'Whole Bottle',
+              price: 'Contact for pricing'
+            };
+          } else {
+            return {
+              size: `${v.size_ml}ml`,
+              price: `${(v.price_cents / 1000).toFixed(3)} OMR`
+            };
+          }
+        })
       }
     }), {
       status: 200,

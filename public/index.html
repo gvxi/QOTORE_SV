@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+${variants.length > 0 ? `
+                        <div class="product-variants">
+                            ${variants.map(variant => {
+                                if (variant.is_whole_bottle<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -248,6 +251,19 @@
             background: #667eea;
             color: white;
             border-color: #667eea;
+        }
+
+        .variant.whole-bottle {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            border-color: #ffd700;
+            font-weight: 600;
+        }
+
+        .variant.whole-bottle:hover {
+            background: linear-gradient(135deg, #ffed4e, #ffd700);
+            color: #333;
+            border-color: #ffd700;
         }
 
         .product-price {

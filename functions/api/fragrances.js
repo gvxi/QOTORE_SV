@@ -100,10 +100,12 @@ export async function onRequestGet(context) {
         brand: fragrance.brands?.name || '',
         variants: (fragrance.variants || []).map(variant => ({
           id: variant.id,
-          size: `${variant.size_ml}ml`,
-          price: variant.price_cents / 100, // Convert cents to dollars
+          size: variant.is_whole_bottle ? 'Whole Bottle' : `${variant.size_ml}ml`,
+          price: variant.is_whole_bottle ? null : variant.price_cents / 1000, // Convert fils to OMR
+          price_display: variant.is_whole_bottle ? 'Contact for pricing' : `${(variant.price_cents / 1000).toFixed(3)} OMR`,
           sku: variant.sku || '',
-          stock: variant.stock?.quantity || 0
+          is_whole_bottle: variant.is_whole_bottle || false,
+          available: true // Always available as per requirements
         })),
         created_at: fragrance.created_at
       }));
