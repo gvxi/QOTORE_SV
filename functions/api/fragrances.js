@@ -1,4 +1,5 @@
 // functions/api/fragrances.js - Fetch fragrances from Supabase
+// functions/api/fragrances.js - Fetch fragrances from Supabase
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -8,15 +9,23 @@ export async function onRequestGet(context) {
   };
 
   try {
+    console.log('Fragrances API called');
     const { env } = context;
     
     // Check if Supabase environment variables are set
     const SUPABASE_URL = env.SUPABASE_URL;
     const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY;
     
+    console.log('Environment check:', {
+      hasUrl: !!SUPABASE_URL,
+      hasKey: !!SUPABASE_ANON_KEY,
+      urlLength: SUPABASE_URL ? SUPABASE_URL.length : 0
+    });
+    
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       console.error('Missing Supabase environment variables');
       return new Response(JSON.stringify({
+        success: false,
         error: 'Database not configured',
         debug: {
           hasUrl: !!SUPABASE_URL,
@@ -30,75 +39,79 @@ export async function onRequestGet(context) {
 
     console.log('Fetching fragrances from Supabase...');
 
-    // Fetch fragrances with their variants and brands using Supabase REST API
-    const query = `
-      SELECT 
-        f.id,
-        f.slug,
-        f.name,
-        f.description,
-        f.image_path,
-        f.created_at,
-        b.name as brand_name,
-        v.id as variant_id,
-        v.size_ml,
-        v.price_cents,
-        v.sku,
-        s.quantity
-      FROM fragrances f
-      LEFT JOIN brands b ON f.brand_id = b.id
-      LEFT JOIN variants v ON f.id = v.fragrance_id
-      LEFT JOIN stock s ON v.id = s.variant_id
-      ORDER BY f.created_at DESC, v.size_ml ASC
-    `.replace(/\s+/g, ' ').trim();
-
-    // Use Supabase REST API with PostgREST
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_fragrances_with_variants`, {
-      method: 'POST',
+    // Simple approach: fetch fragrances with brands and variants separately
+    const fragrancesResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?select=*,brands(name)&order=created_at.desc`, {
       headers: {
-        'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({})
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-    // If the RPC function doesn't exist, use a simpler approach
-    if (!response.ok) {
-      console.log('RPC function not found, using simple query...');
+    if (!fragrancesResponse.ok) {
+      const errorText = await fragrancesResponse.text();
+      console.error('Fragrances fetch failed:', fragrancesResponse.status, errorText);
       
-      // Fetch fragrances first
-      const fragrancesResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?select=*,brands(name),variants(id,size_ml,price_cents,sku,stock(quantity))&order=created_at.desc`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to fetch fragrances from database',
+        details: `HTTP ${fragrancesResponse.status}: ${errorText}`,
+        supabaseUrl: SUPABASE_URL ? 'SET' : 'NOT SET'
+      }), {
+        status: 500,
+        headers: corsHeaders
       });
+    }
 
-      if (!fragrancesResponse.ok) {
-        const errorText = await fragrancesResponse.text();
-        console.error('Supabase error:', errorText);
-        return new Response(JSON.stringify({
-          error: 'Failed to fetch from database',
-          details: errorText
-        }), {
-          status: 500,
-          headers: corsHeaders
-        });
+    const fragrancesData = await fragrancesResponse.json();
+    console.log('Fetched fragrances:', fragrancesData.length);
+
+    // If no fragrances, return empty success
+    if (!fragrancesData || fragrancesData.length === 0) {
+      return new Response(JSON.stringify({
+        success: true,
+        data: [],
+        count: 0,
+        source: 'supabase',
+        message: 'No fragrances found'
+      }), {
+        status: 200,
+        headers: corsHeaders
+      });
+    }
+
+    // Fetch variants for each fragrance
+    const fragranceIds = fragrancesData.map(f => f.id);
+    console.log('Fetching variants for fragrance IDs:', fragranceIds);
+
+    const variantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?fragrance_id=in.(${fragranceIds.join(',')})&order=fragrance_id,size_ml.asc.nullslast`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json'
       }
+    });
 
-      const supabaseData = await fragrancesResponse.json();
-      console.log('Raw Supabase data:', supabaseData);
+    let variantsData = [];
+    if (variantsResponse.ok) {
+      variantsData = await variantsResponse.json();
+      console.log('Fetched variants:', variantsData.length);
+    } else {
+      console.warn('Variants fetch failed, continuing without variants');
+    }
 
-      // Transform the data to match our frontend expectations
-      const fragrances = supabaseData.map(fragrance => ({
+    // Combine fragrances with their variants
+    const fragrances = fragrancesData.map(fragrance => {
+      const fragranceVariants = variantsData.filter(v => v.fragrance_id === fragrance.id);
+      
+      return {
         id: fragrance.id,
         name: fragrance.name,
         slug: fragrance.slug,
         description: fragrance.description || '',
         image_path: fragrance.image_path || '',
         brand: fragrance.brands?.name || '',
-        variants: (fragrance.variants || []).map(variant => ({
+        variants: fragranceVariants.map(variant => ({
           id: variant.id,
           size: variant.is_whole_bottle ? 'Whole Bottle' : `${variant.size_ml}ml`,
           price: variant.is_whole_bottle ? null : variant.price_cents / 1000, // Convert fils to OMR
@@ -108,30 +121,16 @@ export async function onRequestGet(context) {
           available: true // Always available as per requirements
         })),
         created_at: fragrance.created_at
-      }));
+      };
+    });
 
-      console.log(`Successfully fetched ${fragrances.length} fragrances`);
-
-      return new Response(JSON.stringify({
-        success: true,
-        data: fragrances,
-        count: fragrances.length,
-        source: 'supabase'
-      }), {
-        status: 200,
-        headers: corsHeaders
-      });
-    }
-
-    // If RPC worked, process that data
-    const rpcData = await response.json();
-    console.log('RPC data:', rpcData);
+    console.log(`Successfully processed ${fragrances.length} fragrances`);
 
     return new Response(JSON.stringify({
       success: true,
-      data: rpcData,
-      count: rpcData.length,
-      source: 'supabase_rpc'
+      data: fragrances,
+      count: fragrances.length,
+      source: 'supabase'
     }), {
       status: 200,
       headers: corsHeaders
@@ -141,9 +140,10 @@ export async function onRequestGet(context) {
     console.error('Error fetching fragrances:', error);
     
     return new Response(JSON.stringify({
+      success: false,
       error: 'Internal server error',
       details: error.message,
-      fallback: 'sample_data_used'
+      stack: error.stack
     }), {
       status: 500,
       headers: corsHeaders
