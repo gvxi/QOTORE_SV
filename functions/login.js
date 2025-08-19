@@ -8,8 +8,8 @@ export async function onRequestPost(context) {
   try {
     // Get environment variables
     const { env } = context;
-    const ADMIN_USER = env.ADMIN_USER || 'admin';  // fallback for testing
-    const ADMIN_PASS = env.ADMIN_PASS || 'password123';  // fallback for testing
+    const ADMIN_USER = env.ADMIN_USER 
+    const ADMIN_PASS = env.ADMIN_PASS 
     
     // Parse request body
     const requestBody = await context.request.json();
