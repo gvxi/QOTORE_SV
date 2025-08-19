@@ -1,7 +1,4 @@
-const formData = new FormData(addFragranceForm);
-                    const name = formData.get('name')?.toString().trim();
-                    const brand = formData.get('brand')?.toString().trim();
-                    const slug = formData.get('slug<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -148,6 +145,71 @@ const formData = new FormData(addFragranceForm);
         .form-group textarea {
             resize: vertical;
             min-height: 100px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-display {
+            border: 2px dashed #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .file-input-display:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .file-input-display.dragover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .file-placeholder {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .image-preview {
+            position: relative;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .file-help {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
         }
 
         .variants-container {
@@ -301,86 +363,7 @@ const formData = new FormData(addFragranceForm);
             gap: 8px;
         }
 
-        .file-input {
-            display: none;
-        }
-
-        .file-input-display {
-            border: 2px dashed #e1e5e9;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-
-        .file-input-display:hover {
-            border-color: #667eea;
-            background: #f0f2ff;
-        }
-
-        .file-input-display.dragover {
-            border-color: #667eea;
-            background: #f0f2ff;
-        }
-
-        .file-placeholder {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .image-preview {
-            position: relative;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            padding: 10px;
-            background: white;
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 4px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .remove-image {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .file-help {
-            color: #666;
-            font-size: 12px;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .upload-progress {
-            background: #e9ecef;
-            border-radius: 4px;
-            height: 6px;
-            margin-top: 10px;
-            overflow: hidden;
-            display: none;
-        }
-
-        .upload-progress-bar {
-            background: #667eea;
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
+        @media (max-width: 768px) {
             .admin-header {
                 padding: 1rem;
                 flex-direction: column;
@@ -400,6 +383,7 @@ const formData = new FormData(addFragranceForm);
             .variant-input input {
                 width: 100%;
             }
+        }
     </style>
 </head>
 <body>
@@ -521,12 +505,8 @@ const formData = new FormData(addFragranceForm);
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Small delay to ensure cookies are set after redirect
             setTimeout(() => {
-                // Check authentication on page load
                 checkAuthentication();
-                
-                // Initialize the admin dashboard
                 initializeAdminDashboard();
             }, 100);
         });
@@ -540,35 +520,21 @@ const formData = new FormData(addFragranceForm);
                 cookie.trim().startsWith('admin_session=')
             );
             
-            console.log('Admin session cookie:', adminSession);
-            
             if (!adminSession) {
-                console.log('No session found on first check, waiting...');
-                
-                // Give more time for cookie to be set after redirect
                 setTimeout(() => {
-                    console.log('Rechecking cookies after delay...');
-                    console.log('All cookies (recheck):', document.cookie);
-                    
                     const cookiesRecheck = document.cookie.split(';');
                     const adminSessionRecheck = cookiesRecheck.find(cookie => 
                         cookie.trim().startsWith('admin_session=')
                     );
                     
-                    console.log('Admin session cookie (recheck):', adminSessionRecheck);
-                    
                     if (!adminSessionRecheck) {
-                        console.log('Still no session found, redirecting to login');
                         alert('Session not found. Please log in again.');
                         window.location.href = '/login.html';
-                    } else {
-                        console.log('Session found on recheck, proceeding...');
                     }
-                }, 1500); // Increased delay
+                }, 1500);
                 return false;
             }
             
-            console.log('Session found immediately, proceeding...');
             return true;
         }
 
@@ -577,9 +543,7 @@ const formData = new FormData(addFragranceForm);
             const addVariantBtn = document.getElementById('addVariantBtn');
             const variantsContainer = document.getElementById('variantsContainer');
             const logoutBtn = document.getElementById('logoutBtn');
-            const submitBtn = document.getElementById('submitBtn');
             
-            // Initialize image upload
             initializeImageUpload();
             
             // Auto-generate slug from name
@@ -595,207 +559,253 @@ const formData = new FormData(addFragranceForm);
             });
             
             // Add variant functionality
-            if (addVariantBtn && variantsContainer) {
-                addVariantBtn.addEventListener('click', function() {
-                    const variantDiv = document.createElement('div');
-                    variantDiv.className = 'variant-input';
-                    variantDiv.innerHTML = `
-                        <input type="text" placeholder="Size (e.g., 100ml)" required>
-                        <input type="number" placeholder="Price" step="0.01" min="0" required>
-                        <button type="button" class="remove-variant">Remove</button>
-                    `;
-                    
-                    // Add remove functionality
-                    variantDiv.querySelector('.remove-variant').addEventListener('click', function() {
-                        variantDiv.remove();
-                        updateStats();
-                    });
-                    
-                    variantsContainer.appendChild(variantDiv);
+            addVariantBtn.addEventListener('click', function() {
+                const variantDiv = document.createElement('div');
+                variantDiv.className = 'variant-input';
+                variantDiv.innerHTML = `
+                    <input type="text" placeholder="Size (e.g., 100ml)" required>
+                    <input type="number" placeholder="Price" step="0.01" min="0" required>
+                    <button type="button" class="remove-variant">Remove</button>
+                `;
+                
+                variantDiv.querySelector('.remove-variant').addEventListener('click', function() {
+                    variantDiv.remove();
                     updateStats();
                 });
                 
-                // Add remove functionality to existing variant
-                document.querySelector('.remove-variant').addEventListener('click', function() {
-                    const variants = document.querySelectorAll('.variant-input');
-                    if (variants.length > 1) {
-                        this.closest('.variant-input').remove();
-                        updateStats();
-                    } else {
-                        alert('At least one variant is required');
-                    }
-                });
-            }
+                variantsContainer.appendChild(variantDiv);
+                updateStats();
+            });
+            
+            // Remove functionality for existing variant
+            document.querySelector('.remove-variant').addEventListener('click', function() {
+                const variants = document.querySelectorAll('.variant-input');
+                if (variants.length > 1) {
+                    this.closest('.variant-input').remove();
+                    updateStats();
+                } else {
+                    alert('At least one variant is required');
+                }
+            });
             
             // Handle form submission
-            if (addFragranceForm) {
-                addFragranceForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
+            addFragranceForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!checkAuthentication()) return;
+                
+                const name = document.getElementById('name').value.trim();
+                const brand = document.getElementById('brand').value.trim();
+                const slug = document.getElementById('slug').value.trim();
+                const description = document.getElementById('description').value.trim();
+                const imageFile = document.getElementById('image').files[0];
+                
+                // Collect variants
+                const variants = [];
+                const variantInputs = document.querySelectorAll('.variant-input');
+                
+                variantInputs.forEach(variantDiv => {
+                    const inputs = variantDiv.querySelectorAll('input');
+                    const size = inputs[0].value.trim();
+                    const price = parseFloat(inputs[1].value);
                     
-                    if (!checkAuthentication()) return;
-                    
-                    const name = document.getElementById('name').value.trim();
-                    const brand = document.getElementById('brand').value.trim();
-                    const slug = document.getElementById('slug').value.trim();
-                    const description = document.getElementById('description').value.trim();
-                    const imageFile = document.getElementById('image').files[0];
-                    
-                    // Collect variants
-                    const variants = [];
-                    const variantInputs = document.querySelectorAll('.variant-input');
-                    
-                    variantInputs.forEach(variantDiv => {
-                        const inputs = variantDiv.querySelectorAll('input');
-                        const size = inputs[0].value.trim();
-                        const price = parseFloat(inputs[1].value);
-                        
-                        if (size && !isNaN(price) && price > 0) {
-                            variants.push({ size, price });
-                        }
-                    });
-                    
-                    // Validation
-                    if (!name || !slug || !description || variants.length === 0) {
-                        showError('Please fill in all required fields and add at least one valid variant');
-                        return;
+                    if (size && !isNaN(price) && price > 0) {
+                        variants.push({ size, price });
                     }
+                });
+                
+                // Validation
+                if (!name || !slug || !description || variants.length === 0) {
+                    showError('Please fill in all required fields and add at least one valid variant');
+                    return;
+                }
+                
+                setSubmitLoading(true);
+                hideMessages();
+                
+                try {
+                    let imagePath = '';
                     
-                    setSubmitLoading(true);
-                    hideMessages();
-                    
-                    try {
-                        let imagePath = '';
+                    // Step 1: Upload image if provided
+                    if (imageFile) {
+                        showSuccess('Uploading image...');
                         
-                        // Step 1: Upload image if provided
-                        if (imageFile) {
-                            console.log('Uploading image...');
-                            showSuccess('Uploading image...');
-                            
-                            const imageFormData = new FormData();
-                            imageFormData.append('image', imageFile);
-                            imageFormData.append('slug', slug);
-                            
-                            const imageResponse = await fetch('/admin/upload-image', {
-                                method: 'POST',
-                                credentials: 'include',
-                                body: imageFormData
-                            });
-                            
-                            if (!imageResponse.ok) {
-                                const imageError = await imageResponse.json();
-                                throw new Error(`Image upload failed: ${imageError.error}`);
-                            }
-                            
-                            const imageResult = await imageResponse.json();
-                            imagePath = imageResult.data.path;
-                            console.log('Image uploaded successfully:', imagePath);
-                            showSuccess('Image uploaded! Saving fragrance...');
-                        }
+                        const imageFormData = new FormData();
+                        imageFormData.append('image', imageFile);
+                        imageFormData.append('slug', slug);
                         
-                        // Step 2: Save fragrance data
-                        const response = await fetch('/admin/add-fragrance', {
+                        const imageResponse = await fetch('/admin/upload-image', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
                             credentials: 'include',
-                            body: JSON.stringify({
-                                name,
-                                brand,
-                                slug,
-                                description,
-                                image: imagePath,
-                                variants
-                            })
+                            body: imageFormData
                         });
                         
-                        const data = await response.json();
-                        
-                        if (response.ok && data.success) {
-                            showSuccess(data.message || 'Fragrance added successfully!');
-                            addFragranceForm.reset();
-                            
-                            // Clear variants except the first one
-                            const allVariants = document.querySelectorAll('.variant-input');
-                            for (let i = 1; i < allVariants.length; i++) {
-                                allVariants[i].remove();
-                            }
-                            allVariants[0].querySelectorAll('input').forEach(input => input.value = '');
-                            
-                            // Clear image preview
-                            if (window.clearImagePreview) {
-                                window.clearImagePreview();
-                            }
-                            
-                            // Update stats with new data
-                            updateStatsAfterAdd(data.data);
-                            updateStats();
-                        } else {
-                            if (response.status === 401) {
-                                alert('Session expired. Please log in again.');
-                                window.location.href = '/login.html';
-                            } else {
-                                showError(data.error || 'Failed to add fragrance');
-                            }
+                        if (!imageResponse.ok) {
+                            const imageError = await imageResponse.json();
+                            throw new Error(`Image upload failed: ${imageError.error}`);
                         }
                         
-                    } catch (error) {
-                        console.error('Error adding fragrance:', error);
-                        showError('Connection error. Please try again.');
-                    } finally {
-                        setSubmitLoading(false);
+                        const imageResult = await imageResponse.json();
+                        imagePath = imageResult.data.path;
+                        showSuccess('Image uploaded! Saving fragrance...');
                     }
-                });
-            }
+                    
+                    // Step 2: Save fragrance
+                    const response = await fetch('/admin/add-fragrance', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            name,
+                            brand,
+                            slug,
+                            description,
+                            image: imagePath,
+                            variants
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        showSuccess(data.message || 'Fragrance added successfully!');
+                        addFragranceForm.reset();
+                        
+                        // Clear variants except the first one
+                        const allVariants = document.querySelectorAll('.variant-input');
+                        for (let i = 1; i < allVariants.length; i++) {
+                            allVariants[i].remove();
+                        }
+                        allVariants[0].querySelectorAll('input').forEach(input => input.value = '');
+                        
+                        // Clear image preview
+                        if (window.clearImagePreview) {
+                            window.clearImagePreview();
+                        }
+                        
+                        updateStats();
+                        fetchFragranceStats();
+                    } else {
+                        if (response.status === 401) {
+                            alert('Session expired. Please log in again.');
+                            window.location.href = '/login.html';
+                        } else {
+                            showError(data.error || 'Failed to add fragrance');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error adding fragrance:', error);
+                    showError('Connection error. Please try again.');
+                } finally {
+                    setSubmitLoading(false);
+                }
+            });
             
             // Handle logout
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async function() {
-                    if (confirm('Are you sure you want to logout?')) {
-                        try {
-                            await fetch('/logout', {
-                                method: 'POST',
-                                credentials: 'include'
-                            });
-                        } catch (error) {
-                            console.error('Logout error:', error);
-                        }
-                        
-                        // Clear session and redirect
-                        document.cookie = 'admin_session=; Path=/; Max-Age=0';
-                        window.location.href = '/login.html';
+            logoutBtn.addEventListener('click', async function() {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        await fetch('/logout', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+                    } catch (error) {
+                        console.error('Logout error:', error);
                     }
-                });
-            }
+                    
+                    document.cookie = 'admin_session=; Path=/; Max-Age=0';
+                    window.location.href = '/login.html';
+                }
+            });
             
-            // Initial stats update
             updateStats();
-            fetchFragranceStats(); // Load real stats from database
-            
-            // Test API connection on load
+            fetchFragranceStats();
             setTimeout(testConnection, 1000);
+        }
+
+        function initializeImageUpload() {
+            const fileInput = document.getElementById('image');
+            const fileDisplay = document.getElementById('fileDisplay');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const removeImageBtn = document.getElementById('removeImage');
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handleImageFile(file);
+                }
+            });
+
+            fileDisplay.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            fileDisplay.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.add('dragover');
+            });
+
+            fileDisplay.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.remove('dragover');
+            });
+
+            fileDisplay.addEventListener('drop', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    fileInput.files = files;
+                    handleImageFile(file);
+                }
+            });
+
+            removeImageBtn.addEventListener('click', function() {
+                clearImagePreview();
+            });
+
+            function handleImageFile(file) {
+                if (!file.type.includes('png')) {
+                    showError('Only PNG files are allowed');
+                    return;
+                }
+
+                const maxSize = 5 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    showError('Image too large. Maximum size is 5MB.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    fileDisplay.style.display = 'none';
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function clearImagePreview() {
+                fileInput.value = '';
+                previewImg.src = '';
+                fileDisplay.style.display = 'block';
+                imagePreview.style.display = 'none';
+                fileDisplay.classList.remove('dragover');
+            }
+
+            window.clearImagePreview = clearImagePreview;
         }
 
         function updateStats() {
             const variants = document.querySelectorAll('.variant-input').length;
             document.getElementById('totalVariants').textContent = variants;
-            
-            // Update with actual data when form is submitted successfully
-            // For now, show form state
             document.getElementById('totalFragrances').textContent = '1 (in form)';
             document.getElementById('lastAdded').textContent = 'Ready to add';
-        }
-
-        function updateStatsAfterAdd(data) {
-            // Update stats after successful fragrance addition
-            if (data && data.created_at) {
-                const createdDate = new Date(data.created_at);
-                const timeAgo = getTimeAgo(createdDate);
-                document.getElementById('lastAdded').textContent = timeAgo;
-            }
-            
-            // Could fetch total count from API here
-            fetchFragranceStats();
         }
 
         async function fetchFragranceStats() {
@@ -810,9 +820,8 @@ const formData = new FormData(addFragranceForm);
                         document.getElementById('totalFragrances').textContent = totalFragrances;
                         document.getElementById('totalVariants').textContent = totalVariants;
                         
-                        // Show most recent addition
                         if (result.data.length > 0) {
-                            const newest = result.data[0]; // Already sorted by created_at desc
+                            const newest = result.data[0];
                             if (newest.created_at) {
                                 const createdDate = new Date(newest.created_at);
                                 const timeAgo = getTimeAgo(createdDate);
@@ -872,97 +881,12 @@ const formData = new FormData(addFragranceForm);
                 allVariants[i].remove();
             }
             
-            // Clear image preview
-            clearImagePreview();
+            if (window.clearImagePreview) {
+                window.clearImagePreview();
+            }
             
             hideMessages();
             updateStats();
-        }
-
-        function initializeImageUpload() {
-            const fileInput = document.getElementById('image');
-            const fileDisplay = document.getElementById('fileDisplay');
-            const imagePreview = document.getElementById('imagePreview');
-            const previewImg = document.getElementById('previewImg');
-            const removeImageBtn = document.getElementById('removeImage');
-
-            // File input change handler
-            fileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    handleImageFile(file);
-                }
-            });
-
-            // Click to select file
-            fileDisplay.addEventListener('click', function() {
-                fileInput.click();
-            });
-
-            // Drag and drop handlers
-            fileDisplay.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                fileDisplay.classList.add('dragover');
-            });
-
-            fileDisplay.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                fileDisplay.classList.remove('dragover');
-            });
-
-            fileDisplay.addEventListener('drop', function(e) {
-                e.preventDefault();
-                fileDisplay.classList.remove('dragover');
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    const file = files[0];
-                    fileInput.files = files; // Set the files to the input
-                    handleImageFile(file);
-                }
-            });
-
-            // Remove image handler
-            removeImageBtn.addEventListener('click', function() {
-                clearImagePreview();
-            });
-
-            function handleImageFile(file) {
-                // Validate file type
-                if (!file.type.includes('png')) {
-                    showError('Only PNG files are allowed');
-                    return;
-                }
-
-                // Validate file size (5MB)
-                const maxSize = 5 * 1024 * 1024;
-                if (file.size > maxSize) {
-                    showError('Image too large. Maximum size is 5MB.');
-                    return;
-                }
-
-                // Show preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    fileDisplay.style.display = 'none';
-                    imagePreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-
-                console.log('Image selected:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
-            }
-
-            function clearImagePreview() {
-                fileInput.value = '';
-                previewImg.src = '';
-                fileDisplay.style.display = 'block';
-                imagePreview.style.display = 'none';
-                fileDisplay.classList.remove('dragover');
-            }
-
-            // Expose clearImagePreview globally
-            window.clearImagePreview = clearImagePreview;
         }
 
         function exportData() {
