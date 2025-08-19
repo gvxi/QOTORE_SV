@@ -1,7 +1,4 @@
-${variants.length > 0 ? `
-                        <div class="product-variants">
-                            ${variants.map(variant => {
-                                if (variant.is_whole_bottle<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -601,6 +598,20 @@ ${variants.length > 0 ? `
             if (errorText) errorText.textContent = message;
         }
 
+        function createVariantsHTML(variants) {
+            const variantElements = variants.map(variant => {
+                if (variant.is_whole_bottle) {
+                    return `<span class="variant whole-bottle">Whole Bottle - Contact for pricing</span>`;
+                } else {
+                    const size = variant.size || `${variant.size_ml}ml`;
+                    const price = variant.price_display || `${(variant.price || 0).toFixed(3)} OMR`;
+                    return `<span class="variant">${size} - ${price}</span>`;
+                }
+            }).join('');
+            
+            return `<div class="product-variants">${variantElements}</div>`;
+        }
+
         function createProductCard(fragrance) {
             const card = document.createElement('div');
             card.className = 'product-card';
@@ -608,17 +619,37 @@ ${variants.length > 0 ? `
             // Handle variants (could be from Supabase or sample data)
             const variants = fragrance.variants || [];
             
-            // Find price range
-            const prices = variants.map(v => typeof v.price === 'number' ? v.price : parseFloat(v.price) || 0);
+            // Find price range (excluding whole bottles)
+            const pricedVariants = variants.filter(v => !v.is_whole_bottle && v.price !== null);
+            const prices = pricedVariants.map(v => {
+                if (typeof v.price === 'number') {
+                    return v.price;
+                } else if (v.price_cents) {
+                    return v.price_cents / 1000; // Convert fils to OMR
+                }
+                return 0;
+            });
             const validPrices = prices.filter(p => p > 0);
             
-            let priceDisplay = 'Price TBA';
+            let priceDisplay = '';
             if (validPrices.length > 0) {
                 const minPrice = Math.min(...validPrices);
                 const maxPrice = Math.max(...validPrices);
-                priceDisplay = minPrice === maxPrice ? 
-                    `${minPrice.toFixed(2)}` : 
-                    `${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)}`;
+                if (minPrice === maxPrice) {
+                    priceDisplay = `${minPrice.toFixed(3)} OMR`;
+                } else {
+                    priceDisplay = `${minPrice.toFixed(3)} - ${maxPrice.toFixed(3)} OMR`;
+                }
+            }
+            
+            // Check if whole bottle is available
+            const hasWholeBottle = variants.some(v => v.is_whole_bottle);
+            if (hasWholeBottle) {
+                priceDisplay += (priceDisplay ? ' • ' : '') + 'Whole bottle available';
+            }
+            
+            if (!priceDisplay) {
+                priceDisplay = 'Contact for pricing';
             }
 
             // Handle brand name (from Supabase or sample data)
@@ -660,16 +691,10 @@ ${variants.length > 0 ? `
                 <div class="product-info">
                     <h3 class="product-name">${displayName}</h3>
                     <p class="product-description">${fragrance.description || 'No description available'}</p>
-                    ${variants.length > 0 ? `
-                        <div class="product-variants">
-                            ${variants.map(variant => {
-                                const size = variant.size || `${variant.size_ml}ml`;
-                                const price = typeof variant.price === 'number' ? variant.price : (variant.price_cents / 100);
-                                const stockInfo = variant.stock !== undefined ? ` (${variant.stock} in stock)` : '';
-                                return `<span class="variant">${size} - ${price.toFixed(2)}${stockInfo}</span>`;
-                            }).join('')}
-                        </div>
-                    ` : '<div class="product-variants"><span class="variant">No variants available</span></div>'}
+                    ${variants.length > 0 ? 
+                        createVariantsHTML(variants) : 
+                        '<div class="product-variants"><span class="variant">No variants available</span></div>'
+                    }
                     <div class="product-price">${priceDisplay}</div>
                 </div>
             `;
@@ -682,10 +707,6 @@ ${variants.length > 0 ? `
             });
 
             return card;
-        }
-
-        function showError() {
-            showError('Connection error. Please try again later.');
         }
     </script>
 </body>
