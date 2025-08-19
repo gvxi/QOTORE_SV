@@ -93,8 +93,27 @@
             margin-bottom: 2rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
             box-shadow: 0 4px 15px rgba(0, 184, 148, 0.2);
+        }
+
+        .add-fragrance-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-fragrance-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
         /* Stats Grid */
@@ -162,34 +181,300 @@
             font-weight: 600;
         }
 
-        /* Main Content Grid */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 2rem;
-        }
-
-        /* Add Fragrance Form */
-        .form-card {
+        /* Fragrances Table */
+        .table-container {
             background: white;
             border-radius: 16px;
-            padding: 2rem;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 2rem;
         }
 
-        .form-header {
+        .table-header {
+            padding: 2rem;
+            border-bottom: 2px solid #f8f9fb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            font-size: 24px;
+            color: #333;
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 10px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 250px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .fragrances-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .fragrances-table th {
+            background: #f8f9fb;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .fragrances-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: top;
+        }
+
+        .fragrances-table tr:hover {
+            background: #f8f9fb;
+        }
+
+        .fragrance-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #f1f3f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #ccc;
+        }
+
+        .fragrance-info {
+            max-width: 300px;
+        }
+
+        .fragrance-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .fragrance-brand {
+            color: #667eea;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .fragrance-description {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .variants-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .variant-item {
+            font-size: 12px;
+            padding: 4px 8px;
+            background: #f8f9fb;
+            border-radius: 4px;
+            color: #666;
+        }
+
+        .variant-item.whole-bottle {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-visible {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-hidden {
+            background: #fee;
+            color: #c33;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .btn-hide {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-hide:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
+        }
+
+        .btn-show {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-show:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        /* Floating Form */
+        .floating-form {
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .form-header {
+            padding: 2rem 2rem 1rem;
+            border-bottom: 2px solid #f8f9fb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .form-header h2 {
             font-size: 24px;
             color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #f1f3f4;
+            color: #333;
+        }
+
+        .form-content {
+            padding: 2rem;
         }
 
         .form-group {
@@ -225,14 +510,8 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
 
-        .form-control:disabled {
-            background: #f1f3f4;
-            color: #6c757d;
-            cursor: not-allowed;
-        }
-
         textarea.form-control {
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
         }
 
@@ -245,7 +524,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             background: #fafbfc;
-            position: relative;
         }
 
         .image-upload:hover, .image-upload.dragover {
@@ -303,9 +581,6 @@
             height: 32px;
             cursor: pointer;
             font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         /* Variants Section */
@@ -324,7 +599,7 @@
             margin-bottom: 1.5rem;
         }
 
-        .variant-item {
+        .variant-item-form {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -333,14 +608,9 @@
             border: 1px solid #e9ecef;
             border-radius: 8px;
             margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
         }
 
-        .variant-item:hover {
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .variant-item.whole-bottle {
+        .variant-item-form.whole-bottle {
             background: linear-gradient(135deg, #fff3cd, #ffeaa7);
             border-color: #f1c40f;
         }
@@ -402,7 +672,6 @@
         .submit-btn:disabled {
             opacity: 0.7;
             cursor: not-allowed;
-            transform: none;
         }
 
         /* Messages */
@@ -412,97 +681,16 @@
             margin-bottom: 1.5rem;
             font-weight: 500;
             display: none;
-            animation: slideIn 0.3s ease;
         }
 
         .message.success {
             background: linear-gradient(135deg, #00b894, #00a085);
             color: white;
-            border: 1px solid #00a085;
         }
 
         .message.error {
             background: linear-gradient(135deg, #ff7675, #e84393);
             color: white;
-            border: 1px solid #e84393;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Sidebar */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .quick-actions {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-        }
-
-        .quick-actions h3 {
-            margin-bottom: 1rem;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .action-btn {
-            display: block;
-            width: 100%;
-            background: #f8f9fb;
-            border: 2px solid #e9ecef;
-            color: #495057;
-            padding: 12px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            text-align: center;
-        }
-
-        .action-btn:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-            transform: translateY(-1px);
-        }
-
-        .connection-status {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .status-indicator.online {
-            background: #e8f5e8;
-            color: #2e7d32;
-            border: 1px solid #4caf50;
-        }
-
-        .status-indicator.offline {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
         }
 
         /* Loading */
@@ -522,35 +710,78 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar {
-                order: -1;
-            }
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
         }
 
-        @media (max-width: 768px) {
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .empty-state p {
+            margin-bottom: 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
             .admin-container {
                 padding: 1rem;
             }
             
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
                 gap: 1rem;
             }
             
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .variant-item {
+            .status-bar {
                 flex-direction: column;
                 gap: 1rem;
-                align-items: stretch;
+                text-align: center;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-filter {
+                width: 100%;
+                justify-content: stretch;
+            }
+            
+            .search-input {
+                flex: 1;
+                width: auto;
+            }
+            
+            .fragrances-table {
+                font-size: 14px;
+            }
+            
+            .fragrances-table th,
+            .fragrances-table td {
+                padding: 0.5rem;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .floating-form {
+                margin: 1rem;
+                max-height: calc(100vh - 2rem);
             }
         }
     </style>
@@ -573,8 +804,13 @@
     <div class="admin-container">
         <!-- Status Bar -->
         <div class="status-bar">
-            <span>✨</span>
-            <span>Admin Dashboard Active - Welcome back!</span>
+            <div>
+                <span>✨</span>
+                <span>Admin Dashboard Active - Welcome back!</span>
+            </div>
+            <button class="add-fragrance-btn" onclick="openAddForm()">
+                ➕ Add New Fragrance
+            </button>
         </div>
 
         <!-- Statistics -->
@@ -585,7 +821,7 @@
                 </div>
                 <div class="stat-number" id="totalFragrances">-</div>
                 <div class="stat-label">Total Fragrances</div>
-                <div class="stat-change" id="fragranceChange">Ready to add more</div>
+                <div class="stat-change" id="fragranceChange">Loading...</div>
             </div>
             
             <div class="stat-card">
@@ -594,32 +830,81 @@
                 </div>
                 <div class="stat-number" id="totalVariants">-</div>
                 <div class="stat-label">Product Variants</div>
-                <div class="stat-change" id="variantChange">All sizes available</div>
+                <div class="stat-change" id="variantChange">Loading...</div>
             </div>
             
             <div class="stat-card">
                 <div class="stat-header">
-                    <div class="stat-icon">🔥</div>
+                    <div class="stat-icon">👁️</div>
                 </div>
-                <div class="stat-number" id="lastAdded">-</div>
-                <div class="stat-label">Latest Addition</div>
-                <div class="stat-change" id="addedChange">Keep growing!</div>
+                <div class="stat-number" id="visibleFragrances">-</div>
+                <div class="stat-label">Visible in Store</div>
+                <div class="stat-change" id="visibleChange">Loading...</div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="content-grid">
-            <!-- Add Fragrance Form -->
-            <div class="form-card">
-                <div class="form-header">
-                    <span style="font-size: 28px;">➕</span>
-                    <h2>Add New Fragrance</h2>
+        <!-- Fragrances Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>🗂️ Manage Fragrances</h2>
+                <div class="search-filter">
+                    <input type="text" id="tableSearch" class="search-input" placeholder="Search fragrances...">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="all">All Status</option>
+                        <option value="visible">Visible Only</option>
+                        <option value="hidden">Hidden Only</option>
+                    </select>
                 </div>
+            </div>
+            
+            <div id="tableLoading" style="text-align: center; padding: 3rem;">
+                <div class="loading-spinner" style="border-color: #667eea; border-top-color: transparent;"></div>
+                <p>Loading fragrances...</p>
+            </div>
+            
+            <div id="tableContent" style="display: none;">
+                <table class="fragrances-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Fragrance Info</th>
+                            <th>Variants</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fragrancesTableBody">
+                        <!-- Fragrances will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="emptyTable" class="empty-state" style="display: none;">
+                <h3>No Fragrances Found</h3>
+                <p>Start building your collection by adding your first fragrance.</p>
+                <button class="add-fragrance-btn" onclick="openAddForm()">
+                    ➕ Add First Fragrance
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="floating-form">
+            <div class="form-header">
+                <h2 id="formTitle">➕ Add New Fragrance</h2>
+                <button class="close-btn" onclick="closeForm()">✕</button>
+            </div>
+            
+            <div class="form-content">
                 <div id="success-message" class="message success"></div>
                 <div id="error-message" class="message error"></div>
 
-                <form id="addFragranceForm">
+                <form id="fragranceForm">
+                    <input type="hidden" id="fragranceId" name="id">
+                    
                     <div class="form-group">
                         <label for="name">Fragrance Name <span class="required">*</span></label>
                         <input type="text" id="name" name="name" class="form-control" required 
@@ -666,7 +951,7 @@
                                 <strong>Available Sizes</strong>
                             </div>
                             
-                            <div class="variant-item">
+                            <div class="variant-item-form">
                                 <div class="variant-toggle">
                                     <input type="checkbox" id="variant_5ml" checked>
                                     <label for="variant_5ml">5ml Sample</label>
@@ -675,7 +960,7 @@
                                        placeholder="2.500" step="0.001" min="0" value="2.500">
                             </div>
                             
-                            <div class="variant-item">
+                            <div class="variant-item-form">
                                 <div class="variant-toggle">
                                     <input type="checkbox" id="variant_10ml" checked>
                                     <label for="variant_10ml">10ml Sample</label>
@@ -684,7 +969,7 @@
                                        placeholder="4.500" step="0.001" min="0" value="4.500">
                             </div>
                             
-                            <div class="variant-item">
+                            <div class="variant-item-form">
                                 <div class="variant-toggle">
                                     <input type="checkbox" id="variant_30ml" checked>
                                     <label for="variant_30ml">30ml Sample</label>
@@ -693,7 +978,7 @@
                                        placeholder="12.000" step="0.001" min="0" value="12.000">
                             </div>
                             
-                            <div class="variant-item whole-bottle">
+                            <div class="variant-item-form whole-bottle">
                                 <div class="variant-toggle">
                                     <input type="checkbox" id="variant_whole" checked>
                                     <label for="variant_whole">🎁 Whole Bottle (Original)</label>
@@ -711,34 +996,17 @@
                     </button>
                 </form>
             </div>
-
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <h3>⚡ Quick Actions</h3>
-                    <button class="action-btn" onclick="location.reload()">🔄 Refresh Dashboard</button>
-                    <button class="action-btn" onclick="testConnection()">🔍 Test API Connection</button>
-                    <button class="action-btn" onclick="clearForm()">🗑️ Clear Form</button>
-                    <button class="action-btn" onclick="exportData()">📊 Export Data</button>
-                </div>
-
-                <!-- Connection Status -->
-                <div class="connection-status">
-                    <h3>🌐 System Status</h3>
-                    <div id="connectionStatus" class="status-indicator">
-                        <span>🔄</span>
-                        <span>Checking connection...</span>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
+        // Global variables
+        let allFragrances = [];
+        let currentEditingId = null;
+
         document.addEventListener('DOMContentLoaded', function() {
             checkAuthentication();
-            initializeAdminDashboard();
+            initializeAdmin();
         });
 
         function checkAuthentication() {
@@ -765,14 +1033,14 @@
             return true;
         }
 
-        function initializeAdminDashboard() {
+        function initializeAdmin() {
             initializeImageUpload();
             initializeVariants();
             initializeForm();
+            initializeTableFilters();
             
-            // Load stats
-            fetchFragranceStats();
-            testConnection();
+            // Load data
+            loadFragrances();
             
             // Auto-generate slug from name
             const nameInput = document.getElementById('name');
@@ -784,6 +1052,390 @@
                     .replace(/[^a-z0-9]+/g, '-')
                     .replace(/^-+|-+$/g, '');
                 slugInput.value = slug;
+            });
+
+            // Close modal on overlay click
+            document.getElementById('modalOverlay').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeForm();
+                }
+            });
+
+            // Escape key to close modal
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeForm();
+                }
+            });
+        }
+
+        async function loadFragrances() {
+            try {
+                const response = await fetch('/api/fragrances');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        allFragrances = result.data;
+                        updateStats();
+                        renderTable();
+                    } else {
+                        throw new Error(result.error || 'Failed to load fragrances');
+                    }
+                } else {
+                    throw new Error('API request failed');
+                }
+            } catch (error) {
+                console.error('Error loading fragrances:', error);
+                showTableError();
+            }
+        }
+
+        function updateStats() {
+            const total = allFragrances.length;
+            const visible = allFragrances.filter(f => !f.hidden).length;
+            const totalVariants = allFragrances.reduce((sum, f) => sum + (f.variants?.length || 0), 0);
+
+            document.getElementById('totalFragrances').textContent = total;
+            document.getElementById('visibleFragrances').textContent = visible;
+            document.getElementById('totalVariants').textContent = totalVariants;
+
+            document.getElementById('fragranceChange').textContent = total > 0 ? `${total} in collection` : 'Start building collection';
+            document.getElementById('visibleChange').textContent = visible > 0 ? `${visible} visible to customers` : 'None visible yet';
+            document.getElementById('variantChange').textContent = totalVariants > 0 ? `${totalVariants} options available` : 'No variants yet';
+        }
+
+        function renderTable() {
+            const tableLoading = document.getElementById('tableLoading');
+            const tableContent = document.getElementById('tableContent');
+            const emptyTable = document.getElementById('emptyTable');
+            const tableBody = document.getElementById('fragrancesTableBody');
+
+            tableLoading.style.display = 'none';
+
+            if (allFragrances.length === 0) {
+                tableContent.style.display = 'none';
+                emptyTable.style.display = 'block';
+                return;
+            }
+
+            tableContent.style.display = 'block';
+            emptyTable.style.display = 'none';
+
+            // Apply filters
+            const searchTerm = document.getElementById('tableSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            let filteredFragrances = allFragrances.filter(fragrance => {
+                // Search filter
+                const searchableText = [
+                    fragrance.name,
+                    fragrance.brand,
+                    fragrance.description
+                ].join(' ').toLowerCase();
+                
+                const matchesSearch = !searchTerm || searchableText.includes(searchTerm);
+
+                // Status filter
+                let matchesStatus = true;
+                if (statusFilter === 'visible') {
+                    matchesStatus = !fragrance.hidden;
+                } else if (statusFilter === 'hidden') {
+                    matchesStatus = fragrance.hidden;
+                }
+
+                return matchesSearch && matchesStatus;
+            });
+
+            tableBody.innerHTML = '';
+
+            filteredFragrances.forEach(fragrance => {
+                const row = createTableRow(fragrance);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function createTableRow(fragrance) {
+            const row = document.createElement('tr');
+            
+            // Image
+            let imageCell = '<td>';
+            if (fragrance.image_path) {
+                const imagePath = fragrance.image_path;
+                let imageUrl = '';
+                if (imagePath.startsWith('http')) {
+                    imageUrl = imagePath;
+                } else if (imagePath.startsWith('fragrance-images/')) {
+                    const filename = imagePath.replace('fragrance-images/', '');
+                    imageUrl = `/api/image/${filename}`;
+                } else {
+                    imageUrl = `/api/image/${imagePath}`;
+                }
+                imageCell += `<img src="${imageUrl}" alt="${fragrance.name}" class="fragrance-image" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">`;
+            } else {
+                imageCell += '<div class="fragrance-image">🌸</div>';
+            }
+            imageCell += '</td>';
+
+            // Info
+            const infoCell = `
+                <td>
+                    <div class="fragrance-info">
+                        <div class="fragrance-name">${fragrance.name}</div>
+                        ${fragrance.brand ? `<div class="fragrance-brand">${fragrance.brand}</div>` : ''}
+                        <div class="fragrance-description">${fragrance.description || ''}</div>
+                    </div>
+                </td>
+            `;
+
+            // Variants
+            let variantsCell = '<td><div class="variants-list">';
+            if (fragrance.variants && fragrance.variants.length > 0) {
+                fragrance.variants.forEach(variant => {
+                    if (variant.is_whole_bottle) {
+                        variantsCell += `<div class="variant-item whole-bottle">🎁 Full Bottle</div>`;
+                    } else {
+                        const size = variant.size || `${variant.size_ml}ml`;
+                        const price = variant.price_display || `${(variant.price || 0).toFixed(3)} OMR`;
+                        variantsCell += `<div class="variant-item">${size} - ${price}</div>`;
+                    }
+                });
+            } else {
+                variantsCell += '<div class="variant-item">No variants</div>';
+            }
+            variantsCell += '</div></td>';
+
+            // Status
+            const statusCell = `
+                <td>
+                    <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
+                        ${fragrance.hidden ? 'Hidden' : 'Visible'}
+                    </span>
+                </td>
+            `;
+
+            // Created date
+            const createdDate = fragrance.created_at ? new Date(fragrance.created_at).toLocaleDateString() : 'Unknown';
+            const createdCell = `<td>${createdDate}</td>`;
+
+            // Actions
+            const actionsCell = `
+                <td>
+                    <div class="actions-cell">
+                        <button class="action-btn btn-edit" onclick="editFragrance(${fragrance.id})">
+                            ✏️ Edit
+                        </button>
+                        <button class="action-btn ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
+                                onclick="toggleVisibility(${fragrance.id}, ${!fragrance.hidden})">
+                            ${fragrance.hidden ? '👁️ Show' : '🙈 Hide'}
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteFragrance(${fragrance.id})">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            row.innerHTML = imageCell + infoCell + variantsCell + statusCell + createdCell + actionsCell;
+            return row;
+        }
+
+        function initializeTableFilters() {
+            const searchInput = document.getElementById('tableSearch');
+            const statusFilter = document.getElementById('statusFilter');
+
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(renderTable, 300);
+            });
+
+            statusFilter.addEventListener('change', renderTable);
+        }
+
+        // Form Functions
+        function openAddForm() {
+            currentEditingId = null;
+            document.getElementById('formTitle').innerHTML = '➕ Add New Fragrance';
+            document.getElementById('submitBtn').innerHTML = '✨ Add Fragrance to Store';
+            resetForm();
+            showModal();
+        }
+
+        function editFragrance(id) {
+            const fragrance = allFragrances.find(f => f.id === id);
+            if (!fragrance) return;
+
+            currentEditingId = id;
+            document.getElementById('formTitle').innerHTML = '✏️ Edit Fragrance';
+            document.getElementById('submitBtn').innerHTML = '💾 Update Fragrance';
+
+            // Populate form
+            document.getElementById('fragranceId').value = fragrance.id;
+            document.getElementById('name').value = fragrance.name;
+            document.getElementById('brand').value = fragrance.brand || '';
+            document.getElementById('slug').value = fragrance.slug;
+            document.getElementById('description').value = fragrance.description;
+
+            // Handle existing image
+            if (fragrance.image_path) {
+                const imagePath = fragrance.image_path;
+                let imageUrl = '';
+                if (imagePath.startsWith('http')) {
+                    imageUrl = imagePath;
+                } else if (imagePath.startsWith('fragrance-images/')) {
+                    const filename = imagePath.replace('fragrance-images/', '');
+                    imageUrl = `/api/image/${filename}`;
+                } else {
+                    imageUrl = `/api/image/${imagePath}`;
+                }
+                
+                const previewImg = document.getElementById('previewImg');
+                previewImg.src = imageUrl;
+                document.getElementById('imageUpload').style.display = 'none';
+                document.getElementById('imagePreview').style.display = 'block';
+            }
+
+            // Populate variants
+            resetVariants();
+            if (fragrance.variants) {
+                // Disable all variants first
+                ['5ml', '10ml', '30ml', 'whole'].forEach(size => {
+                    const checkbox = document.getElementById(`variant_${size}`);
+                    const priceInput = document.getElementById(`price_${size}`);
+                    checkbox.checked = false;
+                    if (priceInput) priceInput.disabled = true;
+                });
+
+                // Enable and populate existing variants
+                fragrance.variants.forEach(variant => {
+                    if (variant.is_whole_bottle) {
+                        document.getElementById('variant_whole').checked = true;
+                    } else if (variant.size_ml) {
+                        const sizeKey = `${variant.size_ml}ml`;
+                        const checkbox = document.getElementById(`variant_${sizeKey}`);
+                        const priceInput = document.getElementById(`price_${sizeKey}`);
+                        
+                        if (checkbox && priceInput) {
+                            checkbox.checked = true;
+                            priceInput.disabled = false;
+                            priceInput.value = (variant.price || 0).toFixed(3);
+                        }
+                    }
+                });
+            }
+
+            showModal();
+        }
+
+        async function toggleVisibility(id, hide) {
+            if (!checkAuthentication()) return;
+
+            try {
+                const response = await fetch('/admin/toggle-fragrance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ id, hidden: hide })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update local data
+                    const fragrance = allFragrances.find(f => f.id === id);
+                    if (fragrance) {
+                        fragrance.hidden = hide;
+                    }
+                    
+                    updateStats();
+                    renderTable();
+                    
+                    showMessage('success', `Fragrance ${hide ? 'hidden' : 'shown'} successfully!`);
+                } else {
+                    throw new Error(result.error || 'Failed to update visibility');
+                }
+            } catch (error) {
+                console.error('Error toggling visibility:', error);
+                showMessage('error', 'Failed to update fragrance visibility');
+            }
+        }
+
+        async function deleteFragrance(id) {
+            const fragrance = allFragrances.find(f => f.id === id);
+            if (!fragrance) return;
+
+            const confirmMsg = `Are you sure you want to delete "${fragrance.name}"?\n\nThis action cannot be undone and will remove:
+- The fragrance from your store
+- All its variants and pricing
+- The product image
+- Any associated data`;
+
+            if (!confirm(confirmMsg)) return;
+
+            if (!checkAuthentication()) return;
+
+            try {
+                const response = await fetch('/admin/delete-fragrance', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ id })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Remove from local data
+                    allFragrances = allFragrances.filter(f => f.id !== id);
+                    
+                    updateStats();
+                    renderTable();
+                    
+                    showMessage('success', 'Fragrance deleted successfully!');
+                } else {
+                    throw new Error(result.error || 'Failed to delete fragrance');
+                }
+            } catch (error) {
+                console.error('Error deleting fragrance:', error);
+                showMessage('error', 'Failed to delete fragrance');
+            }
+        }
+
+        function showModal() {
+            document.getElementById('modalOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeForm() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('fragranceForm').reset();
+            resetVariants();
+            clearImagePreview();
+            hideMessages();
+            currentEditingId = null;
+        }
+
+        function resetVariants() {
+            // Reset all checkboxes to checked and enable price inputs
+            ['5ml', '10ml', '30ml', 'whole'].forEach(size => {
+                const checkbox = document.getElementById(`variant_${size}`);
+                checkbox.checked = true;
+                
+                if (size !== 'whole') {
+                    const priceInput = document.getElementById(`price_${size}`);
+                    priceInput.disabled = false;
+                    const defaults = {'5ml': '2.500', '10ml': '4.500', '30ml': '12.000'};
+                    priceInput.value = defaults[size];
+                }
             });
         }
 
@@ -827,13 +1479,13 @@
 
             function handleImageFile(file) {
                 if (!file.type.includes('png')) {
-                    showError('Only PNG files are allowed');
+                    showMessage('error', 'Only PNG files are allowed');
                     return;
                 }
 
                 const maxSize = 5 * 1024 * 1024;
                 if (file.size > maxSize) {
-                    showError('Image too large. Maximum size is 5MB.');
+                    showMessage('error', 'Image too large. Maximum size is 5MB.');
                     return;
                 }
 
@@ -846,15 +1498,20 @@
                 reader.readAsDataURL(file);
             }
 
-            function clearImagePreview() {
-                fileInput.value = '';
-                previewImg.src = '';
-                imageUpload.style.display = 'block';
-                imagePreview.style.display = 'none';
-                imageUpload.classList.remove('dragover');
-            }
-
             window.clearImagePreview = clearImagePreview;
+        }
+
+        function clearImagePreview() {
+            const fileInput = document.getElementById('image');
+            const imageUpload = document.getElementById('imageUpload');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+
+            fileInput.value = '';
+            previewImg.src = '';
+            imageUpload.style.display = 'block';
+            imagePreview.style.display = 'none';
+            imageUpload.classList.remove('dragover');
         }
 
         function initializeVariants() {
@@ -881,7 +1538,7 @@
         }
 
         function initializeForm() {
-            const form = document.getElementById('addFragranceForm');
+            const form = document.getElementById('fragranceForm');
             const logoutBtn = document.getElementById('logoutBtn');
             
             form.addEventListener('submit', handleFormSubmit);
@@ -901,48 +1558,74 @@
             
             try {
                 let imagePath = '';
+                const imageFile = formData.imageFile;
                 
                 // Upload image if provided
-                if (formData.imageFile) {
-                    showSuccess('Uploading image...');
-                    imagePath = await uploadImage(formData.imageFile, formData.slug);
-                    showSuccess('Image uploaded! Saving fragrance...');
+                if (imageFile) {
+                    showMessage('success', 'Uploading image...');
+                    imagePath = await uploadImage(imageFile, formData.slug);
+                    showMessage('success', 'Image uploaded! Saving fragrance...');
+                }
+                
+                // Prepare request data
+                const requestData = {
+                    name: formData.name,
+                    brand: formData.brand,
+                    slug: formData.slug,
+                    description: formData.description,
+                    variants: formData.variants
+                };
+
+                // Add image if uploaded or keep existing
+                if (imagePath) {
+                    requestData.image = imagePath;
+                } else if (currentEditingId) {
+                    // Keep existing image for edits
+                    const existingFragrance = allFragrances.find(f => f.id === currentEditingId);
+                    if (existingFragrance && existingFragrance.image_path) {
+                        requestData.image = existingFragrance.image_path;
+                    }
+                }
+
+                // Add ID for updates
+                if (currentEditingId) {
+                    requestData.id = currentEditingId;
                 }
                 
                 // Save fragrance
-                const response = await fetch('/admin/add-fragrance', {
-                    method: 'POST',
+                const endpoint = currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance';
+                const method = currentEditingId ? 'PUT' : 'POST';
+                
+                const response = await fetch(endpoint, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     credentials: 'include',
-                    body: JSON.stringify({
-                        name: formData.name,
-                        brand: formData.brand,
-                        slug: formData.slug,
-                        description: formData.description,
-                        image: imagePath,
-                        variants: formData.variants
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    showSuccess(data.message || 'Fragrance added successfully!');
-                    resetForm();
-                    fetchFragranceStats();
+                    const message = currentEditingId ? 'Fragrance updated successfully!' : 'Fragrance added successfully!';
+                    showMessage('success', message);
+                    
+                    setTimeout(() => {
+                        closeForm();
+                        loadFragrances(); // Reload data
+                    }, 1500);
                 } else {
                     if (response.status === 401) {
                         alert('Session expired. Please log in again.');
                         window.location.href = '/login.html';
                     } else {
-                        showError(data.error || 'Failed to add fragrance');
+                        showMessage('error', data.error || 'Failed to save fragrance');
                     }
                 }
             } catch (error) {
-                console.error('Error adding fragrance:', error);
-                showError('Connection error. Please try again.');
+                console.error('Error saving fragrance:', error);
+                showMessage('error', 'Connection error. Please try again.');
             } finally {
                 setSubmitLoading(false);
             }
@@ -990,7 +1673,7 @@
 
         function validateFormData(data) {
             if (!data.name || !data.slug || !data.description || data.variants.length === 0) {
-                showError('Please fill in all required fields and add at least one valid variant');
+                showMessage('error', 'Please fill in all required fields and add at least one valid variant');
                 return false;
             }
             return true;
@@ -1032,129 +1715,26 @@
             }
         }
 
-        function resetForm() {
-            document.getElementById('addFragranceForm').reset();
+        function showTableError() {
+            const tableLoading = document.getElementById('tableLoading');
+            const tableContent = document.getElementById('tableContent');
+            const emptyTable = document.getElementById('emptyTable');
+
+            tableLoading.style.display = 'none';
+            tableContent.style.display = 'none';
+            emptyTable.style.display = 'block';
             
-            // Reset variants to default state
-            document.getElementById('variant_5ml').checked = true;
-            document.getElementById('variant_10ml').checked = true;
-            document.getElementById('variant_30ml').checked = true;
-            document.getElementById('variant_whole').checked = true;
-            
-            document.getElementById('price_5ml').value = '2.500';
-            document.getElementById('price_10ml').value = '4.500';
-            document.getElementById('price_30ml').value = '12.000';
-            
-            document.getElementById('price_5ml').disabled = false;
-            document.getElementById('price_10ml').disabled = false;
-            document.getElementById('price_30ml').disabled = false;
-            
-            if (window.clearImagePreview) {
-                window.clearImagePreview();
-            }
-            
+            document.querySelector('#emptyTable h3').textContent = 'Error Loading Fragrances';
+            document.querySelector('#emptyTable p').textContent = 'There was an error loading your fragrances. Please refresh the page.';
+        }
+
+        function showMessage(type, message) {
             hideMessages();
-        }
-
-        async function fetchFragranceStats() {
-            try {
-                const response = await fetch('/api/fragrances');
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success && result.data) {
-                        const totalFragrances = result.data.length;
-                        const totalVariants = result.data.reduce((sum, f) => sum + (f.variants?.length || 0), 0);
-                        
-                        document.getElementById('totalFragrances').textContent = totalFragrances;
-                        document.getElementById('totalVariants').textContent = totalVariants;
-                        
-                        if (result.data.length > 0) {
-                            const newest = result.data[0];
-                            const displayName = newest.brand ? `${newest.brand} ${newest.name}` : newest.name;
-                            document.getElementById('lastAdded').textContent = displayName;
-                            
-                            if (newest.created_at) {
-                                const timeAgo = getTimeAgo(new Date(newest.created_at));
-                                document.getElementById('addedChange').textContent = `Added ${timeAgo}`;
-                            }
-                        } else {
-                            document.getElementById('lastAdded').textContent = 'None yet';
-                            document.getElementById('addedChange').textContent = 'Add your first fragrance!';
-                        }
-                        
-                        document.getElementById('fragranceChange').textContent = totalFragrances > 0 ? `${totalFragrances} in collection` : 'Start building your collection';
-                        document.getElementById('variantChange').textContent = totalVariants > 0 ? `${totalVariants} options available` : 'No variants yet';
-                    }
-                }
-            } catch (error) {
-                console.log('Could not fetch stats:', error);
-                document.getElementById('totalFragrances').textContent = '0';
-                document.getElementById('totalVariants').textContent = '0';
-                document.getElementById('lastAdded').textContent = 'Error';
-            }
-        }
-
-        async function testConnection() {
-            const statusDiv = document.getElementById('connectionStatus');
-            
-            try {
-                const response = await fetch('/admin/add-fragrance', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    statusDiv.innerHTML = '<span>🟢</span><span>All systems operational</span>';
-                    statusDiv.className = 'status-indicator online';
-                } else {
-                    throw new Error('API offline');
-                }
-            } catch (error) {
-                statusDiv.innerHTML = '<span>🔴</span><span>Connection issues detected</span>';
-                statusDiv.className = 'status-indicator offline';
-            }
-        }
-
-        function getTimeAgo(date) {
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
-            return date.toLocaleDateString();
-        }
-
-        function clearForm() {
-            if (confirm('Clear all form data?')) {
-                resetForm();
-            }
-        }
-
-        function exportData() {
-            alert('Export feature coming soon! This will export your fragrance catalog.');
-        }
-
-        function showError(message) {
-            hideMessages();
-            const errorDiv = document.getElementById('error-message');
-            if (errorDiv) {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-                errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-
-        function showSuccess(message) {
-            hideMessages();
-            const successDiv = document.getElementById('success-message');
-            if (successDiv) {
-                successDiv.textContent = message;
-                successDiv.style.display = 'block';
+            const messageDiv = document.getElementById(`${type}-message`);
+            if (messageDiv) {
+                messageDiv.textContent = message;
+                messageDiv.style.display = 'block';
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }
 
@@ -1175,10 +1755,11 @@
         function setSubmitLoading(loading) {
             const submitBtn = document.getElementById('submitBtn');
             if (loading) {
-                submitBtn.innerHTML = '<span class="loading-spinner"></span>Adding Fragrance...';
+                submitBtn.innerHTML = '<span class="loading-spinner"></span>Processing...';
                 submitBtn.disabled = true;
             } else {
-                submitBtn.innerHTML = '✨ Add Fragrance to Store';
+                const isEdit = currentEditingId !== null;
+                submitBtn.innerHTML = isEdit ? '💾 Update Fragrance' : '✨ Add Fragrance to Store';
                 submitBtn.disabled = false;
             }
         }
