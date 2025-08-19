@@ -28,6 +28,7 @@
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
+            position: relative;
         }
 
         .login-header {
@@ -117,10 +118,24 @@
         }
 
         .status {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 12px;
-            color: #666;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            transition: all 0.3s ease;
+        }
+
+        .status.online {
+            background: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+        }
+
+        .status.offline {
+            background: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3);
         }
     </style>
 </head>
@@ -130,7 +145,7 @@
             <h1>🔑 Admin Login</h1>
         </div>
 
-        <div class="status" id="status">Checking login function...</div>
+        <div class="status" id="status" title="Checking login function..."></div>
         
         <div id="message" class="message"></div>
 
@@ -169,13 +184,15 @@
             .then(r => r.json())
             .then(data => {
                 console.log('Login function status:', data);
-                document.getElementById('status').textContent = '✅ Login function ready';
-                document.getElementById('status').style.color = 'green';
+                const statusDot = document.getElementById('status');
+                statusDot.className = 'status online';
+                statusDot.title = '✅ Login function ready';
             })
             .catch(e => {
                 console.error('Login function test failed:', e);
-                document.getElementById('status').textContent = '❌ Login function offline';
-                document.getElementById('status').style.color = 'red';
+                const statusDot = document.getElementById('status');
+                statusDot.className = 'status offline';
+                statusDot.title = '❌ Login function offline';
             });
 
         // Simple form handler
@@ -253,7 +270,7 @@
             }
         };
         
-        console.log('Script setup complete');
+        console.log('success');
     </script>
 </body>
 </html>

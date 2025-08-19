@@ -425,11 +425,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication on page load
-            checkAuthentication();
-            
-            // Initialize the admin dashboard
-            initializeAdminDashboard();
+            // Small delay to ensure cookies are set after redirect
+            setTimeout(() => {
+                // Check authentication on page load
+                checkAuthentication();
+                
+                // Initialize the admin dashboard
+                initializeAdminDashboard();
+            }, 100);
         });
 
         function checkAuthentication() {
@@ -439,8 +442,18 @@
             );
             
             if (!adminSession) {
-                alert('Session expired. Please log in again.');
-                window.location.href = '/login.html';
+                // Give a small delay to allow cookie to be set after redirect
+                setTimeout(() => {
+                    const cookiesRecheck = document.cookie.split(';');
+                    const adminSessionRecheck = cookiesRecheck.find(cookie => 
+                        cookie.trim().startsWith('admin_session=')
+                    );
+                    
+                    if (!adminSessionRecheck) {
+                        alert('Session expired. Please log in again.');
+                        window.location.href = '/login.html';
+                    }
+                }, 500);
                 return false;
             }
             
