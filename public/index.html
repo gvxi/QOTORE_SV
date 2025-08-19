@@ -421,8 +421,13 @@ ${variants.length > 0 ? `
 
             <!-- Empty State -->
             <div id="empty-state" class="error-message" style="display: none;">
-                <h3>📦 No fragrances available</h3>
-                <p>Check back soon for new additions to our collection!</p>
+                <h3>🌸 No Fragrances Available Yet</h3>
+                <p>We're building our collection! Check back soon for amazing fragrances, or contact us to request specific scents.</p>
+                <div style="margin-top: 20px;">
+                    <a href="mailto:info@qotore.com" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                        📧 Contact us for requests
+                    </a>
+                </div>
             </div>
         </section>
     </main>
@@ -490,7 +495,7 @@ ${variants.length > 0 ? `
             emptyState.style.display = 'none';
 
             try {
-                console.log('Fetching fragrances from Supabase...');
+                console.log('Fetching fragrances from database...');
                 
                 // Fetch fragrances from our API
                 const response = await fetch('/api/fragrances');
@@ -500,11 +505,13 @@ ${variants.length > 0 ? `
                     console.log('API Response:', result);
                     
                     if (result.success && result.data) {
-                        console.log(`Loaded ${result.data.length} fragrances from ${result.source}`);
-                        displayFragrances(result.data);
-                    } else if (result.fallback === 'sample_data_used') {
-                        console.log('API failed, using sample data');
-                        displaySampleFragrances();
+                        if (result.data.length > 0) {
+                            console.log(`Loaded ${result.data.length} fragrances from ${result.source}`);
+                            displayFragrances(result.data);
+                        } else {
+                            console.log('No fragrances found in database');
+                            showEmptyState();
+                        }
                     } else {
                         throw new Error(result.error || 'Invalid API response');
                     }
@@ -513,24 +520,15 @@ ${variants.length > 0 ? `
                     const errorData = await response.json().catch(() => ({}));
                     
                     if (errorData.error === 'Database not configured') {
-                        console.log('Database not configured, showing sample data');
-                        displaySampleFragrances();
+                        console.log('Database not configured');
+                        showDatabaseNotConfigured();
                     } else {
                         throw new Error(errorData.error || `API error (${response.status})`);
                     }
                 }
             } catch (fetchError) {
                 console.error('Error loading fragrances:', fetchError);
-                
-                // Show error with retry option
-                loading.style.display = 'none';
-                error.style.display = 'block';
-                
-                // Also show sample data as fallback
-                setTimeout(() => {
-                    console.log('Showing sample data as fallback');
-                    displaySampleFragrances();
-                }, 2000);
+                showError('Unable to load fragrances. Please try again later.');
             }
         }
 
@@ -542,7 +540,7 @@ ${variants.length > 0 ? `
             loading.style.display = 'none';
 
             if (!fragrances || fragrances.length === 0) {
-                emptyState.style.display = 'block';
+                showEmptyState();
                 return;
             }
 
@@ -555,74 +553,52 @@ ${variants.length > 0 ? `
             });
         }
 
-        function displaySampleFragrances() {
-            // Sample fragrance data for demonstration
-            const sampleFragrances = [
-                {
-                    id: 1,
-                    name: "Chanel No. 5",
-                    description: "A timeless classic that epitomizes elegance and sophistication. This iconic fragrance features a complex blend of floral notes with hints of vanilla and sandalwood.",
-                    image: "",
-                    variants: [
-                        { size: "30ml", price: 89.99 },
-                        { size: "50ml", price: 129.99 },
-                        { size: "100ml", price: 179.99 }
-                    ]
-                },
-                {
-                    id: 2,
-                    name: "Dior Sauvage",
-                    description: "A fresh and raw fragrance that captures the spirit of wide-open spaces. Features bergamot, pepper, and ambroxan for a bold, masculine scent.",
-                    image: "",
-                    variants: [
-                        { size: "60ml", price: 94.99 },
-                        { size: "100ml", price: 134.99 }
-                    ]
-                },
-                {
-                    id: 3,
-                    name: "Tom Ford Black Orchid",
-                    description: "A luxurious and sensual fragrance that combines rich dark chocolate, vanilla, and black truffle with floral notes of orchid and lotus.",
-                    image: "",
-                    variants: [
-                        { size: "30ml", price: 99.99 },
-                        { size: "50ml", price: 169.99 }
-                    ]
-                },
-                {
-                    id: 4,
-                    name: "Creed Aventus",
-                    description: "A sophisticated scent inspired by the dramatic life of a historic emperor. Features pineapple, birch, and musk for a bold, confident fragrance.",
-                    image: "",
-                    variants: [
-                        { size: "50ml", price: 299.99 },
-                        { size: "100ml", price: 449.99 }
-                    ]
-                },
-                {
-                    id: 5,
-                    name: "YSL Black Opium",
-                    description: "An addictive gourmand fragrance with coffee, vanilla, and white flowers. A modern take on the oriental fragrance family.",
-                    image: "",
-                    variants: [
-                        { size: "30ml", price: 79.99 },
-                        { size: "50ml", price: 109.99 },
-                        { size: "90ml", price: 149.99 }
-                    ]
-                },
-                {
-                    id: 6,
-                    name: "Hermès Terre d'Hermès",
-                    description: "An earthy and woody fragrance that tells the story of man and earth. Features orange, pepper, and vetiver for a warm, grounding scent.",
-                    image: "",
-                    variants: [
-                        { size: "50ml", price: 89.99 },
-                        { size: "100ml", price: 139.99 }
-                    ]
-                }
-            ];
+        function showEmptyState() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const productsGrid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-state');
 
-            displayFragrances(sampleFragrances);
+            loading.style.display = 'none';
+            error.style.display = 'none';
+            productsGrid.style.display = 'none';
+            emptyState.style.display = 'block';
+        }
+
+        function showDatabaseNotConfigured() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const productsGrid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-state');
+
+            loading.style.display = 'none';
+            productsGrid.style.display = 'none';
+            emptyState.style.display = 'none';
+            
+            error.style.display = 'block';
+            const errorTitle = error.querySelector('h3');
+            const errorText = error.querySelector('p');
+            
+            if (errorTitle) errorTitle.textContent = '🗄️ Database Not Configured';
+            if (errorText) errorText.textContent = 'The fragrance database is not set up yet. Please contact the administrator.';
+        }
+
+        function showError(message) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const productsGrid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-state');
+            
+            loading.style.display = 'none';
+            productsGrid.style.display = 'none';
+            emptyState.style.display = 'none';
+            error.style.display = 'block';
+            
+            const errorTitle = error.querySelector('h3');
+            const errorText = error.querySelector('p');
+            
+            if (errorTitle) errorTitle.textContent = '🚫 Unable to load fragrances';
+            if (errorText) errorText.textContent = message;
         }
 
         function createProductCard(fragrance) {
@@ -709,11 +685,7 @@ ${variants.length > 0 ? `
         }
 
         function showError() {
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            
-            loading.style.display = 'none';
-            error.style.display = 'block';
+            showError('Connection error. Please try again later.');
         }
     </script>
 </body>
