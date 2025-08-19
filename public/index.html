@@ -474,21 +474,47 @@
             emptyState.style.display = 'none';
 
             try {
-                // Try to fetch fragrances from API
+                console.log('Fetching fragrances from Supabase...');
+                
+                // Fetch fragrances from our API
                 const response = await fetch('/api/fragrances');
                 
                 if (response.ok) {
-                    const fragrances = await response.json();
-                    displayFragrances(fragrances);
+                    const result = await response.json();
+                    console.log('API Response:', result);
+                    
+                    if (result.success && result.data) {
+                        console.log(`Loaded ${result.data.length} fragrances from ${result.source}`);
+                        displayFragrances(result.data);
+                    } else if (result.fallback === 'sample_data_used') {
+                        console.log('API failed, using sample data');
+                        displaySampleFragrances();
+                    } else {
+                        throw new Error(result.error || 'Invalid API response');
+                    }
                 } else {
-                    // If API fails, show sample fragrances
-                    console.log('API not available, showing sample data');
-                    displaySampleFragrances();
+                    console.log('API request failed with status:', response.status);
+                    const errorData = await response.json().catch(() => ({}));
+                    
+                    if (errorData.error === 'Database not configured') {
+                        console.log('Database not configured, showing sample data');
+                        displaySampleFragrances();
+                    } else {
+                        throw new Error(errorData.error || `API error (${response.status})`);
+                    }
                 }
             } catch (fetchError) {
-                console.log('Fetch error, showing sample data:', fetchError);
-                // Show sample fragrances if API is not available
-                displaySampleFragrances();
+                console.error('Error loading fragrances:', fetchError);
+                
+                // Show error with retry option
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                
+                // Also show sample data as fallback
+                setTimeout(() => {
+                    console.log('Showing sample data as fallback');
+                    displaySampleFragrances();
+                }, 2000);
             }
         }
 
@@ -587,38 +613,80 @@
             const card = document.createElement('div');
             card.className = 'product-card';
             
+            // Handle variants (could be from Supabase or sample data)
+            const variants = fragrance.variants || [];
+            
             // Find price range
-            const prices = fragrance.variants.map(v => v.price);
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-            const priceDisplay = minPrice === maxPrice ? 
-                `$${minPrice.toFixed(2)}` : 
-                `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
+            const prices = variants.map(v => typeof v.price === 'number' ? v.price : parseFloat(v.price) || 0);
+            const validPrices = prices.filter(p => p > 0);
+            
+            let priceDisplay = 'Price TBA';
+            if (validPrices.length > 0) {
+                const minPrice = Math.min(...validPrices);
+                const maxPrice = Math.max(...validPrices);
+                priceDisplay = minPrice === maxPrice ? 
+                    `${minPrice.toFixed(2)}` : 
+                    `${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)}`;
+            }
+
+            // Handle brand name (from Supabase or sample data)
+            const brandName = fragrance.brand || fragrance.brand_name || '';
+            const displayName = brandName ? `${brandName} ${fragrance.name}` : fragrance.name;
+
+            // Handle image (from Supabase storage)
+            let imageUrl = '';
+            if (fragrance.image_path) {
+                // image_path contains the full path like "fragrance-images/slug.png"
+                const imagePath = fragrance.image_path;
+                
+                if (imagePath.startsWith('http')) {
+                    // Already a full URL
+                    imageUrl = imagePath;
+                } else if (imagePath.startsWith('fragrance-images/')) {
+                    // Extract just the filename from the path
+                    const filename = imagePath.replace('fragrance-images/', '');
+                    imageUrl = `/api/image/${filename}`;
+                } else {
+                    // Legacy or direct filename
+                    imageUrl = `/api/image/${imagePath}`;
+                }
+            } else if (fragrance.image) {
+                // Fallback for old image field or sample data
+                imageUrl = fragrance.image;
+            }
+            
+            const hasImage = imageUrl && imageUrl.trim() !== '';
 
             card.innerHTML = `
                 <div class="product-image">
-                    ${fragrance.image ? 
-                        `<img src="${fragrance.image}" alt="${fragrance.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    ${hasImage ? 
+                        `<img src="${imageUrl}" alt="${fragrance.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                          <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 64px; color: #666;">🌸</div>` :
                         '🌸'
                     }
                 </div>
                 <div class="product-info">
-                    <h3 class="product-name">${fragrance.name}</h3>
-                    <p class="product-description">${fragrance.description}</p>
-                    <div class="product-variants">
-                        ${fragrance.variants.map(variant => 
-                            `<span class="variant">${variant.size} - $${variant.price.toFixed(2)}</span>`
-                        ).join('')}
-                    </div>
+                    <h3 class="product-name">${displayName}</h3>
+                    <p class="product-description">${fragrance.description || 'No description available'}</p>
+                    ${variants.length > 0 ? `
+                        <div class="product-variants">
+                            ${variants.map(variant => {
+                                const size = variant.size || `${variant.size_ml}ml`;
+                                const price = typeof variant.price === 'number' ? variant.price : (variant.price_cents / 100);
+                                const stockInfo = variant.stock !== undefined ? ` (${variant.stock} in stock)` : '';
+                                return `<span class="variant">${size} - ${price.toFixed(2)}${stockInfo}</span>`;
+                            }).join('')}
+                        </div>
+                    ` : '<div class="product-variants"><span class="variant">No variants available</span></div>'}
                     <div class="product-price">${priceDisplay}</div>
                 </div>
             `;
 
             // Add click event for future product detail view
             card.addEventListener('click', () => {
-                console.log('Clicked on:', fragrance.name);
+                console.log('Clicked on fragrance:', fragrance.name, 'ID:', fragrance.id);
                 // Future: Show product detail modal or navigate to product page
+                // Could use fragrance.slug for SEO-friendly URLs
             });
 
             return card;
