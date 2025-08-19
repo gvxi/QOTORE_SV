@@ -1080,7 +1080,11 @@
 
         async function loadFragrances() {
             try {
-                const response = await fetch('/api/fragrances');
+                // Use admin endpoint that shows ALL fragrances (including hidden)
+                const response = await fetch('/admin/fragrances', {
+                    credentials: 'include' // Include admin session cookie
+                });
+                
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.data) {
@@ -1090,6 +1094,10 @@
                     } else {
                         throw new Error(result.error || 'Failed to load fragrances');
                     }
+                } else if (response.status === 401) {
+                    // Session expired
+                    alert('Admin session expired. Please log in again.');
+                    window.location.href = '/login.html';
                 } else {
                     throw new Error('API request failed');
                 }
