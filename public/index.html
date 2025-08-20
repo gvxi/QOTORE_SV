@@ -869,10 +869,14 @@ body {
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     transition: all 0.3s ease;
     z-index: 1500;
-    display: none;
+    display: none; /* Hidden until items added */
     align-items: center;
     justify-content: center;
     position: relative;
+}
+
+.cart-icon.show {
+    display: flex; /* Shows when cart has items */
 }
 
 .cart-icon.show {
