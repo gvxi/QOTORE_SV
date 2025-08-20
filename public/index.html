@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qotore - Premium Fragrance Store</title>
 <style>
-        /* Qotore Fragrance Store - Complete CSS Styles */
+    /* Qotore Fragrance Store - Complete CSS Styles */
 
 * {
     margin: 0;
@@ -853,30 +853,77 @@ body {
     box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3);
 }
 
-/* Cart Icon & Counter */
+/* Cart Icon & Counter - Smart Floating */
 .cart-icon {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: 120px;
+    right: 20px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border: none;
     border-radius: 50%;
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     cursor: pointer;
-    font-size: 24px;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    font-size: 22px;
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
     transition: all 0.3s ease;
     z-index: 1500;
-    display: none; /* Hidden until items added */
+    display: none;
     align-items: center;
     justify-content: center;
-    position: relative;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .cart-icon.show {
-    display: flex; /* Shows when cart has items */
+    display: flex;
+    animation: cartFloat 0.5s ease;
+}
+
+.cart-icon:hover {
+    transform: translateY(-8px) scale(1.1);
+    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.6);
+    background: linear-gradient(135deg, #5a6fd8, #6b4fa0);
+}
+
+.cart-icon.footer-visible {
+    bottom: 250px;
+    transition: bottom 0.4s ease;
+}
+
+.cart-icon.header-scroll {
+    top: 120px;
+    bottom: auto;
+    transition: all 0.4s ease;
+}
+
+@keyframes cartFloat {
+    0% {
+        opacity: 0;
+        transform: translateY(100px) scale(0.5);
+    }
+    50% {
+        transform: translateY(-10px) scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Floating animation */
+.cart-icon.show {
+    animation: cartFloat 0.5s ease, float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
 }
 
 .cart-icon.show {
@@ -1123,7 +1170,6 @@ body {
     display: none;
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     backdrop-filter: blur(10px);
-    transition: bottom 0.3s ease;
 }
 
 .admin-indicator.show {
@@ -1241,11 +1287,20 @@ body {
     }
 
     .cart-icon {
-        bottom: 20px;
-        right: 20px;
+        bottom: 100px;
+        right: 15px;
         width: 60px;
         height: 60px;
         font-size: 20px;
+    }
+    
+    .cart-icon.footer-visible {
+        bottom: 180px;
+    }
+    
+    .cart-icon.header-scroll {
+        top: 100px;
+        bottom: auto;
     }
 }-modal {
     position: absolute;
@@ -1267,14 +1322,35 @@ body {
 }
 
 .close-modal {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    color: #333;}
+    position: absolute;           /* Positioned relative to modal */
+    top: 20px;                   /* 20px from top of modal */
+    right: 20px;                 /* 20px from right of modal */
+    background: rgba(255, 255, 255, 0.9);  /* Semi-transparent white */
+    border: none;                /* Remove default button border */
+    border-radius: 50%;          /* Perfect circle */
+    width: 50px;                 /* 50px wide */
+    height: 50px;                /* 50px tall */
+    cursor: pointer;             /* Show it's clickable */
+    font-size: 24px;             /* Large X symbol */
+    display: flex;               /* Flexbox for centering */
+    align-items: center;         /* Center vertically */
+    justify-content: center;     /* Center horizontally */
+    backdrop-filter: blur(10px); /* Glassmorphism effect */
+    transition: all 0.3s ease;   /* Smooth animations */
+    z-index: 10;                 /* Above modal content */
+    color: #333;                 /* Dark text color */
+    font-weight: bold;           /* Bold X symbol */
+}
+
+.close-modal:hover {
+    background: rgba(255, 255, 255, 1);     /* Solid white on hover */
+    transform: scale(1.1);                   /* Grow 10% larger */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add shadow */
+}
+
+.close-modal:active {
+    transform: scale(0.95);                   /* Shrink when clicked */
+}
 </style>
 </head>
 <body>
