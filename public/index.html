@@ -1,286 +1,480 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qotore - Premium Fragrance Store</title>
-<style>
-/* Qotore Fragrance Store - Complete CSS Styles */
+    <title>Qotor - Premium Fragrance Store</title>
+    <style>/* Root Variables - Based on DK Hoone Emirates */
+:root {
+    /* Primary Colors */
+    --primary-color: #1a237e; /* Deep Blue */
+    --primary-light: #3949ab;
+    --primary-dark: #0d47a1;
+    
+    /* Secondary Colors */
+    --secondary-color: #ffd700; /* Gold */
+    --secondary-light: #ffeb3b;
+    --secondary-dark: #ff8f00;
+    
+    /* Neutral Colors */
+    --dark-color: #212121;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --text-light: #9e9e9e;
+    --background: #ffffff;
+    --surface: #f5f5f5;
+    --border: #e0e0e0;
+    
+    /* Status Colors */
+    --success: #4caf50;
+    --warning: #ff9800;
+    --error: #f44336;
+    --info: #2196f3;
+    
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Typography */
+    --font-family: 'Arial', 'Helvetica', sans-serif;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
+    --shadow-xl: 0 16px 32px rgba(0,0,0,0.2);
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-round: 50%;
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    
+    /* Z-index */
+    --z-header: 1000;
+    --z-modal: 2000;
+    --z-dropdown: 1500;
+    --z-tooltip: 3000;
+}
 
+/* Dark Theme Variables */
+[data-theme="dark"] {
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-light: #808080;
+    --background: #121212;
+    --surface: #1e1e1e;
+    --border: #333333;
+    --dark-color: #ffffff;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+    text-align: right;
+}
+
+[dir="rtl"] .header-container {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .main-nav {
+    order: -1;
+}
+
+/* Base Styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background: #fafbfc;
+html {
+    scroll-behavior: smooth;
 }
 
-/* Header */
+body {
+    font-family: var(--font-family);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--background);
+    transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+/* Header Styles */
 .header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--background);
+    box-shadow: var(--shadow-sm);
     position: sticky;
     top: 0;
-    z-index: 1000;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
+    z-index: var(--z-header);
+    transition: background var(--transition-normal);
+    border-bottom: 1px solid var(--border);
 }
 
-.nav-container {
-    max-width: 1400px;
+.header-container {
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem 2rem;
+    padding: var(--spacing-md) var(--spacing-lg);
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
 }
 
-.logo {
-    font-size: 32px;
-    font-weight: 900;
-    text-decoration: none;
-    color: white;
+/* Logo */
+.logo-section {
     display: flex;
     align-items: center;
-    gap: 12px;
-    transition: transform 0.3s ease;
+    gap: var(--spacing-sm);
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
 }
 
-.logo:hover {
-    transform: scale(1.05);
+.logo-image {
+    height: 40px;
+    width: auto;
 }
 
-.nav-links {
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: var(--font-weight-bold);
+}
+
+/* Navigation */
+.main-nav {
     display: flex;
-    gap: 2rem;
-    align-items: center;
+    gap: var(--spacing-xl);
 }
 
-.nav-links a {
-    color: white;
+.nav-link {
     text-decoration: none;
-    transition: all 0.3s ease;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-weight: 500;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    transition: color var(--transition-fast);
+    position: relative;
 }
 
-.nav-links a:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
+.nav-link:hover,
+.nav-link.active {
+    color: var(--primary-color);
 }
 
-.admin-link {
-    background: rgba(255, 255, 255, 0.15) !important;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    font-size: 14px;
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
+}
+
+/* Header Controls */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.control-btn:hover {
+    background: var(--surface);
+}
+
+.control-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.cart-btn {
+    position: relative;
+}
+
+.cart-counter {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--error);
+    color: white;
+    border-radius: var(--radius-round);
+    width: 18px;
+    height: 18px;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.cart-counter.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Mobile Menu */
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    gap: 4px;
+}
+
+.mobile-menu-toggle span {
+    width: 20px;
+    height: 2px;
+    background: var(--text-primary);
+    transition: transform var(--transition-fast);
+}
+
+.mobile-nav {
+    display: none;
+    flex-direction: column;
+    background: var(--background);
+    border-top: 1px solid var(--border);
+    padding: var(--spacing-lg);
+    gap: var(--spacing-lg);
+}
+
+.mobile-nav-link {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--border);
 }
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95)), 
-                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
-    padding: 100px 0;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+    padding: var(--spacing-xxl) 0;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
 }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300"><path fill="%23ffffff" fill-opacity="0.05" d="M0,160L48,154.7C96,149,192,139,288,149.3C384,160,480,192,576,186.7C672,181,768,139,864,133.3C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"/></svg>') center bottom/cover;
+.hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xxl);
+    align-items: center;
 }
 
 .hero-content {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    position: relative;
-    z-index: 2;
+    max-width: 500px;
 }
 
-.hero h1 {
-    font-size: 4rem;
-    margin-bottom: 1.5rem;
-    font-weight: 900;
-    background: linear-gradient(45deg, #ffffff, #f8f9fa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+.hero-title {
+    font-size: 3rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.2;
 }
 
 .hero-subtitle {
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-    opacity: 0.95;
-    font-weight: 300;
-    line-height: 1.4;
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-lg);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .hero-description {
-    font-size: 1.2rem;
-    margin-bottom: 3rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.cta-button {
-    display: inline-block;
-    background: linear-gradient(135deg, #ffffff, #f8f9fa);
-    color: #667eea;
-    padding: 18px 40px;
-    border-radius: 50px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1.1rem;
-    transition: all 0.4s ease;
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.cta-button:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 20px 50px rgba(255, 255, 255, 0.3);
-    background: linear-gradient(135deg, #f8f9fa, #ffffff);
-}
-
-/* Main Content */
-.main-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 5rem 2rem;
-}
-
-.section-header {
-    text-align: center;
-    margin-bottom: 4rem;
-}
-
-.section-header h2 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: #333;
-    font-weight: 800;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.section-header p {
-    font-size: 1.3rem;
-    color: #666;
-    max-width: 700px;
-    margin: 0 auto;
+    font-size: 1rem;
+    margin-bottom: var(--spacing-xl);
+    color: rgba(255, 255, 255, 0.8);
     line-height: 1.6;
 }
 
-/* Filter & Search */
-.filters-section {
-    background: white;
-    padding: 2rem;
-    border-radius: 20px;
-    margin-bottom: 3rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+.cta-button {
+    background: var(--secondary-color);
+    color: var(--dark-color);
+    border: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.filters-row {
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.hero-image {
     display: flex;
-    gap: 1.5rem;
     align-items: center;
-    flex-wrap: wrap;
     justify-content: center;
 }
 
-.search-box {
+.hero-image img {
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(var(--shadow-xl));
+}
+
+/* Stats Bar */
+.stats-bar {
+    background: var(--secondary-color);
+    color: var(--dark-color);
+    text-align: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-weight: var(--font-weight-medium);
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform var(--transition-normal), opacity var(--transition-normal);
+}
+
+.stats-bar.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Main Container */
+.main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xxl) var(--spacing-lg);
+}
+
+/* Section Styles */
+.section-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xxl);
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.section-description {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Filters Section */
+.filters-section {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xxl);
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-container {
     flex: 1;
     min-width: 300px;
     position: relative;
 }
 
+.search-icon {
+    position: absolute;
+    left: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    opacity: 0.5;
+}
+
 .search-input {
     width: 100%;
-    padding: 16px 20px 16px 50px;
-    border: 2px solid #e9ecef;
-    border-radius: 50px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    background: #fafbfc;
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 3rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    background: var(--background);
+    color: var(--text-primary);
+    transition: border-color var(--transition-fast);
 }
 
 .search-input:focus {
     outline: none;
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-}
-
-.search-icon {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #666;
-    font-size: 18px;
+    border-color: var(--primary-color);
 }
 
 .filter-group {
     display: flex;
-    gap: 1rem;
-    align-items: center;
+    gap: var(--spacing-sm);
 }
 
 .filter-btn {
-    padding: 12px 24px;
-    border: 2px solid #e9ecef;
-    background: white;
-    border-radius: 25px;
+    background: var(--background);
+    border: 2px solid var(--border);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    color: #666;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    color: var(--text-secondary);
 }
 
-.filter-btn:hover, .filter-btn.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+.filter-btn:hover,
+.filter-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
     color: white;
-    border-color: transparent;
-    transform: translateY(-2px);
 }
 
-/* Loading State */
+/* Loading States */
 .loading-section {
     text-align: center;
-    padding: 5rem 0;
+    padding: var(--spacing-xxl) 0;
 }
 
 .loading-spinner {
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border);
+    border-top: 4px solid var(--primary-color);
+    border-radius: var(--radius-round);
     animation: spin 1s linear infinite;
-    margin-bottom: 2rem;
+    margin: 0 auto var(--spacing-lg);
 }
 
 @keyframes spin {
@@ -289,100 +483,129 @@ body {
 }
 
 .loading-text {
-    font-size: 1.2rem;
-    color: #666;
-    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Error State */
+.error-state,
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xxl) 0;
+}
+
+.error-icon,
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--spacing-lg);
+    opacity: 0.6;
+}
+
+.error-state h3,
+.empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+}
+
+.error-state p,
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.retry-btn,
+.contact-link {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform var(--transition-fast);
+}
+
+.retry-btn:hover,
+.contact-link:hover {
+    transform: translateY(-2px);
 }
 
 /* Products Grid */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2.5rem;
-    margin-top: 3rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
 }
 
 .product-card {
-    background: white;
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    transition: all 0.4s ease;
+    background: var(--background);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
     cursor: pointer;
-    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
 }
 
 .product-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
 }
 
 .product-image {
-    height: 280px;
-    background: linear-gradient(135deg, #f8f9fb 0%, #e9ecef 100%);
+    height: 250px;
+    background: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 80px;
-    color: #ccc;
-    position: relative;
     overflow: hidden;
-}
-
-.product-image::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 0.6s ease;
-}
-
-.product-card:hover .product-image::before {
-    transform: translateX(100%);
+    position: relative;
 }
 
 .product-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform var(--transition-normal);
 }
 
 .product-card:hover .product-image img {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .product-content {
-    padding: 2rem;
+    padding: var(--spacing-lg);
 }
 
 .product-brand {
-    font-size: 14px;
-    color: #667eea;
-    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
 }
 
 .product-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #333;
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
     line-height: 1.3;
 }
 
 .product-description {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.5;
     display: -webkit-box;
     line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -392,171 +615,392 @@ body {
 .product-variants {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 1.5rem;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
 }
 
 .variant-tag {
-    background: linear-gradient(135deg, #f8f9fb, #e9ecef);
-    border: 1px solid #dee2e6;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    color: #495057;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
 }
 
 .variant-tag:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--primary-color);
     color: white;
-    border-color: transparent;
-    transform: translateY(-2px);
+    border-color: var(--primary-color);
 }
 
 .variant-tag.whole-bottle {
-    background: linear-gradient(135deg, #ffd700, #ffed4e);
-    color: #333;
-    border-color: #ffd700;
-    font-weight: 700;
-}
-
-.variant-tag.whole-bottle:hover {
-    background: linear-gradient(135deg, #ffed4e, #ffd700);
-    transform: translateY(-2px) scale(1.05);
+    background: var(--secondary-color);
+    color: var(--dark-color);
+    border-color: var(--secondary-dark);
+    font-weight: var(--font-weight-bold);
 }
 
 .product-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 1rem;
-    border-top: 2px solid #f8f9fb;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border);
 }
 
 .product-price {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #667eea;
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
 }
 
 .view-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--primary-color);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-weight: 600;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background var(--transition-fast);
 }
 
 .view-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    background: var(--primary-dark);
 }
 
-/* Empty State */
-.empty-state {
+/* About Section */
+.about-section {
+    margin-top: var(--spacing-xxl);
+    padding: var(--spacing-xxl) 0;
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xxl);
+}
+
+.feature-card {
+    background: var(--background);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
     text-align: center;
-    padding: 5rem 0;
-    color: #666;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-normal);
 }
 
-.empty-icon {
-    font-size: 80px;
-    margin-bottom: 2rem;
-    opacity: 0.6;
+.feature-card:hover {
+    transform: translateY(-4px);
 }
 
-.empty-state h3 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #333;
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto var(--spacing-lg);
 }
 
-.empty-state p {
-    font-size: 1.1rem;
-    max-width: 500px;
-    margin: 0 auto 2rem;
+.feature-card h3 {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
     line-height: 1.6;
-}
-
-.contact-link {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    padding: 12px 24px;
-    border: 2px solid #667eea;
-    border-radius: 25px;
-    transition: all 0.3s ease;
-}
-
-.contact-link:hover {
-    background: #667eea;
-    color: white;
-    transform: translateY(-2px);
-}
-
-/* Error State */
-.error-state {
-    text-align: center;
-    padding: 5rem 0;
-    color: #666;
-}
-
-.error-icon {
-    font-size: 80px;
-    color: #ff4757;
-    margin-bottom: 2rem;
-}
-
-.retry-btn {
-    background: linear-gradient(135deg, #ff4757, #ff3838);
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 25px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 2rem;
-    transition: all 0.3s ease;
-}
-
-.retry-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 71, 87, 0.3);
 }
 
 /* Footer */
 .footer {
-    background: linear-gradient(135deg, #2d3436, #636e72);
+    background: var(--dark-color);
     color: white;
     text-align: center;
-    padding: 3rem 0;
-    margin-top: 5rem;
+    padding: var(--spacing-xxl) 0;
+    margin-top: var(--spacing-xxl);
 }
 
 .footer-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 var(--spacing-lg);
 }
 
 .footer-logo {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.footer-logo-image {
+    height: 40px;
+    width: auto;
+}
+
+.footer-logo-text {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
 }
 
 .footer-text {
     opacity: 0.8;
-    font-size: 1.1rem;
+    margin-bottom: var(--spacing-lg);
 }
 
-/* Product Detail Modal */
-.product-modal {
+.footer-contact-text {
+    opacity: 0.8;
+    margin-bottom: var(--spacing-sm);
+}
+
+.footer-copyright {
+    opacity: 0.6;
+    font-size: 0.875rem;
+}
+
+/* Cart Panel */
+.cart-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: var(--background);
+    box-shadow: var(--shadow-xl);
+    z-index: calc(var(--z-modal) + 1);
+    transition: right var(--transition-normal);
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-panel.open {
+    right: 0;
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border);
+}
+
+.cart-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
+}
+
+.close-btn:hover {
+    background: var(--surface);
+}
+
+.close-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.cart-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+}
+
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.cart-item {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+}
+
+.cart-item-image {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-md);
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cart-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+}
+
+.cart-item-info {
+    flex: 1;
+}
+
+.cart-item-name {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.875rem;
+}
+
+.cart-item-details {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.cart-item-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.cart-quantity-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-quantity-display {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-width: 30px;
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+    font-size: 0.75rem;
+}
+
+.cart-item-price {
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+    font-size: 0.875rem;
+}
+
+.cart-remove {
+    background: var(--error);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: var(--spacing-xxl) var(--spacing-lg);
+}
+
+.empty-cart-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto var(--spacing-lg);
+    opacity: 0.6;
+}
+
+.empty-cart h3 {
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.empty-cart p {
+    color: var(--text-secondary);
+}
+
+.cart-summary {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.checkout-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    width: 100%;
+    transition: background var(--transition-fast);
+}
+
+.checkout-btn:hover {
+    background: var(--primary-dark);
+}
+
+.cart-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: var(--z-modal);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.cart-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Product Modal */
+.modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -564,25 +1008,25 @@ body {
     bottom: 0;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
-    z-index: 2000;
+    z-index: var(--z-modal);
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: var(--spacing-lg);
 }
 
-.product-modal.show {
+.modal-overlay.show {
     display: flex;
 }
 
 .modal-content {
-    background: white;
-    border-radius: 24px;
+    background: var(--background);
+    border-radius: var(--radius-xl);
     max-width: 800px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-xl);
     animation: modalSlideIn 0.4s ease;
     position: relative;
 }
@@ -601,19 +1045,17 @@ body {
 .modal-header {
     position: relative;
     padding: 0;
-    border-radius: 24px 24px 0 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     overflow: hidden;
 }
 
 .modal-image {
     width: 100%;
     height: 300px;
-    background: linear-gradient(135deg, #f8f9fb 0%, #e9ecef 100%);
+    background: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 80px;
-    color: #ccc;
     position: relative;
 }
 
@@ -623,150 +1065,119 @@ body {
     object-fit: cover;
 }
 
-.close-modal:hover {
-    background: rgba(255, 255, 255, 1);
-    transform: scale(1.1);
-}
-
-/* Complete close button styles */
-.close-modal {
+.modal-header .close-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
     background: rgba(255, 255, 255, 0.9);
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
+    border-radius: var(--radius-round);
+    width: 40px;
+    height: 40px;
     z-index: 10;
-    color: #333;
-    font-weight: bold;
-}
-
-.close-modal:hover {
-    background: rgba(255, 255, 255, 1);
-    transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.close-modal:active {
-    transform: scale(0.95);
 }
 
 .modal-body {
-    padding: 2rem;
+    padding: var(--spacing-xl);
 }
 
 .modal-brand {
-    color: #667eea;
-    font-size: 14px;
-    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
 }
 
 .modal-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #333;
-    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
     line-height: 1.2;
 }
 
 .modal-description {
-    color: #666;
-    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-size: 1rem;
     line-height: 1.7;
-    margin-bottom: 2rem;
+    margin-bottom: var(--spacing-xl);
 }
 
 .variants-selection {
-    background: #f8f9fb;
-    border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 2rem;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
 }
 
 .variants-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.variants-container {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    gap: var(--spacing-md);
 }
 
 .variant-option {
-    background: white;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
+    background: var(--background);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-fast);
     cursor: pointer;
     position: relative;
 }
 
 .variant-option:hover {
-    border-color: #667eea;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .variant-option.selected {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #f0f2ff, #fafbff);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
 }
 
 .variant-option.whole-bottle {
-    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-    border-color: #f1c40f;
+    background: var(--secondary-color);
+    border-color: var(--secondary-dark);
+    color: var(--dark-color);
 }
 
 .variant-option.whole-bottle.selected {
-    border-color: #e67e22;
-    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.2);
+    border-color: var(--secondary-dark);
+    box-shadow: var(--shadow-md);
 }
 
 .variant-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: var(--spacing-md);
 }
 
 .variant-size {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #333;
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
 }
 
 .variant-price {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #667eea;
-}
-
-.variant-option.whole-bottle .variant-price {
-    color: #e67e22;
-    font-size: 1.1rem;
-    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: var(--font-weight-bold);
 }
 
 .quantity-section {
     display: none;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid #f1f3f4;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .variant-option.selected .quantity-section {
@@ -774,98 +1185,79 @@ body {
 }
 
 .quantity-label {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.5rem;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-sm);
 }
 
 .quantity-controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--spacing-md);
 }
 
 .quantity-btn {
-    background: #667eea;
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
     border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    border-radius: var(--radius-round);
+    width: 36px;
+    height: 36px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 1.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: background var(--transition-fast);
 }
 
 .quantity-btn:hover:not(:disabled) {
-    background: #5a6fd8;
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .quantity-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
     opacity: 0.4;
-}
-
-.cart-quantity-btn:disabled {
-    background: #ccc;
     cursor: not-allowed;
-    opacity: 0.4;
 }
 
 .quantity-input {
     width: 80px;
     text-align: center;
-    padding: 10px;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.quantity-input:focus {
-    outline: none;
-    border-color: #667eea;
+    padding: var(--spacing-sm);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    font-weight: var(--font-weight-medium);
 }
 
 .quantity-total {
     margin-left: auto;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #333;
+    font-weight: var(--font-weight-bold);
 }
 
 .add-to-cart-section {
     text-align: center;
-    padding-top: 1rem;
-    border-top: 2px solid #f1f3f4;
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border);
 }
 
 .add-to-cart-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--primary-color);
     color: white;
     border: none;
-    padding: 16px 40px;
-    border-radius: 50px;
-    font-size: 1.2rem;
-    font-weight: 700;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-md);
+    min-width: 200px;
 }
 
 .add-to-cart-btn:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .add-to-cart-btn:disabled {
@@ -875,589 +1267,301 @@ body {
 }
 
 .contact-for-pricing {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-    padding: 12px 24px;
-    border-radius: 25px;
-    color: white;
+    background: var(--secondary-color);
+    color: var(--dark-color);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-lg);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
+    gap: var(--spacing-sm);
+    transition: transform var(--transition-fast);
 }
 
 .contact-for-pricing:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3);
 }
 
-/* Cart Icon & Counter - Smart Floating */
-.cart-icon {
-    position: fixed;
-    bottom: 120px;
-    right: 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 65px;
-    height: 65px;
-    cursor: pointer;
-    font-size: 22px;
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
-    transition: all 0.3s ease;
-    z-index: 1500;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.cart-icon.show {
-    display: flex;
-    animation: cartFloat 0.5s ease;
-}
-
-.cart-icon:hover {
-    transform: translateY(-8px) scale(1.1);
-    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.6);
-    background: linear-gradient(135deg, #5a6fd8, #6b4fa0);
-}
-
-.cart-icon.footer-visible {
-    bottom: 250px;
-    transition: bottom 0.4s ease;
-}
-
-.cart-icon.header-scroll {
-    top: 120px;
-    bottom: auto;
-    transition: all 0.4s ease;
-}
-
-@keyframes cartFloat {
-    0% {
-        opacity: 0;
-        transform: translateY(100px) scale(0.5);
-    }
-    50% {
-        transform: translateY(-10px) scale(1.1);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Floating animation */
-.cart-icon.show {
-    animation: cartFloat 0.5s ease, float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-6px);
-    }
-}
-
-.cart-icon.show {
-    display: flex;
-}
-
-.cart-icon:hover {
-    transform: translateY(-5px) scale(1.1);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
-}
-
-.cart-counter {
+/* Language Dropdown */
+.language-dropdown {
     position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ff4757;
-    color: white;
-    border-radius: 50%;
-    width: 25px;
-    height: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-/* Cart Modal */
-.cart-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
+    top: 100%;
     right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    z-index: 2500;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-dropdown);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast);
+    min-width: 150px;
 }
 
-.cart-modal.show {
-    display: flex;
+.language-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
-.cart-content {
-    background: white;
-    border-radius: 24px;
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-}
-
-.cart-header {
-    padding: 2rem 2rem 1rem;
-    border-bottom: 2px solid #f8f9fb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.cart-title {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #333;
+.language-option {
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.cart-body {
-    padding: 2rem;
-}
-
-.cart-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: #f8f9fb;
-    border-radius: 12px;
-    margin-bottom: 1rem;
-}
-
-.cart-item-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    background: #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: #ccc;
-    flex-shrink: 0;
-}
-
-.cart-item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.cart-item-info {
-    flex: 1;
-}
-
-.cart-item-name {
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 4px;
-}
-
-.cart-item-details {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 8px;
-}
-
-.cart-item-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: space-between;
-}
-
-.cart-quantity-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.cart-quantity-btn {
-    background: #667eea;
-    color: white;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
     border: none;
-    border-radius: 4px;
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cart-quantity-display {
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 4px;
-    padding: 4px 8px;
-    min-width: 40px;
-    text-align: center;
-    font-weight: 600;
-}
-
-.cart-item-price {
-    font-weight: 700;
-    color: #667eea;
-}
-
-.cart-remove {
-    background: #ff4757;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.cart-summary {
-    background: linear-gradient(135deg, #f8f9fb, #e9ecef);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-top: 1rem;
-}
-
-.cart-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #333;
-    margin-bottom: 1rem;
-}
-
-.checkout-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    padding: 16px 32px;
-    border-radius: 50px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
+    background: none;
     width: 100%;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    color: var(--text-primary);
+    text-align: left;
 }
 
-.checkout-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+.language-option:hover {
+    background: var(--surface);
 }
 
-.empty-cart {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: #666;
-}
-
-.empty-cart-icon {
-    font-size: 80px;
-    margin-bottom: 1rem;
-    opacity: 0.6;
-}
-
-.empty-cart h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #333;
-}
-
-/* Admin Indicator */
-.admin-indicator {
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 600;
-    z-index: 1000;
-    display: none;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    backdrop-filter: blur(10px);
-}
-
-.admin-indicator.show {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    animation: slideUp 0.5s ease;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(50px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Stats Bar */
-.stats-bar {
-    background: linear-gradient(135deg, #00b894, #00a085);
-    color: white;
-    text-align: center;
-    padding: 1rem 0;
-    font-weight: 500;
-    display: none;
-}
-
-.stats-bar.show {
-    display: block;
+.language-option img {
+    width: 20px;
+    height: 15px;
 }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
     .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 }
 
 @media (max-width: 768px) {
-    .nav-container {
-        padding: 1rem;
-        flex-direction: column;
-        gap: 1rem;
+    .header-container {
+        padding: var(--spacing-md);
     }
-
-    .nav-links {
-        gap: 1rem;
+    
+    .main-nav {
+        display: none;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .mobile-nav.show {
+        display: flex;
+    }
+    
+    .hero {
+        padding: var(--spacing-xl) 0;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .filters-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-container {
+        min-width: auto;
+    }
+    
+    .filter-group {
+        justify-content: center;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cart-panel {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .modal-content {
+        margin: var(--spacing-md);
+        max-height: calc(100vh - 2rem);
+    }
+    
+    .modal-body {
+        padding: var(--spacing-lg);
+    }
+    
+    .modal-title {
+        font-size: 1.5rem;
+    }
+    
+    .variants-container {
+        gap: var(--spacing-sm);
+    }
+    
+    .variant-option {
+        padding: var(--spacing-md);
+    }
+    
+    .quantity-controls {
         flex-wrap: wrap;
         justify-content: center;
     }
+}
 
-    .hero {
-        padding: 60px 0;
+@media (max-width: 480px) {
+    .header-controls {
+        gap: var(--spacing-sm);
     }
-
-    .hero h1 {
-        font-size: 2.5rem;
+    
+    .control-btn {
+        width: 36px;
+        height: 36px;
     }
-
-    .hero-subtitle {
-        font-size: 1.2rem;
+    
+    .hero-container {
+        padding: 0 var(--spacing-md);
     }
-
+    
     .main-container {
-        padding: 3rem 1rem;
-    }
-
-    .section-header h2 {
-        font-size: 2rem;
-    }
-
-    .products-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .filters-row {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .search-box {
-        width: 100%;
-        min-width: unset;
-    }
-
-    .modal-content, .cart-content {
-        margin: 1rem;
-        max-height: calc(100vh - 2rem);
-    }
-
-    .modal-body, .cart-body {
-        padding: 1.5rem;
-    }
-
-    .modal-title {
-        font-size: 2rem;
-    }
-
-    .variants-selection {
-        padding: 1.5rem;
-    }
-
-    .variant-option {
-        padding: 1rem;
-    }
-
-    .cart-item {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.5rem;
-    }
-
-    .cart-item-controls {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .cart-icon {
-        bottom: 100px;
-        right: 15px;
-        width: 60px;
-        height: 60px;
-        font-size: 20px;
+        padding: var(--spacing-xl) var(--spacing-md);
     }
     
-    .cart-icon.footer-visible {
-        bottom: 180px;
+    .filters-section {
+        padding: var(--spacing-lg);
     }
-    
-    .cart-icon.header-scroll {
-        top: 100px;
-        bottom: auto;
-    }
-}-modal {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-    z-index: 10;
-}
-
-.close-modal {
-    position: absolute;           /* Positioned relative to modal */
-    top: 20px;                   /* 20px from top of modal */
-    right: 20px;                 /* 20px from right of modal */
-    background: rgba(255, 255, 255, 0.9);  /* Semi-transparent white */
-    border: none;                /* Remove default button border */
-    border-radius: 50%;          /* Perfect circle */
-    width: 50px;                 /* 50px wide */
-    height: 50px;                /* 50px tall */
-    cursor: pointer;             /* Show it's clickable */
-    font-size: 24px;             /* Large X symbol */
-    display: flex;               /* Flexbox for centering */
-    align-items: center;         /* Center vertically */
-    justify-content: center;     /* Center horizontally */
-    backdrop-filter: blur(10px); /* Glassmorphism effect */
-    transition: all 0.3s ease;   /* Smooth animations */
-    z-index: 10;                 /* Above modal content */
-    color: #333;                 /* Dark text color */
-    font-weight: bold;           /* Bold X symbol */
-}
-
-.close-modal:hover {
-    background: rgba(255, 255, 255, 1);     /* Solid white on hover */
-    transform: scale(1.1);                   /* Grow 10% larger */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add shadow */
-}
-
-.close-modal:active {
-    transform: scale(0.95);                   /* Shrink when clicked */
-}
-</style>
+}</style>
 </head>
 <body>
     <!-- Header -->
     <header class="header">
-        <nav class="nav-container">
-            <a href="#" class="logo">
-                🌸 Qotore
-            </a>
-            <div class="nav-links">
-                <a href="#fragrances">Fragrances</a>
-                <a href="#about">About</a>
-                <a href="#contact">Contact</a>
-                <a href="/login.html" class="admin-link">🔑 Admin</a>
+        <div class="header-container">
+            <!-- Left: Logo -->
+            <div class="logo-section">
+                <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
+                <span class="logo-text">Qotor</span>
             </div>
+
+            <!-- Center: Navigation -->
+            <nav class="main-nav">
+                <a href="#home" class="nav-link active" data-key="nav_home">Home</a>
+                <a href="#fragrances" class="nav-link" data-key="nav_fragrances">Fragrances</a>
+                <a href="#about" class="nav-link" data-key="nav_about">About</a>
+                <a href="#contact" class="nav-link" data-key="nav_contact">Contact</a>
+            </nav>
+
+            <!-- Right: Controls -->
+            <div class="header-controls">
+                <!-- Language Switcher -->
+                <button class="control-btn language-btn" id="languageBtn" title="Language">
+                    <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
+                </button>
+
+                <!-- Theme Switcher -->
+                <button class="control-btn theme-btn" id="themeBtn" title="Theme">
+                    <img src="/api/image/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
+                </button>
+
+                <!-- Admin Login -->
+                <button class="control-btn admin-btn" id="adminBtn" title="Admin">
+                    <img src="/api/image/admin-icon.png" alt="Admin" onerror="this.textContent='⚙️';">
+                </button>
+
+                <!-- Cart -->
+                <button class="control-btn cart-btn" id="cartBtn" title="Cart">
+                    <img src="/api/image/cart-icon.png" alt="Cart" onerror="this.textContent='🛒';">
+                    <span class="cart-counter" id="cartCounter">0</span>
+                </button>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <nav class="mobile-nav" id="mobileNav">
+            <a href="#home" class="mobile-nav-link" data-key="nav_home">Home</a>
+            <a href="#fragrances" class="mobile-nav-link" data-key="nav_fragrances">Fragrances</a>
+            <a href="#about" class="mobile-nav-link" data-key="nav_about">About</a>
+            <a href="#contact" class="mobile-nav-link" data-key="nav_contact">Contact</a>
         </nav>
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Premium Fragrances</h1>
-            <p class="hero-subtitle">Discover Luxury Scents from Around the World</p>
-            <p class="hero-description">From exclusive samples to original bottles, explore our curated collection of the finest fragrances. Each scent tells a unique story.</p>
-            <a href="#fragrances" class="cta-button">🌸 Explore Collection</a>
+    <section class="hero" id="home">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title" data-key="hero_title">Premium Fragrances</h1>
+                <p class="hero-subtitle" data-key="hero_subtitle">Discover Luxury Scents from Around the World</p>
+                <p class="hero-description" data-key="hero_description">From exclusive samples to original bottles, explore our curated collection of the finest fragrances. Each scent tells a unique story.</p>
+                <button class="cta-button" data-key="hero_cta">Explore Collection</button>
+            </div>
+            <div class="hero-image">
+                <img src="/api/image/hero-perfume.png" alt="Premium Perfumes" onerror="this.style.display='none';">
+            </div>
         </div>
     </section>
 
     <!-- Stats Bar -->
-    <div id="stats-bar" class="stats-bar">
-        <span id="stats-text">Loading collection...</span>
+    <div class="stats-bar" id="statsBar">
+        <span class="stats-text" id="statsText" data-key="stats_loading">Loading collection...</span>
     </div>
 
     <!-- Main Content -->
     <main class="main-container">
         <section id="fragrances">
             <div class="section-header">
-                <h2>Our Fragrance Collection</h2>
-                <p>From delicate florals to bold orientals, discover your signature scent in our carefully selected collection of premium fragrances.</p>
+                <h2 class="section-title" data-key="collection_title">Our Fragrance Collection</h2>
+                <p class="section-description" data-key="collection_description">From delicate florals to bold orientals, discover your signature scent in our carefully selected collection of premium fragrances.</p>
             </div>
 
             <!-- Search & Filters -->
             <div class="filters-section">
-                <div class="filters-row">
-                    <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="searchInput" class="search-input" placeholder="Search fragrances, brands, or notes...">
-                    </div>
-                    <div class="filter-group">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="samples">Samples</button>
-                        <button class="filter-btn" data-filter="bottles">Full Bottles</button>
-                    </div>
+                <div class="search-container">
+                    <img src="/api/image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
+                    <input type="text" id="searchInput" class="search-input" data-key-placeholder="search_placeholder">
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all" data-key="filter_all">All</button>
+                    <button class="filter-btn" data-filter="samples" data-key="filter_samples">Samples</button>
+                    <button class="filter-btn" data-filter="bottles" data-key="filter_bottles">Full Bottles</button>
                 </div>
             </div>
 
             <!-- Loading State -->
             <div id="loading" class="loading-section">
                 <div class="loading-spinner"></div>
-                <p class="loading-text">Loading our beautiful collection...</p>
+                <p class="loading-text" data-key="loading_text">Loading our beautiful collection...</p>
             </div>
 
             <!-- Error State -->
             <div id="error" class="error-state" style="display: none;">
-                <div class="error-icon">🚫</div>
-                <h3>Unable to Load Collection</h3>
-                <p>We're having trouble loading our fragrances. Please check your connection and try again.</p>
-                <button class="retry-btn" onclick="loadFragrances()">🔄 Try Again</button>
+                <img src="/api/image/error-icon.png" alt="Error" class="error-icon" onerror="this.textContent='❌';">
+                <h3 data-key="error_title">Unable to Load Collection</h3>
+                <p data-key="error_message">We're having trouble loading our fragrances. Please check your connection and try again.</p>
+                <button class="retry-btn" onclick="loadFragrances()" data-key="retry_button">Try Again</button>
             </div>
 
             <!-- Products Grid -->
@@ -1467,47 +1571,45 @@ body {
 
             <!-- Empty State -->
             <div id="empty-state" class="empty-state" style="display: none;">
-                <div class="empty-icon">🌸</div>
-                <h3>Collection Coming Soon</h3>
-                <p>We're carefully curating our fragrance collection. Check back soon for amazing scents, or contact us to request specific fragrances.</p>
-                <a href="mailto:info@qotore.com" class="contact-link">
-                    📧 Contact Us for Requests
-                </a>
+                <img src="/api/image/empty-icon.png" alt="Empty" class="empty-icon" onerror="this.textContent='📦';">
+                <h3 data-key="empty_title">Collection Coming Soon</h3>
+                <p data-key="empty_message">We're carefully curating our fragrance collection. Check back soon for amazing scents, or contact us to request specific fragrances.</p>
+                <a href="mailto:info@qotor.com" class="contact-link" data-key="contact_us">Contact Us for Requests</a>
             </div>
 
             <!-- No Results State -->
             <div id="no-results" class="empty-state" style="display: none;">
-                <div class="empty-icon">🔍</div>
-                <h3>No Fragrances Found</h3>
-                <p>Try adjusting your search or filters to find what you're looking for.</p>
-                <button class="contact-link" onclick="clearFilters()">Clear Filters</button>
+                <img src="/api/image/no-results-icon.png" alt="No Results" class="empty-icon" onerror="this.textContent='🔍';">
+                <h3 data-key="no_results_title">No Fragrances Found</h3>
+                <p data-key="no_results_message">Try adjusting your search or filters to find what you're looking for.</p>
+                <button class="contact-link" onclick="clearFilters()" data-key="clear_filters">Clear Filters</button>
             </div>
         </section>
 
         <!-- About Section -->
-        <section id="about" style="margin-top: 5rem; text-align: center;">
+        <section id="about" class="about-section">
             <div class="section-header">
-                <h2>Why Choose Qotore?</h2>
-                <p>Your trusted destination for authentic premium fragrances</p>
+                <h2 class="section-title" data-key="about_title">Why Choose Qotor?</h2>
+                <p class="section-description" data-key="about_subtitle">Your trusted destination for authentic premium fragrances</p>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
-                <div style="background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
-                    <h3 style="margin-bottom: 1rem; color: #333;">Authentic Products</h3>
-                    <p style="color: #666; line-height: 1.6;">All our fragrances are 100% authentic and sourced directly from authorized distributors.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <img src="/api/image/authentic-icon.png" alt="Authentic" class="feature-icon" onerror="this.textContent='✨';">
+                    <h3 data-key="feature_authentic_title">Authentic Products</h3>
+                    <p data-key="feature_authentic_desc">All our fragrances are 100% authentic and sourced directly from authorized distributors.</p>
                 </div>
                 
-                <div style="background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-                    <h3 style="margin-bottom: 1rem; color: #333;">Sample First</h3>
-                    <p style="color: #666; line-height: 1.6;">Try before you commit with our 5ml, 10ml, and 30ml samples of luxury fragrances.</p>
+                <div class="feature-card">
+                    <img src="/api/image/sample-icon.png" alt="Sample" class="feature-icon" onerror="this.textContent='🎯';">
+                    <h3 data-key="feature_sample_title">Sample First</h3>
+                    <p data-key="feature_sample_desc">Try before you commit with our 5ml, 10ml, and 30ml samples of luxury fragrances.</p>
                 </div>
                 
-                <div style="background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🚚</div>
-                    <h3 style="margin-bottom: 1rem; color: #333;">Fast Delivery</h3>
-                    <p style="color: #666; line-height: 1.6;">Quick and secure delivery across Oman. Your fragrances handled with care.</p>
+                <div class="feature-card">
+                    <img src="/api/image/delivery-icon.png" alt="Delivery" class="feature-icon" onerror="this.textContent='🚚';">
+                    <h3 data-key="feature_delivery_title">Fast Delivery</h3>
+                    <p data-key="feature_delivery_desc">Quick and secure delivery across Oman. Your fragrances handled with care.</p>
                 </div>
             </div>
         </section>
@@ -1516,111 +1618,352 @@ body {
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <div class="footer-logo">🌸 Qotore</div>
-            <p class="footer-text">Premium fragrances for discerning tastes</p>
-            <div id="contact" style="margin-top: 2rem;">
-                <p style="opacity: 0.8;">Contact us: info@qotore.com</p>
-                <p style="opacity: 0.6; margin-top: 1rem;">&copy; 2024 Qotore. All rights reserved.</p>
+            <div class="footer-logo">
+                <img src="/api/image/logo-white.png" alt="Qotor" class="footer-logo-image" onerror="this.style.display='none';">
+                <span class="footer-logo-text">Qotor</span>
+            </div>
+            <p class="footer-text" data-key="footer_tagline">Premium fragrances for discerning tastes</p>
+            <div id="contact" class="footer-contact">
+                <p class="footer-contact-text" data-key="footer_contact">Contact us: info@qotor.com</p>
+                <p class="footer-copyright" data-key="footer_copyright">&copy; 2024 Qotor. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Admin Indicator -->
-    <div id="admin-indicator" class="admin-indicator">
-        <span>👑</span>
-        <span>Admin Mode</span>
+    <!-- Cart Side Panel -->
+    <div class="cart-panel" id="cartPanel">
+        <div class="cart-header">
+            <h2 class="cart-title" data-key="cart_title">Your Cart</h2>
+            <button class="close-btn" id="closeCartBtn">
+                <img src="/api/image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
+            </button>
+        </div>
+        <div class="cart-body">
+            <div id="cartItems" class="cart-items">
+                <!-- Cart items will be populated here dynamically -->
+            </div>
+            <div id="emptyCart" class="empty-cart">
+                <img src="/api/image/empty-cart-icon.png" alt="Empty Cart" class="empty-cart-icon" onerror="this.textContent='🛒';">
+                <h3 data-key="empty_cart_title">Your Cart is Empty</h3>
+                <p data-key="empty_cart_message">Add some beautiful fragrances to get started!</p>
+            </div>
+            <div id="cartSummary" class="cart-summary" style="display: none;">
+                <div class="cart-total">
+                    <span data-key="cart_total">Total:</span>
+                    <span id="cartTotalPrice">0.000 OMR</span>
+                </div>
+                <button class="checkout-btn" onclick="proceedToCheckout()" data-key="checkout_button">Proceed to Checkout</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Cart Icon -->
-    <button id="cartIcon" class="cart-icon">
-        🛒
-        <span id="cartCounter" class="cart-counter">0</span>
-    </button>
-
     <!-- Product Detail Modal -->
-    <div id="productModal" class="product-modal">
+    <div class="modal-overlay" id="productModal">
         <div class="modal-content">
             <div class="modal-header">
-                <div id="modalImage" class="modal-image">🌸</div>
-                <button class="close-modal" onclick="closeProductModal()">✕</button>
+                <div class="modal-image" id="modalImage">
+                    <img src="" alt="" id="modalImageImg">
+                </div>
+                <button class="close-btn" onclick="closeProductModal()">
+                    <img src="/api/image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
+                </button>
             </div>
             <div class="modal-body">
-                <div id="modalBrand" class="modal-brand"></div>
-                <h2 id="modalTitle" class="modal-title"></h2>
-                <p id="modalDescription" class="modal-description"></p>
+                <div class="modal-brand" id="modalBrand"></div>
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <p class="modal-description" id="modalDescription"></p>
                 
                 <div class="variants-selection">
-                    <h3 class="variants-title">💎 Choose Your Size</h3>
-                    <div id="variantsContainer">
+                    <h3 class="variants-title" data-key="choose_size">Choose Your Size</h3>
+                    <div id="variantsContainer" class="variants-container">
                         <!-- Variants will be populated here dynamically -->
                     </div>
                 </div>
                 
                 <div id="addToCartSection" class="add-to-cart-section" style="display: none;">
-                    <button id="addToCartBtn" class="add-to-cart-btn" disabled>
-                        🛒 Add to Cart
-                    </button>
+                    <button id="addToCartBtn" class="add-to-cart-btn" disabled data-key="add_to_cart">Add to Cart</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Cart Modal -->
-    <div id="cartModal" class="cart-modal">
-        <div class="cart-content">
-            <div class="cart-header">
-                <h2 class="cart-title">🛒 Your Cart</h2>
-                <button class="close-modal" onclick="closeCartModal()">✕</button>
-            </div>
-            <div class="cart-body">
-                <div id="cartItems">
-                    <!-- Cart items will be populated here dynamically -->
-                </div>
-                <div id="emptyCart" class="empty-cart">
-                    <div class="empty-cart-icon">🛒</div>
-                    <h3>Your Cart is Empty</h3>
-                    <p>Add some beautiful fragrances to get started!</p>
-                </div>
-                <div id="cartSummary" class="cart-summary" style="display: none;">
-                    <div class="cart-total">
-                        <span>Total:</span>
-                        <span id="cartTotalPrice">0.000 OMR</span>
-                    </div>
-                    <button class="checkout-btn" onclick="proceedToCheckout()">
-                        💳 Proceed to Checkout
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- Language Selector Dropdown -->
+    <div class="language-dropdown" id="languageDropdown">
+        <button class="language-option" data-lang="en">
+            <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
+            <span>English</span>
+        </button>
+        <button class="language-option" data-lang="ar">
+            <img src="/api/image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+            <span>العربية</span>
+        </button>
     </div>
 
-<script>
-    // Qotore Fragrance Store - Complete JavaScript Functions
+    <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay"></div>
 
-// Global variables
+    <script>
+        // Global variables
 let allFragrances = [];
 let filteredFragrances = [];
 let currentFilter = 'all';
 let cart = [];
 let currentFragrance = null;
 let selectedVariant = null;
+let currentLanguage = 'en';
+let currentTheme = 'light';
 
+// Language translations
+const translations = {
+    en: {
+        nav_home: 'Home',
+        nav_fragrances: 'Fragrances',
+        nav_about: 'About',
+        nav_contact: 'Contact',
+        hero_title: 'Premium Fragrances',
+        hero_subtitle: 'Discover Luxury Scents from Around the World',
+        hero_description: 'From exclusive samples to original bottles, explore our curated collection of the finest fragrances. Each scent tells a unique story.',
+        hero_cta: 'Explore Collection',
+        stats_loading: 'Loading collection...',
+        collection_title: 'Our Fragrance Collection',
+        collection_description: 'From delicate florals to bold orientals, discover your signature scent in our carefully selected collection of premium fragrances.',
+        search_placeholder: 'Search fragrances, brands, or notes...',
+        filter_all: 'All',
+        filter_samples: 'Samples',
+        filter_bottles: 'Full Bottles',
+        loading_text: 'Loading our beautiful collection...',
+        error_title: 'Unable to Load Collection',
+        error_message: 'We\'re having trouble loading our fragrances. Please check your connection and try again.',
+        retry_button: 'Try Again',
+        empty_title: 'Collection Coming Soon',
+        empty_message: 'We\'re carefully curating our fragrance collection. Check back soon for amazing scents, or contact us to request specific fragrances.',
+        contact_us: 'Contact Us for Requests',
+        no_results_title: 'No Fragrances Found',
+        no_results_message: 'Try adjusting your search or filters to find what you\'re looking for.',
+        clear_filters: 'Clear Filters',
+        about_title: 'Why Choose Qotor?',
+        about_subtitle: 'Your trusted destination for authentic premium fragrances',
+        feature_authentic_title: 'Authentic Products',
+        feature_authentic_desc: 'All our fragrances are 100% authentic and sourced directly from authorized distributors.',
+        feature_sample_title: 'Sample First',
+        feature_sample_desc: 'Try before you commit with our 5ml, 10ml, and 30ml samples of luxury fragrances.',
+        feature_delivery_title: 'Fast Delivery',
+        feature_delivery_desc: 'Quick and secure delivery across Oman. Your fragrances handled with care.',
+        footer_tagline: 'Premium fragrances for discerning tastes',
+        footer_contact: 'Contact us: info@qotor.com',
+        footer_copyright: '© 2024 Qotor. All rights reserved.',
+        cart_title: 'Your Cart',
+        empty_cart_title: 'Your Cart is Empty',
+        empty_cart_message: 'Add some beautiful fragrances to get started!',
+        cart_total: 'Total:',
+        checkout_button: 'Proceed to Checkout',
+        choose_size: 'Choose Your Size',
+        add_to_cart: 'Add to Cart'
+    },
+    ar: {
+        nav_home: 'الرئيسية',
+        nav_fragrances: 'العطور',
+        nav_about: 'حولنا',
+        nav_contact: 'اتصل بنا',
+        hero_title: 'عطور فاخرة',
+        hero_subtitle: 'اكتشف العطور الفاخرة من جميع أنحاء العالم',
+        hero_description: 'من العينات الحصرية إلى الزجاجات الأصلية، استكشف مجموعتنا المنتقاة بعناية من أجود العطور. كل عطر يحكي قصة فريدة.',
+        hero_cta: 'استكشف المجموعة',
+        stats_loading: 'جاري تحميل المجموعة...',
+        collection_title: 'مجموعة العطور لدينا',
+        collection_description: 'من الزهور الرقيقة إلى العطور الشرقية الجريئة، اكتشف عطرك المميز في مجموعتنا المختارة بعناية من العطور الفاخرة.',
+        search_placeholder: 'ابحث عن العطور أو العلامات التجارية أو النوتات...',
+        filter_all: 'الكل',
+        filter_samples: 'العينات',
+        filter_bottles: 'الزجاجات الكاملة',
+        loading_text: 'جاري تحميل مجموعتنا الجميلة...',
+        error_title: 'تعذر تحميل المجموعة',
+        error_message: 'نواجه مشكلة في تحميل العطور. يرجى التحقق من اتصالك والمحاولة مرة أخرى.',
+        retry_button: 'حاول مرة أخرى',
+        empty_title: 'المجموعة قادمة قريباً',
+        empty_message: 'نحن نقوم بانتقاء مجموعة العطور بعناية. تحقق مرة أخرى قريباً للحصول على عطور رائعة، أو اتصل بنا لطلب عطور محددة.',
+        contact_us: 'اتصل بنا للطلبات',
+        no_results_title: 'لم يتم العثور على عطور',
+        no_results_message: 'حاول تعديل البحث أو المرشحات للعثور على ما تبحث عنه.',
+        clear_filters: 'مسح المرشحات',
+        about_title: 'لماذا تختار قطر؟',
+        about_subtitle: 'وجهتك الموثوقة للعطور الفاخرة الأصلية',
+        feature_authentic_title: 'منتجات أصلية',
+        feature_authentic_desc: 'جميع عطورنا أصلية بنسبة 100% ومصدرها مباشرة من الموزعين المعتمدين.',
+        feature_sample_title: 'جرب أولاً',
+        feature_sample_desc: 'جرب قبل أن تلتزم مع عيناتنا 5 مل و 10 مل و 30 مل من العطور الفاخرة.',
+        feature_delivery_title: 'توصيل سريع',
+        feature_delivery_desc: 'توصيل سريع وآمن في جميع أنحاء عُمان. عطورك تُتعامل بعناية.',
+        footer_tagline: 'عطور فاخرة لأصحاب الذوق الرفيع',
+        footer_contact: 'اتصل بنا: info@qotor.com',
+        footer_copyright: '© 2024 قطر. جميع الحقوق محفوظة.',
+        cart_title: 'سلة التسوق',
+        empty_cart_title: 'سلة التسوق فارغة',
+        empty_cart_message: 'أضف بعض العطور الجميلة للبدء!',
+        cart_total: 'المجموع:',
+        checkout_button: 'متابعة إلى الدفع',
+        choose_size: 'اختر الحجم',
+        add_to_cart: 'أضف إلى السلة'
+    }
+};
+
+// DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
-    checkAdminStatus();
-    loadFragrances();
-    initializeFilters();
-    initializeSearch();
-    setupSmoothScrolling();
-    initializeCart();
+    initializeApp();
 });
 
-// ===============================
-// CART SYSTEM FUNCTIONS
-// ===============================
+// Initialize App
+function initializeApp() {
+    initializeTheme();
+    initializeLanguage();
+    initializeCart();
+    initializeEventListeners();
+    loadFragrances();
+    setupSmoothScrolling();
+}
 
+// Theme Management
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('qotor_theme') || 'light';
+    setTheme(savedTheme);
+    
+    const themeBtn = document.getElementById('themeBtn');
+    themeBtn.addEventListener('click', toggleTheme);
+}
+
+function setTheme(theme) {
+    currentTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('qotor_theme', theme);
+    
+    const themeIcon = document.querySelector('#themeBtn img');
+    if (themeIcon) {
+        themeIcon.src = `/api/image/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
+        themeIcon.alt = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    }
+}
+
+function toggleTheme() {
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+}
+
+// Language Management
+function initializeLanguage() {
+    const savedLanguage = localStorage.getItem('qotor_language') || 'en';
+    setLanguage(savedLanguage);
+    
+    const languageBtn = document.getElementById('languageBtn');
+    const languageDropdown = document.getElementById('languageDropdown');
+    
+    languageBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        languageDropdown.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', () => {
+        languageDropdown.classList.remove('show');
+    });
+    
+    document.querySelectorAll('.language-option').forEach(option => {
+        option.addEventListener('click', (e) => {
+            const lang = e.currentTarget.dataset.lang;
+            setLanguage(lang);
+            languageDropdown.classList.remove('show');
+        });
+    });
+}
+
+function setLanguage(lang) {
+    currentLanguage = lang;
+    document.documentElement.setAttribute('lang', lang);
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    localStorage.setItem('qotor_language', lang);
+    
+    updateTexts();
+    updatePlaceholders();
+    
+    const languageIcon = document.querySelector('#languageBtn img');
+    if (languageIcon) {
+        languageIcon.src = `/api/image/${lang}-flag.png`;
+        languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
+    }
+}
+
+function updateTexts() {
+    document.querySelectorAll('[data-key]').forEach(element => {
+        const key = element.getAttribute('data-key');
+        if (translations[currentLanguage][key]) {
+            element.textContent = translations[currentLanguage][key];
+        }
+    });
+}
+
+function updatePlaceholders() {
+    document.querySelectorAll('[data-key-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-key-placeholder');
+        if (translations[currentLanguage][key]) {
+            element.placeholder = translations[currentLanguage][key];
+        }
+    });
+}
+
+// Event Listeners
+function initializeEventListeners() {
+    // Mobile menu
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileNav = document.getElementById('mobileNav');
+    
+    mobileMenuToggle.addEventListener('click', () => {
+        mobileNav.classList.toggle('show');
+        mobileMenuToggle.classList.toggle('active');
+    });
+    
+    // Cart
+    const cartBtn = document.getElementById('cartBtn');
+    const cartPanel = document.getElementById('cartPanel');
+    const cartOverlay = document.getElementById('cartOverlay');
+    const closeCartBtn = document.getElementById('closeCartBtn');
+    
+    cartBtn.addEventListener('click', openCartPanel);
+    closeCartBtn.addEventListener('click', closeCartPanel);
+    cartOverlay.addEventListener('click', closeCartPanel);
+    
+    // Admin button
+    const adminBtn = document.getElementById('adminBtn');
+    adminBtn.addEventListener('click', () => {
+        const cookies = document.cookie.split(';');
+        const adminSession = cookies.find(cookie => 
+            cookie.trim().startsWith('admin_session=')
+        );
+        
+        if (adminSession) {
+            window.location.href = '/admin/index.html';
+        } else {
+            window.location.href = '/login.html';
+        }
+    });
+    
+    // Search and filters
+    initializeFilters();
+    initializeSearch();
+    
+    // Modal close handlers
+    document.getElementById('productModal').addEventListener('click', function(e) {
+        if (e.target === this) closeProductModal();
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeProductModal();
+            closeCartPanel();
+        }
+    });
+}
+
+// Cart Management
 function initializeCart() {
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('qotore_cart');
+    const savedCart = localStorage.getItem('qotor_cart');
     if (savedCart) {
         try {
             cart = JSON.parse(savedCart);
@@ -1630,340 +1973,35 @@ function initializeCart() {
             cart = [];
         }
     }
-
-    // Cart icon click handler
-    document.getElementById('cartIcon').addEventListener('click', openCartModal);
-
-    // Close modals on overlay click
-    document.getElementById('productModal').addEventListener('click', function(e) {
-        if (e.target === this) closeProductModal();
-    });
-
-    document.getElementById('cartModal').addEventListener('click', function(e) {
-        if (e.target === this) closeCartModal();
-    });
-
-    // Escape key to close modals
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeProductModal();
-            closeCartModal();
-        }
-    });
 }
 
 function saveCart() {
-    localStorage.setItem('qotore_cart', JSON.stringify(cart));
+    localStorage.setItem('qotor_cart', JSON.stringify(cart));
     updateCartUI();
 }
 
 function updateCartUI() {
-    const cartIcon = document.getElementById('cartIcon');
     const cartCounter = document.getElementById('cartCounter');
-    
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     
     if (totalItems > 0) {
-        cartIcon.classList.add('show');
         cartCounter.textContent = totalItems > 99 ? '99+' : totalItems;
+        cartCounter.classList.add('show');
     } else {
-        cartIcon.classList.remove('show');
+        cartCounter.classList.remove('show');
     }
 }
 
-// Removed updateAdminIndicatorPosition function since cart is now positioned on the side
-
-// ===============================
-// PRODUCT MODAL FUNCTIONS
-// ===============================
-
-function openProductModal(fragranceSlug) {
-    const fragrance = allFragrances.find(f => f.slug === fragranceSlug);
-    if (!fragrance) return;
-
-    currentFragrance = fragrance;
-    selectedVariant = null;
-
-    // Populate modal content
-    const modalBrand = document.getElementById('modalBrand');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDescription = document.getElementById('modalDescription');
-    const modalImage = document.getElementById('modalImage');
-
-    modalBrand.textContent = fragrance.brand || '';
-    modalBrand.style.display = fragrance.brand ? 'block' : 'none';
-    modalTitle.textContent = fragrance.name;
-    modalDescription.textContent = fragrance.description || 'Exquisite fragrance with captivating notes.';
-
-    // Handle image
-    if (fragrance.image_path) {
-        const imagePath = fragrance.image_path;
-        let imageUrl = '';
-        if (imagePath.startsWith('http')) {
-            imageUrl = imagePath;
-        } else if (imagePath.startsWith('fragrance-images/')) {
-            const filename = imagePath.replace('fragrance-images/', '');
-            imageUrl = `/api/image/${filename}`;
-        } else {
-            imageUrl = `/api/image/${imagePath}`;
-        }
-        modalImage.innerHTML = `<img src="${imageUrl}" alt="${fragrance.name}" onerror="this.parentNode.innerHTML='🌸';">`;
-    } else {
-        modalImage.innerHTML = '🌸';
-    }
-
-    // Populate variants
-    populateVariants(fragrance.variants || []);
-
-    // Show modal
-    document.getElementById('productModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function populateVariants(variants) {
-    const container = document.getElementById('variantsContainer');
-    const addToCartSection = document.getElementById('addToCartSection');
-    
-    container.innerHTML = '';
-    addToCartSection.style.display = 'none';
-
-    if (variants.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #666;">No variants available</p>';
-        return;
-    }
-
-    variants.forEach((variant, index) => {
-        const variantDiv = document.createElement('div');
-        variantDiv.className = `variant-option ${variant.is_whole_bottle ? 'whole-bottle' : ''}`;
-        variantDiv.dataset.variantIndex = index;
-
-        const isWholeBottle = variant.is_whole_bottle;
-        const price = isWholeBottle ? 'Contact for pricing' : `${(variant.price || 0).toFixed(3)} OMR`;
-
-        variantDiv.innerHTML = `
-            <div class="variant-header">
-                <div class="variant-size">${variant.size}</div>
-                <div class="variant-price">${price}</div>
-            </div>
-            ${!isWholeBottle ? `
-                <div class="quantity-section">
-                    <div class="quantity-label">Quantity:</div>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn" onclick="changeQuantity(${index}, -1)">−</button>
-                        <input type="number" class="quantity-input" value="1" min="1" max="50" 
-                               onchange="updateQuantity(${index}, this.value)">
-                        <button class="quantity-btn" onclick="changeQuantity(${index}, 1)">+</button>
-                        <div class="quantity-total">
-                            Total: <span id="total-${index}">${(variant.price || 0).toFixed(3)} OMR</span>
-                        </div>
-                    </div>
-                </div>
-            ` : `
-                <div class="quantity-section">
-                    <div style="text-align: center; margin-top: 1rem;">
-                        <a href="mailto:info@qotore.com?subject=Inquiry about ${currentFragrance.name} - Full Bottle" 
-                           class="contact-for-pricing">
-                            📧 Contact for Pricing
-                        </a>
-                    </div>
-                </div>
-            `}
-        `;
-
-        // Click handler for variant selection
-        variantDiv.addEventListener('click', function() {
-            selectVariant(index);
-        });
-
-        container.appendChild(variantDiv);
-    });
-}
-
-function selectVariant(variantIndex) {
-    const variants = document.querySelectorAll('.variant-option');
-    variants.forEach(v => v.classList.remove('selected'));
-    
-    const selectedVariantDiv = variants[variantIndex];
-    selectedVariantDiv.classList.add('selected');
-    
-    selectedVariant = {
-        ...currentFragrance.variants[variantIndex],
-        variantIndex: variantIndex
-    };
-
-    // Show add to cart section for non-whole bottles
-    const addToCartSection = document.getElementById('addToCartSection');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    
-    if (!selectedVariant.is_whole_bottle) {
-        addToCartSection.style.display = 'block';
-        addToCartBtn.disabled = false;
-        addToCartBtn.onclick = () => addToCart();
-    } else {
-        addToCartSection.style.display = 'none';
-    }
-}
-
-function changeQuantity(variantIndex, delta) {
-    const quantityInput = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-input`);
-    const plusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:last-of-type`);
-    const minusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:first-of-type`);
-    
-    let newQuantity = parseInt(quantityInput.value) + delta;
-    newQuantity = Math.max(1, Math.min(50, newQuantity));
-    
-    quantityInput.value = newQuantity;
-    updateQuantity(variantIndex, newQuantity);
-    
-    // Update button states
-    updateQuantityButtonStates(variantIndex, newQuantity);
-}
-
-function updateQuantity(variantIndex, quantity) {
-    quantity = Math.max(1, Math.min(50, parseInt(quantity) || 1));
-    const variant = currentFragrance.variants[variantIndex];
-    const total = (variant.price || 0) * quantity;
-    
-    const totalElement = document.getElementById(`total-${variantIndex}`);
-    if (totalElement) {
-        totalElement.textContent = `${total.toFixed(3)} OMR`;
-    }
-
-    const quantityInput = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-input`);
-    quantityInput.value = quantity;
-    
-    // Update button states
-    updateQuantityButtonStates(variantIndex, quantity);
-}
-
-function updateQuantityButtonStates(variantIndex, quantity) {
-    const plusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:last-of-type`);
-    const minusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:first-of-type`);
-    
-    if (plusBtn) {
-        if (quantity >= 50) {
-            plusBtn.disabled = true;
-            plusBtn.style.opacity = '0.4';
-            plusBtn.style.cursor = 'not-allowed';
-        } else {
-            plusBtn.disabled = false;
-            plusBtn.style.opacity = '1';
-            plusBtn.style.cursor = 'pointer';
-        }
-    }
-    
-    if (minusBtn) {
-        if (quantity <= 1) {
-            minusBtn.disabled = true;
-            minusBtn.style.opacity = '0.4';
-            minusBtn.style.cursor = 'not-allowed';
-        } else {
-            minusBtn.disabled = false;
-            minusBtn.style.opacity = '1';
-            minusBtn.style.cursor = 'pointer';
-        }
-    }
-}
-
-function closeProductModal() {
-    document.getElementById('productModal').classList.remove('show');
-    document.body.style.overflow = '';
-    currentFragrance = null;
-    selectedVariant = null;
-}
-
-// ===============================
-// CART MANAGEMENT FUNCTIONS
-// ===============================
-
-function addToCart() {
-    if (!selectedVariant || selectedVariant.is_whole_bottle) return;
-
-    const quantityInput = document.querySelector(`[data-variant-index="${selectedVariant.variantIndex}"] .quantity-input`);
-    const quantity = parseInt(quantityInput.value) || 1;
-
-    // Create cart item
-    const cartItem = {
-        id: `${currentFragrance.id}-${selectedVariant.variantIndex}`,
-        fragranceId: currentFragrance.id,
-        fragranceName: currentFragrance.name,
-        fragranceBrand: currentFragrance.brand || '',
-        fragranceSlug: currentFragrance.slug,
-        fragranceImage: currentFragrance.image_path || '',
-        variantId: selectedVariant.id,
-        variantSize: selectedVariant.size,
-        variantPrice: selectedVariant.price,
-        quantity: quantity,
-        addedAt: new Date().toISOString()
-    };
-
-    // Check if item already exists in cart
-    const existingItemIndex = cart.findIndex(item => item.id === cartItem.id);
-    
-    if (existingItemIndex !== -1) {
-        // Update quantity
-        const newQuantity = cart[existingItemIndex].quantity + quantity;
-        if (newQuantity <= 50) {
-            cart[existingItemIndex].quantity = newQuantity;
-        } else {
-            // Set to maximum and show visual feedback
-            cart[existingItemIndex].quantity = 50;
-            showMaxQuantityFeedback();
-        }
-    } else {
-        // Add new item
-        cart.push(cartItem);
-    }
-
-    saveCart();
-    
-    // Show success message
-    showAddToCartSuccess();
-    
-    // Close modal after a brief delay
-    setTimeout(() => {
-        closeProductModal();
-    }, 1500);
-}
-
-function showMaxQuantityFeedback() {
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const originalText = addToCartBtn.innerHTML;
-    
-    addToCartBtn.innerHTML = '⚠️ Max Quantity (50)';
-    addToCartBtn.style.background = 'linear-gradient(135deg, #ff9500, #ff7700)';
-    addToCartBtn.disabled = true;
-    
-    setTimeout(() => {
-        addToCartBtn.innerHTML = originalText;
-        addToCartBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-        addToCartBtn.disabled = false;
-    }, 2000);
-}
-
-function showAddToCartSuccess() {
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const originalText = addToCartBtn.innerHTML;
-    
-    addToCartBtn.innerHTML = '✅ Added to Cart!';
-    addToCartBtn.style.background = 'linear-gradient(135deg, #00b894, #00a085)';
-    addToCartBtn.disabled = true;
-    
-    setTimeout(() => {
-        addToCartBtn.innerHTML = originalText;
-        addToCartBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-        addToCartBtn.disabled = false;
-    }, 1500);
-}
-
-function openCartModal() {
+function openCartPanel() {
     renderCartItems();
-    document.getElementById('cartModal').classList.add('show');
+    document.getElementById('cartPanel').classList.add('open');
+    document.getElementById('cartOverlay').classList.add('show');
     document.body.style.overflow = 'hidden';
 }
 
-function closeCartModal() {
-    document.getElementById('cartModal').classList.remove('show');
+function closeCartPanel() {
+    document.getElementById('cartPanel').classList.remove('open');
+    document.getElementById('cartOverlay').classList.remove('show');
     document.body.style.overflow = '';
 }
 
@@ -1988,8 +2026,7 @@ function renderCartItems() {
         const cartItemDiv = document.createElement('div');
         cartItemDiv.className = 'cart-item';
 
-        // Handle image
-        let imageHtml = '<div class="cart-item-image">🌸</div>';
+        let imageHtml = '<div class="cart-item-image">💎</div>';
         if (item.fragranceImage) {
             const imagePath = item.fragranceImage;
             let imageUrl = '';
@@ -2003,7 +2040,7 @@ function renderCartItems() {
             }
             imageHtml = `
                 <div class="cart-item-image">
-                    <img src="${imageUrl}" alt="${item.fragranceName}" onerror="this.parentNode.innerHTML='🌸';">
+                    <img src="${imageUrl}" alt="${item.fragranceName}" onerror="this.parentNode.innerHTML='💎';">
                 </div>
             `;
         }
@@ -2021,13 +2058,11 @@ function renderCartItems() {
                 <div class="cart-item-details">${item.variantSize} • ${item.variantPrice.toFixed(3)} OMR each</div>
                 <div class="cart-item-controls">
                     <div class="cart-quantity-controls">
-                        <button class="cart-quantity-btn ${item.quantity <= 1 ? 'disabled' : ''}" 
-                                onclick="updateCartQuantity(${index}, -1)"
-                                ${item.quantity <= 1 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>−</button>
+                        <button class="cart-quantity-btn" onclick="updateCartQuantity(${index}, -1)" 
+                                ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
                         <div class="cart-quantity-display">${item.quantity}</div>
-                        <button class="cart-quantity-btn ${item.quantity >= 50 ? 'disabled' : ''}" 
-                                onclick="updateCartQuantity(${index}, 1)"
-                                ${item.quantity >= 50 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>+</button>
+                        <button class="cart-quantity-btn" onclick="updateCartQuantity(${index}, 1)"
+                                ${item.quantity >= 50 ? 'disabled' : ''}>+</button>
                     </div>
                     <div class="cart-item-price">${itemTotal} OMR</div>
                     <button class="cart-remove" onclick="removeFromCart(${index})" title="Remove item">🗑️</button>
@@ -2052,7 +2087,6 @@ function updateCartQuantity(itemIndex, delta) {
         saveCart();
         renderCartItems();
     }
-    // Removed alert - button will be faded instead
 }
 
 function removeFromCart(itemIndex) {
@@ -2071,8 +2105,7 @@ function updateCartTotal() {
 function proceedToCheckout() {
     if (cart.length === 0) return;
 
-    // Create order summary for email
-    let orderSummary = 'QOTORE - Order Request\n\n';
+    let orderSummary = 'QOTOR - Order Request\n\n';
     orderSummary += `Order Date: ${new Date().toLocaleString()}\n\n`;
     orderSummary += 'ITEMS:\n';
     orderSummary += '----------------------------------------\n';
@@ -2099,82 +2132,45 @@ function proceedToCheckout() {
     orderSummary += '• Delivery address\n';
     orderSummary += '• Preferred delivery time\n';
     orderSummary += '• Contact phone number\n\n';
-    orderSummary += 'Thank you for choosing Qotore!';
+    orderSummary += 'Thank you for choosing Qotor!';
 
-    // Create mailto link
     const subject = encodeURIComponent('Fragrance Order Request');
     const body = encodeURIComponent(orderSummary);
-    const mailtoLink = `mailto:info@qotore.com?subject=${subject}&body=${body}`;
+    const mailtoLink = `mailto:info@qotor.com?subject=${subject}&body=${body}`;
 
-    // Open email client
     window.location.href = mailtoLink;
 }
 
-function clearCart() {
-    if (confirm('Clear all items from your cart?')) {
-        cart = [];
-        saveCart();
-        renderCartItems();
-    }
-}
-
-// ===============================
-// FRAGRANCE LOADING & DISPLAY
-// ===============================
-
-function checkAdminStatus() {
-    const cookies = document.cookie.split(';');
-    const adminSession = cookies.find(cookie => 
-        cookie.trim().startsWith('admin_session=')
-    );
-    
-    if (adminSession) {
-        const indicator = document.getElementById('admin-indicator');
-        indicator.classList.add('show');
-        
-        // Update admin link to go to dashboard
-        const adminLink = document.querySelector('.admin-link');
-        adminLink.href = '/admin/index.html';
-        adminLink.innerHTML = '👑 Dashboard';
-    }
-}
-
+// Fragrance Loading & Display
 async function loadFragrances() {
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const productsGrid = document.getElementById('products-grid');
     const emptyState = document.getElementById('empty-state');
     const noResults = document.getElementById('no-results');
-    const statsBar = document.getElementById('stats-bar');
+    const statsBar = document.getElementById('statsBar');
 
-    // Show loading state
     showOnly('loading');
 
     try {
-        console.log('Fetching fragrances from database...');
-        
         const response = await fetch('/api/fragrances');
         
         if (response.ok) {
             const result = await response.json();
-            console.log('API Response:', result);
             
             if (result.success && result.data) {
                 allFragrances = result.data;
                 
                 if (allFragrances.length > 0) {
-                    console.log(`Loaded ${allFragrances.length} fragrances`);
                     updateStatsBar(allFragrances.length);
                     applyFilters();
                 } else {
-                    console.log('No fragrances found');
                     showOnly('empty-state');
                 }
             } else {
                 throw new Error(result.error || 'Invalid API response');
             }
         } else {
-            console.log('API request failed:', response.status);
             const errorData = await response.json().catch(() => ({}));
             
             if (errorData.error === 'Database not configured') {
@@ -2192,21 +2188,30 @@ async function loadFragrances() {
 function showOnly(elementId) {
     const elements = ['loading', 'error', 'products-grid', 'empty-state', 'no-results'];
     elements.forEach(id => {
-        document.getElementById(id).style.display = id === elementId ? 'block' : 'none';
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = id === elementId ? 'block' : 'none';
+        }
     });
     
     if (elementId === 'products-grid') {
-        document.getElementById('products-grid').style.display = 'grid';
+        const grid = document.getElementById('products-grid');
+        if (grid) grid.style.display = 'grid';
     }
 }
 
 function updateStatsBar(count) {
-    const statsBar = document.getElementById('stats-bar');
-    const statsText = document.getElementById('stats-text');
+    const statsBar = document.getElementById('statsBar');
+    const statsText = document.getElementById('statsText');
     
     const totalVariants = allFragrances.reduce((sum, f) => sum + (f.variants?.length || 0), 0);
     
-    statsText.textContent = `✨ ${count} Premium Fragrances • ${totalVariants} Available Options • Authentic & Fast Delivery`;
+    if (currentLanguage === 'ar') {
+        statsText.textContent = `✨ ${count} عطر فاخر • ${totalVariants} خيار متاح • أصلي وتوصيل سريع`;
+    } else {
+        statsText.textContent = `✨ ${count} Premium Fragrances • ${totalVariants} Available Options • Authentic & Fast Delivery`;
+    }
+    
     statsBar.classList.add('show');
 }
 
@@ -2226,7 +2231,6 @@ function displayFragrances(fragrances) {
         productsGrid.appendChild(card);
     });
 
-    // Add scroll animations
     animateCards();
 }
 
@@ -2234,14 +2238,10 @@ function createProductCard(fragrance) {
     const card = document.createElement('div');
     card.className = 'product-card';
     
-    // Handle variants
     const variants = fragrance.variants || [];
-    
-    // Separate sample variants and whole bottles
     const sampleVariants = variants.filter(v => !v.is_whole_bottle);
     const wholeBottleVariant = variants.find(v => v.is_whole_bottle);
     
-    // Price range for samples
     let priceDisplay = '';
     if (sampleVariants.length > 0) {
         const prices = sampleVariants.map(v => v.price || 0).filter(p => p > 0);
@@ -2254,11 +2254,9 @@ function createProductCard(fragrance) {
         }
     }
 
-    // Handle brand and name
     const brandName = fragrance.brand || '';
     const displayName = fragrance.name;
 
-    // Handle image
     let imageUrl = '';
     if (fragrance.image_path) {
         const imagePath = fragrance.image_path;
@@ -2274,10 +2272,9 @@ function createProductCard(fragrance) {
 
     const hasImage = imageUrl && imageUrl.trim() !== '';
 
-    // Create variants HTML
     const variantsHTML = variants.map(variant => {
         if (variant.is_whole_bottle) {
-            return `<span class="variant-tag whole-bottle">🎁 Full Bottle</span>`;
+            return `<span class="variant-tag whole-bottle">${currentLanguage === 'ar' ? '🎁 زجاجة كاملة' : '🎁 Full Bottle'}</span>`;
         } else {
             const size = variant.size || `${variant.size_ml}ml`;
             return `<span class="variant-tag">${size}</span>`;
@@ -2287,30 +2284,29 @@ function createProductCard(fragrance) {
     card.innerHTML = `
         <div class="product-image">
             ${hasImage ? 
-                `<img src="${imageUrl}" alt="${displayName}" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` :
-                '🌸'
+                `<img src="${imageUrl}" alt="${displayName}" onerror="this.style.display='none'; this.parentNode.innerHTML='💎';">` :
+                '<div style="font-size: 4rem; color: var(--text-light);">💎</div>'
             }
         </div>
         <div class="product-content">
             ${brandName ? `<div class="product-brand">${brandName}</div>` : ''}
             <h3 class="product-name">${displayName}</h3>
-            <p class="product-description">${fragrance.description || 'Exquisite fragrance with captivating notes.'}</p>
+            <p class="product-description">${fragrance.description || (currentLanguage === 'ar' ? 'عطر رائع بنوتات آسرة.' : 'Exquisite fragrance with captivating notes.')}</p>
             <div class="product-variants">
                 ${variantsHTML}
             </div>
             <div class="product-footer">
                 <div class="product-price">
-                    ${priceDisplay || 'Contact for pricing'}
-                    ${wholeBottleVariant ? '<br><small style="color: #666;">Full bottles available</small>' : ''}
+                    ${priceDisplay || (currentLanguage === 'ar' ? 'اتصل للسعر' : 'Contact for pricing')}
+                    ${wholeBottleVariant ? `<br><small style="color: var(--text-secondary);">${currentLanguage === 'ar' ? 'زجاجات كاملة متاحة' : 'Full bottles available'}</small>` : ''}
                 </div>
                 <button class="view-btn" onclick="openProductModal('${fragrance.slug}')">
-                    View Details
+                    ${currentLanguage === 'ar' ? 'عرض التفاصيل' : 'View Details'}
                 </button>
             </div>
         </div>
     `;
 
-    // Add click event
     card.addEventListener('click', (e) => {
         if (!e.target.classList.contains('view-btn')) {
             openProductModal(fragrance.slug);
@@ -2320,20 +2316,264 @@ function createProductCard(fragrance) {
     return card;
 }
 
-// ===============================
-// FILTER & SEARCH FUNCTIONS
-// ===============================
+// Product Modal Functions
+function openProductModal(fragranceSlug) {
+    const fragrance = allFragrances.find(f => f.slug === fragranceSlug);
+    if (!fragrance) return;
 
+    currentFragrance = fragrance;
+    selectedVariant = null;
+
+    const modalBrand = document.getElementById('modalBrand');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalImageImg = document.getElementById('modalImageImg');
+
+    modalBrand.textContent = fragrance.brand || '';
+    modalBrand.style.display = fragrance.brand ? 'block' : 'none';
+    modalTitle.textContent = fragrance.name;
+    modalDescription.textContent = fragrance.description || (currentLanguage === 'ar' ? 'عطر رائع بنوتات آسرة.' : 'Exquisite fragrance with captivating notes.');
+
+    if (fragrance.image_path) {
+        const imagePath = fragrance.image_path;
+        let imageUrl = '';
+        if (imagePath.startsWith('http')) {
+            imageUrl = imagePath;
+        } else if (imagePath.startsWith('fragrance-images/')) {
+            const filename = imagePath.replace('fragrance-images/', '');
+            imageUrl = `/api/image/${filename}`;
+        } else {
+            imageUrl = `/api/image/${imagePath}`;
+        }
+        modalImageImg.src = imageUrl;
+        modalImageImg.alt = fragrance.name;
+        modalImageImg.style.display = 'block';
+        modalImageImg.onerror = function() { 
+            this.style.display = 'none'; 
+            this.parentNode.innerHTML = '<div style="font-size: 4rem; color: var(--text-light);">💎</div>';
+        };
+    } else {
+        document.getElementById('modalImage').innerHTML = '<div style="font-size: 4rem; color: var(--text-light);">💎</div>';
+    }
+
+    populateVariants(fragrance.variants || []);
+
+    document.getElementById('productModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function populateVariants(variants) {
+    const container = document.getElementById('variantsContainer');
+    const addToCartSection = document.getElementById('addToCartSection');
+    
+    container.innerHTML = '';
+    addToCartSection.style.display = 'none';
+
+    if (variants.length === 0) {
+        container.innerHTML = `<p style="text-align: center; color: var(--text-secondary);">${currentLanguage === 'ar' ? 'لا توجد خيارات متاحة' : 'No variants available'}</p>`;
+        return;
+    }
+
+    variants.forEach((variant, index) => {
+        const variantDiv = document.createElement('div');
+        variantDiv.className = `variant-option ${variant.is_whole_bottle ? 'whole-bottle' : ''}`;
+        variantDiv.dataset.variantIndex = index;
+
+        const isWholeBottle = variant.is_whole_bottle;
+        const price = isWholeBottle ? (currentLanguage === 'ar' ? 'اتصل للسعر' : 'Contact for pricing') : `${(variant.price || 0).toFixed(3)} OMR`;
+
+        variantDiv.innerHTML = `
+            <div class="variant-header">
+                <div class="variant-size">${variant.size}</div>
+                <div class="variant-price">${price}</div>
+            </div>
+            ${!isWholeBottle ? `
+                <div class="quantity-section">
+                    <div class="quantity-label">${currentLanguage === 'ar' ? 'الكمية:' : 'Quantity:'}</div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" onclick="changeQuantity(${index}, -1)">−</button>
+                        <input type="number" class="quantity-input" value="1" min="1" max="50" 
+                               onchange="updateQuantity(${index}, this.value)">
+                        <button class="quantity-btn" onclick="changeQuantity(${index}, 1)">+</button>
+                        <div class="quantity-total">
+                            ${currentLanguage === 'ar' ? 'المجموع:' : 'Total:'} <span id="total-${index}">${(variant.price || 0).toFixed(3)} OMR</span>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="quantity-section">
+                    <div style="text-align: center; margin-top: var(--spacing-lg);">
+                        <a href="mailto:info@qotor.com?subject=Inquiry about ${currentFragrance.name} - Full Bottle" 
+                           class="contact-for-pricing">
+                            📧 ${currentLanguage === 'ar' ? 'اتصل للسعر' : 'Contact for Pricing'}
+                        </a>
+                    </div>
+                </div>
+            `}
+        `;
+
+        variantDiv.addEventListener('click', function() {
+            selectVariant(index);
+        });
+
+        container.appendChild(variantDiv);
+    });
+}
+
+function selectVariant(variantIndex) {
+    const variants = document.querySelectorAll('.variant-option');
+    variants.forEach(v => v.classList.remove('selected'));
+    
+    const selectedVariantDiv = variants[variantIndex];
+    selectedVariantDiv.classList.add('selected');
+    
+    selectedVariant = {
+        ...currentFragrance.variants[variantIndex],
+        variantIndex: variantIndex
+    };
+
+    const addToCartSection = document.getElementById('addToCartSection');
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    
+    if (!selectedVariant.is_whole_bottle) {
+        addToCartSection.style.display = 'block';
+        addToCartBtn.disabled = false;
+        addToCartBtn.onclick = () => addToCart();
+    } else {
+        addToCartSection.style.display = 'none';
+    }
+}
+
+function changeQuantity(variantIndex, delta) {
+    const quantityInput = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-input`);
+    let newQuantity = parseInt(quantityInput.value) + delta;
+    newQuantity = Math.max(1, Math.min(50, newQuantity));
+    
+    quantityInput.value = newQuantity;
+    updateQuantity(variantIndex, newQuantity);
+    
+    updateQuantityButtonStates(variantIndex, newQuantity);
+}
+
+function updateQuantity(variantIndex, quantity) {
+    quantity = Math.max(1, Math.min(50, parseInt(quantity) || 1));
+    const variant = currentFragrance.variants[variantIndex];
+    const total = (variant.price || 0) * quantity;
+    
+    const totalElement = document.getElementById(`total-${variantIndex}`);
+    if (totalElement) {
+        totalElement.textContent = `${total.toFixed(3)} OMR`;
+    }
+
+    const quantityInput = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-input`);
+    quantityInput.value = quantity;
+    
+    updateQuantityButtonStates(variantIndex, quantity);
+}
+
+function updateQuantityButtonStates(variantIndex, quantity) {
+    const plusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:last-of-type`);
+    const minusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:first-of-type`);
+    
+    if (plusBtn) {
+        plusBtn.disabled = quantity >= 50;
+        plusBtn.style.opacity = quantity >= 50 ? '0.4' : '1';
+    }
+    
+    if (minusBtn) {
+        minusBtn.disabled = quantity <= 1;
+        minusBtn.style.opacity = quantity <= 1 ? '0.4' : '1';
+    }
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').classList.remove('show');
+    document.body.style.overflow = '';
+    currentFragrance = null;
+    selectedVariant = null;
+}
+
+function addToCart() {
+    if (!selectedVariant || selectedVariant.is_whole_bottle) return;
+
+    const quantityInput = document.querySelector(`[data-variant-index="${selectedVariant.variantIndex}"] .quantity-input`);
+    const quantity = parseInt(quantityInput.value) || 1;
+
+    const cartItem = {
+        id: `${currentFragrance.id}-${selectedVariant.variantIndex}`,
+        fragranceId: currentFragrance.id,
+        fragranceName: currentFragrance.name,
+        fragranceBrand: currentFragrance.brand || '',
+        fragranceSlug: currentFragrance.slug,
+        fragranceImage: currentFragrance.image_path || '',
+        variantId: selectedVariant.id,
+        variantSize: selectedVariant.size,
+        variantPrice: selectedVariant.price,
+        quantity: quantity,
+        addedAt: new Date().toISOString()
+    };
+
+    const existingItemIndex = cart.findIndex(item => item.id === cartItem.id);
+    
+    if (existingItemIndex !== -1) {
+        const newQuantity = cart[existingItemIndex].quantity + quantity;
+        if (newQuantity <= 50) {
+            cart[existingItemIndex].quantity = newQuantity;
+        } else {
+            cart[existingItemIndex].quantity = 50;
+            showMaxQuantityFeedback();
+        }
+    } else {
+        cart.push(cartItem);
+    }
+
+    saveCart();
+    showAddToCartSuccess();
+    
+    setTimeout(() => {
+        closeProductModal();
+    }, 1500);
+}
+
+function showMaxQuantityFeedback() {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const originalText = addToCartBtn.innerHTML;
+    
+    addToCartBtn.innerHTML = currentLanguage === 'ar' ? '⚠️ الحد الأقصى للكمية (50)' : '⚠️ Max Quantity (50)';
+    addToCartBtn.style.background = 'var(--warning)';
+    addToCartBtn.disabled = true;
+    
+    setTimeout(() => {
+        addToCartBtn.innerHTML = originalText;
+        addToCartBtn.style.background = 'var(--primary-color)';
+        addToCartBtn.disabled = false;
+    }, 2000);
+}
+
+function showAddToCartSuccess() {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const originalText = addToCartBtn.innerHTML;
+    
+    addToCartBtn.innerHTML = currentLanguage === 'ar' ? '✅ تمت الإضافة للسلة!' : '✅ Added to Cart!';
+    addToCartBtn.style.background = 'var(--success)';
+    addToCartBtn.disabled = true;
+    
+    setTimeout(() => {
+        addToCartBtn.innerHTML = originalText;
+        addToCartBtn.style.background = 'var(--primary-color)';
+        addToCartBtn.disabled = false;
+    }, 1500);
+}
+
+// Filter & Search Functions
 function initializeFilters() {
     const filterBtns = document.querySelectorAll('.filter-btn');
     
     filterBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            // Update active state
             filterBtns.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
-            // Apply filter
             currentFilter = this.dataset.filter;
             applyFilters();
         });
@@ -2357,7 +2597,6 @@ function applyFilters() {
     
     let filtered = [...allFragrances];
     
-    // Apply text search
     if (searchTerm) {
         filtered = filtered.filter(fragrance => {
             const searchableText = [
@@ -2370,7 +2609,6 @@ function applyFilters() {
         });
     }
     
-    // Apply category filter
     if (currentFilter !== 'all') {
         filtered = filtered.filter(fragrance => {
             const variants = fragrance.variants || [];
@@ -2394,10 +2632,7 @@ function clearFilters() {
     document.querySelector('.filter-btn[data-filter="all"]').click();
 }
 
-// ===============================
-// UTILITY FUNCTIONS
-// ===============================
-
+// Utility Functions
 function animateCards() {
     const cards = document.querySelectorAll('.product-card');
     cards.forEach((card, index) => {
@@ -2429,7 +2664,6 @@ function setupSmoothScrolling() {
 
 function showError(message) {
     showOnly('error');
-    // You can customize the error message here if needed
 }
 
 function showDatabaseNotConfigured() {
@@ -2438,25 +2672,51 @@ function showDatabaseNotConfigured() {
     const errorTitle = errorSection.querySelector('h3');
     const errorText = errorSection.querySelector('p');
     
-    if (errorTitle) errorTitle.textContent = '🗄️ Database Not Configured';
-    if (errorText) errorText.textContent = 'The fragrance database is not set up yet. Please contact the administrator.';
+    if (errorTitle) {
+        errorTitle.textContent = currentLanguage === 'ar' ? 
+            '🗄️ قاعدة البيانات غير مكونة' : 
+            '🗄️ Database Not Configured';
+    }
+    if (errorText) {
+        errorText.textContent = currentLanguage === 'ar' ? 
+            'قاعدة بيانات العطور غير مُعدة بعد. يرجى الاتصال بالمدير.' :
+            'The fragrance database is not set up yet. Please contact the administrator.';
+    }
 }
 
-// ===============================
-// SCROLL EFFECTS
-// ===============================
-
-// Scroll effects for header
+// Scroll Effects
 window.addEventListener('scroll', function() {
     const header = document.querySelector('.header');
     if (window.scrollY > 100) {
-        header.style.backgroundColor = 'rgba(102, 126, 234, 0.95)';
+        header.style.backgroundColor = currentTheme === 'dark' ? 
+            'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)';
         header.style.backdropFilter = 'blur(20px)';
     } else {
         header.style.backgroundColor = '';
         header.style.backdropFilter = '';
     }
 });
-</script>
+
+// Window resize handler
+window.addEventListener('resize', function() {
+    const mobileNav = document.getElementById('mobileNav');
+    if (window.innerWidth > 768) {
+        mobileNav.classList.remove('show');
+    }
+});
+
+// Global functions for onclick handlers
+window.openProductModal = openProductModal;
+window.closeProductModal = closeProductModal;
+window.selectVariant = selectVariant;
+window.changeQuantity = changeQuantity;
+window.updateQuantity = updateQuantity;
+window.addToCart = addToCart;
+window.updateCartQuantity = updateCartQuantity;
+window.removeFromCart = removeFromCart;
+window.proceedToCheckout = proceedToCheckout;
+window.loadFragrances = loadFragrances;
+window.clearFilters = clearFilters;
+    </script>
 </body>
 </html>

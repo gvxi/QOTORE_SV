@@ -1,33 +1,209 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Access Denied - Fragrance Store</title>
+    <title>Access Denied - Qotor</title>
     <style>
+        /* Root Variables - Based on DK Hoone Emirates */
+        :root {
+            /* Primary Colors */
+            --primary-color: #1a237e; /* Deep Blue */
+            --primary-light: #3949ab;
+            --primary-dark: #0d47a1;
+            
+            /* Secondary Colors */
+            --secondary-color: #ffd700; /* Gold */
+            --secondary-light: #ffeb3b;
+            --secondary-dark: #ff8f00;
+            
+            /* Neutral Colors */
+            --dark-color: #212121;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-light: #9e9e9e;
+            --background: #ffffff;
+            --surface: #f5f5f5;
+            --border: #e0e0e0;
+            
+            /* Status Colors */
+            --success: #4caf50;
+            --warning: #ff9800;
+            --error: #f44336;
+            --info: #2196f3;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-xxl: 3rem;
+            
+            /* Typography */
+            --font-family: 'Arial', 'Helvetica', sans-serif;
+            --font-weight-light: 300;
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-bold: 700;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.12);
+            --shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
+            --shadow-xl: 0 16px 32px rgba(0,0,0,0.2);
+            
+            /* Border Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-round: 50%;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+            
+            /* Z-index */
+            --z-header: 1000;
+            --z-modal: 2000;
+            --z-dropdown: 1500;
+            --z-tooltip: 3000;
+        }
+
+        /* Dark Theme Variables */
+        [data-theme="dark"] {
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-light: #808080;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --border: #333333;
+            --dark-color: #ffffff;
+        }
+
+        /* RTL Support */
+        [dir="rtl"] {
+            text-align: right;
+        }
+
+        [dir="rtl"] .header-container {
+            flex-direction: row-reverse;
+        }
+
+        /* Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--error) 0%, #d32f2f 100%);
             min-height: 100vh;
+            transition: background var(--transition-normal), color var(--transition-normal);
+        }
+
+        /* Header Styles */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: var(--z-header);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-md) var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Logo */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.5rem;
+            font-weight: var(--font-weight-bold);
+            color: white;
+        }
+
+        .logo-image {
+            height: 40px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: var(--font-weight-bold);
+        }
+
+        /* Header Controls */
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            width: 40px;
+            height: 40px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .control-btn img {
+            width: 20px;
+            height: 20px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 80px);
+            padding: var(--spacing-xl);
         }
 
         .reject-container {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            padding: var(--spacing-xxl);
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -40,188 +216,646 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #ff4757, #ff3838);
+            background: linear-gradient(90deg, var(--error), #d32f2f);
         }
 
+        /* Reject Icon */
         .reject-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            animation: shake 0.5s ease-in-out infinite alternate;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--spacing-xl);
+            animation: shake 2s ease-in-out infinite;
+            filter: hue-rotate(0deg);
         }
 
         @keyframes shake {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-5px); }
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
 
+        /* Content */
         .reject-header h1 {
-            color: #333;
-            font-size: 32px;
-            margin-bottom: 10px;
-            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-lg);
+            font-weight: var(--font-weight-bold);
         }
 
         .reject-header p {
-            color: #666;
-            font-size: 16px;
-            margin-bottom: 30px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-xl);
             line-height: 1.5;
         }
 
+        /* Error Details */
         .error-details {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            font-size: 14px;
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid rgba(244, 67, 54, 0.3);
+            color: var(--error);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-xl);
+            font-size: 0.875rem;
+            line-height: 1.6;
         }
 
+        .error-details strong {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: var(--font-weight-bold);
+        }
+
+        /* Action Buttons */
         .action-buttons {
             display: flex;
-            gap: 15px;
+            gap: var(--spacing-lg);
             justify-content: center;
             flex-wrap: wrap;
+            margin-bottom: var(--spacing-xl);
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: var(--spacing-lg) var(--spacing-xl);
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            font-weight: var(--font-weight-bold);
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            min-width: 120px;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transition: all var(--transition-fast);
+            min-width: 140px;
+            justify-content: center;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
+            box-shadow: var(--shadow-md);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: var(--shadow-lg);
         }
 
         .btn-secondary {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #e1e5e9;
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background: #e9ecef;
+            background: var(--border);
             transform: translateY(-1px);
         }
 
+        .btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .btn-primary img {
+            filter: brightness(0) invert(1);
+        }
+
+        /* Help Text */
         .help-text {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #666;
-            line-height: 1.5;
+            margin-top: var(--spacing-xl);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
 
         .help-text a {
-            color: #667eea;
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: var(--font-weight-medium);
         }
 
         .help-text a:hover {
             text-decoration: underline;
         }
 
-        @media (max-width: 480px) {
+        /* Countdown */
+        .countdown {
+            position: fixed;
+            bottom: var(--spacing-xl);
+            right: var(--spacing-xl);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+            z-index: var(--z-tooltip);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Language Dropdown */
+        .language-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: var(--z-dropdown);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all var(--transition-fast);
+            min-width: 150px;
+            overflow: hidden;
+        }
+
+        .language-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md);
+            border: none;
+            background: none;
+            width: 100%;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            color: var(--text-primary);
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        .language-option:hover {
+            background: var(--surface);
+        }
+
+        .language-option img {
+            width: 20px;
+            height: 15px;
+        }
+
+        /* Dark Theme Adjustments */
+        [data-theme="dark"] .reject-container {
+            background: rgba(30, 30, 30, 0.95);
+        }
+
+        [data-theme="dark"] .error-details {
+            background: rgba(244, 67, 54, 0.2);
+        }
+
+        [data-theme="dark"] .language-dropdown {
+            background: var(--surface);
+            border-color: var(--border);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-container {
+                padding: var(--spacing-md);
+            }
+            
+            .main-container {
+                padding: var(--spacing-lg);
+            }
+            
             .reject-container {
-                padding: 30px 20px;
+                padding: var(--spacing-xl);
             }
-
+            
             .reject-header h1 {
-                font-size: 24px;
+                font-size: 2rem;
             }
-
+            
+            .reject-header p {
+                font-size: 1rem;
+            }
+            
             .action-buttons {
                 flex-direction: column;
                 align-items: center;
             }
-
+            
             .btn {
                 width: 100%;
-                max-width: 250px;
+                max-width: 280px;
+            }
+            
+            .countdown {
+                bottom: var(--spacing-lg);
+                right: var(--spacing-lg);
+                left: var(--spacing-lg);
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-controls {
+                gap: var(--spacing-sm);
+            }
+            
+            .control-btn {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .logo-text {
+                font-size: 1.5rem;
+            }
+            
+            .main-container {
+                padding: var(--spacing-md);
+            }
+            
+            .reject-container {
+                padding: var(--spacing-lg);
+                border-radius: var(--radius-lg);
+            }
+            
+            .reject-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .reject-icon {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.6s ease;
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Focus Styles for Accessibility */
+        .control-btn:focus,
+        .btn:focus,
+        .language-option:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            :root {
+                --border: #000000;
+                --text-secondary: #000000;
+            }
+            
+            [data-theme="dark"] {
+                --border: #ffffff;
+                --text-secondary: #ffffff;
             }
         }
     </style>
 </head>
 <body>
-    <div class="reject-container">
-        <div class="reject-icon">🚫</div>
-        
-        <div class="reject-header">
-            <h1>Access Denied</h1>
-            <p>You don't have permission to access this admin area.</p>
-        </div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Left: Logo -->
+            <div class="logo-section">
+                <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
+                <span class="logo-text">Qotor</span>
+            </div>
 
-        <div class="error-details">
-            <strong>Possible reasons:</strong><br>
-            • Your session has expired<br>
-            • Invalid authentication credentials<br>
-            • You're not authorized for admin access
-        </div>
+            <!-- Right: Controls -->
+            <div class="header-controls">
+                <!-- Language Switcher -->
+                <button class="control-btn language-btn" id="languageBtn" title="Language">
+                    <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
+                </button>
 
-        <div class="action-buttons">
-            <a href="/login.html" class="btn btn-primary">
-                🔑 Login Again
-            </a>
-            <a href="/index.html" class="btn btn-secondary">
-                🏠 Back to Store
-            </a>
-        </div>
+                <!-- Theme Switcher -->
+                <button class="control-btn theme-btn" id="themeBtn" title="Theme">
+                    <img src="/api/image/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
+                </button>
 
-        <div class="help-text">
-            If you believe this is an error, please contact the administrator.<br>
-            <a href="mailto:admin@example.com">admin@example.com</a>
+                <!-- Back to Store -->
+                <a href="/index.html" class="control-btn back-btn" title="Back to Store">
+                    <img src="/api/image/back-icon.png" alt="Back" onerror="this.textContent='←';">
+                </a>
+            </div>
         </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="reject-container fade-in">
+            <img src="/api/image/access-denied-icon.png" alt="Access Denied" class="reject-icon" onerror="this.textContent='🚫';">
+            
+            <div class="reject-header">
+                <h1 data-key="access_denied">Access Denied</h1>
+                <p data-key="no_permission">You don't have permission to access this area.</p>
+            </div>
+
+            <div class="error-details">
+                <strong data-key="possible_reasons">Possible reasons:</strong>
+                <span data-key="session_expired">• Your session has expired</span><br>
+                <span data-key="invalid_credentials">• Invalid authentication credentials</span><br>
+                <span data-key="not_authorized">• You're not authorized for admin access</span>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/login.html" class="btn btn-primary">
+                    <img src="/api/image/key-icon.png" alt="Login" onerror="this.textContent='🔑';">
+                    <span data-key="login_again">Login Again</span>
+                </a>
+                <a href="/index.html" class="btn btn-secondary">
+                    <img src="/api/image/home-icon.png" alt="Home" onerror="this.textContent='🏠';">
+                    <span data-key="back_to_store">Back to Store</span>
+                </a>
+            </div>
+
+            <div class="help-text">
+                <span data-key="help_text">If you believe this is an error, please contact the administrator.</span><br>
+                <a href="mailto:admin@qotor.com" data-key="contact_admin">admin@qotor.com</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Language Selector Dropdown -->
+    <div class="language-dropdown" id="languageDropdown">
+        <button class="language-option" data-lang="en">
+            <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
+            <span>English</span>
+        </button>
+        <button class="language-option" data-lang="ar">
+            <img src="/api/image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+            <span>العربية</span>
+        </button>
     </div>
 
-    <script>
-        // Auto-redirect after 10 seconds
-        let countdown = 10;
-        const countdownElement = document.createElement('div');
-        countdownElement.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 12px;
-        `;
-        document.body.appendChild(countdownElement);
+    <!-- Countdown Timer -->
+    <div class="countdown" id="countdown"></div>
 
-        function updateCountdown() {
-            countdownElement.textContent = `Redirecting to login in ${countdown}s`;
-            countdown--;
+    <script>
+        // Global variables
+        let currentLanguage = 'en';
+        let currentTheme = 'light';
+
+        // Language translations
+        const translations = {
+            en: {
+                access_denied: 'Access Denied',
+                no_permission: 'You don\'t have permission to access this area.',
+                possible_reasons: 'Possible reasons:',
+                session_expired: '• Your session has expired',
+                invalid_credentials: '• Invalid authentication credentials',
+                not_authorized: '• You\'re not authorized for admin access',
+                login_again: 'Login Again',
+                back_to_store: 'Back to Store',
+                help_text: 'If you believe this is an error, please contact the administrator.',
+                contact_admin: 'admin@qotor.com',
+                redirecting_login: 'Redirecting to login in',
+                seconds: 'seconds'
+            },
+            ar: {
+                access_denied: 'تم رفض الوصول',
+                no_permission: 'ليس لديك إذن للوصول إلى هذه المنطقة.',
+                possible_reasons: 'الأسباب المحتملة:',
+                session_expired: '• انتهت صلاحية جلستك',
+                invalid_credentials: '• بيانات اعتماد غير صالحة',
+                not_authorized: '• غير مخول للوصول للإدارة',
+                login_again: 'تسجيل الدخول مرة أخرى',
+                back_to_store: 'العودة إلى المتجر',
+                help_text: 'إذا كنت تعتقد أن هذا خطأ، يرجى الاتصال بالمدير.',
+                contact_admin: 'admin@qotor.com',
+                redirecting_login: 'جاري التوجيه لتسجيل الدخول خلال',
+                seconds: 'ثانية'
+            }
+        };
+
+        // DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        // Initialize App
+        function initializeApp() {
+            initializeTheme();
+            initializeLanguage();
+            initializeEventListeners();
+            startCountdown();
+            clearSession();
+            addAnimations();
+        }
+
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('qotor_theme') || 'light';
+            setTheme(savedTheme);
             
-            if (countdown < 0) {
-                window.location.href = '/login.html';
+            const themeBtn = document.getElementById('themeBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', toggleTheme);
             }
         }
 
-        updateCountdown();
-        const countdownInterval = setInterval(updateCountdown, 1000);
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('qotor_theme', theme);
+            
+            const themeIcon = document.querySelector('#themeBtn img');
+            if (themeIcon) {
+                themeIcon.src = `/api/image/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
+                themeIcon.alt = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+            }
+        }
 
-        // Clear session cookie if it exists
-        document.cookie = 'admin_session=; Path=/; Max-Age=0';
+        function toggleTheme() {
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
 
-        // Clear countdown on user interaction
-        document.addEventListener('click', () => {
-            clearInterval(countdownInterval);
-            countdownElement.style.display = 'none';
+        // Language Management
+        function initializeLanguage() {
+            const savedLanguage = localStorage.getItem('qotor_language') || 'en';
+            setLanguage(savedLanguage);
+            
+            const languageBtn = document.getElementById('languageBtn');
+            const languageDropdown = document.getElementById('languageDropdown');
+            
+            if (languageBtn && languageDropdown) {
+                languageBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    languageDropdown.classList.toggle('show');
+                });
+                
+                document.addEventListener('click', () => {
+                    languageDropdown.classList.remove('show');
+                });
+                
+                document.querySelectorAll('.language-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        const lang = e.currentTarget.dataset.lang;
+                        setLanguage(lang);
+                        languageDropdown.classList.remove('show');
+                    });
+                });
+            }
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.setAttribute('lang', lang);
+            document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+            localStorage.setItem('qotor_language', lang);
+            
+            updateTexts();
+            
+            const languageIcon = document.querySelector('#languageBtn img');
+            if (languageIcon) {
+                languageIcon.src = `/api/image/${lang}-flag.png`;
+                languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
+            }
+        }
+
+        function updateTexts() {
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[currentLanguage][key]) {
+                    element.textContent = translations[currentLanguage][key];
+                }
+            });
+        }
+
+        // Event Listeners
+        function initializeEventListeners() {
+            // Escape key to close dropdown
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const languageDropdown = document.getElementById('languageDropdown');
+                    if (languageDropdown) {
+                        languageDropdown.classList.remove('show');
+                    }
+                }
+            });
+
+            // Clear countdown on user interaction
+            document.addEventListener('click', clearCountdownOnInteraction);
+            document.addEventListener('keydown', clearCountdownOnInteraction);
+        }
+
+        function clearCountdownOnInteraction() {
+            const countdown = document.getElementById('countdown');
+            if (countdown && countdownInterval) {
+                clearInterval(countdownInterval);
+                countdown.style.display = 'none';
+            }
+        }
+
+        // Countdown Timer
+        let countdownInterval;
+        function startCountdown() {
+            let seconds = 10;
+            const countdownElement = document.getElementById('countdown');
+            
+            function updateCountdown() {
+                const redirectText = translations[currentLanguage]['redirecting_login'];
+                const secondsText = translations[currentLanguage]['seconds'];
+                countdownElement.textContent = `${redirectText} ${seconds} ${secondsText}`;
+                seconds--;
+                
+                if (seconds < 0) {
+                    clearInterval(countdownInterval);
+                    window.location.href = '/login.html';
+                }
+            }
+
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // Clear Session
+        function clearSession() {
+            // Clear any existing admin session cookie
+            document.cookie = 'admin_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax';
+        }
+
+        // Add Animations
+        function addAnimations() {
+            // Animate container elements
+            const elements = document.querySelectorAll('.reject-header, .error-details, .action-buttons, .help-text');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 150 + 300);
+            });
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const languageDropdown = document.getElementById('languageDropdown');
+            if (languageDropdown) {
+                languageDropdown.classList.remove('show');
+            }
+        });
+
+        // Error handling for images
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    if (this.dataset.fallback) {
+                        this.textContent = this.dataset.fallback;
+                        this.style.display = 'flex';
+                        this.style.alignItems = 'center';
+                        this.style.justifyContent = 'center';
+                        this.style.fontSize = '1.5rem';
+                    }
+                });
+            });
         });
     </script>
 </body>
