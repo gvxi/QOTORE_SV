@@ -865,7 +865,7 @@ body {
         <div class="header-container">
             <!-- Left: Logo -->
             <div class="logo-section">
-                <img src="/page-images/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
+                <img src="/api/page-image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
                 <span class="logo-text">Qotor</span>
             </div>
 
@@ -873,17 +873,17 @@ body {
             <div class="header-controls">
                 <!-- Language Switcher -->
                 <button class="control-btn language-btn" id="languageBtn" title="Language">
-                    <img src="/page-images/language-icon.png" alt="Language" onerror="this.textContent='EN';">
+                    <img src="/api/page-image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
                 </button>
 
                 <!-- Theme Switcher -->
                 <button class="control-btn theme-btn" id="themeBtn" title="Theme">
-                    <img src="/page-images/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
+                    <img src="/api/page-image/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
                 </button>
 
                 <!-- Back to Store -->
                 <a href="/index.html" class="control-btn back-btn" title="Back to Store">
-                    <img src="/page-images/back-icon.png" alt="Back" onerror="this.textContent='←';">
+                    <img src="/api/page-image/back-icon.png" alt="Back" onerror="this.textContent='←';">
                 </a>
             </div>
         </div>
@@ -894,7 +894,7 @@ body {
         <div class="login-container">
             <div class="login-form-section">
                 <div class="form-header">
-                    <img src="/page-images/login-icon.png" alt="Login" class="login-icon" onerror="this.textContent='🔐';">
+                    <img src="/api/page-image/login-icon.png" alt="Login" class="login-icon" onerror="this.textContent='🔐';">
                     <h1 class="form-title" data-key="login_title">Welcome Back</h1>
                     <p class="form-subtitle" data-key="login_subtitle">Sign in to access your account</p>
                 </div>
@@ -913,7 +913,7 @@ body {
                     <div class="form-group">
                         <label for="username" class="form-label" data-key="username_label">Username</label>
                         <div class="input-container">
-                            <img src="/page-images/user-icon.png" alt="User" class="input-icon" onerror="this.textContent='👤';">
+                            <img src="/api/page-image/user-icon.png" alt="User" class="input-icon" onerror="this.textContent='👤';">
                             <input type="text" id="username" name="username" class="form-input" required 
                                    data-key-placeholder="username_placeholder">
                         </div>
@@ -922,18 +922,18 @@ body {
                     <div class="form-group">
                         <label for="password" class="form-label" data-key="password_label">Password</label>
                         <div class="input-container">
-                            <img src="/page-images/lock-icon.png" alt="Password" class="input-icon" onerror="this.textContent='🔒';">
+                            <img src="/api/page-image/lock-icon.png" alt="Password" class="input-icon" onerror="this.textContent='🔒';">
                             <input type="password" id="password" name="password" class="form-input" required 
                                    data-key-placeholder="password_placeholder">
                             <button type="button" class="toggle-password" id="togglePassword">
-                                <img src="/page-images/eye-icon.png" alt="Show" class="eye-icon" onerror="this.textContent='👁️';">
+                                <img src="/api/page-image/eye-icon.png" alt="Show" class="eye-icon" onerror="this.textContent='👁️';">
                             </button>
                         </div>
                     </div>
 
                     <button type="submit" class="login-btn" id="loginBtn">
                         <span class="btn-text" data-key="sign_in_button">Sign In</span>
-                        <img src="/page-images/arrow-right-icon.png" alt="→" class="btn-icon" onerror="this.textContent='→';">
+                        <img src="/api/page-image/arrow-right-icon.png" alt="→" class="btn-icon" onerror="this.textContent='→';">
                     </button>
                 </form>
 
@@ -946,21 +946,21 @@ body {
             <!-- Info Section -->
             <div class="info-section">
                 <div class="info-content">
-                    <img src="/page-images/secure-icon.png" alt="Secure" class="info-icon" onerror="this.textContent='🛡️';">
+                    <img src="/api/page-image/secure-icon.png" alt="Secure" class="info-icon" onerror="this.textContent='🛡️';">
                     <h2 class="info-title" data-key="secure_access_title">Secure Access</h2>
                     <p class="info-description" data-key="secure_access_desc">Your login credentials are protected with industry-standard security measures.</p>
                     
                     <div class="features-list">
                         <div class="feature-item">
-                            <img src="/page-images/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
+                            <img src="/api/page-image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
                             <span data-key="feature_encrypted">Encrypted Connection</span>
                         </div>
                         <div class="feature-item">
-                            <img src="/page-images/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
+                            <img src="/api/page-image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
                             <span data-key="feature_secure">Secure Authentication</span>
                         </div>
                         <div class="feature-item">
-                            <img src="/page-images/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
+                            <img src="/api/page-image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
                             <span data-key="feature_private">Private Session</span>
                         </div>
                     </div>
@@ -972,11 +972,11 @@ body {
     <!-- Language Selector Dropdown -->
     <div class="language-dropdown" id="languageDropdown">
         <button class="language-option" data-lang="en">
-            <img src="/page-images/en-flag.png" alt="English" onerror="this.textContent='EN';">
+            <img src="/api/page-image/en-flag.png" alt="English" onerror="this.textContent='EN';">
             <span>English</span>
         </button>
         <button class="language-option" data-lang="ar">
-            <img src="/page-images/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+            <img src="/api/page-image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
             <span>العربية</span>
         </button>
     </div>
@@ -1081,7 +1081,7 @@ function setTheme(theme) {
     
     const themeIcon = document.querySelector('#themeBtn img');
     if (themeIcon) {
-        themeIcon.src = `/page-images/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
+        themeIcon.src = `/api/page-image/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
         themeIcon.alt = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
     }
 }
@@ -1130,7 +1130,7 @@ function setLanguage(lang) {
     
     const languageIcon = document.querySelector('#languageBtn img');
     if (languageIcon) {
-        languageIcon.src = `/page-images/${lang}-flag.png`;
+        languageIcon.src = `/api/page-image/${lang}-flag.png`;
         languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
     }
 }
@@ -1172,7 +1172,7 @@ function initializeEventListeners() {
             
             const eyeIcon = this.querySelector('.eye-icon');
             if (eyeIcon) {
-                eyeIcon.src = `/page-images/${type === 'password' ? 'eye' : 'eye-slash'}-icon.png`;
+                eyeIcon.src = `/api/page-image/${type === 'password' ? 'eye' : 'eye-slash'}-icon.png`;
             }
         });
     }

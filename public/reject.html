@@ -565,7 +565,7 @@
         <div class="header-container">
             <!-- Left: Logo -->
             <div class="logo-section">
-                <img src="/page-images/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
+                <img src="/api/page-image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
                 <span class="logo-text">Qotor</span>
             </div>
 
@@ -573,17 +573,17 @@
             <div class="header-controls">
                 <!-- Language Switcher -->
                 <button class="control-btn language-btn" id="languageBtn" title="Language">
-                    <img src="/page-images/language-icon.png" alt="Language" onerror="this.textContent='EN';">
+                    <img src="/api/page-image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
                 </button>
 
                 <!-- Theme Switcher -->
                 <button class="control-btn theme-btn" id="themeBtn" title="Theme">
-                    <img src="/page-images/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
+                    <img src="/api/page-image/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
                 </button>
 
                 <!-- Back to Store -->
                 <a href="/index.html" class="control-btn back-btn" title="Back to Store">
-                    <img src="/page-images/back-icon.png" alt="Back" onerror="this.textContent='←';">
+                    <img src="/api/page-image/back-icon.png" alt="Back" onerror="this.textContent='←';">
                 </a>
             </div>
         </div>
@@ -592,7 +592,7 @@
     <!-- Main Content -->
     <main class="main-container">
         <div class="reject-container fade-in">
-            <img src="/page-images/access-denied-icon.png" alt="Access Denied" class="reject-icon" onerror="this.textContent='🚫';">
+            <img src="/api/page-image/access-denied-icon.png" alt="Access Denied" class="reject-icon" onerror="this.textContent='🚫';">
             
             <div class="reject-header">
                 <h1 data-key="access_denied">Access Denied</h1>
@@ -608,11 +608,11 @@
 
             <div class="action-buttons">
                 <a href="/login.html" class="btn btn-primary">
-                    <img src="/page-images/key-icon.png" alt="Login" onerror="this.textContent='🔑';">
+                    <img src="/api/page-image/key-icon.png" alt="Login" onerror="this.textContent='🔑';">
                     <span data-key="login_again">Login Again</span>
                 </a>
                 <a href="/index.html" class="btn btn-secondary">
-                    <img src="/page-images/home-icon.png" alt="Home" onerror="this.textContent='🏠';">
+                    <img src="/api/page-image/home-icon.png" alt="Home" onerror="this.textContent='🏠';">
                     <span data-key="back_to_store">Back to Store</span>
                 </a>
             </div>
@@ -627,11 +627,11 @@
     <!-- Language Selector Dropdown -->
     <div class="language-dropdown" id="languageDropdown">
         <button class="language-option" data-lang="en">
-            <img src="/page-images/en-flag.png" alt="English" onerror="this.textContent='EN';">
+            <img src="/api/page-image/en-flag.png" alt="English" onerror="this.textContent='EN';">
             <span>English</span>
         </button>
         <button class="language-option" data-lang="ar">
-            <img src="/page-images/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+            <img src="/api/page-image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
             <span>العربية</span>
         </button>
     </div>
@@ -709,7 +709,7 @@
             
             const themeIcon = document.querySelector('#themeBtn img');
             if (themeIcon) {
-                themeIcon.src = `/page-images/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
+                themeIcon.src = `/api/page-image/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
                 themeIcon.alt = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
             }
         }
@@ -757,7 +757,7 @@
             
             const languageIcon = document.querySelector('#languageBtn img');
             if (languageIcon) {
-                languageIcon.src = `/page-images/${lang}-flag.png`;
+                languageIcon.src = `/api/page-image/${lang}-flag.png`;
                 languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
             }
         }
