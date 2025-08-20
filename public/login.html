@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Qotor</title>
-    <style>
-        /* Root Variables - Based on DK Hoone Emirates */
+   <style>
+       /* Root Variables - Based on DK Hoone Emirates */
 :root {
-
     --icon-filter: none;
 
     /* Primary Colors */
@@ -75,10 +74,10 @@
     --z-tooltip: 3000;
 }
 
-        .theme-icon {
-            filter: var(--icon-filter);
-            transition: filter var(--transition-fast);
-        }
+.theme-icon {
+    filter: var(--icon-filter);
+    transition: filter var(--transition-fast);
+}
 
 /* Dark Theme Variables */
 [data-theme="dark"] {
@@ -117,6 +116,11 @@
 [dir="rtl"] .form-input {
     padding-right: var(--spacing-md);
     padding-left: 3rem;
+}
+
+[dir="rtl"] .language-dropdown {
+    right: auto;
+    left: 0;
 }
 
 /* Base Styles */
@@ -186,6 +190,10 @@ body {
     gap: var(--spacing-md);
 }
 
+.language-wrapper {
+    position: relative;
+}
+
 .control-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -212,6 +220,54 @@ body {
     width: 20px;
     height: 20px;
     filter: brightness(0) invert(1);
+}
+
+/* Language Dropdown */
+.language-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-dropdown);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast);
+    min-width: 150px;
+    overflow: hidden;
+}
+
+.language-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.language-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    color: var(--text-primary);
+    text-align: left;
+    font-size: 0.875rem;
+}
+
+.language-option:hover {
+    background: var(--surface);
+}
+
+.language-option img {
+    width: 20px;
+    height: 15px;
 }
 
 /* Main Container */
@@ -565,54 +621,6 @@ body {
     flex-shrink: 0;
 }
 
-/* Language Dropdown */
-.language-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    z-index: var(--z-dropdown);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all var(--transition-fast);
-    min-width: 150px;
-    overflow: hidden;
-}
-
-.language-dropdown.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.language-option {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    border: none;
-    background: none;
-    width: 100%;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    color: var(--text-primary);
-    text-align: left;
-    font-size: 0.875rem;
-}
-
-.language-option:hover {
-    background: var(--surface);
-}
-
-.language-option img {
-    width: 20px;
-    height: 15px;
-}
-
 /* Dark Theme Adjustments */
 [data-theme="dark"] .login-container {
     background: rgba(30, 30, 30, 0.95);
@@ -857,7 +865,30 @@ body {
         --text-secondary: #ffffff;
     }
 }
-    </style>
+
+/* Print Styles */
+@media print {
+    .header,
+    .footer-link {
+        display: none !important;
+    }
+    
+    .main-container {
+        padding: 0;
+        min-height: auto;
+    }
+    
+    .login-container {
+        box-shadow: none;
+        border: 1px solid #000;
+        grid-template-columns: 1fr;
+    }
+    
+    .info-section {
+        display: none !important;
+    }
+}
+   </style>
 </head>
 <body>
     <!-- Header -->
@@ -865,25 +896,33 @@ body {
         <div class="header-container">
             <!-- Left: Logo -->
             <div class="logo-section">
-                <img src="/api/page-image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
+                <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
                 <span class="logo-text">Qotor</span>
             </div>
 
             <!-- Right: Controls -->
             <div class="header-controls">
                 <!-- Language Switcher -->
-                <button class="control-btn language-btn" id="languageBtn" title="Language">
-                    <img src="/api/page-image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
-                </button>
-
-                <!-- Theme Switcher -->
-                <button class="control-btn theme-btn" id="themeBtn" title="Theme">
-                    <img src="/api/page-image/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
-                </button>
+                <div class="language-wrapper">
+                    <button class="control-btn language-btn" id="languageBtn" title="Language">
+                        <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
+                    </button>
+                    <!-- Language Dropdown -->
+                    <div class="language-dropdown" id="languageDropdown">
+                        <button class="language-option" data-lang="en">
+                            <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
+                            <span>English</span>
+                        </button>
+                        <button class="language-option" data-lang="ar">
+                            <img src="/api/image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+                            <span>العربية</span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Back to Store -->
                 <a href="/index.html" class="control-btn back-btn" title="Back to Store">
-                    <img src="/api/page-image/back-icon.png" alt="Back" onerror="this.textContent='←';">
+                    <img src="/api/image/back-icon.png" alt="Back" onerror="this.textContent='←';">
                 </a>
             </div>
         </div>
@@ -894,7 +933,7 @@ body {
         <div class="login-container">
             <div class="login-form-section">
                 <div class="form-header">
-                    <img src="/api/page-image/login-icon.png" alt="Login" class="login-icon" onerror="this.textContent='🔐';">
+                    <img src="/api/image/login-icon.png" alt="Login" class="login-icon" onerror="this.textContent='🔐';">
                     <h1 class="form-title" data-key="login_title">Welcome Back</h1>
                     <p class="form-subtitle" data-key="login_subtitle">Sign in to access your account</p>
                 </div>
@@ -913,7 +952,7 @@ body {
                     <div class="form-group">
                         <label for="username" class="form-label" data-key="username_label">Username</label>
                         <div class="input-container">
-                            <img src="/api/page-image/user-icon.png" alt="User" class="input-icon" onerror="this.textContent='👤';">
+                            <img src="/api/image/user-icon.png" alt="User" class="input-icon" onerror="this.textContent='👤';">
                             <input type="text" id="username" name="username" class="form-input" required 
                                    data-key-placeholder="username_placeholder">
                         </div>
@@ -922,18 +961,18 @@ body {
                     <div class="form-group">
                         <label for="password" class="form-label" data-key="password_label">Password</label>
                         <div class="input-container">
-                            <img src="/api/page-image/lock-icon.png" alt="Password" class="input-icon" onerror="this.textContent='🔒';">
+                            <img src="/api/image/lock-icon.png" alt="Password" class="input-icon" onerror="this.textContent='🔒';">
                             <input type="password" id="password" name="password" class="form-input" required 
                                    data-key-placeholder="password_placeholder">
                             <button type="button" class="toggle-password" id="togglePassword">
-                                <img src="/api/page-image/eye-icon.png" alt="Show" class="eye-icon" onerror="this.textContent='👁️';">
+                                <img src="/api/image/eye-icon.png" alt="Show" class="eye-icon" onerror="this.textContent='👁️';">
                             </button>
                         </div>
                     </div>
 
                     <button type="submit" class="login-btn" id="loginBtn">
                         <span class="btn-text" data-key="sign_in_button">Sign In</span>
-                        <img src="/api/page-image/arrow-right-icon.png" alt="→" class="btn-icon" onerror="this.textContent='→';">
+                        <img src="/api/image/arrow-right-icon.png" alt="→" class="btn-icon" onerror="this.textContent='→';">
                     </button>
                 </form>
 
@@ -946,21 +985,21 @@ body {
             <!-- Info Section -->
             <div class="info-section">
                 <div class="info-content">
-                    <img src="/api/page-image/secure-icon.png" alt="Secure" class="info-icon" onerror="this.textContent='🛡️';">
+                    <img src="/api/image/secure-icon.png" alt="Secure" class="info-icon" onerror="this.textContent='🛡️';">
                     <h2 class="info-title" data-key="secure_access_title">Secure Access</h2>
                     <p class="info-description" data-key="secure_access_desc">Your login credentials are protected with industry-standard security measures.</p>
                     
                     <div class="features-list">
                         <div class="feature-item">
-                            <img src="/api/page-image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
+                            <img src="/api/image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
                             <span data-key="feature_encrypted">Encrypted Connection</span>
                         </div>
                         <div class="feature-item">
-                            <img src="/api/page-image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
+                            <img src="/api/image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
                             <span data-key="feature_secure">Secure Authentication</span>
                         </div>
                         <div class="feature-item">
-                            <img src="/api/page-image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
+                            <img src="/api/image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
                             <span data-key="feature_private">Private Session</span>
                         </div>
                     </div>
@@ -969,22 +1008,9 @@ body {
         </div>
     </main>
 
-    <!-- Language Selector Dropdown -->
-    <div class="language-dropdown" id="languageDropdown">
-        <button class="language-option" data-lang="en">
-            <img src="/api/page-image/en-flag.png" alt="English" onerror="this.textContent='EN';">
-            <span>English</span>
-        </button>
-        <button class="language-option" data-lang="ar">
-            <img src="/api/page-image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
-            <span>العربية</span>
-        </button>
-    </div>
-
     <script>
         // Global variables
 let currentLanguage = 'en';
-let currentTheme = 'light';
 
 // Language translations
 const translations = {
@@ -1048,7 +1074,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize App
 function initializeApp() {
     checkExistingSession();
-    initializeTheme();
     initializeLanguage();
     initializeEventListeners();
     testLoginFunction();
@@ -1063,34 +1088,6 @@ function checkExistingSession() {
     }
 }
 
-// Theme Management
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('qotor_theme') || 'light';
-    setTheme(savedTheme);
-    
-    const themeBtn = document.getElementById('themeBtn');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', toggleTheme);
-    }
-}
-
-function setTheme(theme) {
-    currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('qotor_theme', theme);
-    
-    const themeIcon = document.querySelector('#themeBtn img');
-    if (themeIcon) {
-        themeIcon.src = `/api/page-image/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
-        themeIcon.alt = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
-    }
-}
-
-function toggleTheme() {
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-}
-
 // Language Management
 function initializeLanguage() {
     const savedLanguage = localStorage.getItem('qotor_language') || 'en';
@@ -1099,24 +1096,24 @@ function initializeLanguage() {
     const languageBtn = document.getElementById('languageBtn');
     const languageDropdown = document.getElementById('languageDropdown');
     
-    if (languageBtn && languageDropdown) {
-        languageBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            languageDropdown.classList.toggle('show');
-        });
-        
-        document.addEventListener('click', () => {
+    languageBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        languageDropdown.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.language-wrapper')) {
+            languageDropdown.classList.remove('show');
+        }
+    });
+    
+    document.querySelectorAll('.language-option').forEach(option => {
+        option.addEventListener('click', (e) => {
+            const lang = e.currentTarget.dataset.lang;
+            setLanguage(lang);
             languageDropdown.classList.remove('show');
         });
-        
-        document.querySelectorAll('.language-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                const lang = e.currentTarget.dataset.lang;
-                setLanguage(lang);
-                languageDropdown.classList.remove('show');
-            });
-        });
-    }
+    });
 }
 
 function setLanguage(lang) {
@@ -1130,7 +1127,7 @@ function setLanguage(lang) {
     
     const languageIcon = document.querySelector('#languageBtn img');
     if (languageIcon) {
-        languageIcon.src = `/api/page-image/${lang}-flag.png`;
+        languageIcon.src = `/api/image/${lang}-flag.png`;
         languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
     }
 }
@@ -1172,7 +1169,7 @@ function initializeEventListeners() {
             
             const eyeIcon = this.querySelector('.eye-icon');
             if (eyeIcon) {
-                eyeIcon.src = `/api/page-image/${type === 'password' ? 'eye' : 'eye-slash'}-icon.png`;
+                eyeIcon.src = `/api/image/${type === 'password' ? 'eye' : 'eye-slash'}-icon.png`;
             }
         });
     }
@@ -1193,6 +1190,13 @@ function initializeEventListeners() {
         // Check if input has value on load
         if (input.value) {
             input.parentNode.classList.add('focused');
+        }
+    });
+
+    // Escape key handling
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('languageDropdown').classList.remove('show');
         }
     });
 }
@@ -1420,16 +1424,6 @@ window.addEventListener('resize', function() {
     const languageDropdown = document.getElementById('languageDropdown');
     if (languageDropdown) {
         languageDropdown.classList.remove('show');
-    }
-});
-
-// Handle escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const languageDropdown = document.getElementById('languageDropdown');
-        if (languageDropdown) {
-            languageDropdown.classList.remove('show');
-        }
     }
 });
 
