@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qotore - Premium Fragrance Store</title>
-    <style>
+<style>
         /* Qotore Fragrance Store - Complete CSS Styles */
 
 * {
@@ -1479,8 +1479,8 @@ body {
         </div>
     </div>
 
-    <script>
-       // Qotore Fragrance Store - Complete JavaScript Functions
+<script>
+    // Qotore Fragrance Store - Complete JavaScript Functions
 
 // Global variables
 let allFragrances = [];
@@ -1554,20 +1554,9 @@ function updateCartUI() {
     } else {
         cartIcon.classList.remove('show');
     }
-    
-    updateAdminIndicatorPosition();
 }
 
-function updateAdminIndicatorPosition() {
-    const adminIndicator = document.getElementById('admin-indicator');
-    const cartIcon = document.getElementById('cartIcon');
-    
-    if (cartIcon.classList.contains('show')) {
-        adminIndicator.style.bottom = '110px'; // Move up when cart is visible
-    } else {
-        adminIndicator.style.bottom = '30px'; // Default position
-    }
-}
+// Removed updateAdminIndicatorPosition function since cart is now positioned on the side
 
 // ===============================
 // PRODUCT MODAL FUNCTIONS
@@ -2295,6 +2284,6 @@ window.addEventListener('scroll', function() {
         header.style.backdropFilter = '';
     }
 });
-    </script>
+</script>
 </body>
 </html>
