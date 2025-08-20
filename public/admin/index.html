@@ -1520,17 +1520,17 @@ textarea.form-input {
 
                 <!-- Theme Switcher -->
                 <button class="control-btn theme-btn" id="themeBtn" title="Theme">
-                    <img src="/api/page-image/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
+                    <img src="/api/page-image/theme-icon.png" alt="Theme" class="theme-icon" onerror="this.textContent='🌙';">
                 </button>
 
                 <!-- View Store -->
                 <a href="/index.html" class="control-btn store-btn" title="View Store">
-                    <img src="/api/page-image/store-icon.png" alt="Store" onerror="this.textContent='🏪';">
+                    <img src="/api/page-image/store-icon.png" alt="Store" class="theme-icon" onerror="this.textContent='🏪';">
                 </a>
 
                 <!-- Logout -->
                 <button class="control-btn logout-btn" id="logoutBtn" title="Logout">
-                    <img src="/api/page-image/logout-icon.png" alt="Logout" onerror="this.textContent='🚪';">
+                    <img src="/api/page-image/logout-icon.png" alt="Logout" class="theme-icon" onerror="this.textContent='🚪';">
                 </button>
             </div>
         </div>
@@ -1541,11 +1541,11 @@ textarea.form-input {
         <!-- Status Bar -->
         <div class="status-bar">
             <div class="status-info">
-                <img src="/api/page-image/admin-active-icon.png" alt="Active" class="status-icon" onerror="this.textContent='✨';">
+                <img src="/api/page-image/admin-active-icon.png" alt="Active" class="theme-icon status-icon" onerror="this.textContent='✨';">
                 <span data-key="admin_active">Admin Dashboard Active - Welcome back!</span>
             </div>
             <button class="add-fragrance-btn" id="addFragranceBtn">
-                <img src="/api/page-image/plus-icon.png" alt="Add" class="btn-icon" onerror="this.textContent='+';">
+                <img src="/api/page-image/plus-icon.png" alt="Add" class="btn-icon theme-icon" onerror="this.textContent='+';">
                 <span data-key="add_fragrance">Add New Fragrance</span>
             </button>
         </div>
@@ -1554,7 +1554,7 @@ textarea.form-input {
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-header">
-                    <img src="/api/page-image/perfume-icon.png" alt="Fragrances" class="stat-icon" onerror="this.textContent='💎';">
+                    <img src="/api/page-image/perfume-icon.png" alt="Fragrances" class="stat-icon theme-icon" onerror="this.textContent='💎';">
                 </div>
                 <div class="stat-number" id="totalFragrances">-</div>
                 <div class="stat-label" data-key="total_fragrances">Total Fragrances</div>
@@ -1563,7 +1563,7 @@ textarea.form-input {
             
             <div class="stat-card">
                 <div class="stat-header">
-                    <img src="/api/page-image/variants-icon.png" alt="Variants" class="stat-icon" onerror="this.textContent='📦';">
+                    <img src="/api/page-image/variants-icon.png" alt="Variants" class="stat-icon theme-icon" onerror="this.textContent='📦';">
                 </div>
                 <div class="stat-number" id="totalVariants">-</div>
                 <div class="stat-label" data-key="product_variants">Product Variants</div>
@@ -1572,7 +1572,7 @@ textarea.form-input {
             
             <div class="stat-card">
                 <div class="stat-header">
-                    <img src="/api/page-image/visible-icon.png" alt="Visible" class="stat-icon" onerror="this.textContent='👁️';">
+                    <img src="/api/page-image/visible-icon.png" alt="Visible" class="stat-icon theme-icon" onerror="this.textContent='👁️';">
                 </div>
                 <div class="stat-number" id="visibleFragrances">-</div>
                 <div class="stat-label" data-key="visible_store">Visible in Store</div>
@@ -1584,12 +1584,12 @@ textarea.form-input {
         <div class="table-container">
             <div class="table-header">
                 <h2 data-key="manage_fragrances">
-                    <img src="/api/page-image/manage-icon.png" alt="Manage" class="section-icon" onerror="this.textContent='🗂️';">
+                    <img src="/api/page-image/manage-icon.png" alt="Manage" class="section-icon theme-icon" onerror="this.textContent='🗂️';">
                     Manage Fragrances
                 </h2>
                 <div class="search-filter">
                     <div class="search-container">
-                        <img src="/api/page-image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
+                        <img src="/api/page-image/search-icon.png" alt="Search" class="search-icon theme-icon" onerror="this.textContent='🔍';">
                         <input type="text" id="tableSearch" class="search-input" data-key-placeholder="search_fragrances">
                     </div>
                     <select id="statusFilter" class="filter-select">
@@ -1624,11 +1624,11 @@ textarea.form-input {
             </div>
             
             <div id="emptyTable" class="empty-state" style="display: none;">
-                <img src="/api/page-image/empty-fragrances-icon.png" alt="Empty" class="empty-icon" onerror="this.textContent='📦';">
+                <img src="/api/page-image/empty-fragrances-icon.png" alt="Empty" class="empty-icon theme-icon" onerror="this.textContent='📦';">
                 <h3 data-key="no_fragrances">No Fragrances Found</h3>
                 <p data-key="add_first_fragrance">Start building your collection by adding your first fragrance.</p>
                 <button class="add-fragrance-btn" id="addFirstFragranceBtn">
-                    <img src="/api/page-image/plus-icon.png" alt="Add" class="btn-icon" onerror="this.textContent='+';">
+                    <img src="/api/page-image/plus-icon.png" alt="Add" class="btn-icon theme-icon" onerror="this.textContent='+';">
                     <span data-key="add_first">Add First Fragrance</span>
                 </button>
             </div>
@@ -1641,11 +1641,11 @@ textarea.form-input {
         <div class="panel-content">
             <div class="panel-header">
                 <h2 id="panelTitle" data-key="add_new_fragrance">
-                    <img src="/api/page-image/plus-icon.png" alt="Add" class="panel-icon" onerror="this.textContent='+';">
+                    <img src="/api/page-image/plus-icon.png" alt="Add" class="panel-icon theme-icon" onerror="this.textContent='+';">
                     Add New Fragrance
                 </h2>
                 <button class="close-btn" id="closePanelBtn">
-                    <img src="/api/page-image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
+                    <img src="/api/page-image/close-icon.png" alt="Close" class="theme-icon" onerror="this.textContent='✕';">
                 </button>
             </div>
             
@@ -1693,14 +1693,14 @@ textarea.form-input {
                         <label class="form-label" data-key="product_image">Product Image</label>
                         <input type="file" id="image" name="image" accept=".png,image/png" class="file-input">
                         <div class="image-upload" id="imageUpload">
-                            <img src="/api/page-image/upload-icon.png" alt="Upload" class="upload-icon" onerror="this.textContent='📷';">
+                            <img src="/api/page-image/upload-icon.png" alt="Upload" class="upload-icon theme-icon" onerror="this.textContent='📷';">
                             <div class="upload-text" data-key="upload_instruction">Click to upload or drag & drop</div>
                             <div class="upload-hint" data-key="png_only">PNG files only, max 5MB</div>
                         </div>
                         <div class="image-preview" id="imagePreview">
                             <img id="previewImg" src="" alt="Preview">
                             <button type="button" class="remove-image" id="removeImage">
-                                <img src="/api/page-image/close-icon.png" alt="Remove" onerror="this.textContent='✕';">
+                                <img src="/api/page-image/close-icon.png" alt="Remove" class="theme-icon" onerror="this.textContent='✕';">
                             </button>
                         </div>
                     </div>
@@ -1712,7 +1712,7 @@ textarea.form-input {
                         </label>
                         <div class="variants-section">
                             <div class="variants-header">
-                                <img src="/api/page-image/sizes-icon.png" alt="Sizes" class="variants-icon" onerror="this.textContent='💎';">
+                                <img src="/api/page-image/sizes-icon.png" alt="Sizes" class="variants-icon theme-icon" onerror="this.textContent='💎';">
                                 <strong data-key="available_sizes">Available Sizes</strong>
                             </div>
                             
@@ -1747,7 +1747,7 @@ textarea.form-input {
                                 <div class="variant-toggle">
                                     <input type="checkbox" id="variant_whole" checked>
                                     <label for="variant_whole" data-key="whole_bottle">
-                                        <img src="/api/page-image/gift-icon.png" alt="Gift" class="variant-gift-icon" onerror="this.textContent='🎁';">
+                                        <img src="/api/page-image/gift-icon.png" alt="Gift" class="variant-gift-icon theme-icon" onerror="this.textContent='🎁';">
                                         Whole Bottle (Original)
                                     </label>
                                 </div>
@@ -1760,7 +1760,7 @@ textarea.form-input {
                     </div>
 
                     <button type="submit" class="submit-btn" id="submitBtn">
-                        <img src="/api/page-image/save-icon.png" alt="Save" class="btn-icon" onerror="this.textContent='✨';">
+                        <img src="/api/page-image/save-icon.png" alt="Save" class="btn-icon theme-icon" onerror="this.textContent='✨';">
                         <span class="btn-text" data-key="add_to_store">Add Fragrance to Store</span>
                     </button>
                 </form>
@@ -1771,11 +1771,11 @@ textarea.form-input {
     <!-- Language Selector Dropdown -->
     <div class="language-dropdown" id="languageDropdown">
         <button class="language-option" data-lang="en">
-            <img src="/api/page-image/en-flag.png" alt="English" onerror="this.textContent='EN';">
+            <img src="/api/page-image/en-flag.png" alt="English" class="theme-icon" onerror="this.textContent='EN';">
             <span>English</span>
         </button>
         <button class="language-option" data-lang="ar">
-            <img src="/api/page-image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+            <img src="/api/page-image/ar-flag.png" alt="العربية" class="theme-icon" onerror="this.textContent='AR';">
             <span>العربية</span>
         </button>
     </div>
@@ -2342,7 +2342,7 @@ function openAddForm() {
     const submitBtn = document.getElementById('submitBtn');
     
     panelTitle.innerHTML = `
-        <img src="/api/page-image/plus-icon.png" alt="Add" class="panel-icon" onerror="this.textContent='+';">
+        <img src="/api/page-image/plus-icon.png" alt="Add" class="panel-icon theme-icon" onerror="this.textContent='+';">
         ${translations[currentLanguage]['add_new_fragrance']}
     `;
     
@@ -2362,7 +2362,7 @@ function editFragrance(id) {
     const submitBtn = document.getElementById('submitBtn');
     
     panelTitle.innerHTML = `
-        <img src="/api/page-image/edit-icon.png" alt="Edit" class="panel-icon" onerror="this.textContent='✏️';">
+        <img src="/api/page-image/edit-icon.png" alt="Edit" class="panel-icon theme-icon" onerror="this.textContent='✏️';">
         ${translations[currentLanguage]['edit_fragrance']}
     `;
     

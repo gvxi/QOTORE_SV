@@ -1486,17 +1486,17 @@ body {
 
                 <!-- Theme Switcher -->
                 <button class="control-btn theme-btn" id="themeBtn" title="Theme">
-                    <img src="/api/page-image/theme-icon.png" alt="Theme" onerror="this.textContent='🌙';">
+                    <img src="/api/page-image/theme-icon.png" alt="Theme" class="theme-icon" onerror="this.textContent='🌙';">
                 </button>
 
                 <!-- Admin Login -->
                 <button class="control-btn admin-btn" id="adminBtn" title="Admin">
-                    <img src="/api/page-image/admin-icon.png" alt="Admin" onerror="this.textContent='⚙️';">
+                    <img src="/api/page-image/admin-icon.png" alt="Admin" class="theme-icon" onerror="this.textContent='⚙️';">
                 </button>
 
                 <!-- Cart -->
                 <button class="control-btn cart-btn" id="cartBtn" title="Cart">
-                    <img src="/api/page-image/cart-icon.png" alt="Cart" onerror="this.textContent='🛒';">
+                    <img src="/api/page-image/cart-icon.png" alt="Cart" class="theme-icon" onerror="this.textContent='🛒';">
                     <span class="cart-counter" id="cartCounter">0</span>
                 </button>
             </div>
@@ -1528,7 +1528,7 @@ body {
                 <button class="cta-button" data-key="hero_cta">Explore Collection</button>
             </div>
             <div class="hero-image">
-                <img src="/api/page-image/hero-perfume.png" alt="Premium Perfumes" onerror="this.style.display='none';">
+                <img src="/api/page-image/hero-perfume.png" alt="Premium Perfumes" class="theme-icon" onerror="this.style.display='none';">
             </div>
         </div>
     </section>
@@ -1549,7 +1549,7 @@ body {
             <!-- Search & Filters -->
             <div class="filters-section">
                 <div class="search-container">
-                    <img src="/api/page-image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
+                    <img src="/api/page-image/search-icon.png" alt="Search" class="search-icon theme-icon" onerror="this.textContent='🔍';">
                     <input type="text" id="searchInput" class="search-input" data-key-placeholder="search_placeholder">
                 </div>
                 <div class="filter-group">
@@ -1567,7 +1567,7 @@ body {
 
             <!-- Error State -->
             <div id="error" class="error-state" style="display: none;">
-                <img src="/api/page-image/error-icon.png" alt="Error" class="error-icon" onerror="this.textContent='❌';">
+                <img src="/api/page-image/error-icon.png" alt="Error" class="error-icon theme-icon" onerror="this.textContent='❌';">
                 <h3 data-key="error_title">Unable to Load Collection</h3>
                 <p data-key="error_message">We're having trouble loading our fragrances. Please check your connection and try again.</p>
                 <button class="retry-btn" onclick="loadFragrances()" data-key="retry_button">Try Again</button>
@@ -1580,7 +1580,7 @@ body {
 
             <!-- Empty State -->
             <div id="empty-state" class="empty-state" style="display: none;">
-                <img src="/api/page-image/empty-icon.png" alt="Empty" class="empty-icon" onerror="this.textContent='📦';">
+                <img src="/api/page-image/empty-icon.png" alt="Empty" class="empty-icon theme-icon" onerror="this.textContent='📦';">
                 <h3 data-key="empty_title">Collection Coming Soon</h3>
                 <p data-key="empty_message">We're carefully curating our fragrance collection. Check back soon for amazing scents, or contact us to request specific fragrances.</p>
                 <a href="mailto:info@qotor.com" class="contact-link" data-key="contact_us">Contact Us for Requests</a>
@@ -1588,7 +1588,7 @@ body {
 
             <!-- No Results State -->
             <div id="no-results" class="empty-state" style="display: none;">
-                <img src="/api/page-image/no-results-icon.png" alt="No Results" class="empty-icon" onerror="this.textContent='🔍';">
+                <img src="/api/page-image/no-results-icon.png" alt="No Results" class="empty-icon theme-icon" onerror="this.textContent='🔍';">
                 <h3 data-key="no_results_title">No Fragrances Found</h3>
                 <p data-key="no_results_message">Try adjusting your search or filters to find what you're looking for.</p>
                 <button class="contact-link" onclick="clearFilters()" data-key="clear_filters">Clear Filters</button>
@@ -1604,19 +1604,19 @@ body {
             
             <div class="features-grid">
                 <div class="feature-card">
-                    <img src="/api/page-image/authentic-icon.png" alt="Authentic" class="feature-icon" onerror="this.textContent='✨';">
+                    <img src="/api/page-image/authentic-icon.png" alt="Authentic" class="feature-icon theme-icon" onerror="this.textContent='✨';">
                     <h3 data-key="feature_authentic_title">Authentic Products</h3>
                     <p data-key="feature_authentic_desc">All our fragrances are 100% authentic and sourced directly from authorized distributors.</p>
                 </div>
                 
                 <div class="feature-card">
-                    <img src="/api/page-image/sample-icon.png" alt="Sample" class="feature-icon" onerror="this.textContent='🎯';">
+                    <img src="/api/page-image/sample-icon.png" alt="Sample" class="feature-icon theme-icon" onerror="this.textContent='🎯';">
                     <h3 data-key="feature_sample_title">Sample First</h3>
                     <p data-key="feature_sample_desc">Try before you commit with our 5ml, 10ml, and 30ml samples of luxury fragrances.</p>
                 </div>
                 
                 <div class="feature-card">
-                    <img src="/api/page-image/delivery-icon.png" alt="Delivery" class="feature-icon" onerror="this.textContent='🚚';">
+                    <img src="/api/page-image/delivery-icon.png" alt="Delivery" class="feature-icon theme-icon" onerror="this.textContent='🚚';">
                     <h3 data-key="feature_delivery_title">Fast Delivery</h3>
                     <p data-key="feature_delivery_desc">Quick and secure delivery across Oman. Your fragrances handled with care.</p>
                 </div>
@@ -1628,7 +1628,7 @@ body {
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-logo">
-                <img src="/api/page-image/logo-white.png" alt="Qotor" class="footer-logo-image" onerror="this.style.display='none';">
+                <img src="/api/page-image/logo-white.png" alt="Qotor" class="footer-logo-image theme-icon" onerror="this.style.display='none';">
                 <span class="footer-logo-text">Qotor</span>
             </div>
             <p class="footer-text" data-key="footer_tagline">Premium fragrances for discerning tastes</p>
@@ -1644,7 +1644,7 @@ body {
         <div class="cart-header">
             <h2 class="cart-title" data-key="cart_title">Your Cart</h2>
             <button class="close-btn" id="closeCartBtn">
-                <img src="/api/page-image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
+                <img src="/api/page-image/close-icon.png" alt="Close" class="theme-icon" onerror="this.textContent='✕';">
             </button>
         </div>
         <div class="cart-body">
@@ -1652,7 +1652,7 @@ body {
                 <!-- Cart items will be populated here dynamically -->
             </div>
             <div id="emptyCart" class="empty-cart">
-                <img src="/api/page-image/empty-cart-icon.png" alt="Empty Cart" class="empty-cart-icon" onerror="this.textContent='🛒';">
+                <img src="/api/page-image/empty-cart-icon.png" alt="Empty Cart" class="empty-cart-icon theme-icon" onerror="this.textContent='🛒';">
                 <h3 data-key="empty_cart_title">Your Cart is Empty</h3>
                 <p data-key="empty_cart_message">Add some beautiful fragrances to get started!</p>
             </div>
@@ -1674,7 +1674,7 @@ body {
                     <img src="" alt="" id="modalImageImg">
                 </div>
                 <button class="close-btn" onclick="closeProductModal()">
-                    <img src="/api/page-image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
+                    <img src="/api/page-image/close-icon.png" alt="Close" class="theme-icon" onerror="this.textContent='✕';">
                 </button>
             </div>
             <div class="modal-body">
@@ -1699,11 +1699,11 @@ body {
     <!-- Language Selector Dropdown -->
     <div class="language-dropdown" id="languageDropdown">
         <button class="language-option" data-lang="en">
-            <img src="/api/page-image/en-flag.png" alt="English" onerror="this.textContent='EN';">
+            <img src="/api/page-image/en-flag.png" alt="English" class="theme-icon" onerror="this.textContent='EN';">
             <span>English</span>
         </button>
         <button class="language-option" data-lang="ar">
-            <img src="/api/page-image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+            <img src="/api/page-image/ar-flag.png" alt="العربية" class="theme-icon"  onerror="this.textContent='AR';">
             <span>العربية</span>
         </button>
     </div>
