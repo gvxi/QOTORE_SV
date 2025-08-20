@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qotore - Premium Fragrance Store</title>
 <style>
-    /* Qotore Fragrance Store - Complete CSS Styles */
+/* Qotore Fragrance Store - Complete CSS Styles */
 
 * {
     margin: 0;
@@ -628,6 +628,38 @@ body {
     transform: scale(1.1);
 }
 
+/* Complete close button styles */
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    z-index: 10;
+    color: #333;
+    font-weight: bold;
+}
+
+.close-modal:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.close-modal:active {
+    transform: scale(0.95);
+}
+
 .modal-body {
     padding: 2rem;
 }
@@ -778,6 +810,13 @@ body {
     background: #ccc;
     cursor: not-allowed;
     transform: none;
+    opacity: 0.4;
+}
+
+.cart-quantity-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.4;
 }
 
 .quantity-input {
@@ -1767,10 +1806,17 @@ function selectVariant(variantIndex) {
 
 function changeQuantity(variantIndex, delta) {
     const quantityInput = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-input`);
+    const plusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:last-of-type`);
+    const minusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:first-of-type`);
+    
     let newQuantity = parseInt(quantityInput.value) + delta;
     newQuantity = Math.max(1, Math.min(50, newQuantity));
+    
     quantityInput.value = newQuantity;
     updateQuantity(variantIndex, newQuantity);
+    
+    // Update button states
+    updateQuantityButtonStates(variantIndex, newQuantity);
 }
 
 function updateQuantity(variantIndex, quantity) {
@@ -1785,6 +1831,38 @@ function updateQuantity(variantIndex, quantity) {
 
     const quantityInput = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-input`);
     quantityInput.value = quantity;
+    
+    // Update button states
+    updateQuantityButtonStates(variantIndex, quantity);
+}
+
+function updateQuantityButtonStates(variantIndex, quantity) {
+    const plusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:last-of-type`);
+    const minusBtn = document.querySelector(`[data-variant-index="${variantIndex}"] .quantity-btn:first-of-type`);
+    
+    if (plusBtn) {
+        if (quantity >= 50) {
+            plusBtn.disabled = true;
+            plusBtn.style.opacity = '0.4';
+            plusBtn.style.cursor = 'not-allowed';
+        } else {
+            plusBtn.disabled = false;
+            plusBtn.style.opacity = '1';
+            plusBtn.style.cursor = 'pointer';
+        }
+    }
+    
+    if (minusBtn) {
+        if (quantity <= 1) {
+            minusBtn.disabled = true;
+            minusBtn.style.opacity = '0.4';
+            minusBtn.style.cursor = 'not-allowed';
+        } else {
+            minusBtn.disabled = false;
+            minusBtn.style.opacity = '1';
+            minusBtn.style.cursor = 'pointer';
+        }
+    }
 }
 
 function closeProductModal() {
@@ -1828,8 +1906,9 @@ function addToCart() {
         if (newQuantity <= 50) {
             cart[existingItemIndex].quantity = newQuantity;
         } else {
-            alert('Maximum quantity (50) reached for this item.');
-            return;
+            // Set to maximum and show visual feedback
+            cart[existingItemIndex].quantity = 50;
+            showMaxQuantityFeedback();
         }
     } else {
         // Add new item
@@ -1845,6 +1924,21 @@ function addToCart() {
     setTimeout(() => {
         closeProductModal();
     }, 1500);
+}
+
+function showMaxQuantityFeedback() {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const originalText = addToCartBtn.innerHTML;
+    
+    addToCartBtn.innerHTML = '⚠️ Max Quantity (50)';
+    addToCartBtn.style.background = 'linear-gradient(135deg, #ff9500, #ff7700)';
+    addToCartBtn.disabled = true;
+    
+    setTimeout(() => {
+        addToCartBtn.innerHTML = originalText;
+        addToCartBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+        addToCartBtn.disabled = false;
+    }, 2000);
 }
 
 function showAddToCartSuccess() {
@@ -1927,9 +2021,13 @@ function renderCartItems() {
                 <div class="cart-item-details">${item.variantSize} • ${item.variantPrice.toFixed(3)} OMR each</div>
                 <div class="cart-item-controls">
                     <div class="cart-quantity-controls">
-                        <button class="cart-quantity-btn" onclick="updateCartQuantity(${index}, -1)">−</button>
+                        <button class="cart-quantity-btn ${item.quantity <= 1 ? 'disabled' : ''}" 
+                                onclick="updateCartQuantity(${index}, -1)"
+                                ${item.quantity <= 1 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>−</button>
                         <div class="cart-quantity-display">${item.quantity}</div>
-                        <button class="cart-quantity-btn" onclick="updateCartQuantity(${index}, 1)">+</button>
+                        <button class="cart-quantity-btn ${item.quantity >= 50 ? 'disabled' : ''}" 
+                                onclick="updateCartQuantity(${index}, 1)"
+                                ${item.quantity >= 50 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>+</button>
                     </div>
                     <div class="cart-item-price">${itemTotal} OMR</div>
                     <button class="cart-remove" onclick="removeFromCart(${index})" title="Remove item">🗑️</button>
@@ -1953,9 +2051,8 @@ function updateCartQuantity(itemIndex, delta) {
         cart[itemIndex].quantity = newQuantity;
         saveCart();
         renderCartItems();
-    } else {
-        alert('Maximum quantity (50) reached for this item.');
     }
+    // Removed alert - button will be faded instead
 }
 
 function removeFromCart(itemIndex) {
