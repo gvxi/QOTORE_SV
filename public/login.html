@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Qotor</title>
-   <style>
-       /* Root Variables - Based on DK Hoone Emirates */
+    <style>
+        /* Root Variables - Based on DK Hoone Emirates */
 :root {
-    --icon-filter: none;
-
     /* Primary Colors */
     --primary-color: #1a237e; /* Deep Blue */
     --primary-light: #3949ab;
@@ -49,12 +47,6 @@
     --font-weight-medium: 500;
     --font-weight-bold: 700;
     
-    /* Shadows */
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 8px rgba(0,0,0,0.12);
-    --shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
-    --shadow-xl: 0 16px 32px rgba(0,0,0,0.2);
-    
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -74,14 +66,8 @@
     --z-tooltip: 3000;
 }
 
-.theme-icon {
-    filter: var(--icon-filter);
-    transition: filter var(--transition-fast);
-}
-
 /* Dark Theme Variables */
 [data-theme="dark"] {
-    --icon-filter: brightness(0) invert(1);
     --text-primary: #ffffff;
     --text-secondary: #b0b0b0;
     --text-light: #808080;
@@ -190,10 +176,6 @@ body {
     gap: var(--spacing-md);
 }
 
-.language-wrapper {
-    position: relative;
-}
-
 .control-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -222,7 +204,11 @@ body {
     filter: brightness(0) invert(1);
 }
 
-/* Language Dropdown */
+/* Language Selector */
+.language-selector {
+    position: relative;
+}
+
 .language-dropdown {
     position: absolute;
     top: 100%;
@@ -230,7 +216,6 @@ body {
     background: var(--background);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
     z-index: var(--z-dropdown);
     opacity: 0;
     visibility: hidden;
@@ -283,7 +268,6 @@ body {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-xl);
     overflow: hidden;
     width: 100%;
     max-width: 900px;
@@ -346,12 +330,10 @@ body {
 
 .status-dot.online {
     background: var(--success);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
 }
 
 .status-dot.offline {
     background: var(--error);
-    box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.3);
 }
 
 .status-text {
@@ -438,7 +420,6 @@ body {
 .form-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.1);
 }
 
 .form-input::placeholder {
@@ -491,7 +472,6 @@ body {
 
 .login-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
 }
 
 .login-btn:disabled {
@@ -621,6 +601,118 @@ body {
     flex-shrink: 0;
 }
 
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease;
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease;
+}
+
+.slide-in {
+    animation: slideIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Success Animation */
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-round);
+    display: block;
+    stroke-width: 2;
+    stroke: var(--success);
+    stroke-miterlimit: 10;
+    margin: 0 auto var(--spacing-lg);
+    animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+}
+
+.success-checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: var(--success);
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.success-checkmark-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes scale {
+    0%, 100% {
+        transform: none;
+    }
+    50% {
+        transform: scale3d(1.1, 1.1, 1);
+    }
+}
+
+@keyframes fill {
+    100% {
+        background: var(--success);
+    }
+}
+
+/* Error Animation */
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
 /* Dark Theme Adjustments */
 [data-theme="dark"] .login-container {
     background: rgba(30, 30, 30, 0.95);
@@ -637,7 +729,6 @@ body {
 
 [data-theme="dark"] .form-input:focus {
     border-color: var(--primary-light);
-    box-shadow: 0 0 0 4px rgba(57, 73, 171, 0.2);
 }
 
 [data-theme="dark"] .toggle-password:hover {
@@ -744,104 +835,6 @@ body {
     }
 }
 
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.5s ease;
-}
-
-.slide-up {
-    animation: slideUp 0.5s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Success Animation */
-.success-checkmark {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-round);
-    display: block;
-    stroke-width: 2;
-    stroke: var(--success);
-    stroke-miterlimit: 10;
-    margin: 0 auto var(--spacing-lg);
-    box-shadow: inset 0px 0px 0px var(--success);
-    animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
-}
-
-.success-checkmark-circle {
-    stroke-dasharray: 166;
-    stroke-dashoffset: 166;
-    stroke-width: 2;
-    stroke-miterlimit: 10;
-    stroke: var(--success);
-    fill: none;
-    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-}
-
-.success-checkmark-check {
-    transform-origin: 50% 50%;
-    stroke-dasharray: 48;
-    stroke-dashoffset: 48;
-    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-}
-
-@keyframes stroke {
-    100% {
-        stroke-dashoffset: 0;
-    }
-}
-
-@keyframes scale {
-    0%, 100% {
-        transform: none;
-    }
-    50% {
-        transform: scale3d(1.1, 1.1, 1);
-    }
-}
-
-@keyframes fill {
-    100% {
-        box-shadow: inset 0px 0px 0px 30px var(--success);
-    }
-}
-
-/* Error Animation */
-.shake {
-    animation: shake 0.5s ease-in-out;
-}
-
-@keyframes shake {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-5px);
-    }
-    20%, 40%, 60%, 80% {
-        transform: translateX(5px);
-    }
-}
-
 /* Focus Styles for Accessibility */
 .control-btn:focus,
 .form-input:focus,
@@ -865,30 +858,7 @@ body {
         --text-secondary: #ffffff;
     }
 }
-
-/* Print Styles */
-@media print {
-    .header,
-    .footer-link {
-        display: none !important;
-    }
-    
-    .main-container {
-        padding: 0;
-        min-height: auto;
-    }
-    
-    .login-container {
-        box-shadow: none;
-        border: 1px solid #000;
-        grid-template-columns: 1fr;
-    }
-    
-    .info-section {
-        display: none !important;
-    }
-}
-   </style>
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -903,11 +873,10 @@ body {
             <!-- Right: Controls -->
             <div class="header-controls">
                 <!-- Language Switcher -->
-                <div class="language-wrapper">
+                <div class="language-selector">
                     <button class="control-btn language-btn" id="languageBtn" title="Language">
                         <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
                     </button>
-                    <!-- Language Dropdown -->
                     <div class="language-dropdown" id="languageDropdown">
                         <button class="language-option" data-lang="en">
                             <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
@@ -1037,7 +1006,9 @@ const translations = {
         invalid_credentials: '❌ Invalid username or password',
         connection_error: '❌ Connection error. Please try again.',
         session_error: '⚠️ Session error. Redirecting anyway...',
-        server_error: '❌ Server error. Please try again later.'
+        server_error: '❌ Server error. Please try again later.',
+        fill_all_fields: '❌ Please fill in all fields',
+        network_error: '❌ Network error. Check your connection.'
     },
     ar: {
         login_title: 'أهلاً بعودتك',
@@ -1062,9 +1033,32 @@ const translations = {
         invalid_credentials: '❌ اسم المستخدم أو كلمة المرور غير صحيحة',
         connection_error: '❌ خطأ في الاتصال. حاول مرة أخرى.',
         session_error: '⚠️ خطأ في الجلسة. جاري التوجيه على أي حال...',
-        server_error: '❌ خطأ في الخادم. حاول مرة أخرى لاحقاً.'
+        server_error: '❌ خطأ في الخادم. حاول مرة أخرى لاحقاً.',
+        fill_all_fields: '❌ يرجى ملء جميع الحقول',
+        network_error: '❌ خطأ في الشبكة. تحقق من اتصالك.'
     }
 };
+
+// Utility function to get image URL with automatic path matching
+function getImageUrl(imagePath) {
+    if (!imagePath || imagePath.trim() === '') {
+        return '';
+    }
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) {
+        return imagePath;
+    }
+    
+    // If it starts with fragrance-images/, extract filename
+    if (imagePath.startsWith('fragrance-images/')) {
+        const filename = imagePath.replace('fragrance-images/', '');
+        return `/api/image/${filename}`;
+    }
+    
+    // Default case - assume it's just a filename
+    return `/api/image/${imagePath}`;
+}
 
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -1096,24 +1090,26 @@ function initializeLanguage() {
     const languageBtn = document.getElementById('languageBtn');
     const languageDropdown = document.getElementById('languageDropdown');
     
-    languageBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        languageDropdown.classList.toggle('show');
-    });
-    
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.language-wrapper')) {
-            languageDropdown.classList.remove('show');
-        }
-    });
-    
-    document.querySelectorAll('.language-option').forEach(option => {
-        option.addEventListener('click', (e) => {
-            const lang = e.currentTarget.dataset.lang;
-            setLanguage(lang);
-            languageDropdown.classList.remove('show');
+    if (languageBtn && languageDropdown) {
+        languageBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            languageDropdown.classList.toggle('show');
         });
-    });
+        
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.language-selector')) {
+                languageDropdown.classList.remove('show');
+            }
+        });
+        
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                const lang = e.currentTarget.dataset.lang;
+                setLanguage(lang);
+                languageDropdown.classList.remove('show');
+            });
+        });
+    }
 }
 
 function setLanguage(lang) {
@@ -1127,7 +1123,7 @@ function setLanguage(lang) {
     
     const languageIcon = document.querySelector('#languageBtn img');
     if (languageIcon) {
-        languageIcon.src = `/api/image/${lang}-flag.png`;
+        languageIcon.src = getImageUrl(`${lang}-flag.png`);
         languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
     }
 }
@@ -1169,12 +1165,12 @@ function initializeEventListeners() {
             
             const eyeIcon = this.querySelector('.eye-icon');
             if (eyeIcon) {
-                eyeIcon.src = `/api/image/${type === 'password' ? 'eye' : 'eye-slash'}-icon.png`;
+                eyeIcon.src = getImageUrl(`${type === 'password' ? 'eye' : 'eye-slash'}-icon.png`);
             }
         });
     }
     
-    // Input animations
+    // Input animations and validation
     const inputs = document.querySelectorAll('.form-input');
     inputs.forEach(input => {
         input.addEventListener('focus', function() {
@@ -1191,12 +1187,20 @@ function initializeEventListeners() {
         if (input.value) {
             input.parentNode.classList.add('focused');
         }
+        
+        // Real-time validation feedback
+        input.addEventListener('input', function() {
+            clearFieldError(this);
+        });
     });
-
-    // Escape key handling
+    
+    // Escape key handler
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            document.getElementById('languageDropdown').classList.remove('show');
+            const languageDropdown = document.getElementById('languageDropdown');
+            if (languageDropdown) {
+                languageDropdown.classList.remove('show');
+            }
         }
     });
 }
@@ -1207,7 +1211,12 @@ async function testLoginFunction() {
     const statusText = document.getElementById('statusText');
     
     try {
-        const response = await fetch('/loginf');
+        const response = await fetch('/loginf', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
         
         if (response.ok) {
             const data = await response.json();
@@ -1238,42 +1247,59 @@ async function handleFormSubmit(e) {
     
     console.log('Attempting login for:', username);
     
-    // Validation
+    // Client-side validation
     if (!username || !password) {
-        showMessage('error', 'Please fill in all fields');
+        showMessage('error', translations[currentLanguage]['fill_all_fields']);
+        highlightEmptyFields();
         return;
     }
+    
+    // Clear any previous errors
+    clearAllFieldErrors();
     
     // Show loading state
     setButtonLoading(true);
     hideMessage();
     
     try {
-        console.log('Sending request...');
+        console.log('Sending login request...');
+        
+        const requestBody = JSON.stringify({ username, password });
+        console.log('Request body:', requestBody);
         
         const response = await fetch('/loginf', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({ username, password })
+            body: requestBody
         });
         
-        console.log('Got response:', response.status);
+        console.log('Response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
         
-        const result = await response.text();
-        console.log('Response text:', result);
+        let result;
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
         
-        if (!result) {
-            throw new Error('Empty response');
+        if (!responseText.trim()) {
+            throw new Error('Empty response from server');
         }
         
-        const data = JSON.parse(result);
-        console.log('Parsed data:', data);
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            throw new Error('Invalid response format from server');
+        }
         
-        if (data.success) {
+        console.log('Parsed response:', result);
+        
+        if (response.ok && result.success) {
             // Success
+            console.log('Login successful');
             showMessage('success', translations[currentLanguage]['login_successful']);
             buttonText.textContent = translations[currentLanguage]['login_successful'];
             
@@ -1304,13 +1330,13 @@ async function handleFormSubmit(e) {
             }, 1000);
             
         } else {
-            // Error
-            const errorMessage = getLocalizedErrorMessage(data.error);
+            // Error from server
+            console.log('Login failed:', result.error);
+            const errorMessage = getLocalizedErrorMessage(result.error || 'Unknown error');
             showMessage('error', errorMessage);
             
             // Add shake animation
-            button.classList.add('shake');
-            setTimeout(() => button.classList.remove('shake'), 500);
+            addShakeAnimation(button);
             
             setButtonLoading(false);
         }
@@ -1318,12 +1344,17 @@ async function handleFormSubmit(e) {
     } catch (error) {
         console.error('Login error:', error);
         
-        const errorMessage = translations[currentLanguage]['connection_error'];
+        let errorMessage;
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            errorMessage = translations[currentLanguage]['network_error'];
+        } else {
+            errorMessage = translations[currentLanguage]['connection_error'];
+        }
+        
         showMessage('error', errorMessage);
         
         // Add shake animation
-        button.classList.add('shake');
-        setTimeout(() => button.classList.remove('shake'), 500);
+        addShakeAnimation(button);
         
         setButtonLoading(false);
     }
@@ -1337,6 +1368,8 @@ function getLocalizedErrorMessage(error) {
         return translations[currentLanguage]['invalid_credentials'];
     } else if (errorKey.includes('server') || errorKey.includes('configuration')) {
         return translations[currentLanguage]['server_error'];
+    } else if (errorKey.includes('network') || errorKey.includes('connection')) {
+        return translations[currentLanguage]['network_error'];
     } else {
         return translations[currentLanguage]['connection_error'];
     }
@@ -1359,6 +1392,9 @@ function showMessage(type, message) {
                 hideMessage();
             }, 5000);
         }
+        
+        // Scroll message into view
+        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
@@ -1390,7 +1426,49 @@ function setButtonLoading(loading) {
     }
 }
 
-// Add animations
+// Field validation and error handling
+function highlightEmptyFields() {
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+    
+    if (!username.value.trim()) {
+        addFieldError(username);
+    }
+    
+    if (!password.value.trim()) {
+        addFieldError(password);
+    }
+}
+
+function addFieldError(field) {
+    field.style.borderColor = 'var(--error)';
+    field.classList.add('error-shake');
+    
+    setTimeout(() => {
+        field.classList.remove('error-shake');
+    }, 500);
+}
+
+function clearFieldError(field) {
+    field.style.borderColor = '';
+}
+
+function clearAllFieldErrors() {
+    const inputs = document.querySelectorAll('.form-input');
+    inputs.forEach(input => {
+        clearFieldError(input);
+    });
+}
+
+// Animation helpers
+function addShakeAnimation(element) {
+    element.classList.add('shake');
+    setTimeout(() => {
+        element.classList.remove('shake');
+    }, 500);
+}
+
+// Add animations on page load
 function addAnimations() {
     // Animate form elements on load
     const formElements = document.querySelectorAll('.form-group, .login-btn, .status-indicator');
@@ -1462,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Error handling for images
+// Enhanced error handling for images
 document.addEventListener('DOMContentLoaded', function() {
     const images = document.querySelectorAll('img');
     images.forEach(img => {
@@ -1477,6 +1555,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Performance monitoring
+window.addEventListener('load', function() {
+    console.log('Login page loaded successfully');
+    
+    // Check if login function is accessible
+    setTimeout(() => {
+        testLoginFunction();
+    }, 1000);
+});
+
+// Connection retry mechanism
+function retryConnection() {
+    console.log('Retrying connection...');
+    testLoginFunction();
+}
+
+// Export functions for testing
+window.retryConnection = retryConnection;
+window.testLoginFunction = testLoginFunction;
     </script>
 </body>
 </html>

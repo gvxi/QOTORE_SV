@@ -5,1509 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Qotor</title>
     <style>
-       /* Root Variables - Based on DK Hoone Emirates */
-:root {
-    --icon-filter: none;
-
-    /* Primary Colors */
-    --primary-color: #1a237e; /* Deep Blue */
-    --primary-light: #3949ab;
-    --primary-dark: #0d47a1;
-    
-    /* Secondary Colors */
-    --secondary-color: #ffd700; /* Gold */
-    --secondary-light: #ffeb3b;
-    --secondary-dark: #ff8f00;
-    
-    /* Neutral Colors */
-    --dark-color: #212121;
-    --text-primary: #212121;
-    --text-secondary: #757575;
-    --text-light: #9e9e9e;
-    --background: #ffffff;
-    --surface: #f5f5f5;
-    --border: #e0e0e0;
-    
-    /* Status Colors */
-    --success: #4caf50;
-    --warning: #ff9800;
-    --error: #f44336;
-    --info: #2196f3;
-    
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-xxl: 3rem;
-    
-    /* Typography */
-    --font-family: 'Arial', 'Helvetica', sans-serif;
-    --font-weight-light: 300;
-    --font-weight-normal: 400;
-    --font-weight-medium: 500;
-    --font-weight-bold: 700;
-    
-    /* Shadows */
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 8px rgba(0,0,0,0.12);
-    --shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
-    --shadow-xl: 0 16px 32px rgba(0,0,0,0.2);
-    
-    /* Border Radius */
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    --radius-round: 50%;
-    
-    /* Transitions */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-    --transition-slow: 0.5s ease;
-    
-    /* Z-index */
-    --z-header: 1000;
-    --z-modal: 2000;
-    --z-dropdown: 1500;
-    --z-panel: 2500;
-    --z-tooltip: 3000;
-}
-
-.theme-icon {
-    filter: var(--icon-filter);
-    transition: filter var(--transition-fast);
-}
-
-/* Dark Theme Variables */
-[data-theme="dark"] {
-    --icon-filter: brightness(0) invert(1);
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --text-light: #808080;
-    --background: #121212;
-    --surface: #1e1e1e;
-    --border: #333333;
-    --dark-color: #ffffff;
-}
-
-/* RTL Support */
-[dir="rtl"] {
-    text-align: right;
-}
-
-[dir="rtl"] .header-container {
-    flex-direction: row-reverse;
-}
-
-[dir="rtl"] .side-panel {
-    right: auto;
-    left: 0;
-    transform: translateX(-100%);
-}
-
-[dir="rtl"] .side-panel.open {
-    transform: translateX(0);
-}
-
-[dir="rtl"] .language-dropdown {
-    right: auto;
-    left: 0;
-}
-
-/* Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    font-family: var(--font-family);
-    line-height: 1.6;
-    color: var(--text-primary);
-    background: var(--background);
-    transition: background var(--transition-normal), color var(--transition-normal);
-}
-
-/* Header Styles */
-.header {
-    background: var(--background);
-    box-shadow: var(--shadow-sm);
-    position: sticky;
-    top: 0;
-    z-index: var(--z-header);
-    transition: background var(--transition-normal);
-    border-bottom: 1px solid var(--border);
-}
-
-.header-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--spacing-md) var(--spacing-lg);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-/* Logo */
-.logo-section {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-size: 1.5rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-color);
-}
-
-.logo-image {
-    height: 40px;
-    width: auto;
-}
-
-.logo-text {
-    font-size: 1.8rem;
-    font-weight: var(--font-weight-bold);
-}
-
-.admin-badge {
-    background: var(--primary-color);
-    color: white;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-md);
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Header Controls */
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.language-wrapper {
-    position: relative;
-}
-
-.control-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: var(--spacing-sm);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    color: var(--text-primary);
-    text-decoration: none;
-}
-
-.control-btn:hover {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
-    transform: translateY(-2px);
-}
-
-.control-btn img {
-    width: 20px;
-    height: 20px;
-    transition: filter var(--transition-fast);
-}
-
-.control-btn:hover img {
-    filter: brightness(0) invert(1);
-}
-
-.logout-btn {
-    background: var(--error);
-    border-color: var(--error);
-    color: white;
-}
-
-.logout-btn:hover {
-    background: #d32f2f;
-    border-color: #d32f2f;
-}
-
-/* Language Dropdown */
-.language-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    z-index: var(--z-dropdown);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all var(--transition-fast);
-    min-width: 150px;
-    overflow: hidden;
-}
-
-.language-dropdown.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.language-option {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    border: none;
-    background: none;
-    width: 100%;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    color: var(--text-primary);
-    text-align: left;
-    font-size: 0.875rem;
-}
-
-.language-option:hover {
-    background: var(--surface);
-}
-
-.language-option img {
-    width: 20px;
-    height: 15px;
-}
-
-/* Main Container */
-.main-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--spacing-xl);
-}
-
-/* Status Bar */
-.status-bar {
-    background: linear-gradient(135deg, var(--success) 0%, #43a047 100%);
-    color: white;
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--spacing-xl);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: var(--shadow-md);
-}
-
-.status-info {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    font-weight: var(--font-weight-medium);
-}
-
-.status-icon {
-    width: 24px;
-    height: 24px;
-    filter: brightness(0) invert(1);
-}
-
-.add-fragrance-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    font-weight: var(--font-weight-bold);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    backdrop-filter: blur(10px);
-}
-
-.add-fragrance-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.btn-icon {
-    width: 20px;
-    height: 20px;
-    filter: brightness(0) invert(1);
-}
-
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--spacing-xl);
-    margin-bottom: var(--spacing-xxl);
-}
-
-.stat-card {
-    background: var(--background);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border);
-    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.stat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-lg);
-}
-
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    opacity: 0.8;
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-color);
-    margin-bottom: var(--spacing-sm);
-    line-height: 1;
-}
-
-.stat-label {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-    margin-bottom: var(--spacing-xs);
-}
-
-.stat-change {
-    font-size: 0.75rem;
-    color: var(--success);
-    font-weight: var(--font-weight-medium);
-}
-
-/* Table Container */
-.table-container {
-    background: var(--background);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
-    border: 1px solid var(--border);
-}
-
-.table-header {
-    padding: var(--spacing-xl);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-lg);
-}
-
-.table-header h2 {
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    font-weight: var(--font-weight-bold);
-}
-
-.section-icon {
-    width: 24px;
-    height: 24px;
-}
-
-.search-filter {
-    display: flex;
-    gap: var(--spacing-md);
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.search-container {
-    position: relative;
-    min-width: 250px;
-}
-
-.search-icon {
-    position: absolute;
-    left: var(--spacing-md);
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    opacity: 0.5;
-}
-
-.search-input {
-    width: 100%;
-    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 2.5rem;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-    font-size: 0.875rem;
-    background: var(--surface);
-    color: var(--text-primary);
-    transition: border-color var(--transition-fast);
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background: var(--background);
-}
-
-.filter-select {
-    padding: var(--spacing-md);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-    font-size: 0.875rem;
-    background: var(--surface);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: border-color var(--transition-fast);
-}
-
-.filter-select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background: var(--background);
-}
-
-/* Table Loading */
-.table-loading {
-    text-align: center;
-    padding: var(--spacing-xxl);
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--border);
-    border-top: 4px solid var(--primary-color);
-    border-radius: var(--radius-round);
-    animation: spin 1s linear infinite;
-    margin: 0 auto var(--spacing-lg);
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Fragrances Table */
-.fragrances-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.fragrances-table th {
-    background: var(--surface);
-    padding: var(--spacing-lg);
-    text-align: left;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border);
-    font-size: 0.875rem;
-}
-
-.fragrances-table td {
-    padding: var(--spacing-lg);
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-}
-
-.fragrances-table tr:hover {
-    background: var(--surface);
-}
-
-.fragrance-image {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--radius-lg);
-    object-fit: cover;
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: var(--text-light);
-    border: 1px solid var(--border);
-}
-
-.fragrance-info {
-    max-width: 300px;
-}
-
-.fragrance-name {
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-xs);
-    font-size: 0.875rem;
-}
-
-.fragrance-brand {
-    color: var(--primary-color);
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: var(--spacing-xs);
-}
-
-.fragrance-description {
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.variants-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    max-width: 200px;
-}
-
-.variant-item {
-    font-size: 0.75rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    background: var(--surface);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-}
-
-.variant-item.whole-bottle {
-    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-light));
-    color: var(--dark-color);
-    border-color: var(--secondary-dark);
-    font-weight: var(--font-weight-medium);
-}
-
-.status-badge {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-lg);
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-bold);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: inline-block;
-}
-
-.status-visible {
-    background: rgba(76, 175, 80, 0.1);
-    color: var(--success);
-    border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.status-hidden {
-    background: rgba(244, 67, 54, 0.1);
-    color: var(--error);
-    border: 1px solid rgba(244, 67, 54, 0.3);
-}
-
-.actions-cell {
-    display: flex;
-    gap: var(--spacing-sm);
-    flex-wrap: wrap;
-}
-
-.action-btn {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-}
-
-.btn-edit {
-    background: var(--primary-color);
-    color: white;
-}
-
-.btn-edit:hover {
-    background: var(--primary-dark);
-    transform: translateY(-1px);
-}
-
-.btn-hide {
-    background: var(--warning);
-    color: white;
-}
-
-.btn-hide:hover {
-    background: #f57c00;
-    transform: translateY(-1px);
-}
-
-.btn-show {
-    background: var(--success);
-    color: white;
-}
-
-.btn-show:hover {
-    background: #388e3c;
-    transform: translateY(-1px);
-}
-
-.btn-delete {
-    background: var(--error);
-    color: white;
-}
-
-.btn-delete:hover {
-    background: #d32f2f;
-    transform: translateY(-1px);
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: var(--spacing-xxl);
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto var(--spacing-lg);
-    opacity: 0.6;
-}
-
-.empty-state h3 {
-    font-size: 1.5rem;
-    margin-bottom: var(--spacing-lg);
-    color: var(--text-primary);
-    font-weight: var(--font-weight-bold);
-}
-
-.empty-state p {
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-lg);
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Side Panel */
-.side-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 500px;
-    height: 100vh;
-    background: var(--background);
-    transform: translateX(100%);
-    transition: transform var(--transition-normal);
-    z-index: var(--z-panel);
-    box-shadow: var(--shadow-xl);
-    display: flex;
-    flex-direction: column;
-}
-
-.side-panel.open {
-    transform: translateX(0);
-}
-
-.panel-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--transition-normal), visibility var(--transition-normal);
-    z-index: calc(var(--z-panel) - 1);
-}
-
-.panel-overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-.panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-xl);
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-}
-
-.panel-header h2 {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.panel-icon {
-    width: 20px;
-    height: 20px;
-}
-
-.close-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-round);
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition-fast);
-}
-
-.close-btn:hover {
-    background: var(--error);
-    border-color: var(--error);
-}
-
-.close-btn:hover img {
-    filter: brightness(0) invert(1);
-}
-
-.close-btn img {
-    width: 20px;
-    height: 20px;
-}
-
-.panel-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--spacing-xl);
-}
-
-/* Messages */
-.message {
-    padding: var(--spacing-md);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--spacing-lg);
-    font-weight: var(--font-weight-medium);
-    display: none;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.message.success {
-    background: rgba(76, 175, 80, 0.1);
-    color: var(--success);
-    border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.message.error {
-    background: rgba(244, 67, 54, 0.1);
-    color: var(--error);
-    border: 1px solid rgba(244, 67, 54, 0.3);
-}
-
-/* Form Styles */
-.fragrance-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-}
-
-.form-label {
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-}
-
-.required {
-    color: var(--error);
-    font-weight: var(--font-weight-bold);
-}
-
-.form-input {
-    width: 100%;
-    padding: var(--spacing-md);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-    font-size: 0.875rem;
-    background: var(--surface);
-    color: var(--text-primary);
-    transition: all var(--transition-fast);
-    font-family: inherit;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background: var(--background);
-    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.1);
-}
-
-textarea.form-input {
-    min-height: 100px;
-    resize: vertical;
-}
-
-/* File Input & Image Upload */
-.file-input {
-    display: none !important;
-    position: absolute;
-    left: -9999px;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.image-upload {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    text-align: center;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    background: var(--surface);
-}
-
-.image-upload:hover,
-.image-upload.dragover {
-    border-color: var(--primary-color);
-    background: rgba(26, 35, 126, 0.05);
-}
-
-.upload-icon {
-    width: 48px;
-    height: 48px;
-    margin: 0 auto var(--spacing-md);
-    opacity: 0.6;
-}
-
-.upload-text {
-    color: var(--text-primary);
-    font-weight: var(--font-weight-medium);
-    margin-bottom: var(--spacing-sm);
-}
-
-.upload-hint {
-    font-size: 0.75rem;
-    color: var(--text-light);
-}
-
-.image-preview {
-    position: relative;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-md);
-    background: var(--background);
-    display: none;
-}
-
-.image-preview img {
-    max-width: 100%;
-    max-height: 200px;
-    border-radius: var(--radius-md);
-    display: block;
-    margin: 0 auto;
-}
-
-.remove-image {
-    position: absolute;
-    top: var(--spacing-sm);
-    right: var(--spacing-sm);
-    background: var(--error);
-    border: none;
-    border-radius: var(--radius-round);
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background var(--transition-fast);
-}
-
-.remove-image:hover {
-    background: #d32f2f;
-}
-
-.remove-image img {
-    width: 16px;
-    height: 16px;
-    filter: brightness(0) invert(1);
-}
-
-/* Variants Section */
-.variants-section {
-    background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-}
-
-.variants-header {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-}
-
-.variants-icon {
-    width: 20px;
-    height: 20px;
-}
-
-.variant-item-form {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-md);
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--spacing-sm);
-    transition: all var(--transition-fast);
-}
-
-.variant-item-form:hover {
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow-sm);
-}
-
-.variant-item-form.whole-bottle {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 235, 59, 0.1));
-    border-color: var(--secondary-color);
-}
-
-.variant-toggle {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.variant-toggle input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: var(--primary-color);
-}
-
-.variant-toggle label {
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.variant-gift-icon {
-    width: 16px;
-    height: 16px;
-}
-
-.price-input {
-    width: 120px;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    text-align: right;
-    font-weight: var(--font-weight-medium);
-    background: var(--surface);
-    color: var(--text-primary);
-}
-
-.price-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background: var(--background);
-}
-
-.price-note {
-    font-style: italic;
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-}
-
-.form-hint {
-    color: var(--text-light);
-    font-size: 0.75rem;
-    line-height: 1.4;
-    margin-top: var(--spacing-sm);
-}
-
-/* Submit Button */
-.submit-btn {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    color: white;
-    border: none;
-    padding: var(--spacing-lg) var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    font-size: 1rem;
-    font-weight: var(--font-weight-bold);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    box-shadow: var(--shadow-md);
-    margin-top: var(--spacing-lg);
-}
-
-.submit-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-text {
-    position: relative;
-    z-index: 1;
-    transition: opacity var(--transition-fast);
-}
-
-.btn-icon {
-    width: 20px;
-    height: 20px;
-    filter: brightness(0) invert(1);
-    transition: opacity var(--transition-fast);
-}
-
-/* Loading State for Submit Button */
-.submit-btn.loading {
-    pointer-events: none;
-    position: relative;
-}
-
-.submit-btn.loading::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
-    border-radius: var(--radius-round);
-    animation: spin 1s linear infinite;
-    transform: translate(-50%, -50%);
-}
-
-.submit-btn.loading .btn-text,
-.submit-btn.loading .btn-icon {
-    opacity: 0;
-}
-
-/* Dark Theme Adjustments */
-[data-theme="dark"] .table-container,
-[data-theme="dark"] .stat-card,
-[data-theme="dark"] .side-panel {
-    background: var(--surface);
-    border-color: var(--border);
-}
-
-[data-theme="dark"] .form-input {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--border);
-}
-
-[data-theme="dark"] .form-input:focus {
-    border-color: var(--primary-light);
-    box-shadow: 0 0 0 4px rgba(57, 73, 171, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .image-upload {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--border);
-}
-
-[data-theme="dark"] .image-upload:hover {
-    background: rgba(57, 73, 171, 0.1);
-}
-
-[data-theme="dark"] .variants-section {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .variant-item-form {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .main-container {
-        padding: var(--spacing-lg);
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    }
-    
-    .side-panel {
-        width: 450px;
-    }
-}
-
-@media (max-width: 1024px) {
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    }
-    
-    .table-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .search-filter {
-        justify-content: stretch;
-    }
-    
-    .search-container {
-        min-width: auto;
-        flex: 1;
-    }
-}
-
-@media (max-width: 768px) {
-    .header-container {
-        padding: var(--spacing-md);
-    }
-    
-    .main-container {
-        padding: var(--spacing-md);
-    }
-    
-    .status-bar {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        text-align: center;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .table-header {
-        padding: var(--spacing-lg);
-    }
-    
-    .search-filter {
-        flex-direction: column;
-        gap: var(--spacing-md);
-    }
-    
-    .fragrances-table {
-        font-size: 0.75rem;
-    }
-    
-    .fragrances-table th,
-    .fragrances-table td {
-        padding: var(--spacing-sm);
-    }
-    
-    .actions-cell {
-        flex-direction: column;
-        gap: var(--spacing-xs);
-    }
-    
-    .action-btn {
-        font-size: 0.625rem;
-        padding: var(--spacing-xs);
-    }
-    
-    .side-panel {
-        width: 100%;
-        right: 0;
-        transform: translateX(100%);
-    }
-    
-    .panel-header,
-    .panel-body {
-        padding: var(--spacing-lg);
-    }
-    
-    .variant-item-form {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        align-items: stretch;
-    }
-    
-    .variant-toggle {
-        justify-content: center;
-    }
-    
-    .price-input {
-        width: 100%;
-        text-align: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .header-controls {
-        gap: var(--spacing-sm);
-    }
-    
-    .control-btn {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .logo-text {
-        font-size: 1.5rem;
-    }
-    
-    .admin-badge {
-        font-size: 0.625rem;
-        padding: 2px var(--spacing-xs);
-    }
-    
-    .main-container {
-        padding: var(--spacing-sm);
-    }
-    
-    .status-bar {
-        padding: var(--spacing-md);
-    }
-    
-    .stat-card {
-        padding: var(--spacing-lg);
-    }
-    
-    .stat-number {
-        font-size: 2rem;
-    }
-    
-    .table-header {
-        padding: var(--spacing-md);
-    }
-    
-    .panel-header,
-    .panel-body {
-        padding: var(--spacing-md);
-    }
-    
-    .form-group {
-        gap: var(--spacing-sm);
-    }
-    
-    .variants-section {
-        padding: var(--spacing-md);
-    }
-    
-    .image-upload {
-        padding: var(--spacing-lg);
-    }
-    
-    .upload-icon {
-        width: 36px;
-        height: 36px;
-    }
-}
-
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.5s ease;
-}
-
-.slide-in {
-    animation: slideIn 0.4s ease;
-}
-
-.slide-up {
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Table Row Animation */
-.table-row-enter {
-    animation: tableRowEnter 0.3s ease;
-}
-
-@keyframes tableRowEnter {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Success Animation */
-.success-pulse {
-    animation: successPulse 0.6s ease;
-}
-
-@keyframes successPulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0.3);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* Error Shake Animation */
-.error-shake {
-    animation: errorShake 0.5s ease;
-}
-
-@keyframes errorShake {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-4px);
-    }
-    20%, 40%, 60%, 80% {
-        transform: translateX(4px);
-    }
-}
-
-/* Focus Styles for Accessibility */
-.control-btn:focus,
-.add-fragrance-btn:focus,
-.form-input:focus,
-.submit-btn:focus,
-.action-btn:focus,
-.close-btn:focus,
-.language-option:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-    :root {
-        --border: #000000;
-        --text-secondary: #000000;
-    }
-    
-    [data-theme="dark"] {
-        --border: #ffffff;
-        --text-secondary: #ffffff;
-    }
-}
-
-/* Print Styles */
-@media print {
-    .header,
-    .status-bar,
-    .add-fragrance-btn,
-    .actions-cell,
-    .side-panel {
-        display: none !important;
-    }
-    
-    .main-container {
-        padding: 0;
-        max-width: none;
-    }
-    
-    .table-container {
-        box-shadow: none;
-        border: 1px solid #000;
-    }
-    
-    .fragrances-table th,
-    .fragrances-table td {
-        border: 1px solid #000;
-        padding: 8px;
-    }
-}
+        
     </style>
 </head>
 <body>
@@ -1516,106 +14,221 @@ textarea.form-input {
         <div class="header-container">
             <!-- Left: Logo -->
             <div class="logo-section">
-                <img src="/api/page-image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
+                <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
                 <span class="logo-text">Qotor</span>
                 <span class="admin-badge" data-key="admin_panel">Admin Panel</span>
             </div>
 
             <!-- Right: Controls -->
             <div class="header-controls">
-                <!-- Language Switcher -->
-                <button class="control-btn language-btn" id="languageBtn" title="Language">
-                    <img src="/api/page-image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
-                </button>
+                <!-- Notifications -->
+                <div class="notification-controls">
+                    <button class="control-btn notification-toggle" id="notificationToggle" title="Toggle Notifications">
+                        <img src="/api/image/notification-icon.png" alt="Notifications" onerror="this.textContent='🔔';">
+                        <span class="notification-status" id="notificationStatus">OFF</span>
+                    </button>
+                    <div class="notification-badge" id="notificationBadge">0</div>
+                </div>
 
-                <!-- Theme Switcher -->
-                <button class="control-btn theme-btn" id="themeBtn" title="Theme">
-                    <img src="/api/page-image/theme-icon.png" alt="Theme" class="theme-icon" onerror="this.textContent='🌙';">
-                </button>
+                <!-- Language Switcher -->
+                <div class="language-selector">
+                    <button class="control-btn language-btn" id="languageBtn" title="Language">
+                        <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
+                    </button>
+                    <div class="language-dropdown" id="languageDropdown">
+                        <button class="language-option" data-lang="en">
+                            <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
+                            <span>English</span>
+                        </button>
+                        <button class="language-option" data-lang="ar">
+                            <img src="/api/image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
+                            <span>العربية</span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- View Store -->
                 <a href="/index.html" class="control-btn store-btn" title="View Store">
-                    <img src="/api/page-image/store-icon.png" alt="Store" class="theme-icon" onerror="this.textContent='🏪';">
+                    <img src="/api/image/store-icon.png" alt="Store" onerror="this.textContent='🏪';">
                 </a>
 
                 <!-- Logout -->
                 <button class="control-btn logout-btn" id="logoutBtn" title="Logout">
-                    <img src="/api/page-image/logout-icon.png" alt="Logout" class="theme-icon" onerror="this.textContent='🚪';">
+                    <img src="/api/image/logout-icon.png" alt="Logout" onerror="this.textContent='🚪';">
                 </button>
             </div>
         </div>
     </header>
 
+    <!-- Navigation Tabs -->
+    <nav class="admin-nav">
+        <div class="nav-container">
+            <button class="nav-tab active" data-tab="dashboard" data-key="nav_dashboard">Dashboard</button>
+            <button class="nav-tab" data-tab="orders" data-key="nav_orders">Orders</button>
+            <button class="nav-tab" data-tab="fragrances" data-key="nav_fragrances">Fragrances</button>
+            <button class="nav-tab" data-tab="analytics" data-key="nav_analytics">Analytics</button>
+        </div>
+    </nav>
+
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="status-info">
-                <img src="/api/page-image/admin-active-icon.png" alt="Active" class="theme-icon status-icon" onerror="this.textContent='✨';">
-                <span data-key="admin_active">Admin Dashboard Active - Welcome back!</span>
+        <!-- Dashboard Tab -->
+        <div id="dashboardTab" class="tab-content active">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-info">
+                    <img src="/api/image/admin-active-icon.png" alt="Active" class="status-icon" onerror="this.textContent='✨';">
+                    <span data-key="admin_active">Admin Dashboard Active - Welcome back!</span>
+                </div>
+                <button class="add-fragrance-btn" id="addFragranceBtn">
+                    <img src="/api/image/plus-icon.png" alt="Add" class="btn-icon" onerror="this.textContent='+';">
+                    <span data-key="add_fragrance">Add New Fragrance</span>
+                </button>
             </div>
-            <button class="add-fragrance-btn" id="addFragranceBtn">
-                <img src="/api/page-image/plus-icon.png" alt="Add" class="btn-icon theme-icon" onerror="this.textContent='+';">
-                <span data-key="add_fragrance">Add New Fragrance</span>
-            </button>
-        </div>
 
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <img src="/api/page-image/perfume-icon.png" alt="Fragrances" class="stat-icon theme-icon" onerror="this.textContent='💎';">
-                </div>
-                <div class="stat-number" id="totalFragrances">-</div>
-                <div class="stat-label" data-key="total_fragrances">Total Fragrances</div>
-                <div class="stat-change" id="fragranceChange" data-key="loading">Loading...</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-header">
-                    <img src="/api/page-image/variants-icon.png" alt="Variants" class="stat-icon theme-icon" onerror="this.textContent='📦';">
-                </div>
-                <div class="stat-number" id="totalVariants">-</div>
-                <div class="stat-label" data-key="product_variants">Product Variants</div>
-                <div class="stat-change" id="variantChange" data-key="loading">Loading...</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-header">
-                    <img src="/api/page-image/visible-icon.png" alt="Visible" class="stat-icon theme-icon" onerror="this.textContent='👁️';">
-                </div>
-                <div class="stat-number" id="visibleFragrances">-</div>
-                <div class="stat-label" data-key="visible_store">Visible in Store</div>
-                <div class="stat-change" id="visibleChange" data-key="loading">Loading...</div>
-            </div>
-        </div>
-
-        <!-- Fragrances Table -->
-        <div class="table-container">
-            <div class="table-header">
-                <h2 data-key="manage_fragrances">
-                    <img src="/api/page-image/manage-icon.png" alt="Manage" class="section-icon theme-icon" onerror="this.textContent='🗂️';">
-                    Manage Fragrances
-                </h2>
-                <div class="search-filter">
-                    <div class="search-container">
-                        <img src="/api/page-image/search-icon.png" alt="Search" class="search-icon theme-icon" onerror="this.textContent='🔍';">
-                        <input type="text" id="tableSearch" class="search-input" data-key-placeholder="search_fragrances">
+            <!-- Statistics Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <img src="/api/image/orders-icon.png" alt="Orders" class="stat-icon" onerror="this.textContent='📦';">
                     </div>
-                    <select id="statusFilter" class="filter-select">
+                    <div class="stat-number" id="totalOrders">-</div>
+                    <div class="stat-label" data-key="total_orders">Total Orders</div>
+                    <div class="stat-change" id="ordersChange" data-key="loading">Loading...</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <img src="/api/image/pending-icon.png" alt="Pending" class="stat-icon" onerror="this.textContent='⏳';">
+                    </div>
+                    <div class="stat-number" id="pendingOrders">-</div>
+                    <div class="stat-label" data-key="pending_orders">Pending Orders</div>
+                    <div class="stat-change" id="pendingChange" data-key="loading">Loading...</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <img src="/api/image/perfume-icon.png" alt="Fragrances" class="stat-icon" onerror="this.textContent='💎';">
+                    </div>
+                    <div class="stat-number" id="totalFragrances">-</div>
+                    <div class="stat-label" data-key="total_fragrances">Total Fragrances</div>
+                    <div class="stat-change" id="fragranceChange" data-key="loading">Loading...</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <img src="/api/image/revenue-icon.png" alt="Revenue" class="stat-icon" onerror="this.textContent='💰';">
+                    </div>
+                    <div class="stat-number" id="totalRevenue">-</div>
+                    <div class="stat-label" data-key="total_revenue">Total Revenue</div>
+                    <div class="stat-change" id="revenueChange" data-key="loading">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3 data-key="quick_actions">Quick Actions</h3>
+                <div class="action-cards">
+                    <button class="action-card" onclick="switchToTab('orders')">
+                        <img src="/api/image/orders-icon.png" alt="Orders" onerror="this.textContent='📦';">
+                        <span data-key="manage_orders">Manage Orders</span>
+                    </button>
+                    <button class="action-card" onclick="switchToTab('fragrances')">
+                        <img src="/api/image/perfume-icon.png" alt="Fragrances" onerror="this.textContent='💎';">
+                        <span data-key="manage_fragrances">Manage Fragrances</span>
+                    </button>
+                    <button class="action-card" onclick="openAddFragrancePanel()">
+                        <img src="/api/image/plus-icon.png" alt="Add" onerror="this.textContent='+';">
+                        <span data-key="add_new_fragrance">Add New Fragrance</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="ordersTab" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title" data-key="orders_management">Orders Management</h2>
+                <div class="section-controls">
+                    <div class="search-container">
+                        <img src="/api/image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
+                        <input type="text" id="ordersSearch" class="search-input" data-key-placeholder="search_orders">
+                    </div>
+                    <select id="ordersFilter" class="filter-select">
+                        <option value="all" data-key="all_orders">All Orders</option>
+                        <option value="pending" data-key="pending_orders">Pending</option>
+                        <option value="completed" data-key="completed_orders">Completed</option>
+                        <option value="canceled" data-key="canceled_orders">Canceled</option>
+                    </select>
+                    <button class="refresh-btn" onclick="refreshOrders()" title="Refresh Orders">
+                        <img src="/api/image/refresh-icon.png" alt="Refresh" onerror="this.textContent='🔄';">
+                    </button>
+                </div>
+            </div>
+
+            <!-- Orders Loading -->
+            <div id="ordersLoading" class="loading-section">
+                <div class="loading-spinner"></div>
+                <p class="loading-text" data-key="loading_orders">Loading orders...</p>
+            </div>
+
+            <!-- Orders Table -->
+            <div id="ordersTable" class="table-container" style="display: none;">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th data-key="order_id">Order ID</th>
+                            <th data-key="customer">Customer</th>
+                            <th data-key="items">Items</th>
+                            <th data-key="total">Total</th>
+                            <th data-key="status">Status</th>
+                            <th data-key="date">Date</th>
+                            <th data-key="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- Orders will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty Orders -->
+            <div id="emptyOrders" class="empty-state" style="display: none;">
+                <img src="/api/image/empty-orders-icon.png" alt="No Orders" class="empty-icon" onerror="this.textContent='📦';">
+                <h3 data-key="no_orders">No Orders Found</h3>
+                <p data-key="orders_will_appear">Customer orders will appear here once they start placing orders.</p>
+            </div>
+        </div>
+
+        <!-- Fragrances Tab -->
+        <div id="fragrancesTab" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title" data-key="fragrances_management">Fragrances Management</h2>
+                <div class="section-controls">
+                    <div class="search-container">
+                        <img src="/api/image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
+                        <input type="text" id="fragrancesSearch" class="search-input" data-key-placeholder="search_fragrances">
+                    </div>
+                    <select id="fragrancesFilter" class="filter-select">
                         <option value="all" data-key="all_status">All Status</option>
                         <option value="visible" data-key="visible_only">Visible Only</option>
                         <option value="hidden" data-key="hidden_only">Hidden Only</option>
                     </select>
+                    <button class="add-fragrance-btn" onclick="openAddFragrancePanel()">
+                        <img src="/api/image/plus-icon.png" alt="Add" onerror="this.textContent='+';">
+                        <span data-key="add_fragrance">Add Fragrance</span>
+                    </button>
                 </div>
             </div>
-            
-            <div id="tableLoading" class="table-loading">
+
+            <!-- Fragrances Loading -->
+            <div id="fragrancesLoading" class="loading-section">
                 <div class="loading-spinner"></div>
-                <p data-key="loading_fragrances">Loading fragrances...</p>
+                <p class="loading-text" data-key="loading_fragrances">Loading fragrances...</p>
             </div>
-            
-            <div id="tableContent" class="table-content" style="display: none;">
+
+            <!-- Fragrances Table -->
+            <div id="fragrancesTable" class="table-container" style="display: none;">
                 <table class="fragrances-table">
                     <thead>
                         <tr>
@@ -1628,19 +241,158 @@ textarea.form-input {
                         </tr>
                     </thead>
                     <tbody id="fragrancesTableBody">
-                        <!-- Fragrances will be loaded here -->
+                        <!-- Fragrances will be populated here -->
                     </tbody>
                 </table>
             </div>
-            
-            <div id="emptyTable" class="empty-state" style="display: none;">
-                <img src="/api/page-image/empty-fragrances-icon.png" alt="Empty" class="empty-icon theme-icon" onerror="this.textContent='📦';">
+
+            <!-- Empty Fragrances -->
+            <div id="emptyFragrances" class="empty-state" style="display: none;">
+                <img src="/api/image/empty-fragrances-icon.png" alt="No Fragrances" class="empty-icon" onerror="this.textContent='💎';">
                 <h3 data-key="no_fragrances">No Fragrances Found</h3>
                 <p data-key="add_first_fragrance">Start building your collection by adding your first fragrance.</p>
-                <button class="add-fragrance-btn" id="addFirstFragranceBtn">
-                    <img src="/api/page-image/plus-icon.png" alt="Add" class="btn-icon theme-icon" onerror="this.textContent='+';">
+                <button class="add-fragrance-btn" onclick="openAddFragrancePanel()">
+                    <img src="/api/image/plus-icon.png" alt="Add" onerror="this.textContent='+';">
                     <span data-key="add_first">Add First Fragrance</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analyticsTab" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title" data-key="analytics_dashboard">Analytics Dashboard</h2>
+                <div class="section-controls">
+                    <select id="analyticsTimeRange" class="filter-select">
+                        <option value="week" data-key="last_week">Last Week</option>
+                        <option value="month" data-key="last_month">Last Month</option>
+                        <option value="quarter" data-key="last_quarter">Last Quarter</option>
+                        <option value="year" data-key="last_year">Last Year</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Analytics Content -->
+            <div class="analytics-content">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h4 data-key="sales_overview">Sales Overview</h4>
+                        <div class="chart-placeholder">
+                            <img src="/api/image/chart-icon.png" alt="Chart" onerror="this.textContent='📊';">
+                            <p data-key="chart_coming_soon">Chart coming soon</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4 data-key="top_fragrances">Top Fragrances</h4>
+                        <div class="chart-placeholder">
+                            <img src="/api/image/chart-icon.png" alt="Chart" onerror="this.textContent='📈';">
+                            <p data-key="chart_coming_soon">Chart coming soon</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4 data-key="customer_trends">Customer Trends</h4>
+                        <div class="chart-placeholder">
+                            <img src="/api/image/chart-icon.png" alt="Chart" onerror="this.textContent='📉';">
+                            <p data-key="chart_coming_soon">Chart coming soon</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" data-key="order_details">Order Details</h2>
+                <button class="close-btn" onclick="closeOrderModal()">
+                    <img src="/api/image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Order Information -->
+                <div class="order-info-section">
+                    <h3 data-key="order_information">Order Information</h3>
+                    <div class="order-info-grid">
+                        <div class="info-item">
+                            <label data-key="order_id">Order ID:</label>
+                            <span id="modalOrderId">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label data-key="order_date">Order Date:</label>
+                            <span id="modalOrderDate">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label data-key="order_status">Status:</label>
+                            <span id="modalOrderStatus" class="status-badge">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label data-key="total_amount">Total Amount:</label>
+                            <span id="modalOrderTotal">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="customer-info-section">
+                    <h3 data-key="customer_information">Customer Information</h3>
+                    <div class="customer-info-grid">
+                        <div class="info-item">
+                            <label data-key="customer_name">Name:</label>
+                            <span id="modalCustomerName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label data-key="customer_email">Email:</label>
+                            <span id="modalCustomerEmail">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label data-key="customer_phone">Phone:</label>
+                            <span id="modalCustomerPhone">-</span>
+                        </div>
+                        <div class="info-item delivery-address">
+                            <label data-key="delivery_address">Delivery Address:</label>
+                            <span id="modalDeliveryAddress">-</span>
+                        </div>
+                        <div class="info-item" id="preferredTimeItem" style="display: none;">
+                            <label data-key="preferred_time">Preferred Time:</label>
+                            <span id="modalPreferredTime">-</span>
+                        </div>
+                        <div class="info-item" id="specialInstructionsItem" style="display: none;">
+                            <label data-key="special_instructions">Special Instructions:</label>
+                            <span id="modalSpecialInstructions">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="order-items-section">
+                    <h3 data-key="order_items">Order Items</h3>
+                    <div class="order-items-list" id="modalOrderItems">
+                        <!-- Items will be populated here -->
+                    </div>
+                    <div class="order-summary">
+                        <div class="summary-row">
+                            <span data-key="subtotal">Subtotal:</span>
+                            <span id="modalSubtotal">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span data-key="delivery_fee">Delivery Fee:</span>
+                            <span data-key="free">Free</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span data-key="total">Total:</span>
+                            <span id="modalTotal">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Actions -->
+                <div class="order-actions">
+                    <button class="btn btn-success" onclick="updateOrderStatus('completed')" id="completeOrderBtn" data-key="mark_completed">Mark as Completed</button>
+                    <button class="btn btn-warning" onclick="updateOrderStatus('canceled')" id="cancelOrderBtn" data-key="mark_canceled">Mark as Canceled</button>
+                    <button class="btn btn-secondary" onclick="contactCustomer()" data-key="contact_customer">Contact Customer</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1651,11 +403,11 @@ textarea.form-input {
         <div class="panel-content">
             <div class="panel-header">
                 <h2 id="panelTitle" data-key="add_new_fragrance">
-                    <img src="/api/page-image/plus-icon.png" alt="Add" class="panel-icon theme-icon" onerror="this.textContent='+';">
+                    <img src="/api/image/plus-icon.png" alt="Add" class="panel-icon" onerror="this.textContent='+';">
                     Add New Fragrance
                 </h2>
                 <button class="close-btn" id="closePanelBtn">
-                    <img src="/api/page-image/close-icon.png" alt="Close" class="theme-icon" onerror="this.textContent='✕';">
+                    <img src="/api/image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
                 </button>
             </div>
             
@@ -1703,14 +455,14 @@ textarea.form-input {
                         <label class="form-label" data-key="product_image">Product Image</label>
                         <input type="file" id="image" name="image" accept=".png,image/png" class="file-input">
                         <div class="image-upload" id="imageUpload">
-                            <img src="/api/page-image/upload-icon.png" alt="Upload" class="upload-icon theme-icon" onerror="this.textContent='📷';">
+                            <img src="/api/image/upload-icon.png" alt="Upload" class="upload-icon" onerror="this.textContent='📷';">
                             <div class="upload-text" data-key="upload_instruction">Click to upload or drag & drop</div>
                             <div class="upload-hint" data-key="png_only">PNG files only, max 5MB</div>
                         </div>
                         <div class="image-preview" id="imagePreview">
                             <img id="previewImg" src="" alt="Preview">
                             <button type="button" class="remove-image" id="removeImage">
-                                <img src="/api/page-image/close-icon.png" alt="Remove" class="theme-icon" onerror="this.textContent='✕';">
+                                <img src="/api/image/close-icon.png" alt="Remove" onerror="this.textContent='✕';">
                             </button>
                         </div>
                     </div>
@@ -1722,7 +474,7 @@ textarea.form-input {
                         </label>
                         <div class="variants-section">
                             <div class="variants-header">
-                                <img src="/api/page-image/sizes-icon.png" alt="Sizes" class="variants-icon theme-icon" onerror="this.textContent='💎';">
+                                <img src="/api/image/sizes-icon.png" alt="Sizes" class="variants-icon" onerror="this.textContent='💎';">
                                 <strong data-key="available_sizes">Available Sizes</strong>
                             </div>
                             
@@ -1757,7 +509,7 @@ textarea.form-input {
                                 <div class="variant-toggle">
                                     <input type="checkbox" id="variant_whole" checked>
                                     <label for="variant_whole" data-key="whole_bottle">
-                                        <img src="/api/page-image/gift-icon.png" alt="Gift" class="variant-gift-icon theme-icon" onerror="this.textContent='🎁';">
+                                        <img src="/api/image/gift-icon.png" alt="Gift" class="variant-gift-icon" onerror="this.textContent='🎁';">
                                         Whole Bottle (Original)
                                     </label>
                                 </div>
@@ -1770,7 +522,7 @@ textarea.form-input {
                     </div>
 
                     <button type="submit" class="submit-btn" id="submitBtn">
-                        <img src="/api/page-image/save-icon.png" alt="Save" class="btn-icon theme-icon" onerror="this.textContent='✨';">
+                        <img src="/api/image/save-icon.png" alt="Save" class="btn-icon" onerror="this.textContent='✨';">
                         <span class="btn-text" data-key="add_to_store">Add Fragrance to Store</span>
                     </button>
                 </form>
@@ -1778,1193 +530,37 @@ textarea.form-input {
         </div>
     </div>
 
-    <!-- Language Selector Dropdown -->
-    <div class="language-dropdown" id="languageDropdown">
-        <button class="language-option" data-lang="en">
-            <img src="/api/page-image/en-flag.png" alt="English" class="theme-icon" onerror="this.textContent='EN';">
-            <span>English</span>
-        </button>
-        <button class="language-option" data-lang="ar">
-            <img src="/api/page-image/ar-flag.png" alt="العربية" class="theme-icon" onerror="this.textContent='AR';">
-            <span>العربية</span>
-        </button>
+    <!-- Notification Permission Modal -->
+    <div class="modal-overlay" id="notificationModal">
+        <div class="modal-content notification-modal">
+            <div class="modal-header">
+                <h2 class="modal-title" data-key="enable_notifications">Enable Notifications</h2>
+                <button class="close-btn" onclick="closeNotificationModal()">
+                    <img src="/api/image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="notification-explanation">
+                    <img src="/api/image/notification-large-icon.png" alt="Notifications" class="notification-large-icon" onerror="this.textContent='🔔';">
+                    <h3 data-key="stay_informed">Stay Informed About New Orders</h3>
+                    <p data-key="notification_benefits">Enable browser notifications to get instant alerts when customers place new orders. This helps you:</p>
+                    <ul>
+                        <li data-key="benefit_instant">Receive instant order notifications</li>
+                        <li data-key="benefit_respond">Respond to customers quickly</li>
+                        <li data-key="benefit_track">Keep track of your business activity</li>
+                        <li data-key="benefit_miss">Never miss an important order</li>
+                    </ul>
+                </div>
+                <div class="notification-actions">
+                    <button class="btn btn-primary" onclick="enableNotifications()" data-key="enable_now">Enable Notifications</button>
+                    <button class="btn btn-secondary" onclick="closeNotificationModal()" data-key="maybe_later">Maybe Later</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Global variables
-let allFragrances = [];
-let currentEditingId = null;
-let currentLanguage = 'en';
-let currentTheme = 'light';
-
-// Language translations
-const translations = {
-    en: {
-        admin_panel: 'Admin Panel',
-        admin_active: 'Admin Dashboard Active - Welcome back!',
-        add_fragrance: 'Add New Fragrance',
-        total_fragrances: 'Total Fragrances',
-        product_variants: 'Product Variants',
-        visible_store: 'Visible in Store',
-        loading: 'Loading...',
-        manage_fragrances: 'Manage Fragrances',
-        search_fragrances: 'Search fragrances...',
-        all_status: 'All Status',
-        visible_only: 'Visible Only',
-        hidden_only: 'Hidden Only',
-        loading_fragrances: 'Loading fragrances...',
-        image: 'Image',
-        fragrance_info: 'Fragrance Info',
-        variants: 'Variants',
-        status: 'Status',
-        created: 'Created',
-        actions: 'Actions',
-        no_fragrances: 'No Fragrances Found',
-        add_first_fragrance: 'Start building your collection by adding your first fragrance.',
-        add_first: 'Add First Fragrance',
-        add_new_fragrance: 'Add New Fragrance',
-        edit_fragrance: 'Edit Fragrance',
-        fragrance_name: 'Fragrance Name',
-        brand: 'Brand',
-        url_slug: 'URL Slug',
-        description: 'Description',
-        product_image: 'Product Image',
-        variants_pricing: 'Product Variants & Pricing (OMR)',
-        available_sizes: 'Available Sizes',
-        sample_5ml: '5ml Sample',
-        sample_10ml: '10ml Sample',
-        sample_30ml: '30ml Sample',
-        whole_bottle: 'Whole Bottle (Original)',
-        contact_pricing: 'Contact for pricing',
-        variants_note: 'At least one variant must be enabled. Prices in Omani Rial (OMR).',
-        add_to_store: 'Add Fragrance to Store',
-        update_fragrance: 'Update Fragrance',
-        name_placeholder: 'e.g., No. 5, Sauvage, Black Opium',
-        brand_placeholder: 'e.g., Chanel, Dior, Tom Ford (optional)',
-        slug_placeholder: 'e.g., chanel-no-5 (auto-generated)',
-        description_placeholder: 'Describe the fragrance notes, character, and appeal...',
-        upload_instruction: 'Click to upload or drag & drop',
-        png_only: 'PNG files only, max 5MB',
-        edit_btn: 'Edit',
-        hide_btn: 'Hide',
-        show_btn: 'Show',
-        delete_btn: 'Delete',
-        visible: 'Visible',
-        hidden: 'Hidden',
-        full_bottle: 'Full Bottle',
-        uploading_image: 'Uploading image...',
-        saving_fragrance: 'Saving fragrance...',
-        fragrance_added: 'Fragrance added successfully!',
-        fragrance_updated: 'Fragrance updated successfully!',
-        fragrance_hidden: 'Fragrance hidden successfully!',
-        fragrance_shown: 'Fragrance shown successfully!',
-        fragrance_deleted: 'Fragrance deleted successfully!',
-        confirm_delete: 'Are you sure you want to delete this fragrance? This action cannot be undone.',
-        confirm_logout: 'Are you sure you want to logout?',
-        session_expired: 'Admin session expired. Please log in again.',
-        error_loading: 'Error loading fragrances. Please refresh the page.',
-        error_saving: 'Error saving fragrance. Please try again.',
-        error_deleting: 'Error deleting fragrance. Please try again.',
-        error_toggle: 'Error updating fragrance visibility. Please try again.',
-        required_fields: 'Please fill in all required fields.',
-        invalid_image: 'Only PNG images are allowed.',
-        image_too_large: 'Image too large. Maximum size is 5MB.',
-        no_variants: 'At least one variant must be enabled.',
-        slug_exists: 'A fragrance with this slug already exists.',
-        collection_stats: 'in collection',
-        visible_stats: 'visible to customers',
-        variants_stats: 'options available',
-        none_visible: 'None visible yet',
-        no_variants_yet: 'No variants yet'
-    },
-    ar: {
-        admin_panel: 'لوحة الإدارة',
-        admin_active: 'لوحة الإدارة نشطة - أهلاً بعودتك!',
-        add_fragrance: 'إضافة عطر جديد',
-        total_fragrances: 'إجمالي العطور',
-        product_variants: 'خيارات المنتج',
-        visible_store: 'ظاهر في المتجر',
-        loading: 'جاري التحميل...',
-        manage_fragrances: 'إدارة العطور',
-        search_fragrances: 'البحث عن العطور...',
-        all_status: 'جميع الحالات',
-        visible_only: 'المرئي فقط',
-        hidden_only: 'المخفي فقط',
-        loading_fragrances: 'جاري تحميل العطور...',
-        image: 'الصورة',
-        fragrance_info: 'معلومات العطر',
-        variants: 'الخيارات',
-        status: 'الحالة',
-        created: 'تاريخ الإنشاء',
-        actions: 'الإجراءات',
-        no_fragrances: 'لا توجد عطور',
-        add_first_fragrance: 'ابدأ ببناء مجموعتك بإضافة أول عطر.',
-        add_first: 'إضافة أول عطر',
-        add_new_fragrance: 'إضافة عطر جديد',
-        edit_fragrance: 'تعديل العطر',
-        fragrance_name: 'اسم العطر',
-        brand: 'العلامة التجارية',
-        url_slug: 'رابط الصفحة',
-        description: 'الوصف',
-        product_image: 'صورة المنتج',
-        variants_pricing: 'خيارات المنتج والأسعار (ريال عماني)',
-        available_sizes: 'الأحجام المتاحة',
-        sample_5ml: 'عينة 5 مل',
-        sample_10ml: 'عينة 10 مل',
-        sample_30ml: 'عينة 30 مل',
-        whole_bottle: 'زجاجة كاملة (أصلية)',
-        contact_pricing: 'اتصل للسعر',
-        variants_note: 'يجب تفعيل خيار واحد على الأقل. الأسعار بالريال العماني.',
-        add_to_store: 'إضافة العطر للمتجر',
-        update_fragrance: 'تحديث العطر',
-        name_placeholder: 'مثال: رقم 5، سوفاج، بلاك أوبيوم',
-        brand_placeholder: 'مثال: شانيل، ديور، توم فورد (اختياري)',
-        slug_placeholder: 'مثال: chanel-no-5 (يتم إنشاؤه تلقائياً)',
-        description_placeholder: 'اوصف نوتات العطر وطابعه وجاذبيته...',
-        upload_instruction: 'انقر للرفع أو اسحب وأفلت',
-        png_only: 'ملفات PNG فقط، حد أقصى 5 ميجابايت',
-        edit_btn: 'تعديل',
-        hide_btn: 'إخفاء',
-        show_btn: 'إظهار',
-        delete_btn: 'حذف',
-        visible: 'مرئي',
-        hidden: 'مخفي',
-        full_bottle: 'زجاجة كاملة',
-        uploading_image: 'جاري رفع الصورة...',
-        saving_fragrance: 'جاري حفظ العطر...',
-        fragrance_added: 'تم إضافة العطر بنجاح!',
-        fragrance_updated: 'تم تحديث العطر بنجاح!',
-        fragrance_hidden: 'تم إخفاء العطر بنجاح!',
-        fragrance_shown: 'تم إظهار العطر بنجاح!',
-        fragrance_deleted: 'تم حذف العطر بنجاح!',
-        confirm_delete: 'هل أنت متأكد من حذف هذا العطر؟ لا يمكن التراجع عن هذا الإجراء.',
-        confirm_logout: 'هل أنت متأكد من تسجيل الخروج؟',
-        session_expired: 'انتهت جلسة الإدارة. يرجى تسجيل الدخول مرة أخرى.',
-        error_loading: 'خطأ في تحميل العطور. يرجى تحديث الصفحة.',
-        error_saving: 'خطأ في حفظ العطر. يرجى المحاولة مرة أخرى.',
-        error_deleting: 'خطأ في حذف العطر. يرجى المحاولة مرة أخرى.',
-        error_toggle: 'خطأ في تحديث ظهور العطر. يرجى المحاولة مرة أخرى.',
-        required_fields: 'يرجى ملء جميع الحقول المطلوبة.',
-        invalid_image: 'يُسمح بصور PNG فقط.',
-        image_too_large: 'الصورة كبيرة جداً. الحد الأقصى 5 ميجابايت.',
-        no_variants: 'يجب تفعيل خيار واحد على الأقل.',
-        slug_exists: 'يوجد عطر آخر بنفس الرابط.',
-        collection_stats: 'في المجموعة',
-        visible_stats: 'مرئي للعملاء',
-        variants_stats: 'خيار متاح',
-        none_visible: 'لا شيء مرئي بعد',
-        no_variants_yet: 'لا توجد خيارات بعد'
-    }
-};
-
-// DOM Content Loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-});
-
-// Initialize App
-function initializeApp() {
-    checkAuthentication();
-    initializeTheme();
-    initializeLanguage();
-    initializeEventListeners();
-    initializeImageUpload();
-    initializeVariants();
-    initializeForm();
-    initializeTableFilters();
-    loadFragrances();
-    addAnimations();
-}
-
-// Check Authentication
-function checkAuthentication() {
-    const cookies = document.cookie.split(';');
-    const adminSession = cookies.find(cookie => 
-        cookie.trim().startsWith('admin_session=')
-    );
-    
-    if (!adminSession) {
-        setTimeout(() => {
-            const cookiesRecheck = document.cookie.split(';');
-            const adminSessionRecheck = cookiesRecheck.find(cookie => 
-                cookie.trim().startsWith('admin_session=')
-            );
-            
-            if (!adminSessionRecheck) {
-                alert(translations[currentLanguage]['session_expired']);
-                window.location.href = '/login.html';
-            }
-        }, 1500);
-        return false;
-    }
-    
-    return true;
-}
-
-// Theme Management
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('qotor_theme') || 'light';
-    setTheme(savedTheme);
-    
-    const themeBtn = document.getElementById('themeBtn');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', toggleTheme);
-    }
-}
-
-function setTheme(theme) {
-    currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('qotor_theme', theme);
-    
-    const themeIcon = document.querySelector('#themeBtn img');
-    if (themeIcon) {
-        themeIcon.src = `/api/page-image/${theme === 'dark' ? 'sun' : 'moon'}-icon.png`;
-        themeIcon.alt = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
-    }
-}
-
-function toggleTheme() {
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-}
-
-// Language Management
-function initializeLanguage() {
-    const savedLanguage = localStorage.getItem('qotor_language') || 'en';
-    setLanguage(savedLanguage);
-    
-    const languageBtn = document.getElementById('languageBtn');
-    const languageDropdown = document.getElementById('languageDropdown');
-    
-    if (languageBtn && languageDropdown) {
-        languageBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            languageDropdown.classList.toggle('show');
-        });
-        
-        document.addEventListener('click', () => {
-            languageDropdown.classList.remove('show');
-        });
-        
-        document.querySelectorAll('.language-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                const lang = e.currentTarget.dataset.lang;
-                setLanguage(lang);
-                languageDropdown.classList.remove('show');
-            });
-        });
-    }
-}
-
-function setLanguage(lang) {
-    currentLanguage = lang;
-    document.documentElement.setAttribute('lang', lang);
-    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-    localStorage.setItem('qotor_language', lang);
-    
-    updateTexts();
-    updatePlaceholders();
-    updateSelectOptions();
-    
-    const languageIcon = document.querySelector('#languageBtn img');
-    if (languageIcon) {
-        languageIcon.src = `/api/page-image/${lang}-flag.png`;
-        languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
-    }
-}
-
-function updateTexts() {
-    document.querySelectorAll('[data-key]').forEach(element => {
-        const key = element.getAttribute('data-key');
-        if (translations[currentLanguage][key]) {
-            element.textContent = translations[currentLanguage][key];
-        }
-    });
-}
-
-function updatePlaceholders() {
-    document.querySelectorAll('[data-key-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-key-placeholder');
-        if (translations[currentLanguage][key]) {
-            element.placeholder = translations[currentLanguage][key];
-        }
-    });
-}
-
-function updateSelectOptions() {
-    document.querySelectorAll('select option[data-key]').forEach(option => {
-        const key = option.getAttribute('data-key');
-        if (translations[currentLanguage][key]) {
-            option.textContent = translations[currentLanguage][key];
-        }
-    });
-}
-
-// Event Listeners
-function initializeEventListeners() {
-    // Add fragrance buttons
-    document.getElementById('addFragranceBtn').addEventListener('click', openAddForm);
-    document.getElementById('addFirstFragranceBtn').addEventListener('click', openAddForm);
-    
-    // Panel controls
-    document.getElementById('closePanelBtn').addEventListener('click', closePanel);
-    document.getElementById('panelOverlay').addEventListener('click', closePanel);
-    
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-    
-    // Auto-generate slug from name
-    const nameInput = document.getElementById('name');
-    const slugInput = document.getElementById('slug');
-    
-    nameInput.addEventListener('input', function() {
-        const slug = this.value
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-        slugInput.value = slug;
-    });
-    
-    // Escape key to close panel
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closePanel();
-            const languageDropdown = document.getElementById('languageDropdown');
-            if (languageDropdown) {
-                languageDropdown.classList.remove('show');
-            }
-        }
-    });
-}
-
-// Load Fragrances
-async function loadFragrances() {
-    try {
-        const response = await fetch('/admin/fragrances', {
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            if (result.success && result.data) {
-                allFragrances = result.data;
-                updateStats(result.stats);
-                renderTable();
-            } else {
-                throw new Error(result.error || 'Failed to load fragrances');
-            }
-        } else if (response.status === 401) {
-            alert(translations[currentLanguage]['session_expired']);
-            window.location.href = '/login.html';
-        } else {
-            throw new Error('API request failed');
-        }
-    } catch (error) {
-        console.error('Error loading fragrances:', error);
-        showTableError();
-    }
-}
-
-// Update Stats
-function updateStats(stats) {
-    const total = stats ? stats.total : allFragrances.length;
-    const visible = stats ? stats.visible : allFragrances.filter(f => !f.hidden).length;
-    const totalVariants = stats ? stats.variants : allFragrances.reduce((sum, f) => sum + (f.variants?.length || 0), 0);
-
-    document.getElementById('totalFragrances').textContent = total;
-    document.getElementById('visibleFragrances').textContent = visible;
-    document.getElementById('totalVariants').textContent = totalVariants;
-
-    const collectionText = total > 0 ? `${total} ${translations[currentLanguage]['collection_stats']}` : translations[currentLanguage]['collection_stats'];
-    const visibleText = visible > 0 ? `${visible} ${translations[currentLanguage]['visible_stats']}` : translations[currentLanguage]['none_visible'];
-    const variantsText = totalVariants > 0 ? `${totalVariants} ${translations[currentLanguage]['variants_stats']}` : translations[currentLanguage]['no_variants_yet'];
-
-    document.getElementById('fragranceChange').textContent = collectionText;
-    document.getElementById('visibleChange').textContent = visibleText;
-    document.getElementById('variantChange').textContent = variantsText;
-}
-
-// Render Table
-function renderTable() {
-    const tableLoading = document.getElementById('tableLoading');
-    const tableContent = document.getElementById('tableContent');
-    const emptyTable = document.getElementById('emptyTable');
-    const tableBody = document.getElementById('fragrancesTableBody');
-
-    tableLoading.style.display = 'none';
-
-    if (allFragrances.length === 0) {
-        tableContent.style.display = 'none';
-        emptyTable.style.display = 'block';
-        return;
-    }
-
-    tableContent.style.display = 'block';
-    emptyTable.style.display = 'none';
-
-    // Apply filters
-    const searchTerm = document.getElementById('tableSearch').value.toLowerCase();
-    const statusFilter = document.getElementById('statusFilter').value;
-
-    let filteredFragrances = allFragrances.filter(fragrance => {
-        // Search filter
-        const searchableText = [
-            fragrance.name,
-            fragrance.brand,
-            fragrance.description
-        ].join(' ').toLowerCase();
-        
-        const matchesSearch = !searchTerm || searchableText.includes(searchTerm);
-
-        // Status filter
-        let matchesStatus = true;
-        if (statusFilter === 'visible') {
-            matchesStatus = !fragrance.hidden;
-        } else if (statusFilter === 'hidden') {
-            matchesStatus = fragrance.hidden;
-        }
-
-        return matchesSearch && matchesStatus;
-    });
-
-    tableBody.innerHTML = '';
-
-    filteredFragrances.forEach((fragrance, index) => {
-        const row = createTableRow(fragrance);
-        row.classList.add('table-row-enter');
-        row.style.animationDelay = `${index * 50}ms`;
-        tableBody.appendChild(row);
-    });
-}
-
-// Create Table Row
-function createTableRow(fragrance) {
-    const row = document.createElement('tr');
-    
-    // Image
-    let imageCell = '<td>';
-    if (fragrance.image_path) {
-        const imagePath = fragrance.image_path;
-        let imageUrl = '';
-        if (imagePath.startsWith('http')) {
-            imageUrl = imagePath;
-        } else if (imagePath.startsWith('fragrance-images/')) {
-            const filename = imagePath.replace('fragrance-images/', '');
-            imageUrl = `/api/page-image/${filename}`;
-        } else {
-            imageUrl = `/api/page-image/${imagePath}`;
-        }
-        imageCell += `<img src="${imageUrl}" alt="${fragrance.name}" class="fragrance-image" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\\"fragrance-image\\">💎</div>';">`;
-    } else {
-        imageCell += '<div class="fragrance-image">💎</div>';
-    }
-    imageCell += '</td>';
-
-    // Info
-    const infoCell = `
-        <td>
-            <div class="fragrance-info">
-                <div class="fragrance-name">${fragrance.name}</div>
-                ${fragrance.brand ? `<div class="fragrance-brand">${fragrance.brand}</div>` : ''}
-                <div class="fragrance-description">${fragrance.description || ''}</div>
-            </div>
-        </td>
-    `;
-
-    // Variants
-    let variantsCell = '<td><div class="variants-list">';
-    if (fragrance.variants && fragrance.variants.length > 0) {
-        fragrance.variants.forEach(variant => {
-            if (variant.is_whole_bottle) {
-                variantsCell += `<div class="variant-item whole-bottle">${translations[currentLanguage]['full_bottle']}</div>`;
-            } else {
-                const size = variant.size || `${variant.size_ml}ml`;
-                const price = variant.price_display || `${(variant.price || 0).toFixed(3)} OMR`;
-                variantsCell += `<div class="variant-item">${size} - ${price}</div>`;
-            }
-        });
-    } else {
-        variantsCell += `<div class="variant-item">${translations[currentLanguage]['no_variants_yet']}</div>`;
-    }
-    variantsCell += '</div></td>';
-
-    // Status
-    const statusText = fragrance.hidden ? translations[currentLanguage]['hidden'] : translations[currentLanguage]['visible'];
-    const statusClass = fragrance.hidden ? 'status-hidden' : 'status-visible';
-    const statusCell = `
-        <td>
-            <span class="status-badge ${statusClass}">
-                ${statusText}
-            </span>
-        </td>
-    `;
-
-    // Created date
-    const createdDate = fragrance.created_at ? new Date(fragrance.created_at).toLocaleDateString() : 'Unknown';
-    const createdCell = `<td>${createdDate}</td>`;
-
-    // Actions
-    const editText = translations[currentLanguage]['edit_btn'];
-    const toggleText = fragrance.hidden ? translations[currentLanguage]['show_btn'] : translations[currentLanguage]['hide_btn'];
-    const deleteText = translations[currentLanguage]['delete_btn'];
-    
-    const actionsCell = `
-        <td>
-            <div class="actions-cell">
-                <button class="action-btn btn-edit" onclick="editFragrance(${fragrance.id})">
-                    ${editText}
-                </button>
-                <button class="action-btn ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
-                        onclick="toggleVisibility(${fragrance.id}, ${!fragrance.hidden})">
-                    ${toggleText}
-                </button>
-                <button class="action-btn btn-delete" onclick="deleteFragrance(${fragrance.id})">
-                    ${deleteText}
-                </button>
-            </div>
-        </td>
-    `;
-
-    row.innerHTML = imageCell + infoCell + variantsCell + statusCell + createdCell + actionsCell;
-    return row;
-}
-
-// Initialize Table Filters
-function initializeTableFilters() {
-    const searchInput = document.getElementById('tableSearch');
-    const statusFilter = document.getElementById('statusFilter');
-
-    let searchTimeout;
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(renderTable, 300);
-    });
-
-    statusFilter.addEventListener('change', renderTable);
-}
-
-// Panel Functions
-function openAddForm() {
-    currentEditingId = null;
-    
-    const panelTitle = document.getElementById('panelTitle');
-    const submitBtn = document.getElementById('submitBtn');
-    
-    panelTitle.innerHTML = `
-        <img src="/api/page-image/plus-icon.png" alt="Add" class="panel-icon theme-icon" onerror="this.textContent='+';">
-        ${translations[currentLanguage]['add_new_fragrance']}
-    `;
-    
-    submitBtn.querySelector('.btn-text').textContent = translations[currentLanguage]['add_to_store'];
-    
-    resetForm();
-    showPanel();
-}
-
-function editFragrance(id) {
-    const fragrance = allFragrances.find(f => f.id === id);
-    if (!fragrance) return;
-
-    currentEditingId = id;
-    
-    const panelTitle = document.getElementById('panelTitle');
-    const submitBtn = document.getElementById('submitBtn');
-    
-    panelTitle.innerHTML = `
-        <img src="/api/page-image/edit-icon.png" alt="Edit" class="panel-icon theme-icon" onerror="this.textContent='✏️';">
-        ${translations[currentLanguage]['edit_fragrance']}
-    `;
-    
-    submitBtn.querySelector('.btn-text').textContent = translations[currentLanguage]['update_fragrance'];
-
-    // Populate form
-    document.getElementById('fragranceId').value = fragrance.id;
-    document.getElementById('name').value = fragrance.name;
-    document.getElementById('brand').value = fragrance.brand || '';
-    document.getElementById('slug').value = fragrance.slug;
-    document.getElementById('description').value = fragrance.description;
-
-    // Handle existing image
-    if (fragrance.image_path) {
-        const imagePath = fragrance.image_path;
-        let imageUrl = '';
-        if (imagePath.startsWith('http')) {
-            imageUrl = imagePath;
-        } else if (imagePath.startsWith('fragrance-images/')) {
-            const filename = imagePath.replace('fragrance-images/', '');
-            imageUrl = `/api/page-image/${filename}`;
-        } else {
-            imageUrl = `/api/page-image/${imagePath}`;
-        }
-        
-        const previewImg = document.getElementById('previewImg');
-        previewImg.src = imageUrl;
-        document.getElementById('imageUpload').style.display = 'none';
-        document.getElementById('imagePreview').style.display = 'block';
-    }
-
-    // Populate variants
-    resetVariants();
-    if (fragrance.variants) {
-        // Disable all variants first
-        ['5ml', '10ml', '30ml', 'whole'].forEach(size => {
-            const checkbox = document.getElementById(`variant_${size}`);
-            const priceInput = document.getElementById(`price_${size}`);
-            checkbox.checked = false;
-            if (priceInput) priceInput.disabled = true;
-        });
-
-        // Enable and populate existing variants
-        fragrance.variants.forEach(variant => {
-            if (variant.is_whole_bottle) {
-                document.getElementById('variant_whole').checked = true;
-            } else if (variant.size_ml) {
-                const sizeKey = `${variant.size_ml}ml`;
-                const checkbox = document.getElementById(`variant_${sizeKey}`);
-                const priceInput = document.getElementById(`price_${sizeKey}`);
-                
-                if (checkbox && priceInput) {
-                    checkbox.checked = true;
-                    priceInput.disabled = false;
-                    priceInput.value = (variant.price || 0).toFixed(3);
-                }
-            }
-        });
-    }
-
-    showPanel();
-}
-
-async function toggleVisibility(id, hide) {
-    if (!checkAuthentication()) return;
-
-    try {
-        const response = await fetch('/admin/toggle-fragrance', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ id, hidden: hide })
-        });
-
-        const result = await response.json();
-        
-        if (response.ok && result.success) {
-            // Update local data
-            const fragrance = allFragrances.find(f => f.id === id);
-            if (fragrance) {
-                fragrance.hidden = hide;
-            }
-            
-            updateStats();
-            renderTable();
-            
-            const message = hide ? translations[currentLanguage]['fragrance_hidden'] : translations[currentLanguage]['fragrance_shown'];
-            showMessage('success', message);
-        } else {
-            throw new Error(result.error || 'Failed to update visibility');
-        }
-    } catch (error) {
-        console.error('Error toggling visibility:', error);
-        showMessage('error', translations[currentLanguage]['error_toggle']);
-    }
-}
-
-async function deleteFragrance(id) {
-    const fragrance = allFragrances.find(f => f.id === id);
-    if (!fragrance) return;
-
-    if (!confirm(translations[currentLanguage]['confirm_delete'])) return;
-
-    if (!checkAuthentication()) return;
-
-    try {
-        const response = await fetch('/admin/delete-fragrance', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ id })
-        });
-
-        const result = await response.json();
-        
-        if (response.ok && result.success) {
-            // Remove from local data
-            allFragrances = allFragrances.filter(f => f.id !== id);
-            
-            updateStats();
-            renderTable();
-            
-            showMessage('success', translations[currentLanguage]['fragrance_deleted']);
-        } else {
-            throw new Error(result.error || 'Failed to delete fragrance');
-        }
-    } catch (error) {
-        console.error('Error deleting fragrance:', error);
-        showMessage('error', translations[currentLanguage]['error_deleting']);
-    }
-}
-
-function showPanel() {
-    const panel = document.getElementById('fragrancePanel');
-    const overlay = document.getElementById('panelOverlay');
-    
-    panel.classList.add('open');
-    overlay.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    
-    // Focus first input
-    setTimeout(() => {
-        document.getElementById('name').focus();
-    }, 300);
-}
-
-function closePanel() {
-    const panel = document.getElementById('fragrancePanel');
-    const overlay = document.getElementById('panelOverlay');
-    
-    panel.classList.remove('open');
-    overlay.classList.remove('show');
-    document.body.style.overflow = '';
-    resetForm();
-}
-
-function resetForm() {
-    document.getElementById('fragranceForm').reset();
-    resetVariants();
-    clearImagePreview();
-    hideMessages();
-    currentEditingId = null;
-}
-
-function resetVariants() {
-    // Reset all checkboxes to checked and enable price inputs
-    ['5ml', '10ml', '30ml', 'whole'].forEach(size => {
-        const checkbox = document.getElementById(`variant_${size}`);
-        checkbox.checked = true;
-        
-        if (size !== 'whole') {
-            const priceInput = document.getElementById(`price_${size}`);
-            priceInput.disabled = false;
-            const defaults = {'5ml': '2.500', '10ml': '4.500', '30ml': '12.000'};
-            priceInput.value = defaults[size];
-        }
-    });
-}
-
-// Image Upload Functions
-function initializeImageUpload() {
-    const fileInput = document.getElementById('image');
-    const imageUpload = document.getElementById('imageUpload');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-    const removeImageBtn = document.getElementById('removeImage');
-
-    imageUpload.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) handleImageFile(file);
-    });
-
-    imageUpload.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        imageUpload.classList.add('dragover');
-    });
-
-    imageUpload.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        imageUpload.classList.remove('dragover');
-    });
-
-    imageUpload.addEventListener('drop', function(e) {
-        e.preventDefault();
-        imageUpload.classList.remove('dragover');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            const file = files[0];
-            fileInput.files = files;
-            handleImageFile(file);
-        }
-    });
-
-    removeImageBtn.addEventListener('click', clearImagePreview);
-
-    function handleImageFile(file) {
-        if (!file.type.includes('png')) {
-            showMessage('error', translations[currentLanguage]['invalid_image']);
-            return;
-        }
-
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-            showMessage('error', translations[currentLanguage]['image_too_large']);
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            imageUpload.style.display = 'none';
-            imagePreview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function clearImagePreview() {
-    const fileInput = document.getElementById('image');
-    const imageUpload = document.getElementById('imageUpload');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-
-    fileInput.value = '';
-    previewImg.src = '';
-    imageUpload.style.display = 'block';
-    imagePreview.style.display = 'none';
-    imageUpload.classList.remove('dragover');
-}
-
-// Variants Functions
-function initializeVariants() {
-    const variantSizes = ['5ml', '10ml', '30ml'];
-    
-    variantSizes.forEach(size => {
-        const checkbox = document.getElementById(`variant_${size}`);
-        const priceInput = document.getElementById(`price_${size}`);
-        
-        checkbox.addEventListener('change', function() {
-            priceInput.disabled = !this.checked;
-            if (!this.checked) {
-                priceInput.value = '';
-            } else {
-                const defaults = {'5ml': '2.500', '10ml': '4.500', '30ml': '12.000'};
-                if (!priceInput.value) {
-                    priceInput.value = defaults[size];
-                }
-            }
-        });
-        
-        priceInput.disabled = !checkbox.checked;
-    });
-}
-
-// Form Functions
-function initializeForm() {
-    const form = document.getElementById('fragranceForm');
-    form.addEventListener('submit', handleFormSubmit);
-}
-
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    
-    if (!checkAuthentication()) return;
-    
-    const formData = collectFormData();
-    if (!validateFormData(formData)) return;
-    
-    setSubmitLoading(true);
-    hideMessages();
-    
-    try {
-        let imagePath = '';
-        const imageFile = formData.imageFile;
-        
-        // Upload image if provided
-        if (imageFile) {
-            showMessage('success', translations[currentLanguage]['uploading_image']);
-            imagePath = await uploadImage(imageFile, formData.slug);
-        }
-        
-        showMessage('success', translations[currentLanguage]['saving_fragrance']);
-        
-        // Prepare request data
-        const requestData = {
-            name: formData.name,
-            brand: formData.brand,
-            slug: formData.slug,
-            description: formData.description,
-            variants: formData.variants
-        };
-
-        // Add image if uploaded or keep existing
-        if (imagePath) {
-            requestData.image = imagePath;
-        } else if (currentEditingId) {
-            // Keep existing image for edits
-            const existingFragrance = allFragrances.find(f => f.id === currentEditingId);
-            if (existingFragrance && existingFragrance.image_path) {
-                requestData.image = existingFragrance.image_path;
-            }
-        }
-
-        // Add ID for updates
-        if (currentEditingId) {
-            requestData.id = currentEditingId;
-        }
-        
-        // Save fragrance
-        const endpoint = currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance';
-        const method = currentEditingId ? 'PUT' : 'POST';
-        
-        const response = await fetch(endpoint, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(requestData)
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
-            const message = currentEditingId ? 
-                translations[currentLanguage]['fragrance_updated'] : 
-                translations[currentLanguage]['fragrance_added'];
-            
-            showMessage('success', message);
-            
-            setTimeout(() => {
-                closePanel();
-                loadFragrances(); // Reload data
-            }, 1500);
-        } else {
-            if (response.status === 401) {
-                alert(translations[currentLanguage]['session_expired']);
-                window.location.href = '/login.html';
-            } else {
-                let errorMessage = translations[currentLanguage]['error_saving'];
-                if (data.error && data.error.includes('slug')) {
-                    errorMessage = translations[currentLanguage]['slug_exists'];
-                }
-                showMessage('error', errorMessage);
-            }
-        }
-    } catch (error) {
-        console.error('Error saving fragrance:', error);
-        showMessage('error', translations[currentLanguage]['error_saving']);
-    } finally {
-        setSubmitLoading(false);
-    }
-}
-
-function collectFormData() {
-    const name = document.getElementById('name').value.trim();
-    const brand = document.getElementById('brand').value.trim();
-    const slug = document.getElementById('slug').value.trim();
-    const description = document.getElementById('description').value.trim();
-    const imageFile = document.getElementById('image').files[0];
-    
-    const variants = [];
-    const variantSizes = ['5ml', '10ml', '30ml', 'whole'];
-    const variantLabels = {'5ml': '5ml', '10ml': '10ml', '30ml': '30ml', 'whole': 'Whole Bottle'};
-    
-    variantSizes.forEach(size => {
-        const checkbox = document.getElementById(`variant_${size}`);
-        if (checkbox && checkbox.checked) {
-            if (size === 'whole') {
-                variants.push({ 
-                    size: variantLabels[size], 
-                    price: null,
-                    size_ml: null,
-                    is_whole_bottle: true
-                });
-            } else {
-                const priceInput = document.getElementById(`price_${size}`);
-                const price = parseFloat(priceInput.value);
-                
-                if (!isNaN(price) && price > 0) {
-                    variants.push({ 
-                        size: variantLabels[size], 
-                        price: price,
-                        size_ml: parseInt(size.replace('ml', '')),
-                        is_whole_bottle: false
-                    });
-                }
-            }
-        }
-    });
-    
-    return { name, brand, slug, description, imageFile, variants };
-}
-
-function validateFormData(data) {
-    if (!data.name || !data.slug || !data.description) {
-        showMessage('error', translations[currentLanguage]['required_fields']);
-        return false;
-    }
-    
-    if (data.variants.length === 0) {
-        showMessage('error', translations[currentLanguage]['no_variants']);
-        return false;
-    }
-    
-    return true;
-}
-
-async function uploadImage(imageFile, slug) {
-    const imageFormData = new FormData();
-    imageFormData.append('image', imageFile);
-    imageFormData.append('slug', slug);
-    
-    const imageResponse = await fetch('/admin/upload-image', {
-        method: 'POST',
-        credentials: 'include',
-        body: imageFormData
-    });
-    
-    if (!imageResponse.ok) {
-        const imageError = await imageResponse.json();
-        throw new Error(`Image upload failed: ${imageError.error}`);
-    }
-    
-    const imageResult = await imageResponse.json();
-    return imageResult.data.path;
-}
-
-async function handleLogout() {
-    if (confirm(translations[currentLanguage]['confirm_logout'])) {
-        try {
-            await fetch('/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-        
-        document.cookie = 'admin_session=; Path=/; Max-Age=0';
-        window.location.href = '/login.html';
-    }
-}
-
-// Utility Functions
-function showTableError() {
-    const tableLoading = document.getElementById('tableLoading');
-    const tableContent = document.getElementById('tableContent');
-    const emptyTable = document.getElementById('emptyTable');
-
-    tableLoading.style.display = 'none';
-    tableContent.style.display = 'none';
-    emptyTable.style.display = 'block';
-    
-    const emptyTitle = emptyTable.querySelector('h3');
-    const emptyText = emptyTable.querySelector('p');
-    
-    emptyTitle.textContent = translations[currentLanguage]['error_loading'];
-    emptyText.textContent = translations[currentLanguage]['error_loading'];
-}
-
-function showMessage(type, message) {
-    hideMessages();
-    const messageDiv = document.getElementById(`${type}-message`);
-    if (messageDiv) {
-        messageDiv.textContent = message;
-        messageDiv.style.display = 'flex';
-        messageDiv.classList.add('slide-up');
-        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
-        if (type === 'success') {
-            messageDiv.classList.add('success-pulse');
-            setTimeout(() => messageDiv.classList.remove('success-pulse'), 600);
-        } else if (type === 'error') {
-            messageDiv.classList.add('error-shake');
-            setTimeout(() => messageDiv.classList.remove('error-shake'), 500);
-        }
-    }
-}
-
-function hideMessages() {
-    const errorDiv = document.getElementById('error-message');
-    const successDiv = document.getElementById('success-message');
-    
-    if (errorDiv) {
-        errorDiv.style.display = 'none';
-        errorDiv.textContent = '';
-        errorDiv.classList.remove('slide-up', 'error-shake');
-    }
-    if (successDiv) {
-        successDiv.style.display = 'none';
-        successDiv.textContent = '';
-        successDiv.classList.remove('slide-up', 'success-pulse');
-    }
-}
-
-function setSubmitLoading(loading) {
-    const submitBtn = document.getElementById('submitBtn');
-    const btnText = submitBtn.querySelector('.btn-text');
-    const btnIcon = submitBtn.querySelector('.btn-icon');
-    
-    if (loading) {
-        submitBtn.classList.add('loading');
-        submitBtn.disabled = true;
-        btnText.style.opacity = '0';
-        btnIcon.style.opacity = '0';
-    } else {
-        submitBtn.classList.remove('loading');
-        submitBtn.disabled = false;
-        btnText.style.opacity = '1';
-        btnIcon.style.opacity = '1';
-        
-        const isEdit = currentEditingId !== null;
-        btnText.textContent = isEdit ? 
-            translations[currentLanguage]['update_fragrance'] : 
-            translations[currentLanguage]['add_to_store'];
-    }
-}
-
-function addAnimations() {
-    // Animate stats cards
-    const statCards = document.querySelectorAll('.stat-card');
-    statCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100 + 200);
-    });
-    
-    // Animate status bar
-    const statusBar = document.querySelector('.status-bar');
-    if (statusBar) {
-        statusBar.style.opacity = '0';
-        statusBar.style.transform = 'translateY(-20px)';
-        
-        setTimeout(() => {
-            statusBar.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            statusBar.style.opacity = '1';
-            statusBar.style.transform = 'translateY(0)';
-        }, 100);
-    }
-    
-    // Animate table container
-    const tableContainer = document.querySelector('.table-container');
-    if (tableContainer) {
-        tableContainer.style.opacity = '0';
-        tableContainer.style.transform = 'translateY(30px)';
-        
-        setTimeout(() => {
-            tableContainer.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            tableContainer.style.opacity = '1';
-            tableContainer.style.transform = 'translateY(0)';
-        }, 400);
-    }
-}
-
-// Global functions for onclick handlers
-window.editFragrance = editFragrance;
-window.toggleVisibility = toggleVisibility;
-window.deleteFragrance = deleteFragrance;
+        // Your JavaScript code here
     </script>
 </body>
 </html>
-        
