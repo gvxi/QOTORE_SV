@@ -1,0 +1,613 @@
+/* Fragrance Management Styles */
+
+/* Fragrances Table */
+.fragrances-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fragrances-table thead th {
+    background: var(--surface);
+    color: var(--text-primary);
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: var(--font-weight-medium);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.fragrances-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background-color var(--transition-fast);
+}
+
+.fragrances-table tbody tr:hover {
+    background-color: #f9f9ff;
+}
+
+.fragrances-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.fragrances-table td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+}
+
+/* Fragrance Image */
+.fragrance-image {
+    width: 60px;
+}
+
+.fragrance-image img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: white;
+}
+
+.no-image {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--text-light);
+    text-align: center;
+}
+
+/* Fragrance Name */
+.fragrance-name {
+    max-width: 250px;
+}
+
+.name-primary {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.name-secondary {
+    color: var(--text-light);
+    font-size: 0.8rem;
+}
+
+/* Fragrance Brand */
+.fragrance-brand {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Fragrance Variants */
+.fragrance-variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-width: 280px;
+}
+
+.variant-tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #e8f4fd;
+    color: #0277bd;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.variant-tag.whole-bottle {
+    background: #ede7f6;
+    color: #5e35b1;
+}
+
+.no-variants {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* Fragrance Status */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-round);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
+}
+
+.status-visible {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-hidden {
+    background: #fbe9e7;
+    color: #d32f2f;
+}
+
+/* Fragrance Actions */
+.fragrance-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.action-btn:hover {
+    background: var(--surface);
+}
+
+.action-btn img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
+}
+
+.edit-btn:hover img {
+    opacity: 1;
+    filter: brightness(1.2);
+}
+
+.toggle-btn:hover img {
+    opacity: 1;
+    filter: brightness(1.2);
+}
+
+.delete-btn:hover img {
+    opacity: 1;
+    filter: brightness(1.2) saturate(1.5);
+}
+
+/* Add Fragrance Modal */
+.fragrance-modal {
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+}
+
+.fragrance-modal .modal-body {
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: white;
+    font-family: var(--font-family);
+    transition: border-color var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.help-text {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
+}
+
+/* Variants Section */
+.variant-section {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+}
+
+.variant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.variant-header h3 {
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.add-variant-btn {
+    padding: 0.5rem 0.75rem;
+    background: var(--primary-light);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.add-variant-btn:hover {
+    background: var(--primary-color);
+}
+
+.variants-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f0f4fc;
+    border-radius: var(--radius-sm);
+}
+
+.variants-table {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.variants-header {
+    display: grid;
+    grid-template-columns: 1.5fr 1.5fr 2fr 0.5fr;
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    font-weight: var(--font-weight-medium);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+}
+
+.variant-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1.5fr 2fr 0.5fr;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    transition: background-color var(--transition-fast);
+}
+
+.variant-row:last-child {
+    border-bottom: none;
+}
+
+.variant-row:hover {
+    background-color: #f9f9ff;
+}
+
+.variant-row.whole-bottle-row {
+    background-color: #f5f0ff;
+}
+
+.variant-row.whole-bottle-row:hover {
+    background-color: #ece4ff;
+}
+
+.variant-cell {
+    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.variant-cell input {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+
+.variant-actions {
+    justify-content: flex-end;
+}
+
+.remove-variant-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.remove-variant-btn:hover {
+    background: #ffeaea;
+}
+
+.remove-variant-btn img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+}
+
+.remove-variant-btn:hover img {
+    opacity: 1;
+}
+
+.whole-bottle-label {
+    font-weight: var(--font-weight-medium);
+    color: #5e35b1;
+}
+
+.whole-bottle-price {
+    font-style: italic;
+    color: #5e35b1;
+}
+
+.variants-add {
+    padding: 1rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+}
+
+.whole-bottle-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.add-whole-bottle-btn {
+    padding: 0.5rem 0.75rem;
+    background: #5e35b1;
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background var(--transition-fast), opacity var(--transition-fast);
+}
+
+.add-whole-bottle-btn:hover {
+    background: #4527a0;
+}
+
+.add-whole-bottle-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.whole-bottle-option .help-text {
+    margin-top: 0;
+}
+
+/* Empty State for Fragrances */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+    background: white;
+    border-radius: var(--radius-md);
+    margin-top: 1rem;
+}
+
+.empty-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.empty-state h3 {
+    font-size: 1.2rem;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+}
+
+.empty-state .primary-btn {
+    margin-top: 1rem;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* RTL Support */
+[dir="rtl"] .form-grid {
+    direction: rtl;
+}
+
+[dir="rtl"] .fragrance-actions {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .variant-header {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .variants-header {
+    direction: rtl;
+}
+
+[dir="rtl"] .variant-row {
+    direction: rtl;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .fragrances-table {
+        font-size: 0.9rem;
+    }
+    
+    .variant-tag {
+        font-size: 0.7rem;
+    }
+    
+    .fragrance-modal {
+        width: 95%;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .fragrances-table thead {
+        display: none;
+    }
+    
+    .fragrances-table tbody tr {
+        display: block;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .fragrances-table td {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: none;
+    }
+    
+    .fragrances-table td::before {
+        content: attr(data-label);
+        font-weight: var(--font-weight-medium);
+        width: 100px;
+        flex-shrink: 0;
+        color: var(--text-secondary);
+    }
+    
+    .fragrance-image {
+        width: auto;
+    }
+    
+    .fragrance-name {
+        max-width: none;
+    }
+    
+    .fragrance-variants {
+        max-width: none;
+    }
+    
+    .fragrance-actions {
+        justify-content: flex-start;
+    }
+    
+    .variants-header {
+        grid-template-columns: 1fr 1fr 1fr 0.5fr;
+    }
+    
+    .variant-row {
+        grid-template-columns: 1fr 1fr 1fr 0.5fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .section-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .search-container {
+        width: 100%;
+    }
+    
+    .filter-select {
+        width: 100%;
+    }
+    
+    .add-fragrance-btn {
+        width: 100%;
+    }
+    
+    .variants-header {
+        display: none;
+    }
+    
+    .variant-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+    
+    .variant-cell {
+        width: 100%;
+        padding: 0;
+    }
+    
+    .variant-cell:not(:last-child) {
+        margin-bottom: 0.5rem;
+    }
+    
+    .variant-cell::before {
+        content: attr(data-label);
+        font-weight: var(--font-weight-medium);
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    
+    .variant-actions {
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }}
