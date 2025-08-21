@@ -889,4 +889,883 @@ async function saveFragrance() {
         // Reset button state
         saveButton.textContent = originalText;
         saveButton.disabled = false;
-    }}
+    }
+
+            // Global Variables
+        let currentTab = 'dashboard';
+        let orders = [];
+        let filteredOrders = [];
+        let notificationsEnabled = false;
+        let currentOrderId = null;
+        let orderCheckInterval = null;
+
+// Tab switching function
+function switchToTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(`${tabName}Tab`);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+    
+    // Update nav tabs
+    document.querySelectorAll('.nav-tab').forEach(navTab => {
+        navTab.classList.remove('active');
+        if (navTab.getAttribute('data-tab') === tabName) {
+            navTab.classList.add('active');
+        }
+    });
+    
+    // Update current tab variable
+    currentTab = tabName;
+    
+    // Store the current tab in localStorage
+    localStorage.setItem('admin_current_tab', tabName);
+    
+    // Load tab-specific data
+    if (tabName === 'orders') {
+        loadOrders();
+    } else if (tabName === 'fragrances') {
+        // Initialize the fragrances tab
+        if (typeof initFragrancesTab === 'function') {
+            initFragrancesTab();
+        }
+    } else if (tabName === 'dashboard') {
+        loadDashboardData();
+    }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication before initializing
+            checkAuthentication().then(isAuthenticated => {
+                if (!isAuthenticated) {
+                    console.log('Not authenticated, redirecting to login');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                // Only initialize if authenticated
+                initializeApp();
+            }).catch(error => {
+                console.error('Authentication check failed:', error);
+                window.location.href = '/login.html';
+            });
+        });
+
+        // Check authentication status
+        async function checkAuthentication() {
+            try {
+                // Check if session cookie exists
+                const cookies = document.cookie.split(';');
+                const sessionCookie = cookies.find(cookie => 
+                    cookie.trim().startsWith('admin_session=')
+                );
+                
+                if (!sessionCookie) {
+                    console.log('No admin session cookie found');
+                    return false;
+                }
+                
+                // Test authentication with a simple API call
+                const testResponse = await fetch('/api/admin/orders/stats', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (testResponse.status === 401) {
+                    console.log('Session invalid - 401 response');
+                    // Clear invalid session cookie
+                    document.cookie = 'admin_session=; Path=/; Max-Age=0';
+                    return false;
+                }
+                
+                if (!testResponse.ok) {
+                    console.log('Authentication test failed with status:', testResponse.status);
+                    return false;
+                }
+                
+                console.log('Authentication verified successfully');
+                return true;
+                
+            } catch (error) {
+                console.error('Authentication check error:', error);
+                return false;
+            }
+        }
+
+        function initializeApp() {
+            initializeTheme();
+            initializeEventListeners();
+            loadDashboardData();
+            checkNotificationPermission();
+            
+            // Start checking for new orders every 30 seconds
+            startOrderChecking();
+        }
+
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('qotor_admin_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('qotor_admin_theme', newTheme);
+        }
+
+        // Event Listeners
+        function initializeEventListeners() {
+            // Navigation tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    switchToTab(tabName);
+                });
+            });
+
+            // Language switcher
+            const languageBtn = document.getElementById('languageBtn');
+            const languageDropdown = document.getElementById('languageDropdown');
+            
+            if (languageBtn && languageDropdown) {
+                languageBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    languageDropdown.classList.toggle('show');
+                });
+
+                document.addEventListener('click', () => {
+                    languageDropdown.classList.remove('show');
+                });
+
+                document.querySelectorAll('.language-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        const lang = option.getAttribute('data-lang');
+                        changeLanguage(lang);
+                        languageDropdown.classList.remove('show');
+                    });
+                });
+            }
+
+            // Notification toggle
+            const notificationToggle = document.getElementById('notificationToggle');
+            if (notificationToggle) {
+                notificationToggle.addEventListener('click', toggleNotifications);
+            }
+
+            // Logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+
+            // Order search and filter
+            const ordersSearch = document.getElementById('ordersSearch');
+            const ordersFilter = document.getElementById('ordersFilter');
+            
+            if (ordersSearch) {
+                ordersSearch.addEventListener('input', filterOrders);
+            }
+            
+            if (ordersFilter) {
+                ordersFilter.addEventListener('change', filterOrders);
+            }
+
+            // Modal close on background click
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('show');
+                    }
+                });
+            });
+        }
+
+        // Tab Switching
+        function switchToTab(tabName) {
+            // Update navigation
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+
+            currentTab = tabName;
+
+            // Load data for specific tabs
+            if (tabName === 'orders') {
+                loadOrders();
+            } else if (tabName === 'dashboard') {
+                loadDashboardData();
+            }
+        }
+
+        // Dashboard Data Loading
+        async function loadDashboardData() {
+            try {
+                // Update statistics
+                await updateStatistics();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showToast('Error loading dashboard data', 'error');
+            }
+        }
+
+        async function updateStatistics() {
+            try {
+                // Simulate API calls - replace with actual API endpoints
+                const stats = await fetchStatistics();
+                
+                document.getElementById('totalOrders').textContent = stats.totalOrders || '0';
+                document.getElementById('pendingOrders').textContent = stats.pendingOrders || '0';
+                document.getElementById('totalFragrances').textContent = stats.totalFragrances || '0';
+                document.getElementById('totalRevenue').textContent = `${stats.totalRevenue || '0.000'} OMR`;
+
+                // Update change indicators
+                updateChangeIndicator('ordersChange', stats.ordersChange);
+                updateChangeIndicator('pendingChange', stats.pendingChange);
+                updateChangeIndicator('fragranceChange', stats.fragranceChange);
+                updateChangeIndicator('revenueChange', stats.revenueChange);
+            } catch (error) {
+                console.error('Error updating statistics:', error);
+            }
+        }
+
+        function updateChangeIndicator(elementId, change) {
+            const element = document.getElementById(elementId);
+            if (!element || !change) return;
+
+            element.textContent = `${change.value > 0 ? '+' : ''}${change.value}${change.unit || ''}`;
+            element.className = `stat-change ${change.value >= 0 ? 'positive' : 'negative'}`;
+        }
+
+        // Orders Management
+        async function loadOrders() {
+            showLoadingState('orders');
+            
+            try {
+                const response = await fetchOrders();
+                orders = response.orders || [];
+                filteredOrders = [...orders];
+                
+                displayOrders();
+                hideLoadingState('orders');
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showEmptyState('orders');
+                showToast('Error loading orders', 'error');
+            }
+        }
+
+        function displayOrders() {
+            const tableBody = document.getElementById('ordersTableBody');
+            const ordersTable = document.getElementById('ordersTable');
+            const emptyOrders = document.getElementById('emptyOrders');
+
+            if (!filteredOrders.length) {
+                ordersTable.style.display = 'none';
+                emptyOrders.style.display = 'block';
+                return;
+            }
+
+            ordersTable.style.display = 'block';
+            emptyOrders.style.display = 'none';
+
+            tableBody.innerHTML = filteredOrders.map(order => `
+                <tr onclick="viewOrderDetails('${order.id}')" style="cursor: pointer;">
+                    <td>#${order.id}</td>
+                    <td>
+                        <div>
+                            <div style="font-weight: 500;">${order.customer.name}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">${order.customer.email}</div>
+                        </div>
+                    </td>
+                    <td>${order.items.length} item${order.items.length !== 1 ? 's' : ''}</td>
+                    <td style="font-weight: 600;">${formatPrice(order.total)}</td>
+                    <td><span class="status-badge ${order.status}">${formatStatus(order.status)}</span></td>
+                    <td>${formatDate(order.createdAt)}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            ${order.status === 'pending' ? `
+                                <button class="btn btn-success" onclick="event.stopPropagation(); updateOrderStatus('${order.id}', 'completed')" title="Mark as Completed">✓</button>
+                                <button class="btn btn-danger" onclick="event.stopPropagation(); updateOrderStatus('${order.id}', 'canceled')" title="Cancel Order">✕</button>
+                            ` : ''}
+                            <button class="btn btn-secondary" onclick="event.stopPropagation(); viewOrderDetails('${order.id}')" title="View Details">👁</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterOrders() {
+            const searchTerm = document.getElementById('ordersSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('ordersFilter').value;
+
+            filteredOrders = orders.filter(order => {
+                const matchesSearch = !searchTerm || 
+                    order.id.toString().includes(searchTerm) ||
+                    order.customer.name.toLowerCase().includes(searchTerm) ||
+                    order.customer.email.toLowerCase().includes(searchTerm);
+
+                const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            displayOrders();
+        }
+
+        function refreshOrders() {
+            loadOrders();
+            showToast('Orders refreshed', 'success');
+        }
+
+        // Order Details Modal
+        function viewOrderDetails(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            currentOrderId = orderId;
+
+            // Populate modal with order data
+            document.getElementById('modalOrderId').textContent = `#${order.id}`;
+            document.getElementById('modalOrderDate').textContent = formatDate(order.createdAt);
+            document.getElementById('modalOrderStatus').textContent = formatStatus(order.status);
+            document.getElementById('modalOrderStatus').className = `status-badge ${order.status}`;
+            document.getElementById('modalOrderTotal').textContent = formatPrice(order.total);
+
+            // Customer information
+            document.getElementById('modalCustomerName').textContent = order.customer.name;
+            document.getElementById('modalCustomerEmail').textContent = order.customer.email;
+            document.getElementById('modalCustomerPhone').textContent = order.customer.phone || 'Not provided';
+            document.getElementById('modalDeliveryAddress').textContent = order.customer.address || 'Not provided';
+
+            // Optional fields
+            const preferredTimeItem = document.getElementById('preferredTimeItem');
+            const specialInstructionsItem = document.getElementById('specialInstructionsItem');
+            
+            if (order.preferredTime) {
+                document.getElementById('modalPreferredTime').textContent = order.preferredTime;
+                preferredTimeItem.style.display = 'block';
+            } else {
+                preferredTimeItem.style.display = 'none';
+            }
+
+            if (order.specialInstructions) {
+                document.getElementById('modalSpecialInstructions').textContent = order.specialInstructions;
+                specialInstructionsItem.style.display = 'block';
+            } else {
+                specialInstructionsItem.style.display = 'none';
+            }
+
+            // Order items
+            const itemsContainer = document.getElementById('modalOrderItems');
+            itemsContainer.innerHTML = order.items.map(item => `
+                <div class="order-item">
+                    <div class="item-info">
+                        <div class="item-name">${item.fragrance}</div>
+                        <div class="item-details">${item.size} • Qty: ${item.quantity}</div>
+                    </div>
+                    <div class="item-price">${formatPrice(item.price * item.quantity)}</div>
+                </div>
+            `).join('');
+
+            // Summary
+            document.getElementById('modalSubtotal').textContent = formatPrice(order.subtotal);
+            document.getElementById('modalTotal').textContent = formatPrice(order.total);
+
+            // Action buttons
+            const completeBtn = document.getElementById('completeOrderBtn');
+            const cancelBtn = document.getElementById('cancelOrderBtn');
+            
+            if (order.status === 'pending') {
+                completeBtn.style.display = 'inline-flex';
+                cancelBtn.style.display = 'inline-flex';
+            } else {
+                completeBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+            }
+
+            // Show modal
+            document.getElementById('orderModal').classList.add('show');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('show');
+            currentOrderId = null;
+        }
+
+        // Order Status Update
+        async function updateOrderStatus(orderId, newStatus) {
+            if (!orderId) orderId = currentOrderId;
+            if (!orderId) return;
+
+            try {
+                const response = await fetch('/api/admin/orders', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        orderId: orderId, 
+                        status: newStatus 
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    // Update local order data
+                    const orderIndex = orders.findIndex(o => o.id === orderId);
+                    if (orderIndex !== -1) {
+                        orders[orderIndex].status = newStatus;
+                        orders[orderIndex].updatedAt = new Date().toISOString();
+                    }
+
+                    // Refresh displays
+                    filterOrders();
+                    updateStatistics();
+                    
+                    // Close modal if open
+                    if (currentOrderId === orderId) {
+                        closeOrderModal();
+                    }
+
+                    showToast(`Order ${newStatus === 'completed' ? 'completed' : 'canceled'} successfully`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to update order status');
+                }
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                showToast('Error updating order status: ' + error.message, 'error');
+            }
+        }
+
+        // Notifications Management
+        function checkNotificationPermission() {
+            if ('Notification' in window) {
+                const permission = Notification.permission;
+                updateNotificationStatus(permission === 'granted');
+            } else {
+                console.log('Notifications not supported');
+            }
+        }
+
+        function toggleNotifications() {
+            if (!('Notification' in window)) {
+                showToast('Notifications not supported in this browser', 'warning');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                notificationsEnabled = !notificationsEnabled;
+                updateNotificationStatus(notificationsEnabled);
+                
+                if (notificationsEnabled) {
+                    showToast('Notifications enabled', 'success');
+                } else {
+                    showToast('Notifications disabled', 'warning');
+                }
+            } else if (Notification.permission === 'denied') {
+                showToast('Notifications are blocked. Please enable them in browser settings.', 'warning');
+            } else {
+                // Show modal to request permission
+                document.getElementById('notificationModal').classList.add('show');
+            }
+        }
+
+        async function enableNotifications() {
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    notificationsEnabled = true;
+                    updateNotificationStatus(true);
+                    closeNotificationModal();
+                    showToast('Notifications enabled successfully!', 'success');
+                    
+                    // Show test notification
+                    new Notification('Qotor Admin', {
+                        body: 'Notifications are now enabled! You\'ll receive alerts for new orders.',
+                        icon: '/api/image/logo.png'
+                    });
+                } else {
+                    showToast('Notification permission denied', 'warning');
+                }
+            } catch (error) {
+                console.error('Error requesting notification permission:', error);
+                showToast('Error enabling notifications', 'error');
+            }
+        }
+
+        function updateNotificationStatus(enabled) {
+            notificationsEnabled = enabled;
+            const statusElement = document.getElementById('notificationStatus');
+            const badgeElement = document.getElementById('notificationBadge');
+            
+            if (statusElement) {
+                statusElement.textContent = enabled ? 'ON' : 'OFF';
+            }
+            
+            if (!enabled && badgeElement) {
+                badgeElement.textContent = '0';
+            }
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').classList.remove('show');
+        }
+
+        // Order Checking (for new order notifications)
+        function startOrderChecking() {
+            if (orderCheckInterval) {
+                clearInterval(orderCheckInterval);
+            }
+            
+            // Check for new orders every 30 seconds
+            orderCheckInterval = setInterval(async () => {
+                if (notificationsEnabled) {
+                    await checkForNewOrders();
+                }
+            }, 30000);
+        }
+
+        async function checkForNewOrders() {
+            try {
+                const response = await fetchOrders();
+                const newOrders = response.orders || [];
+                
+                // Compare with existing orders to find new ones
+                const existingOrderIds = orders.map(o => o.id);
+                const newOrdersFound = newOrders.filter(order => !existingOrderIds.includes(order.id));
+                
+                if (newOrdersFound.length > 0) {
+                    // Update orders array
+                    orders = newOrders;
+                    
+                    // Show notifications for new orders
+                    newOrdersFound.forEach(order => {
+                        showNewOrderNotification(order);
+                    });
+                    
+                    // Update notification badge
+                    updateNotificationBadge(newOrdersFound.length);
+                    
+                    // Refresh current view if on orders tab
+                    if (currentTab === 'orders') {
+                        filteredOrders = [...orders];
+                        displayOrders();
+                    }
+                    
+                    // Update dashboard statistics
+                    updateStatistics();
+                }
+            } catch (error) {
+                console.error('Error checking for new orders:', error);
+            }
+        }
+
+        function showNewOrderNotification(order) {
+            if (!notificationsEnabled || Notification.permission !== 'granted') return;
+            
+            new Notification('New Order Received!', {
+                body: `Order #${order.id} from ${order.customer.name} - ${formatPrice(order.total)}`,
+                icon: '/api/image/logo.png',
+                tag: `order-${order.id}`,
+                requireInteraction: true
+            });
+        }
+
+        function updateNotificationBadge(newCount) {
+            const badgeElement = document.getElementById('notificationBadge');
+            if (badgeElement) {
+                const currentCount = parseInt(badgeElement.textContent) || 0;
+                badgeElement.textContent = currentCount + newCount;
+            }
+        }
+
+        // Language Management
+        function changeLanguage(lang) {
+            // Store language preference
+            localStorage.setItem('qotor_admin_language', lang);
+            
+            // Update document direction for Arabic
+            if (lang === 'ar') {
+                document.documentElement.setAttribute('dir', 'rtl');
+                document.documentElement.setAttribute('lang', 'ar');
+            } else {
+                document.documentElement.setAttribute('dir', 'ltr');
+                document.documentElement.setAttribute('lang', 'en');
+            }
+            
+            // Apply translations (this would typically load from a translations file)
+            applyTranslations(lang);
+            
+            showToast(`Language changed to ${lang === 'ar' ? 'العربية' : 'English'}`, 'success');
+        }
+
+        function applyTranslations(lang) {
+            // This is a simplified translation system
+            // In a real application, you would load translations from external files
+            const translations = {
+                en: {
+                    admin_panel: 'Admin Panel',
+                    nav_dashboard: 'Dashboard',
+                    nav_orders: 'Orders',
+                    nav_fragrances: 'Fragrances',
+                    nav_analytics: 'Analytics',
+                    total_orders: 'Total Orders',
+                    pending_orders: 'Pending Orders',
+                    // Add more translations as needed
+                },
+                ar: {
+                    admin_panel: 'لوحة الإدارة',
+                    nav_dashboard: 'الرئيسية',
+                    nav_orders: 'الطلبات',
+                    nav_fragrances: 'العطور',
+                    nav_analytics: 'الإحصائيات',
+                    total_orders: 'إجمالي الطلبات',
+                    pending_orders: 'الطلبات المعلقة',
+                    // Add more translations as needed
+                }
+            };
+
+            const langData = translations[lang] || translations.en;
+            
+            // Apply translations to elements with data-key attributes
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (langData[key]) {
+                    element.textContent = langData[key];
+                }
+            });
+
+            // Apply placeholder translations
+            document.querySelectorAll('[data-key-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-key-placeholder');
+                if (langData[key]) {
+                    element.placeholder = langData[key];
+                }
+            });
+        }
+
+        // Utility Functions
+        function showLoadingState(section) {
+            const loadingElement = document.getElementById(`${section}Loading`);
+            const contentElement = document.getElementById(`${section}Table`);
+            const emptyElement = document.getElementById(`empty${section.charAt(0).toUpperCase() + section.slice(1)}`);
+            
+            if (loadingElement) loadingElement.style.display = 'block';
+            if (contentElement) contentElement.style.display = 'none';
+            if (emptyElement) emptyElement.style.display = 'none';
+        }
+
+        function hideLoadingState(section) {
+            const loadingElement = document.getElementById(`${section}Loading`);
+            if (loadingElement) loadingElement.style.display = 'none';
+        }
+
+        function showEmptyState(section) {
+            const loadingElement = document.getElementById(`${section}Loading`);
+            const contentElement = document.getElementById(`${section}Table`);
+            const emptyElement = document.getElementById(`empty${section.charAt(0).toUpperCase() + section.slice(1)}`);
+            
+            if (loadingElement) loadingElement.style.display = 'none';
+            if (contentElement) contentElement.style.display = 'none';
+            if (emptyElement) emptyElement.style.display = 'block';
+        }
+
+        function formatPrice(price) {
+            return `${(price / 1000).toFixed(3)} OMR`;
+        }
+
+        function formatStatus(status) {
+            const statusMap = {
+                pending: 'Pending',
+                completed: 'Completed',
+                canceled: 'Canceled'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            // Remove existing toasts
+            document.querySelectorAll('.toast').forEach(toast => toast.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear session cookie
+                document.cookie = 'admin_session=; Path=/; Max-Age=0; SameSite=Lax';
+                
+                // Clear local storage
+                localStorage.removeItem('admin_session');
+                localStorage.removeItem('qotor_admin_theme');
+                localStorage.removeItem('qotor_admin_language');
+                
+                // Clear intervals
+                if (orderCheckInterval) {
+                    clearInterval(orderCheckInterval);
+                }
+                
+                // Call logout API to invalidate session server-side
+                fetch('/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                }).finally(() => {
+                    // Redirect to login regardless of API response
+                    window.location.href = '/login.html';
+                });
+            }
+        }
+
+        // API Functions (Real Supabase implementations)
+        async function fetchStatistics() {
+            try {
+                // Fetch orders statistics
+                const ordersResponse = await fetch('/api/admin/orders/stats');
+                if (!ordersResponse.ok) {
+                    throw new Error('Failed to fetch orders statistics');
+                }
+                const ordersStats = await ordersResponse.json();
+
+                // Fetch fragrances statistics
+                const fragrancesResponse = await fetch('/api/admin/fragrances');
+                if (!fragrancesResponse.ok) {
+                    throw new Error('Failed to fetch fragrances statistics');
+                }
+                const fragrancesData = await fragrancesResponse.json();
+
+                return {
+                    totalOrders: ordersStats.totalOrders || 0,
+                    pendingOrders: ordersStats.pendingOrders || 0,
+                    totalFragrances: fragrancesData.stats?.total || 0,
+                    totalRevenue: ordersStats.totalRevenue || 0,
+                    ordersChange: ordersStats.ordersChange || { value: 0, unit: '' },
+                    pendingChange: ordersStats.pendingChange || { value: 0, unit: '' },
+                    fragranceChange: fragrancesData.stats?.change || { value: 0, unit: '' },
+                    revenueChange: ordersStats.revenueChange || { value: 0, unit: ' OMR' }
+                };
+            } catch (error) {
+                console.error('Error fetching statistics:', error);
+                // Return default values on error
+                return {
+                    totalOrders: 0,
+                    pendingOrders: 0,
+                    totalFragrances: 0,
+                    totalRevenue: 0,
+                    ordersChange: { value: 0, unit: '' },
+                    pendingChange: { value: 0, unit: '' },
+                    fragranceChange: { value: 0, unit: '' },
+                    revenueChange: { value: 0, unit: ' OMR' }
+                };
+            }
+        }
+
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/api/admin/orders', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Redirect to login if unauthorized
+                        window.location.href = '/admin/login.html';
+                        return { orders: [] };
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return { orders: data.data || [] };
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                throw error;
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Alt + 1-4 for tab switching
+            if (e.altKey && e.key >= '1' && e.key <= '4') {
+                e.preventDefault();
+                const tabs = ['dashboard', 'orders', 'fragrances', 'analytics'];
+                const tabIndex = parseInt(e.key) - 1;
+                if (tabs[tabIndex]) {
+                    switchToTab(tabs[tabIndex]);
+                }
+            }
+            
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.show').forEach(modal => {
+                    modal.classList.remove('show');
+                });
+            }
+            
+            // Ctrl/Cmd + R to refresh orders (when on orders tab)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r' && currentTab === 'orders') {
+                e.preventDefault();
+                refreshOrders();
+            }
+        });
+
+        // Auto-refresh dashboard statistics every 5 minutes
+        setInterval(() => {
+            if (currentTab === 'dashboard') {
+                updateStatistics();
+            }
+        }, 5 * 60 * 1000);
+
+        // Page visibility handling
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                // Page became visible, refresh current tab data
+                if (currentTab === 'orders') {
+                    loadOrders();
+                } else if (currentTab === 'dashboard') {
+                    loadDashboardData();
+                }
+            }
+        });}}
