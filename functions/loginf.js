@@ -1,4 +1,4 @@
-// functions/loginf.js - Ultra-simple debug version
+// functions/loginf.js - Fixed login function with proper cookie setting
 console.log('loginf.js file loaded');
 
 export function onRequestGet(context) {
@@ -22,7 +22,6 @@ export function onRequestGet(context) {
   });
 }
 
-// functions/loginf.js - Working version with proper authentication
 export async function onRequestPost(context) {
   console.log('Login POST request received');
   
@@ -107,17 +106,22 @@ export async function onRequestPost(context) {
       
       // Generate session token
       const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('Generated session token:', sessionToken);
+      
+      // Set cookie with proper attributes for Cloudflare Pages
+      const cookieValue = `admin_session=${sessionToken}; Path=/; Max-Age=86400; SameSite=Lax; Secure`;
+      console.log('Setting cookie:', cookieValue);
       
       return new Response(JSON.stringify({ 
         success: true,
         message: 'Login successful!',
-        redirectUrl: '/admin/index.html'
+        redirectUrl: '/admin/index.html',
+        sessionToken: sessionToken // For debugging
       }), {
         status: 200,
         headers: {
           ...corsHeaders,
-          // Try different cookie settings for Cloudflare Pages
-          'Set-Cookie': `admin_session=${sessionToken}; Path=/; Max-Age=86400; SameSite=Lax`
+          'Set-Cookie': cookieValue
         }
       });
     } else {
@@ -150,7 +154,8 @@ export function onRequestOptions() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Credentials': 'true'
     }
   });
 }
