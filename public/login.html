@@ -1,356 +1,108 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Qotor</title>
-    <style>
-        /* Root Variables - Based on DK Hoone Emirates */
-:root {
-    /* Primary Colors */
-    --primary-color: #1a237e; /* Deep Blue */
+   <style>
+      :root {
+    --primary-color: #1a237e;
     --primary-light: #3949ab;
-    --primary-dark: #0d47a1;
-    
-    /* Secondary Colors */
-    --secondary-color: #ffd700; /* Gold */
-    --secondary-light: #ffeb3b;
-    --secondary-dark: #ff8f00;
-    
-    /* Neutral Colors */
-    --dark-color: #212121;
+    --secondary-color: #ffd700;
     --text-primary: #212121;
     --text-secondary: #757575;
-    --text-light: #9e9e9e;
     --background: #ffffff;
     --surface: #f5f5f5;
     --border: #e0e0e0;
-    
-    /* Status Colors */
     --success: #4caf50;
-    --warning: #ff9800;
     --error: #f44336;
-    --info: #2196f3;
-    
-    /* Spacing */
+    --warning: #ff9800;
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
     --spacing-xxl: 3rem;
-    
-    /* Typography */
-    --font-family: 'Arial', 'Helvetica', sans-serif;
-    --font-weight-light: 300;
-    --font-weight-normal: 400;
-    --font-weight-medium: 500;
-    --font-weight-bold: 700;
-    
-    /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
-    --radius-round: 50%;
-    
-    /* Transitions */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-    --transition-slow: 0.5s ease;
-    
-    /* Z-index */
-    --z-header: 1000;
-    --z-modal: 2000;
-    --z-dropdown: 1500;
-    --z-tooltip: 3000;
+    --transition: 0.3s ease;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
-/* Dark Theme Variables */
-[data-theme="dark"] {
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --text-light: #808080;
-    --background: #121212;
-    --surface: #1e1e1e;
-    --border: #333333;
-    --dark-color: #ffffff;
-}
-
-/* RTL Support */
-[dir="rtl"] {
-    text-align: right;
-}
-
-[dir="rtl"] .header-container {
-    flex-direction: row-reverse;
-}
-
-[dir="rtl"] .login-container {
-    flex-direction: row-reverse;
-}
-
-[dir="rtl"] .input-container {
-    flex-direction: row-reverse;
-}
-
-[dir="rtl"] .input-icon {
-    right: auto;
-    left: var(--spacing-md);
-}
-
-[dir="rtl"] .form-input {
-    padding-right: var(--spacing-md);
-    padding-left: 3rem;
-}
-
-[dir="rtl"] .language-dropdown {
-    right: auto;
-    left: 0;
-}
-
-/* Base Styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
 body {
-    font-family: var(--font-family);
+    font-family: 'Arial', 'Helvetica', sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
     min-height: 100vh;
-    transition: background var(--transition-normal), color var(--transition-normal);
-}
-
-/* Header Styles */
-.header {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    position: sticky;
-    top: 0;
-    z-index: var(--z-header);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-md) var(--spacing-lg);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-/* Logo */
-.logo-section {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-size: 1.5rem;
-    font-weight: var(--font-weight-bold);
-    color: white;
-}
-
-.logo-image {
-    height: 40px;
-    width: auto;
-    filter: brightness(0) invert(1);
-}
-
-.logo-text {
-    font-size: 1.8rem;
-    font-weight: var(--font-weight-bold);
-}
-
-/* Header Controls */
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.control-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: var(--spacing-sm);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    color: white;
-    text-decoration: none;
-}
-
-.control-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-.control-btn img {
-    width: 20px;
-    height: 20px;
-    filter: brightness(0) invert(1);
-}
-
-/* Language Selector */
-.language-selector {
-    position: relative;
-}
-
-.language-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    z-index: var(--z-dropdown);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all var(--transition-fast);
-    min-width: 150px;
-    overflow: hidden;
-}
-
-.language-dropdown.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.language-option {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    border: none;
-    background: none;
-    width: 100%;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    color: var(--text-primary);
-    text-align: left;
-    font-size: 0.875rem;
-}
-
-.language-option:hover {
-    background: var(--surface);
-}
-
-.language-option img {
-    width: 20px;
-    height: 15px;
-}
-
-/* Main Container */
-.main-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 80px);
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg);
 }
 
 .login-container {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
-    overflow: hidden;
-    width: 100%;
-    max-width: 900px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    min-height: 600px;
-}
-
-/* Login Form Section */
-.login-form-section {
+    box-shadow: var(--shadow-lg);
     padding: var(--spacing-xxl);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .form-header {
     text-align: center;
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-xxl);
 }
 
-.login-icon {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto var(--spacing-lg);
-    filter: hue-rotate(220deg);
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.logo-image {
+    height: 40px;
+    width: auto;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
 }
 
 .form-title {
-    font-size: 2rem;
-    font-weight: var(--font-weight-bold);
+    font-size: 1.75rem;
+    font-weight: bold;
     color: var(--text-primary);
-    margin-bottom: var(--spacing-sm);
 }
 
-.form-subtitle {
-    color: var(--text-secondary);
-    font-size: 1rem;
-}
-
-/* Status Indicator */
-.status-indicator {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--spacing-lg);
-    transition: all var(--transition-normal);
-}
-
-.status-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: var(--radius-round);
-    background: var(--text-light);
-    transition: background var(--transition-normal);
-}
-
-.status-dot.online {
-    background: var(--success);
-}
-
-.status-dot.offline {
-    background: var(--error);
-}
-
-.status-text {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    font-weight: var(--font-weight-medium);
-}
-
-/* Messages */
 .message {
     padding: var(--spacing-md);
     border-radius: var(--radius-lg);
     margin-bottom: var(--spacing-lg);
-    font-weight: var(--font-weight-medium);
+    font-weight: 500;
     display: none;
     align-items: center;
     gap: var(--spacing-sm);
+}
+
+.message.show {
+    display: flex;
 }
 
 .message.success {
@@ -371,8 +123,7 @@ body {
     border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
-/* Form Styles */
-.login-form {
+.form {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
@@ -381,13 +132,6 @@ body {
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
-}
-
-.form-label {
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
-    font-size: 0.875rem;
 }
 
 .input-container {
@@ -407,42 +151,48 @@ body {
 
 .form-input {
     width: 100%;
-    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 3rem;
+    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-lg) 3rem;
     border: 2px solid var(--border);
     border-radius: var(--radius-lg);
     font-size: 1rem;
     background: var(--background);
     color: var(--text-primary);
-    transition: all var(--transition-fast);
+    transition: all var(--transition);
     font-family: inherit;
 }
 
 .form-input:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
 }
 
 .form-input::placeholder {
-    color: var(--text-light);
+    color: var(--text-secondary);
 }
 
-/* Toggle Password */
+.form-input.error {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
 .toggle-password {
     position: absolute;
     right: var(--spacing-md);
     background: none;
     border: none;
     cursor: pointer;
-    padding: var(--spacing-xs);
+    padding: var(--spacing-sm);
     border-radius: var(--radius-sm);
-    transition: background var(--transition-fast);
+    transition: background var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
 }
 
 .toggle-password:hover {
-    background: var(--surface);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .eye-icon {
@@ -451,27 +201,29 @@ body {
     opacity: 0.6;
 }
 
-/* Login Button */
 .login-btn {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
     color: white;
     border: none;
     padding: var(--spacing-lg) var(--spacing-xl);
     border-radius: var(--radius-lg);
     font-size: 1.1rem;
-    font-weight: var(--font-weight-bold);
+    font-weight: bold;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-sm);
     position: relative;
     overflow: hidden;
+    margin-top: var(--spacing-md);
+    min-height: 56px;
 }
 
 .login-btn:hover:not(:disabled) {
     transform: translateY(-2px);
+    box-shadow: var(--shadow);
 }
 
 .login-btn:disabled {
@@ -489,14 +241,13 @@ body {
     width: 20px;
     height: 20px;
     filter: brightness(0) invert(1);
-    transition: transform var(--transition-fast);
+    transition: transform var(--transition);
 }
 
 .login-btn:hover .btn-icon {
     transform: translateX(4px);
 }
 
-/* Loading State */
 .login-btn.loading {
     pointer-events: none;
 }
@@ -510,7 +261,7 @@ body {
     height: 20px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-top: 2px solid white;
-    border-radius: var(--radius-round);
+    border-radius: 50%;
     animation: spin 1s linear infinite;
     transform: translate(-50%, -50%);
 }
@@ -521,312 +272,52 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Form Footer */
-.form-footer {
-    text-align: center;
-    margin-top: var(--spacing-lg);
-}
-
-.footer-link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: color var(--transition-fast);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-}
-
-.footer-link:hover {
-    color: var(--primary-color);
-}
-
-/* Info Section */
-.info-section {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: white;
-    padding: var(--spacing-xxl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.info-content {
-    text-align: center;
-    max-width: 400px;
-}
-
-.info-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto var(--spacing-xl);
-    filter: brightness(0) invert(1);
-}
-
-.info-title {
-    font-size: 1.8rem;
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--spacing-lg);
-}
-
-.info-description {
-    font-size: 1rem;
-    margin-bottom: var(--spacing-xl);
-    opacity: 0.9;
-    line-height: 1.6;
-}
-
-.features-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
-.feature-item {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-}
-
-.feature-check {
-    width: 20px;
-    height: 20px;
-    filter: brightness(0) invert(1);
-    flex-shrink: 0;
-}
-
-/* Animations */
-.fade-in {
-    animation: fadeIn 0.5s ease;
-}
-
-.slide-up {
-    animation: slideUp 0.5s ease;
-}
-
-.slide-in {
-    animation: slideIn 0.4s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
+    0% { 
+        transform: translate(-50%, -50%) rotate(0deg); 
     }
-    to {
-        opacity: 1;
+    100% { 
+        transform: translate(-50%, -50%) rotate(360deg); 
     }
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Success Animation */
-.success-checkmark {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-round);
-    display: block;
-    stroke-width: 2;
-    stroke: var(--success);
-    stroke-miterlimit: 10;
-    margin: 0 auto var(--spacing-lg);
-    animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
-}
-
-.success-checkmark-circle {
-    stroke-dasharray: 166;
-    stroke-dashoffset: 166;
-    stroke-width: 2;
-    stroke-miterlimit: 10;
-    stroke: var(--success);
-    fill: none;
-    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-}
-
-.success-checkmark-check {
-    transform-origin: 50% 50%;
-    stroke-dasharray: 48;
-    stroke-dashoffset: 48;
-    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-}
-
-@keyframes stroke {
-    100% {
-        stroke-dashoffset: 0;
-    }
-}
-
-@keyframes scale {
-    0%, 100% {
-        transform: none;
-    }
-    50% {
-        transform: scale3d(1.1, 1.1, 1);
-    }
-}
-
-@keyframes fill {
-    100% {
-        background: var(--success);
-    }
-}
-
-/* Error Animation */
 .shake {
     animation: shake 0.5s ease-in-out;
 }
 
 @keyframes shake {
-    0%, 100% {
-        transform: translateX(0);
+    0%, 100% { 
+        transform: translateX(0); 
     }
-    10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-5px);
+    10%, 30%, 50%, 70%, 90% { 
+        transform: translateX(-5px); 
     }
-    20%, 40%, 60%, 80% {
-        transform: translateX(5px);
+    20%, 40%, 60%, 80% { 
+        transform: translateX(5px); 
     }
-}
-
-/* Dark Theme Adjustments */
-[data-theme="dark"] .login-container {
-    background: rgba(30, 30, 30, 0.95);
-}
-
-[data-theme="dark"] .status-indicator {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .form-input {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-[data-theme="dark"] .form-input:focus {
-    border-color: var(--primary-light);
-}
-
-[data-theme="dark"] .toggle-password:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .language-dropdown {
-    background: var(--surface);
-    border-color: var(--border);
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-    .login-container {
-        max-width: 700px;
-    }
-}
-
-@media (max-width: 768px) {
-    .main-container {
-        padding: var(--spacing-lg);
-    }
-    
-    .login-container {
-        grid-template-columns: 1fr;
-        max-width: 500px;
-    }
-    
-    .info-section {
-        order: -1;
-        padding: var(--spacing-xl);
-    }
-    
-    .login-form-section {
-        padding: var(--spacing-xl);
-    }
-    
-    .form-title {
-        font-size: 1.5rem;
-    }
-    
-    .info-title {
-        font-size: 1.5rem;
-    }
-    
-    .info-icon {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .header-container {
-        padding: var(--spacing-md);
-    }
-    
-    .header-controls {
-        gap: var(--spacing-sm);
-    }
-    
-    .control-btn {
-        width: 36px;
-        height: 36px;
-    }
-}
-
 @media (max-width: 480px) {
-    .main-container {
+    body {
         padding: var(--spacing-md);
     }
     
     .login-container {
-        border-radius: var(--radius-lg);
-    }
-    
-    .login-form-section,
-    .info-section {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-xl);
+        max-width: 100%;
     }
     
     .form-title {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
     }
     
-    .info-title {
+    .logo-text {
         font-size: 1.25rem;
     }
     
     .form-input {
-        padding: var(--spacing-md) var(--spacing-sm) var(--spacing-md) 2.5rem;
-    }
-    
-    .input-icon {
-        left: var(--spacing-sm);
-        width: 18px;
-        height: 18px;
-    }
-    
-    .toggle-password {
-        right: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 2.75rem;
+        font-size: 0.95rem;
     }
     
     .login-btn {
@@ -835,746 +326,434 @@ body {
     }
 }
 
-/* Focus Styles for Accessibility */
-.control-btn:focus,
-.form-input:focus,
-.login-btn:focus,
-.footer-link:focus,
-.language-option:focus,
-.toggle-password:focus {
+/* Focus states for accessibility */
+.form-input:focus-visible,
+.login-btn:focus-visible,
+.toggle-password:focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
-/* High Contrast Mode */
+/* High contrast mode support */
 @media (prefers-contrast: high) {
-    :root {
-        --border: #000000;
-        --text-secondary: #000000;
+    .login-container {
+        background: white;
+        border: 2px solid var(--text-primary);
     }
     
-    [data-theme="dark"] {
-        --border: #ffffff;
-        --text-secondary: #ffffff;
+    .form-input {
+        border-width: 2px;
     }
 }
-    </style>
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+   </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <!-- Left: Logo -->
-            <div class="logo-section">
-                <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
-                <span class="logo-text">Qotor</span>
+    <div class="login-container">
+        <div class="login-form">
+            <div class="form-header">
+                <div class="logo">
+                    <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
+                    <span class="logo-text">Qotor</span>
+                </div>
+                <h1 class="form-title">Login</h1>
             </div>
 
-            <!-- Right: Controls -->
-            <div class="header-controls">
-                <!-- Language Switcher -->
-                <div class="language-selector">
-                    <button class="control-btn language-btn" id="languageBtn" title="Language">
-                        <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
-                    </button>
-                    <div class="language-dropdown" id="languageDropdown">
-                        <button class="language-option" data-lang="en">
-                            <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
-                            <span>English</span>
+            <div id="message" class="message"></div>
+
+            <form class="form" id="loginForm">
+                <div class="form-group">
+                    <div class="input-container">
+                        <img src="/api/image/user-icon.png" alt="User" class="input-icon" onerror="this.textContent='👤';">
+                        <input 
+                            type="text" 
+                            id="username" 
+                            class="form-input" 
+                            placeholder="Username"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-container">
+                        <img src="/api/image/lock-icon.png" alt="Password" class="input-icon" onerror="this.textContent='🔒';">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="form-input" 
+                            placeholder="Password"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <img src="/api/image/eye-icon.png" alt="Show" class="eye-icon" id="eyeIcon" onerror="this.textContent='👁️';">
                         </button>
-                        <button class="language-option" data-lang="ar">
-                            <img src="/api/image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
-                            <span>العربية</span>
-                        </button>
                     </div>
                 </div>
 
-                <!-- Back to Store -->
-                <a href="/index.html" class="control-btn back-btn" title="Back to Store">
-                    <img src="/api/image/back-icon.png" alt="Back" onerror="this.textContent='←';">
-                </a>
-            </div>
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span class="btn-text">Sign In</span>
+                    <img src="/api/image/arrow-right-icon.png" alt="Login" class="btn-icon" onerror="this.textContent='→';">
+                </button>
+            </form>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main-container">
-        <div class="login-container">
-            <div class="login-form-section">
-                <div class="form-header">
-                    <img src="/api/image/login-icon.png" alt="Login" class="login-icon" onerror="this.textContent='🔐';">
-                    <h1 class="form-title" data-key="login_title">Welcome Back</h1>
-                    <p class="form-subtitle" data-key="login_subtitle">Sign in to access your account</p>
-                </div>
-
-                <!-- Status Indicator -->
-                <div class="status-indicator" id="statusIndicator">
-                    <div class="status-dot" id="statusDot"></div>
-                    <span class="status-text" id="statusText" data-key="checking_connection">Checking connection...</span>
-                </div>
-
-                <!-- Messages -->
-                <div id="message" class="message"></div>
-
-                <!-- Login Form -->
-                <form id="loginForm" class="login-form">
-                    <div class="form-group">
-                        <label for="username" class="form-label" data-key="username_label">Username</label>
-                        <div class="input-container">
-                            <img src="/api/image/user-icon.png" alt="User" class="input-icon" onerror="this.textContent='👤';">
-                            <input type="text" id="username" name="username" class="form-input" required 
-                                   data-key-placeholder="username_placeholder">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password" class="form-label" data-key="password_label">Password</label>
-                        <div class="input-container">
-                            <img src="/api/image/lock-icon.png" alt="Password" class="input-icon" onerror="this.textContent='🔒';">
-                            <input type="password" id="password" name="password" class="form-input" required 
-                                   data-key-placeholder="password_placeholder">
-                            <button type="button" class="toggle-password" id="togglePassword">
-                                <img src="/api/image/eye-icon.png" alt="Show" class="eye-icon" onerror="this.textContent='👁️';">
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="login-btn" id="loginBtn">
-                        <span class="btn-text" data-key="sign_in_button">Sign In</span>
-                        <img src="/api/image/arrow-right-icon.png" alt="→" class="btn-icon" onerror="this.textContent='→';">
-                    </button>
-                </form>
-
-                <!-- Footer Links -->
-                <div class="form-footer">
-                    <a href="/index.html" class="footer-link" data-key="back_to_store">← Back to Store</a>
-                </div>
-            </div>
-
-            <!-- Info Section -->
-            <div class="info-section">
-                <div class="info-content">
-                    <img src="/api/image/secure-icon.png" alt="Secure" class="info-icon" onerror="this.textContent='🛡️';">
-                    <h2 class="info-title" data-key="secure_access_title">Secure Access</h2>
-                    <p class="info-description" data-key="secure_access_desc">Your login credentials are protected with industry-standard security measures.</p>
-                    
-                    <div class="features-list">
-                        <div class="feature-item">
-                            <img src="/api/image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
-                            <span data-key="feature_encrypted">Encrypted Connection</span>
-                        </div>
-                        <div class="feature-item">
-                            <img src="/api/image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
-                            <span data-key="feature_secure">Secure Authentication</span>
-                        </div>
-                        <div class="feature-item">
-                            <img src="/api/image/check-icon.png" alt="Check" class="feature-check" onerror="this.textContent='✓';">
-                            <span data-key="feature_private">Private Session</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script>
         // Global variables
-let currentLanguage = 'en';
+let isLoading = false;
 
-// Language translations
-const translations = {
-    en: {
-        login_title: 'Welcome Back',
-        login_subtitle: 'Sign in to access your account',
-        checking_connection: 'Checking connection...',
-        username_label: 'Username',
-        password_label: 'Password',
-        username_placeholder: 'Enter your username',
-        password_placeholder: 'Enter your password',
-        sign_in_button: 'Sign In',
-        back_to_store: '← Back to Store',
-        secure_access_title: 'Secure Access',
-        secure_access_desc: 'Your login credentials are protected with industry-standard security measures.',
-        feature_encrypted: 'Encrypted Connection',
-        feature_secure: 'Secure Authentication',
-        feature_private: 'Private Session',
-        connection_ready: '✅ Connection ready',
-        connection_offline: '❌ Connection offline',
-        signing_in: 'Signing In...',
-        login_successful: '✅ Login successful!',
-        redirecting: 'Redirecting...',
-        invalid_credentials: '❌ Invalid username or password',
-        connection_error: '❌ Connection error. Please try again.',
-        session_error: '⚠️ Session error. Redirecting anyway...',
-        server_error: '❌ Server error. Please try again later.',
-        fill_all_fields: '❌ Please fill in all fields',
-        network_error: '❌ Network error. Check your connection.'
-    },
-    ar: {
-        login_title: 'أهلاً بعودتك',
-        login_subtitle: 'سجل الدخول للوصول إلى حسابك',
-        checking_connection: 'جاري فحص الاتصال...',
-        username_label: 'اسم المستخدم',
-        password_label: 'كلمة المرور',
-        username_placeholder: 'أدخل اسم المستخدم',
-        password_placeholder: 'أدخل كلمة المرور',
-        sign_in_button: 'تسجيل الدخول',
-        back_to_store: '← العودة إلى المتجر',
-        secure_access_title: 'وصول آمن',
-        secure_access_desc: 'بيانات اعتماد تسجيل الدخول محمية بمعايير الأمان الصناعية.',
-        feature_encrypted: 'اتصال مشفر',
-        feature_secure: 'مصادقة آمنة',
-        feature_private: 'جلسة خاصة',
-        connection_ready: '✅ الاتصال جاهز',
-        connection_offline: '❌ الاتصال منقطع',
-        signing_in: 'جاري تسجيل الدخول...',
-        login_successful: '✅ تم تسجيل الدخول بنجاح!',
-        redirecting: 'جاري التوجيه...',
-        invalid_credentials: '❌ اسم المستخدم أو كلمة المرور غير صحيحة',
-        connection_error: '❌ خطأ في الاتصال. حاول مرة أخرى.',
-        session_error: '⚠️ خطأ في الجلسة. جاري التوجيه على أي حال...',
-        server_error: '❌ خطأ في الخادم. حاول مرة أخرى لاحقاً.',
-        fill_all_fields: '❌ يرجى ملء جميع الحقول',
-        network_error: '❌ خطأ في الشبكة. تحقق من اتصالك.'
-    }
-};
-
-// Utility function to get image URL with automatic path matching
-function getImageUrl(imagePath) {
-    if (!imagePath || imagePath.trim() === '') {
-        return '';
-    }
-    
-    // If it's already a full URL, return as is
-    if (imagePath.startsWith('http')) {
-        return imagePath;
-    }
-    
-    // If it starts with fragrance-images/, extract filename
-    if (imagePath.startsWith('fragrance-images/')) {
-        const filename = imagePath.replace('fragrance-images/', '');
-        return `/api/image/${filename}`;
-    }
-    
-    // Default case - assume it's just a filename
-    return `/api/image/${imagePath}`;
-}
-
-// DOM Content Loaded
+// Initialize login page
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    // Check if already logged in
+    checkExistingSession();
+    
+    // Setup form event listeners
+    setupEventListeners();
+    
+    // Focus username field
+    document.getElementById('username').focus();
 });
 
-// Initialize App
-function initializeApp() {
-    checkExistingSession();
-    initializeLanguage();
-    initializeEventListeners();
-    testLoginFunction();
-    addAnimations();
-}
-
-// Check if already logged in
-function checkExistingSession() {
-    if (document.cookie.includes('admin_session=')) {
-        console.log('Already logged in, redirecting...');
-        window.location.href = '/admin/index.html';
-    }
-}
-
-// Language Management
-function initializeLanguage() {
-    const savedLanguage = localStorage.getItem('qotor_language') || 'en';
-    setLanguage(savedLanguage);
-    
-    const languageBtn = document.getElementById('languageBtn');
-    const languageDropdown = document.getElementById('languageDropdown');
-    
-    if (languageBtn && languageDropdown) {
-        languageBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            languageDropdown.classList.toggle('show');
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.language-selector')) {
-                languageDropdown.classList.remove('show');
-            }
-        });
-        
-        document.querySelectorAll('.language-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                const lang = e.currentTarget.dataset.lang;
-                setLanguage(lang);
-                languageDropdown.classList.remove('show');
-            });
-        });
-    }
-}
-
-function setLanguage(lang) {
-    currentLanguage = lang;
-    document.documentElement.setAttribute('lang', lang);
-    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-    localStorage.setItem('qotor_language', lang);
-    
-    updateTexts();
-    updatePlaceholders();
-    
-    const languageIcon = document.querySelector('#languageBtn img');
-    if (languageIcon) {
-        languageIcon.src = getImageUrl(`${lang}-flag.png`);
-        languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
-    }
-}
-
-function updateTexts() {
-    document.querySelectorAll('[data-key]').forEach(element => {
-        const key = element.getAttribute('data-key');
-        if (translations[currentLanguage][key]) {
-            element.textContent = translations[currentLanguage][key];
-        }
-    });
-}
-
-function updatePlaceholders() {
-    document.querySelectorAll('[data-key-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-key-placeholder');
-        if (translations[currentLanguage][key]) {
-            element.placeholder = translations[currentLanguage][key];
-        }
-    });
-}
-
-// Event Listeners
-function initializeEventListeners() {
-    // Form submission
+// Setup event listeners
+function setupEventListeners() {
     const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleFormSubmit);
-    }
+    const usernameField = document.getElementById('username');
+    const passwordField = document.getElementById('password');
     
-    // Password toggle
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
+    // Form submission
+    loginForm.addEventListener('submit', handleLogin);
     
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            
-            const eyeIcon = this.querySelector('.eye-icon');
-            if (eyeIcon) {
-                eyeIcon.src = getImageUrl(`${type === 'password' ? 'eye' : 'eye-slash'}-icon.png`);
-            }
-        });
-    }
+    // Clear error messages on input
+    usernameField.addEventListener('input', clearMessages);
+    passwordField.addEventListener('input', clearMessages);
     
-    // Input animations and validation
-    const inputs = document.querySelectorAll('.form-input');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.parentNode.classList.add('focused');
-        });
-        
-        input.addEventListener('blur', function() {
-            if (!this.value) {
-                this.parentNode.classList.remove('focused');
-            }
-        });
-        
-        // Check if input has value on load
-        if (input.value) {
-            input.parentNode.classList.add('focused');
-        }
-        
-        // Real-time validation feedback
-        input.addEventListener('input', function() {
-            clearFieldError(this);
-        });
-    });
-    
-    // Escape key handler
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const languageDropdown = document.getElementById('languageDropdown');
-            if (languageDropdown) {
-                languageDropdown.classList.remove('show');
-            }
+    // Enter key handling
+    usernameField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            passwordField.focus();
         }
     });
+    
+    passwordField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleLogin(e);
+        }
+    });
+    
+    // Input validation
+    usernameField.addEventListener('blur', validateUsername);
+    passwordField.addEventListener('blur', validatePassword);
 }
 
-// Test login function status
-async function testLoginFunction() {
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    
+// Check for existing session
+async function checkExistingSession() {
     try {
-        const response = await fetch('/loginf', {
+        const response = await fetch('/api/admin/auth/verify', {
             method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
+            credentials: 'include'
         });
         
         if (response.ok) {
-            const data = await response.json();
-            console.log('Login function status:', data);
-            
-            statusDot.className = 'status-dot online';
-            statusText.textContent = translations[currentLanguage]['connection_ready'];
-        } else {
-            throw new Error('Function offline');
+            // Already logged in, redirect to admin
+            window.location.href = '/admin/';
         }
     } catch (error) {
-        console.error('Login function test failed:', error);
-        statusDot.className = 'status-dot offline';
-        statusText.textContent = translations[currentLanguage]['connection_offline'];
+        // Not logged in or error, continue with login page
+        console.log('No existing session');
     }
 }
 
-// Handle form submission
-async function handleFormSubmit(e) {
-    console.log('Form submitted');
-    e.preventDefault();
+// Validate username field
+function validateUsername() {
+    const usernameField = document.getElementById('username');
+    const username = usernameField.value.trim();
+    
+    if (!username) {
+        showFieldError(usernameField, 'Username is required');
+        return false;
+    }
+    
+    if (username.length < 3) {
+        showFieldError(usernameField, 'Username must be at least 3 characters');
+        return false;
+    }
+    
+    clearFieldError(usernameField);
+    return true;
+}
+
+// Validate password field
+function validatePassword() {
+    const passwordField = document.getElementById('password');
+    const password = passwordField.value;
+    
+    if (!password) {
+        showFieldError(passwordField, 'Password is required');
+        return false;
+    }
+    
+    if (password.length < 6) {
+        showFieldError(passwordField, 'Password must be at least 6 characters');
+        return false;
+    }
+    
+    clearFieldError(passwordField);
+    return true;
+}
+
+// Show field error
+function showFieldError(field, message) {
+    field.classList.add('error');
+    
+    // Remove existing error message
+    const existingError = field.parentElement.parentElement.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Add new error message
+    const errorElement = document.createElement('div');
+    errorElement.className = 'field-error';
+    errorElement.textContent = message;
+    errorElement.style.cssText = `
+        color: var(--error);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        padding-left: 1rem;
+    `;
+    
+    field.parentElement.parentElement.appendChild(errorElement);
+}
+
+// Clear field error
+function clearFieldError(field) {
+    field.classList.remove('error');
+    
+    const errorElement = field.parentElement.parentElement.querySelector('.field-error');
+    if (errorElement) {
+        errorElement.remove();
+    }
+}
+
+// Handle login form submission
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    if (isLoading) return;
     
     const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const messageDiv = document.getElementById('message');
-    const button = document.getElementById('loginBtn');
-    const buttonText = button.querySelector('.btn-text');
+    const password = document.getElementById('password').value;
     
-    console.log('Attempting login for:', username);
+    // Clear previous messages
+    clearMessages();
+    clearAllFieldErrors();
     
-    // Client-side validation
-    if (!username || !password) {
-        showMessage('error', translations[currentLanguage]['fill_all_fields']);
-        highlightEmptyFields();
+    // Validation
+    const isUsernameValid = validateUsername();
+    const isPasswordValid = validatePassword();
+    
+    if (!isUsernameValid || !isPasswordValid) {
         return;
     }
     
-    // Clear any previous errors
-    clearAllFieldErrors();
-    
-    // Show loading state
-    setButtonLoading(true);
-    hideMessage();
+    // Set loading state
+    setLoadingState(true);
     
     try {
-        console.log('Sending login request...');
-        
-        const requestBody = JSON.stringify({ username, password });
-        console.log('Request body:', requestBody);
-        
-        const response = await fetch('/loginf', {
+        const response = await fetch('/api/admin/auth/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: requestBody
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
         });
         
-        console.log('Response status:', response.status);
-        console.log('Response headers:', [...response.headers.entries()]);
+        const data = await response.json();
         
-        let result;
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-        
-        if (!responseText.trim()) {
-            throw new Error('Empty response from server');
-        }
-        
-        try {
-            result = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            throw new Error('Invalid response format from server');
-        }
-        
-        console.log('Parsed response:', result);
-        
-        if (response.ok && result.success) {
-            // Success
-            console.log('Login successful');
-            showMessage('success', translations[currentLanguage]['login_successful']);
-            buttonText.textContent = translations[currentLanguage]['login_successful'];
+        if (response.ok && data.success) {
+            // Login successful
+            showMessage('Login successful! Redirecting...', 'success');
             
-            // Add success animation
-            button.classList.add('success');
-            
-            // Check for session cookie
+            // Redirect after a short delay
             setTimeout(() => {
-                console.log('Current cookies after login:', document.cookie);
-                const hasCookie = document.cookie.includes('admin_session=');
-                console.log('Has admin session cookie:', hasCookie);
-                
-                if (hasCookie) {
-                    console.log('Cookie found, redirecting to admin...');
-                    buttonText.textContent = translations[currentLanguage]['redirecting'];
-                    
-                    setTimeout(() => {
-                        window.location.href = '/admin/index.html';
-                    }, 1000);
-                } else {
-                    console.error('Cookie not set! Check server response headers');
-                    showMessage('warning', translations[currentLanguage]['session_error']);
-                    
-                    setTimeout(() => {
-                        window.location.href = '/admin/index.html';
-                    }, 2000);
-                }
+                window.location.href = '/admin/';
             }, 1000);
             
         } else {
-            // Error from server
-            console.log('Login failed:', result.error);
-            const errorMessage = getLocalizedErrorMessage(result.error || 'Unknown error');
-            showMessage('error', errorMessage);
+            // Login failed
+            const errorMessage = data.error || 'Invalid username or password';
+            showMessage(errorMessage, 'error');
             
-            // Add shake animation
-            addShakeAnimation(button);
+            // Add shake animation to form
+            const loginContainer = document.querySelector('.login-container');
+            loginContainer.classList.add('shake');
+            setTimeout(() => {
+                loginContainer.classList.remove('shake');
+            }, 500);
             
-            setButtonLoading(false);
+            // Clear password field and focus it
+            document.getElementById('password').value = '';
+            document.getElementById('password').focus();
         }
         
     } catch (error) {
         console.error('Login error:', error);
-        
-        let errorMessage;
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            errorMessage = translations[currentLanguage]['network_error'];
-        } else {
-            errorMessage = translations[currentLanguage]['connection_error'];
-        }
-        
-        showMessage('error', errorMessage);
-        
-        // Add shake animation
-        addShakeAnimation(button);
-        
-        setButtonLoading(false);
+        showMessage('Connection error. Please try again.', 'error');
+    } finally {
+        setLoadingState(false);
     }
 }
 
-// Get localized error message
-function getLocalizedErrorMessage(error) {
-    const errorKey = error.toLowerCase();
+// Set loading state
+function setLoadingState(loading) {
+    isLoading = loading;
+    const loginBtn = document.getElementById('loginBtn');
+    const usernameField = document.getElementById('username');
+    const passwordField = document.getElementById('password');
     
-    if (errorKey.includes('invalid') || errorKey.includes('username') || errorKey.includes('password')) {
-        return translations[currentLanguage]['invalid_credentials'];
-    } else if (errorKey.includes('server') || errorKey.includes('configuration')) {
-        return translations[currentLanguage]['server_error'];
-    } else if (errorKey.includes('network') || errorKey.includes('connection')) {
-        return translations[currentLanguage]['network_error'];
+    if (loading) {
+        loginBtn.classList.add('loading');
+        loginBtn.disabled = true;
+        usernameField.disabled = true;
+        passwordField.disabled = true;
     } else {
-        return translations[currentLanguage]['connection_error'];
+        loginBtn.classList.remove('loading');
+        loginBtn.disabled = false;
+        usernameField.disabled = false;
+        passwordField.disabled = false;
     }
 }
 
 // Show message
-function showMessage(type, message) {
-    const messageDiv = document.getElementById('message');
-    if (messageDiv) {
-        messageDiv.className = `message ${type}`;
-        messageDiv.textContent = message;
-        messageDiv.style.display = 'flex';
-        
-        // Add animation
-        messageDiv.classList.add('slide-up');
-        
-        // Auto-hide success messages
-        if (type === 'success') {
-            setTimeout(() => {
-                hideMessage();
-            }, 5000);
-        }
-        
-        // Scroll message into view
-        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-}
-
-// Hide message
-function hideMessage() {
-    const messageDiv = document.getElementById('message');
-    if (messageDiv) {
-        messageDiv.style.display = 'none';
-        messageDiv.classList.remove('slide-up');
-    }
-}
-
-// Set button loading state
-function setButtonLoading(loading) {
-    const button = document.getElementById('loginBtn');
-    const buttonText = button.querySelector('.btn-text');
-    const buttonIcon = button.querySelector('.btn-icon');
+function showMessage(text, type = 'error') {
+    const messageEl = document.getElementById('message');
     
-    if (loading) {
-        button.classList.add('loading');
-        button.disabled = true;
-        buttonText.textContent = translations[currentLanguage]['signing_in'];
-        buttonIcon.style.opacity = '0';
-    } else {
-        button.classList.remove('loading', 'success');
-        button.disabled = false;
-        buttonText.textContent = translations[currentLanguage]['sign_in_button'];
-        buttonIcon.style.opacity = '1';
-    }
-}
-
-// Field validation and error handling
-function highlightEmptyFields() {
-    const username = document.getElementById('username');
-    const password = document.getElementById('password');
-    
-    if (!username.value.trim()) {
-        addFieldError(username);
+    // Add icon based on message type
+    let icon = '';
+    switch(type) {
+        case 'success':
+            icon = '<img src="/api/image/success-icon.png" alt="Success" style="width: 16px; height: 16px;" onerror="this.textContent=\'✓\'">';
+            break;
+        case 'error':
+            icon = '<img src="/api/image/error-icon.png" alt="Error" style="width: 16px; height: 16px;" onerror="this.textContent=\'✕\'">';
+            break;
+        case 'warning':
+            icon = '<img src="/api/image/warning-icon.png" alt="Warning" style="width: 16px; height: 16px;" onerror="this.textContent=\'⚠\'">';
+            break;
     }
     
-    if (!password.value.trim()) {
-        addFieldError(password);
+    messageEl.innerHTML = `${icon}<span>${text}</span>`;
+    messageEl.className = `message ${type} show`;
+    
+    // Auto hide success messages after 3 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            messageEl.classList.remove('show');
+        }, 3000);
     }
 }
 
-function addFieldError(field) {
-    field.style.borderColor = 'var(--error)';
-    field.classList.add('error-shake');
-    
-    setTimeout(() => {
-        field.classList.remove('error-shake');
-    }, 500);
+// Clear messages
+function clearMessages() {
+    const messageEl = document.getElementById('message');
+    messageEl.classList.remove('show');
 }
 
-function clearFieldError(field) {
-    field.style.borderColor = '';
-}
-
+// Clear all field errors
 function clearAllFieldErrors() {
-    const inputs = document.querySelectorAll('.form-input');
-    inputs.forEach(input => {
-        clearFieldError(input);
+    const fields = ['username', 'password'];
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        clearFieldError(field);
     });
 }
 
-// Animation helpers
-function addShakeAnimation(element) {
-    element.classList.add('shake');
-    setTimeout(() => {
-        element.classList.remove('shake');
-    }, 500);
-}
-
-// Add animations on page load
-function addAnimations() {
-    // Animate form elements on load
-    const formElements = document.querySelectorAll('.form-group, .login-btn, .status-indicator');
-    formElements.forEach((element, index) => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
-        }, index * 100 + 300);
-    });
+// Toggle password visibility
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
     
-    // Animate info section
-    const infoContent = document.querySelector('.info-content');
-    if (infoContent) {
-        infoContent.style.opacity = '0';
-        infoContent.style.transform = 'translateX(30px)';
-        
-        setTimeout(() => {
-            infoContent.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            infoContent.style.opacity = '1';
-            infoContent.style.transform = 'translateX(0)';
-        }, 500);
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        eyeIcon.src = '/api/image/eye-off-icon.png';
+        eyeIcon.alt = 'Hide';
+        eyeIcon.onerror = function() { this.textContent = '🙈'; };
+    } else {
+        passwordField.type = 'password';
+        eyeIcon.src = '/api/image/eye-icon.png';
+        eyeIcon.alt = 'Show';
+        eyeIcon.onerror = function() { this.textContent = '👁️'; };
     }
 }
 
-// Handle window resize
-window.addEventListener('resize', function() {
-    const languageDropdown = document.getElementById('languageDropdown');
-    if (languageDropdown) {
-        languageDropdown.classList.remove('show');
+// Handle page visibility changes
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        // Check session when page becomes visible
+        checkExistingSession();
     }
 });
 
-// Focus management for accessibility
-document.addEventListener('DOMContentLoaded', function() {
-    // Focus first input
-    const firstInput = document.getElementById('username');
-    if (firstInput) {
-        setTimeout(() => {
-            firstInput.focus();
-        }, 600);
+// Prevent form resubmission on page refresh
+window.addEventListener('beforeunload', function(e) {
+    if (isLoading) {
+        e.preventDefault();
+        e.returnValue = 'Login in progress. Are you sure you want to leave?';
+        return e.returnValue;
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Escape key to clear form
+    if (e.key === 'Escape') {
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        clearMessages();
+        clearAllFieldErrors();
+        document.getElementById('username').focus();
     }
     
-    // Handle tab navigation
-    const focusableElements = document.querySelectorAll(
-        'input, button, a, [tabindex]:not([tabindex="-1"])'
-    );
-    
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-    
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Tab') {
-            if (e.shiftKey) {
-                if (document.activeElement === firstElement) {
-                    e.preventDefault();
-                    lastElement.focus();
-                }
-            } else {
-                if (document.activeElement === lastElement) {
-                    e.preventDefault();
-                    firstElement.focus();
-                }
-            }
+    // Ctrl/Cmd + Enter to submit form
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (!isLoading) {
+            handleLogin(e);
         }
-    });
+    }
 });
 
-// Enhanced error handling for images
-document.addEventListener('DOMContentLoaded', function() {
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
-        img.addEventListener('error', function() {
-            if (this.dataset.fallback) {
-                this.textContent = this.dataset.fallback;
-                this.style.display = 'flex';
-                this.style.alignItems = 'center';
-                this.style.justifyContent = 'center';
-                this.style.fontSize = '1.5rem';
-            }
-        });
-    });
-});
-
-// Performance monitoring
+// Auto-focus on username field when page loads
 window.addEventListener('load', function() {
-    console.log('Login page loaded successfully');
-    
-    // Check if login function is accessible
-    setTimeout(() => {
-        testLoginFunction();
-    }, 1000);
+    document.getElementById('username').focus();
 });
 
-// Connection retry mechanism
-function retryConnection() {
-    console.log('Retrying connection...');
-    testLoginFunction();
-}
+// Handle connection status
+window.addEventListener('online', function() {
+    showMessage('Connection restored', 'success');
+    setTimeout(clearMessages, 2000);
+});
 
-// Export functions for testing
-window.retryConnection = retryConnection;
-window.testLoginFunction = testLoginFunction;
+window.addEventListener('offline', function() {
+    showMessage('Connection lost. Please check your internet.', 'warning');
+});
     </script>
 </body>
 </html>

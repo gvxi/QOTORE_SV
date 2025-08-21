@@ -1,372 +1,1809 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Qotor</title>
-    <link rel="stylesheet" href="css/fragrance-management.css">
+    <style>
+        :root {
+    --primary-color: #1a237e;
+    --primary-light: #3949ab;
+    --secondary-color: #ffd700;
+    --text-primary: #212121;
+    --text-secondary: #64748b;
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --success: #059669;
+    --warning: #d97706;
+    --error: #dc2626;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --transition: 0.2s ease;
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --sidebar-width: 250px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Header */
+.header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-container {
+    max-width: 100%;
+    padding: 0 var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.logo-image {
+    height: 32px;
+    width: auto;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.admin-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-secondary);
+}
+
+.admin-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.admin-avatar img {
+    width: 16px;
+    height: 16px;
+    filter: brightness(0) invert(1);
+}
+
+.admin-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    background: var(--error);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.logout-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.logout-btn img {
+    width: 16px;
+    height: 16px;
+    filter: brightness(0) invert(1);
+}
+
+/* Container */
+.container {
+    display: flex;
+    min-height: calc(100vh - 64px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: var(--spacing-lg) 0;
+    flex-shrink: 0;
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: var(--transition);
+    position: relative;
+    margin: 0 var(--spacing-md);
+    border-radius: var(--radius-md);
+}
+
+.nav-item:hover {
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background: rgba(26, 35, 126, 0.1);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.nav-item img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+}
+
+.nav-item.active img {
+    opacity: 1;
+}
+
+.nav-indicator {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: var(--primary-color);
+    border-radius: 0 3px 3px 0;
+    transition: height var(--transition);
+}
+
+.nav-item.active .nav-indicator {
+    height: 24px;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: var(--spacing-xl);
+    overflow-x: auto;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.page-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.page-title h1 {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.content-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.search-container {
+    position: relative;
+    min-width: 250px;
+}
+
+.search-icon {
+    position: absolute;
+    left: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    opacity: 0.5;
+}
+
+.search-input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--surface);
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+}
+
+.filter-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--surface);
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.refresh-btn, .add-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.refresh-btn:hover {
+    background: var(--background);
+    border-color: var(--primary-color);
+}
+
+.add-btn {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.add-btn:hover {
+    background: var(--primary-light);
+}
+
+.refresh-btn img, .add-btn img {
+    width: 16px;
+    height: 16px;
+}
+
+.add-btn img {
+    filter: brightness(0) invert(1);
+}
+
+/* Loading Section */
+.loading-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xxl);
+    color: var(--text-secondary);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--spacing-md);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Table */
+.table-container {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: var(--background);
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+.data-table tr:hover {
+    background: var(--background);
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-canceled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-visible {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-hidden {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.action-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.action-btn img {
+    width: 12px;
+    height: 12px;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-light);
+}
+
+.btn-primary img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #047857;
+}
+
+.btn-success img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #b45309;
+}
+
+.btn-warning img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.btn-danger img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-secondary {
+    background: var(--background);
+    color: var(--text-secondary);
+    border-color: var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+    color: var(--text-primary);
+}
+
+/* Product Images */
+.product-image {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    border: 1px solid var(--border);
+    background: var(--background);
+}
+
+.no-image {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-sm);
+    background: var(--background);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+/* Variant Tags */
+.variant-tag {
+    display: inline-block;
+    background: var(--background);
+    color: var(--text-secondary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    margin-right: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+    border: 1px solid var(--border);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xxl);
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.close-btn:hover {
+    background: var(--background);
+}
+
+.close-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+}
+
+/* Form Styles */
+.fragrance-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.label-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+}
+
+.form-input, .form-textarea {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--surface);
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn img {
+    width: 16px;
+    height: 16px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    box-shadow: var(--shadow-lg);
+    display: none;
+    align-items: center;
+    gap: var(--spacing-sm);
+    z-index: 2000;
+    max-width: 400px;
+    transform: translateX(100%);
+    transition: transform var(--transition);
+}
+
+.toast.show {
+    display: flex;
+    transform: translateX(0);
+}
+
+.toast.success {
+    border-color: var(--success);
+    background: rgba(5, 150, 105, 0.1);
+}
+
+.toast.error {
+    border-color: var(--error);
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.toast.warning {
+    border-color: var(--warning);
+    background: rgba(217, 119, 6, 0.1);
+}
+
+.toast-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.toast-message {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: var(--spacing-md) 0;
+    }
+    
+    .nav-menu {
+        flex-direction: row;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    
+    .nav-item {
+        margin: 0;
+        padding: var(--spacing-sm) var(--spacing-md);
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        text-align: center;
+        min-width: 80px;
+    }
+    
+    .nav-item span {
+        font-size: 0.75rem;
+    }
+    
+    .nav-indicator {
+        left: 50%;
+        top: auto;
+        bottom: 0;
+        transform: translateX(-50%);
+        width: 0;
+        height: 3px;
+        border-radius: 3px 3px 0 0;
+    }
+    
+    .nav-item.active .nav-indicator {
+        width: 24px;
+        height: 3px;
+    }
+    
+    .content {
+        padding: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .header-container {
+        padding: 0 var(--spacing-lg);
+    }
+    
+    .content-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+    }
+    
+    .content-actions {
+        justify-content: stretch;
+        flex-wrap: wrap;
+    }
+    
+    .search-container {
+        min-width: auto;
+        flex: 1;
+    }
+    
+    .filter-select {
+        min-width: auto;
+        flex: 1;
+    }
+    
+    .data-table {
+        font-size: 0.8rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: var(--spacing-sm);
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: var(--spacing-md);
+    }
+    
+    .toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: var(--spacing-md);
+    }
+    
+    .page-title h1 {
+        font-size: 1.5rem;
+    }
+    
+    .admin-info {
+        display: none;
+    }
+    
+    .logout-btn span {
+        display: none;
+    }
+    
+    .add-btn span {
+        display: none;
+    }
+    
+    .nav-item span {
+        display: none;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        min-width: 600px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --background: #0f172a;
+        --surface: #1e293b;
+        --border: #334155;
+    }
+}
+
+/* Print styles */
+@media print {
+    .sidebar,
+    .header,
+    .content-actions,
+    .action-buttons,
+    .modal-overlay,
+    .toast {
+        display: none !important;
+    }
+    
+    .container {
+        flex-direction: column;
+    }
+    
+    .content {
+        padding: 0;
+    }
+    
+    .data-table {
+        border: 1px solid #000;
+    }
+    
+    .data-table th,
+    .data-table td {
+        border: 1px solid #000;
+        padding: 8px;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .nav-item.active {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .status-badge {
+        border: 1px solid currentColor;
+    }
+    
+    .data-table th {
+        background: var(--text-primary);
+        color: var(--surface);
+    }
+}
+    </style>
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-container">
-            <!-- Left: Logo -->
             <div class="logo-section">
                 <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
-                <span class="logo-text">Qotor</span>
-                <span class="admin-badge" data-key="admin_panel">Admin Panel</span>
+                <div class="logo">Qotor Admin</div>
             </div>
-
-            <!-- Right: Controls -->
-            <div class="header-controls">
-                <!-- Notifications -->
-                <div class="notification-controls">
-                    <button class="control-btn notification-toggle" id="notificationToggle" title="Toggle Notifications">
-                        <img src="/api/image/notification-icon.png" alt="Notifications" onerror="this.textContent='🔔';">
-                        <span class="notification-status" id="notificationStatus">OFF</span>
-                    </button>
-                    <div class="notification-badge" id="notificationBadge">0</div>
+            
+            <div class="header-actions">
+                <div class="admin-info">
+                    <img src="/api/image/user-icon.png" alt="Admin" class="admin-avatar" onerror="this.textContent='👤';">
+                    <span class="admin-name">Admin</span>
                 </div>
-
-                <!-- Language Switcher -->
-                <div class="language-selector">
-                    <button class="control-btn language-btn" id="languageBtn" title="Language">
-                        <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
-                    </button>
-                    <div class="language-dropdown" id="languageDropdown">
-                        <button class="language-option" data-lang="en">
-                            <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
-                            <span>English</span>
-                        </button>
-                        <button class="language-option" data-lang="ar">
-                            <img src="/api/image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
-                            <span>العربية</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- View Store -->
-                <a href="/index.html" class="control-btn store-btn" title="View Store">
-                    <img src="/api/image/store-icon.png" alt="Store" onerror="this.textContent='🏪';">
-                </a>
-
-                <!-- Logout -->
-                <button class="control-btn logout-btn" id="logoutBtn" title="Logout">
+                <button class="logout-btn" onclick="logout()">
                     <img src="/api/image/logout-icon.png" alt="Logout" onerror="this.textContent='🚪';">
+                    <span>Logout</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="admin-nav">
-        <div class="nav-container">
-            <button class="nav-tab active" data-tab="dashboard" data-key="nav_dashboard">Dashboard</button>
-            <button class="nav-tab" data-tab="orders" data-key="nav_orders">Orders</button>
-            <button class="nav-tab" data-tab="fragrances" data-key="nav_fragrances">Fragrances</button>
-            <button class="nav-tab" data-tab="analytics" data-key="nav_analytics">Analytics</button>
-        </div>
-    </nav>
-
     <!-- Main Container -->
-    <div class="main-container">
-        <!-- Dashboard Tab -->
-        <div id="dashboardTab" class="tab-content active">
-            <!-- Status Bar -->
-            <div class="status-bar">
-                <div class="status-info">
-                    <img src="/api/image/admin-active-icon.png" alt="Active" class="status-icon" onerror="this.textContent='✨';">
-                    <span data-key="admin_active">Admin Dashboard Active - Welcome back!</span>
-                </div>
-                <button class="add-fragrance-btn" id="addFragranceBtn">
-                    <img src="/api/image/plus-icon.png" alt="Add" class="btn-icon" onerror="this.textContent='+';">
-                    <span data-key="add_fragrance">Add New Fragrance</span>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="nav-menu">
+                <button class="nav-item active" onclick="switchTab('orders')" data-tab="orders">
+                    <img src="/api/image/orders-icon.png" alt="Orders" onerror="this.textContent='📦';">
+                    <span>Orders</span>
+                    <div class="nav-indicator"></div>
+                </button>
+                <button class="nav-item" onclick="switchTab('fragrances')" data-tab="fragrances">
+                    <img src="/api/image/fragrances-icon.png" alt="Fragrances" onerror="this.textContent='🌸';">
+                    <span>Fragrances</span>
+                    <div class="nav-indicator"></div>
                 </button>
             </div>
+        </nav>
 
-            <!-- Statistics Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <img src="/api/image/orders-icon.png" alt="Orders" class="stat-icon" onerror="this.textContent='📦';">
+        <!-- Content Area -->
+        <main class="content">
+            <!-- Orders Tab -->
+            <div id="ordersTab" class="tab-content active">
+                <div class="content-header">
+                    <div class="page-title">
+                        <img src="/api/image/orders-icon.png" alt="Orders" class="page-icon" onerror="this.style.display='none';">
+                        <h1>Orders Management</h1>
                     </div>
-                    <div class="stat-number" id="totalOrders">-</div>
-                    <div class="stat-label" data-key="total_orders">Total Orders</div>
-                    <div class="stat-change" id="ordersChange" data-key="loading">Loading...</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <img src="/api/image/pending-icon.png" alt="Pending" class="stat-icon" onerror="this.textContent='⏳';">
+                    
+                    <div class="content-actions">
+                        <div class="search-container">
+                            <img src="/api/image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
+                            <input type="text" id="ordersSearch" class="search-input" placeholder="Search orders...">
+                        </div>
+                        
+                        <select id="ordersFilter" class="filter-select">
+                            <option value="all">All Orders</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                        
+                        <button class="refresh-btn" onclick="refreshOrders()">
+                            <img src="/api/image/refresh-icon.png" alt="Refresh" onerror="this.textContent='🔄';">
+                        </button>
                     </div>
-                    <div class="stat-number" id="pendingOrders">-</div>
-                    <div class="stat-label" data-key="pending_orders">Pending Orders</div>
-                    <div class="stat-change" id="pendingChange" data-key="loading">Loading...</div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <img src="/api/image/perfume-icon.png" alt="Fragrances" class="stat-icon" onerror="this.textContent='💎';">
+
+                <!-- Orders Loading -->
+                <div id="ordersLoading" class="loading-section">
+                    <div class="loading-spinner"></div>
+                    <p>Loading orders...</p>
+                </div>
+
+                <!-- Orders Table -->
+                <div id="ordersTable" class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Orders will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty Orders -->
+                <div id="emptyOrders" class="empty-state" style="display: none;">
+                    <img src="/api/image/empty-orders-icon.png" alt="No Orders" class="empty-icon" onerror="this.textContent='📦';">
+                    <h3>No Orders Found</h3>
+                    <p>Customer orders will appear here once they start placing orders.</p>
+                </div>
+            </div>
+
+            <!-- Fragrances Tab -->
+            <div id="fragrancesTab" class="tab-content">
+                <div class="content-header">
+                    <div class="page-title">
+                        <img src="/api/image/fragrances-icon.png" alt="Fragrances" class="page-icon" onerror="this.style.display='none';">
+                        <h1>Fragrances Management</h1>
                     </div>
-                    <div class="stat-number" id="totalFragrances">-</div>
-                    <div class="stat-label" data-key="total_fragrances">Total Fragrances</div>
-                    <div class="stat-change" id="fragranceChange" data-key="loading">Loading...</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <img src="/api/image/revenue-icon.png" alt="Revenue" class="stat-icon" onerror="this.textContent='💰';">
+                    
+                    <div class="content-actions">
+                        <div class="search-container">
+                            <img src="/api/image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
+                            <input type="text" id="fragrancesSearch" class="search-input" placeholder="Search fragrances...">
+                        </div>
+                        
+                        <select id="fragrancesFilter" class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="visible">Visible Only</option>
+                            <option value="hidden">Hidden Only</option>
+                        </select>
+                        
+                        <button class="add-btn" onclick="openAddFragranceModal()">
+                            <img src="/api/image/plus-icon.png" alt="Add" onerror="this.textContent='+';">
+                            <span>Add Fragrance</span>
+                        </button>
                     </div>
-                    <div class="stat-number" id="totalRevenue">-</div>
-                    <div class="stat-label" data-key="total_revenue">Total Revenue</div>
-                    <div class="stat-change" id="revenueChange" data-key="loading">Loading...</div>
+                </div>
+
+                <!-- Fragrances Loading -->
+                <div id="fragrancesLoading" class="loading-section">
+                    <div class="loading-spinner"></div>
+                    <p>Loading fragrances...</p>
+                </div>
+
+                <!-- Fragrances Table -->
+                <div id="fragrancesTable" class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Variants</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fragrancesTableBody">
+                            <!-- Fragrances will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty Fragrances -->
+                <div id="emptyFragrances" class="empty-state" style="display: none;">
+                    <img src="/api/image/empty-fragrances-icon.png" alt="No Fragrances" class="empty-icon" onerror="this.textContent='🌸';">
+                    <h3>No Fragrances Found</h3>
+                    <p>Add your first fragrance to get started.</p>
                 </div>
             </div>
-
-            <!-- Quick Actions -->
-            <div class="quick-actions">
-                <h3 data-key="quick_actions">Quick Actions</h3>
-                <div class="action-cards">
-                    <button class="action-card" onclick="switchToTab('orders')">
-                        <img src="/api/image/orders-icon.png" alt="Orders" onerror="this.textContent='📦';">
-                        <span data-key="manage_orders">Manage Orders</span>
-                    </button>
-                    <button class="action-card" onclick="switchToTab('fragrances')">
-                        <img src="/api/image/perfume-icon.png" alt="Fragrances" onerror="this.textContent='💎';">
-                        <span data-key="manage_fragrances">Manage Fragrances</span>
-                    </button>
-                    <button class="action-card" onclick="openAddFragrancePanel()">
-                        <img src="/api/image/plus-icon.png" alt="Add" onerror="this.textContent='+';">
-                        <span data-key="add_new_fragrance">Add New Fragrance</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Orders Tab -->
-        <div id="ordersTab" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title" data-key="orders_management">Orders Management</h2>
-                <div class="section-controls">
-                    <div class="search-container">
-                        <img src="/api/image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
-                        <input type="text" id="ordersSearch" class="search-input" placeholder="Search orders..." data-key-placeholder="search_orders">
-                    </div>
-                    <select id="ordersFilter" class="filter-select">
-                        <option value="all" data-key="all_orders">All Orders</option>
-                        <option value="pending" data-key="pending_orders">Pending</option>
-                        <option value="completed" data-key="completed_orders">Completed</option>
-                        <option value="canceled" data-key="canceled_orders">Canceled</option>
-                    </select>
-                    <button class="refresh-btn" onclick="refreshOrders()" title="Refresh Orders">
-                        <img src="/api/image/refresh-icon.png" alt="Refresh" onerror="this.textContent='🔄';">
-                    </button>
-                </div>
-            </div>
-
-            <!-- Orders Loading -->
-            <div id="ordersLoading" class="loading-section">
-                <div class="loading-spinner"></div>
-                <p class="loading-text" data-key="loading_orders">Loading orders...</p>
-            </div>
-
-            <!-- Orders Table -->
-            <div id="ordersTable" class="table-container" style="display: none;">
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th data-key="order_id">Order ID</th>
-                            <th data-key="customer">Customer</th>
-                            <th data-key="items">Items</th>
-                            <th data-key="total">Total</th>
-                            <th data-key="status">Status</th>
-                            <th data-key="date">Date</th>
-                            <th data-key="actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody">
-                        <!-- Orders will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Empty Orders -->
-            <div id="emptyOrders" class="empty-state" style="display: none;">
-                <img src="/api/image/empty-orders-icon.png" alt="No Orders" class="empty-icon" onerror="this.textContent='📦';">
-                <h3 data-key="no_orders">No Orders Found</h3>
-                <p data-key="orders_will_appear">Customer orders will appear here once they start placing orders.</p>
-            </div>
-        </div>
-
-        <!-- Fragrances Tab -->
-        <div id="fragrancesTab" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title" data-key="fragrances_management">Fragrances Management</h2>
-                <div class="section-controls">
-                    <div class="search-container">
-                        <img src="/api/image/search-icon.png" alt="Search" class="search-icon" onerror="this.textContent='🔍';">
-                        <input type="text" id="fragrancesSearch" class="search-input" placeholder="Search fragrances..." data-key-placeholder="search_fragrances">
-                    </div>
-                    <select id="fragrancesFilter" class="filter-select">
-                        <option value="all" data-key="all_status">All Status</option>
-                        <option value="visible" data-key="visible_only">Visible Only</option>
-                        <option value="hidden" data-key="hidden_only">Hidden Only</option>
-                    </select>
-                    <button class="add-fragrance-btn" onclick="openAddFragrancePanel()">
-                        <img src="/api/image/plus-icon.png" alt="Add" onerror="this.textContent='+';">
-                        <span data-key="add_fragrance">Add Fragrance</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Fragrances content will be added here -->
-            <div class="empty-state">
-                <img src="/api/image/perfume-icon.png" alt="Fragrances" class="empty-icon" onerror="this.textContent='💎';">
-                <h3>Fragrances Management</h3>
-                <p>Fragrance management functionality coming soon.</p>
-            </div>
-        </div>
-
-        <!-- Analytics Tab -->
-        <div id="analyticsTab" class="tab-content">
-            <div class="section-header">
-                <h2 class="section-title" data-key="analytics">Analytics</h2>
-            </div>
-
-            <!-- Analytics content placeholder -->
-            <div class="empty-state">
-                <img src="/api/image/chart-icon.png" alt="Analytics" class="empty-icon" onerror="this.textContent='📊';">
-                <h3>Analytics Dashboard</h3>
-                <p>Analytics and reporting features coming soon.</p>
-            </div>
-        </div>
+        </main>
     </div>
 
     <!-- Order Details Modal -->
     <div class="modal-overlay" id="orderModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" data-key="order_details">Order Details</h2>
+                <h3 class="modal-title">Order Details</h3>
                 <button class="close-btn" onclick="closeOrderModal()">
                     <img src="/api/image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
                 </button>
             </div>
-            <div class="modal-body">
-                <!-- Order Information -->
-                <div class="order-info-section">
-                    <h3 data-key="order_information">Order Information</h3>
-                    <div class="order-info-grid">
-                        <div class="info-item">
-                            <label data-key="order_id">Order ID:</label>
-                            <span id="modalOrderId">-</span>
-                        </div>
-                        <div class="info-item">
-                            <label data-key="order_date">Order Date:</label>
-                            <span id="modalOrderDate">-</span>
-                        </div>
-                        <div class="info-item">
-                            <label data-key="order_status">Status:</label>
-                            <span id="modalOrderStatus" class="status-badge">-</span>
-                        </div>
-                        <div class="info-item">
-                            <label data-key="total_amount">Total Amount:</label>
-                            <span id="modalOrderTotal">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Customer Information -->
-                <div class="customer-info-section">
-                    <h3 data-key="customer_information">Customer Information</h3>
-                    <div class="customer-info-grid">
-                        <div class="info-item">
-                            <label data-key="customer_name">Name:</label>
-                            <span id="modalCustomerName">-</span>
-                        </div>
-                        <div class="info-item">
-                            <label data-key="customer_email">Email:</label>
-                            <span id="modalCustomerEmail">-</span>
-                        </div>
-                        <div class="info-item">
-                            <label data-key="customer_phone">Phone:</label>
-                            <span id="modalCustomerPhone">-</span>
-                        </div>
-                        <div class="info-item delivery-address">
-                            <label data-key="delivery_address">Delivery Address:</label>
-                            <span id="modalDeliveryAddress">-</span>
-                        </div>
-                        <div class="info-item" id="preferredTimeItem" style="display: none;">
-                            <label data-key="preferred_time">Preferred Time:</label>
-                            <span id="modalPreferredTime">-</span>
-                        </div>
-                        <div class="info-item" id="specialInstructionsItem" style="display: none;">
-                            <label data-key="special_instructions">Special Instructions:</label>
-                            <span id="modalSpecialInstructions">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Items -->
-                <div class="order-items-section">
-                    <h3 data-key="order_items">Order Items</h3>
-                    <div class="order-items-list" id="modalOrderItems">
-                        <!-- Items will be populated here -->
-                    </div>
-                    <div class="order-summary">
-                        <div class="summary-row">
-                            <span data-key="subtotal">Subtotal:</span>
-                            <span id="modalSubtotal">-</span>
-                        </div>
-                        <div class="summary-row">
-                            <span data-key="delivery_fee">Delivery Fee:</span>
-                            <span data-key="free">Free</span>
-                        </div>
-                        <div class="summary-row total">
-                            <span data-key="total">Total:</span>
-                            <span id="modalTotal">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Actions -->
-                <div class="order-actions">
-                    <button class="btn btn-success" onclick="updateOrderStatus('completed')" id="completeOrderBtn" data-key="mark_completed">Mark as Completed</button>
-                    <button class="btn btn-danger" onclick="updateOrderStatus('canceled')" id="cancelOrderBtn" data-key="mark_canceled">Mark as Canceled</button>
-                    <button class="btn btn-secondary" onclick="closeOrderModal()" data-key="close">Close</button>
-                </div>
+            <div class="modal-body" id="orderModalBody">
+                <!-- Order details will be populated here -->
             </div>
         </div>
     </div>
 
-    <!-- Notification Permission Modal -->
-    <div class="modal-overlay" id="notificationModal">
-        <div class="modal-content notification-modal">
+    <!-- Add/Edit Fragrance Modal -->
+    <div class="modal-overlay" id="fragranceModal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" data-key="enable_notifications">Enable Notifications</h2>
-                <button class="close-btn" onclick="closeNotificationModal()">
+                <h3 class="modal-title" id="fragranceModalTitle">Add Fragrance</h3>
+                <button class="close-btn" onclick="closeFragranceModal()">
                     <img src="/api/image/close-icon.png" alt="Close" onerror="this.textContent='✕';">
                 </button>
             </div>
             <div class="modal-body">
-                <div class="notification-explanation">
-                    <img src="/api/image/notification-large-icon.png" alt="Notifications" class="notification-large-icon" onerror="this.textContent='🔔';">
-                    <h3 data-key="stay_informed">Stay Informed About New Orders</h3>
-                    <p data-key="notification_benefits">Enable browser notifications to get instant alerts when customers place new orders. This helps you:</p>
-                    <ul>
-                        <li data-key="benefit_instant">Receive instant order notifications</li>
-                        <li data-key="benefit_respond">Respond to customers quickly</li>
-                        <li data-key="benefit_track">Keep track of your business activity</li>
-                        <li data-key="benefit_miss">Never miss an important order</li>
-                    </ul>
-                </div>
-                <div class="notification-actions">
-                    <button class="btn btn-primary" onclick="enableNotifications()" data-key="enable_now">Enable Notifications</button>
-                    <button class="btn btn-secondary" onclick="closeNotificationModal()" data-key="maybe_later">Maybe Later</button>
-                </div>
+                <form id="fragranceForm" class="fragrance-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="fragranceName">
+                                <img src="/api/image/name-icon.png" alt="Name" class="label-icon" onerror="this.style.display='none';">
+                                Name *
+                            </label>
+                            <input type="text" id="fragranceName" class="form-input" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="fragranceBrand">
+                                <img src="/api/image/brand-icon.png" alt="Brand" class="label-icon" onerror="this.style.display='none';">
+                                Brand
+                            </label>
+                            <input type="text" id="fragranceBrand" class="form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="fragranceDescription">
+                            <img src="/api/image/description-icon.png" alt="Description" class="label-icon" onerror="this.style.display='none';">
+                            Description *
+                        </label>
+                        <textarea id="fragranceDescription" class="form-textarea" required rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="fragranceImage">
+                            <img src="/api/image/image-icon.png" alt="Image" class="label-icon" onerror="this.style.display='none';">
+                            Image URL
+                        </label>
+                        <input type="url" id="fragranceImage" class="form-input" placeholder="https://example.com/image.jpg">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeFragranceModal()">
+                            <img src="/api/image/cancel-icon.png" alt="Cancel" onerror="this.textContent='✕';">
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="fragranceSubmitBtn">
+                            <img src="/api/image/save-icon.png" alt="Save" onerror="this.textContent='💾';">
+                            <span>Save Fragrance</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <script src="js/fragrance-management.js"></script>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <img src="/api/image/success-icon.png" alt="Success" class="toast-icon" onerror="this.style.display='none';">
+        <span class="toast-message"></span>
+    </div>
+
+    <script>
+        // Global variables
+let orders = [];
+let fragrances = [];
+let filteredOrders = [];
+let filteredFragrances = [];
+let currentTab = 'orders';
+let editingFragranceId = null;
+
+// Initialize admin dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    checkAuthentication();
+    
+    // Load initial data
+    loadOrders();
+    
+    // Setup event listeners
+    setupEventListeners();
+});
+
+// Check if user is authenticated
+async function checkAuthentication() {
+    try {
+        const response = await fetch('/api/admin/auth/verify', {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            window.location.href = '/admin/login.html';
+            return;
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/admin/login.html';
+    }
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    // Search functionality
+    document.getElementById('ordersSearch').addEventListener('input', debounce(filterOrders, 300));
+    document.getElementById('ordersFilter').addEventListener('change', filterOrders);
+    document.getElementById('fragrancesSearch').addEventListener('input', debounce(filterFragrances, 300));
+    document.getElementById('fragrancesFilter').addEventListener('change', filterFragrances);
+    
+    // Form submission
+    document.getElementById('fragranceForm').addEventListener('submit', handleFragranceSubmit);
+    
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+            }
+        });
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+}
+
+// Debounce function for search
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Tab Management
+function switchTab(tabName) {
+    // Update navigation
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === tabName) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    
+    currentTab = tabName;
+    
+    // Load data for the active tab
+    if (tabName === 'fragrances' && fragrances.length === 0) {
+        loadFragrances();
+    }
+}
+
+// Orders Management
+async function loadOrders() {
+    showLoadingState('orders');
+    
+    try {
+        const response = await fetch('/api/admin/orders', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            orders = result.data || [];
+            filteredOrders = [...orders];
+            displayOrders();
+        } else {
+            throw new Error('Failed to load orders');
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        showEmptyState('orders');
+        showToast('Error loading orders', 'error');
+    }
+}
+
+function displayOrders() {
+    const tableBody = document.getElementById('ordersTableBody');
+    const ordersTable = document.getElementById('ordersTable');
+    const emptyOrders = document.getElementById('emptyOrders');
+    const ordersLoading = document.getElementById('ordersLoading');
+    
+    ordersLoading.style.display = 'none';
+    
+    if (!filteredOrders.length) {
+        ordersTable.style.display = 'none';
+        emptyOrders.style.display = 'block';
+        return;
+    }
+    
+    ordersTable.style.display = 'block';
+    emptyOrders.style.display = 'none';
+    
+    tableBody.innerHTML = filteredOrders.map(order => `
+        <tr onclick="viewOrderDetails('${order.id}')" style="cursor: pointer;">
+            <td>
+                <strong>#${order.id}</strong>
+            </td>
+            <td>
+                <div>
+                    <div style="font-weight: 500;">${order.customer.name}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">${order.customer.email}</div>
+                </div>
+            </td>
+            <td>
+                <span style="font-weight: 500;">${order.items.length}</span> item${order.items.length !== 1 ? 's' : ''}
+            </td>
+            <td>
+                <strong style="color: var(--primary-color);">${formatPrice(order.total)}</strong>
+            </td>
+            <td>
+                <span class="status-badge status-${order.status}">${formatStatus(order.status)}</span>
+            </td>
+            <td>
+                <div style="font-size: 0.8rem;">${formatDate(order.createdAt)}</div>
+            </td>
+            <td onclick="event.stopPropagation();">
+                <div class="action-buttons">
+                    ${order.status === 'pending' ? `
+                        <button class="action-btn btn-success" onclick="updateOrderStatus('${order.id}', 'completed')" title="Mark as Completed">
+                            <img src="/api/image/check-icon.png" alt="Complete" onerror="this.textContent='✓';">
+                        </button>
+                        <button class="action-btn btn-warning" onclick="updateOrderStatus('${order.id}', 'canceled')" title="Cancel Order">
+                            <img src="/api/image/cancel-icon.png" alt="Cancel" onerror="this.textContent='✕';">
+                        </button>
+                    ` : ''}
+                    <button class="action-btn btn-danger" onclick="deleteOrder('${order.id}')" title="Delete Order">
+                        <img src="/api/image/delete-icon.png" alt="Delete" onerror="this.textContent='🗑️';">
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterOrders() {
+    const searchTerm = document.getElementById('ordersSearch').value.toLowerCase();
+    const statusFilter = document.getElementById('ordersFilter').value;
+    
+    filteredOrders = orders.filter(order => {
+        const matchesSearch = 
+            order.id.toString().includes(searchTerm) ||
+            order.customer.name.toLowerCase().includes(searchTerm) ||
+            order.customer.email.toLowerCase().includes(searchTerm);
+        
+        const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+        
+        return matchesSearch && matchesStatus;
+    });
+    
+    displayOrders();
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+    try {
+        const response = await fetch(`/api/admin/orders/${orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (response.ok) {
+            // Update local data
+            const orderIndex = orders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = newStatus;
+                filterOrders();
+            }
+            showToast(`Order ${newStatus} successfully`, 'success');
+        } else {
+            throw new Error('Failed to update order status');
+        }
+    } catch (error) {
+        console.error('Error updating order:', error);
+        showToast('Failed to update order status', 'error');
+    }
+}
+
+async function deleteOrder(orderId) {
+    if (!confirm('Are you sure you want to delete this order?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/orders/${orderId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            // Remove from local data
+            orders = orders.filter(o => o.id !== orderId);
+            filterOrders();
+            showToast('Order deleted successfully', 'success');
+        } else {
+            throw new Error('Failed to delete order');
+        }
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        showToast('Failed to delete order', 'error');
+    }
+}
+
+function viewOrderDetails(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    const modalBody = document.getElementById('orderModalBody');
+    modalBody.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Order Information</h4>
+            <div style="background: var(--background); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div><strong>Order ID:</strong> #${order.id}</div>
+                    <div><strong>Status:</strong> <span class="status-badge status-${order.status}">${formatStatus(order.status)}</span></div>
+                    <div><strong>Date:</strong> ${formatDate(order.createdAt)}</div>
+                    <div><strong>Total:</strong> <strong style="color: var(--primary-color);">${formatPrice(order.total)}</strong></div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Customer Information</h4>
+            <div style="background: var(--background); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="display: grid; gap: 0.5rem;">
+                    <div><strong>Name:</strong> ${order.customer.name}</div>
+                    <div><strong>Email:</strong> ${order.customer.email}</div>
+                    <div><strong>Phone:</strong> ${order.customer.phone}</div>
+                    <div><strong>Address:</strong> ${order.customer.address}</div>
+                    ${order.preferredTime ? `<div><strong>Preferred Time:</strong> ${order.preferredTime}</div>` : ''}
+                    ${order.specialInstructions ? `<div><strong>Instructions:</strong> ${order.specialInstructions}</div>` : ''}
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Order Items</h4>
+            <div style="background: var(--background); border-radius: var(--radius-md); overflow: hidden;">
+                ${order.items.map(item => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 0.25rem;">${item.fragrance}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">${item.size} × ${item.quantity}</div>
+                        </div>
+                        <div style="font-weight: 600; color: var(--primary-color);">${formatPrice(item.total)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('orderModal').classList.add('show');
+}
+
+function closeOrderModal() {
+    document.getElementById('orderModal').classList.remove('show');
+}
+
+// Fragrances Management
+async function loadFragrances() {
+    showLoadingState('fragrances');
+    
+    try {
+        const response = await fetch('/api/admin/fragrances', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            fragrances = result.data || [];
+            filteredFragrances = [...fragrances];
+            displayFragrances();
+        } else {
+            throw new Error('Failed to load fragrances');
+        }
+    } catch (error) {
+        console.error('Error loading fragrances:', error);
+        showEmptyState('fragrances');
+        showToast('Error loading fragrances', 'error');
+    }
+}
+
+function displayFragrances() {
+    const tableBody = document.getElementById('fragrancesTableBody');
+    const fragrancesTable = document.getElementById('fragrancesTable');
+    const emptyFragrances = document.getElementById('emptyFragrances');
+    const fragrancesLoading = document.getElementById('fragrancesLoading');
+    
+    fragrancesLoading.style.display = 'none';
+    
+    if (!filteredFragrances.length) {
+        fragrancesTable.style.display = 'none';
+        emptyFragrances.style.display = 'block';
+        return;
+    }
+    
+    fragrancesTable.style.display = 'block';
+    emptyFragrances.style.display = 'none';
+    
+    tableBody.innerHTML = filteredFragrances.map(fragrance => `
+        <tr>
+            <td>
+                ${fragrance.image ? 
+                    `<img src="${fragrance.image}" alt="${fragrance.name}" class="product-image" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No Image</div>'">` :
+                    '<div class="no-image">No Image</div>'
+                }
+            </td>
+            <td>
+                <div>
+                    <div style="font-weight: 500; margin-bottom: 0.25rem;">${fragrance.name}</div>
+                    ${fragrance.brand ? `<div style="font-size: 0.8rem; color: var(--text-secondary);">${fragrance.brand}</div>` : ''}
+                </div>
+            </td>
+            <td>
+                <span style="color: var(--text-secondary);">${fragrance.brand || '-'}</span>
+            </td>
+            <td>
+                ${fragrance.variants && fragrance.variants.length > 0 ? 
+                    fragrance.variants.map(v => `
+                        <span class="variant-tag">
+                            ${v.is_whole_bottle ? 'Full Bottle' : `${v.size_ml}ml`}
+                        </span>
+                    `).join('') : 
+                    '<span style="color: var(--text-secondary); font-style: italic;">No variants</span>'
+                }
+            </td>
+            <td>
+                <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
+                    ${fragrance.hidden ? 'Hidden' : 'Visible'}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn btn-primary" onclick="editFragrance(${fragrance.id})" title="Edit Fragrance">
+                        <img src="/api/image/edit-icon.png" alt="Edit" onerror="this.textContent='✏️';">
+                    </button>
+                    <button class="action-btn ${fragrance.hidden ? 'btn-success' : 'btn-warning'}" onclick="toggleFragranceVisibility(${fragrance.id})" title="${fragrance.hidden ? 'Show' : 'Hide'} Fragrance">
+                        <img src="/api/image/${fragrance.hidden ? 'show' : 'hide'}-icon.png" alt="${fragrance.hidden ? 'Show' : 'Hide'}" onerror="this.textContent='${fragrance.hidden ? '👁️' : '🙈'}';">
+                    </button>
+                    <button class="action-btn btn-danger" onclick="deleteFragrance(${fragrance.id})" title="Delete Fragrance">
+                        <img src="/api/image/delete-icon.png" alt="Delete" onerror="this.textContent='🗑️';">
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterFragrances() {
+    const searchTerm = document.getElementById('fragrancesSearch').value.toLowerCase();
+    const statusFilter = document.getElementById('fragrancesFilter').value;
+    
+    filteredFragrances = fragrances.filter(fragrance => {
+        const matchesSearch = 
+            fragrance.name.toLowerCase().includes(searchTerm) ||
+            (fragrance.brand && fragrance.brand.toLowerCase().includes(searchTerm)) ||
+            fragrance.description.toLowerCase().includes(searchTerm);
+        
+        const matchesStatus = 
+            statusFilter === 'all' ||
+            (statusFilter === 'visible' && !fragrance.hidden) ||
+            (statusFilter === 'hidden' && fragrance.hidden);
+        
+        return matchesSearch && matchesStatus;
+    });
+    
+    displayFragrances();
+}
+
+// Fragrance Modal Management
+function openAddFragranceModal() {
+    editingFragranceId = null;
+    document.getElementById('fragranceModalTitle').textContent = 'Add Fragrance';
+    document.getElementById('fragranceSubmitBtn').querySelector('span').textContent = 'Add Fragrance';
+    
+    // Reset form
+    document.getElementById('fragranceForm').reset();
+    
+    document.getElementById('fragranceModal').classList.add('show');
+    document.getElementById('fragranceName').focus();
+}
+
+function editFragrance(fragranceId) {
+    const fragrance = fragrances.find(f => f.id === fragranceId);
+    if (!fragrance) return;
+    
+    editingFragranceId = fragranceId;
+    document.getElementById('fragranceModalTitle').textContent = 'Edit Fragrance';
+    document.getElementById('fragranceSubmitBtn').querySelector('span').textContent = 'Update Fragrance';
+    
+    // Populate form
+    document.getElementById('fragranceName').value = fragrance.name;
+    document.getElementById('fragranceBrand').value = fragrance.brand || '';
+    document.getElementById('fragranceDescription').value = fragrance.description;
+    document.getElementById('fragranceImage').value = fragrance.image || '';
+    
+    document.getElementById('fragranceModal').classList.add('show');
+    document.getElementById('fragranceName').focus();
+}
+
+function closeFragranceModal() {
+    document.getElementById('fragranceModal').classList.remove('show');
+    editingFragranceId = null;
+}
+
+async function handleFragranceSubmit(e) {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('fragranceName').value.trim(),
+        brand: document.getElementById('fragranceBrand').value.trim(),
+        description: document.getElementById('fragranceDescription').value.trim(),
+        image: document.getElementById('fragranceImage').value.trim(),
+        slug: document.getElementById('fragranceName').value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        variants: [] // Default empty variants
+    };
+    
+    if (!formData.name || !formData.description) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('fragranceSubmitBtn');
+    const originalText = submitBtn.querySelector('span').textContent;
+    submitBtn.disabled = true;
+    submitBtn.querySelector('span').textContent = 'Saving...';
+    
+    try {
+        const url = editingFragranceId ? 
+            `/api/admin/fragrances/${editingFragranceId}` : 
+            '/api/admin/fragrances';
+        
+        const method = editingFragranceId ? 'PUT' : 'POST';
+        
+        if (editingFragranceId) {
+            formData.id = editingFragranceId;
+        }
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            
+            if (editingFragranceId) {
+                // Update existing fragrance
+                const fragranceIndex = fragrances.findIndex(f => f.id === editingFragranceId);
+                if (fragranceIndex !== -1) {
+                    fragrances[fragranceIndex] = { ...fragrances[fragranceIndex], ...formData };
+                }
+                showToast('Fragrance updated successfully', 'success');
+            } else {
+                // Add new fragrance
+                fragrances.unshift({ ...formData, id: result.id || Date.now(), hidden: false, variants: [] });
+                showToast('Fragrance added successfully', 'success');
+            }
+            
+            filterFragrances();
+            closeFragranceModal();
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save fragrance');
+        }
+    } catch (error) {
+        console.error('Error saving fragrance:', error);
+        showToast('Failed to save fragrance', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('span').textContent = originalText;
+    }
+}
+
+async function toggleFragranceVisibility(fragranceId) {
+    const fragrance = fragrances.find(f => f.id === fragranceId);
+    if (!fragrance) return;
+    
+    try {
+        const response = await fetch(`/api/admin/fragrances/${fragranceId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ hidden: !fragrance.hidden })
+        });
+        
+        if (response.ok) {
+            // Update local data
+            fragrance.hidden = !fragrance.hidden;
+            filterFragrances();
+            showToast(`Fragrance ${fragrance.hidden ? 'hidden' : 'shown'} successfully`, 'success');
+        } else {
+            throw new Error('Failed to toggle fragrance visibility');
+        }
+    } catch (error) {
+        console.error('Error toggling fragrance visibility:', error);
+    }}
+    </script>
 </body>
 </html>

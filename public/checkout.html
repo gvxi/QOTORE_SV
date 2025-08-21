@@ -1,154 +1,79 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Qotor</title>
-   <style>
-       /* Root Variables - Based on DK Hoone Emirates */
-:root {
-    /* Primary Colors */
-    --primary-color: #1a237e; /* Deep Blue */
+    <styple>
+        :root {
+    --primary-color: #1a237e;
     --primary-light: #3949ab;
-    --primary-dark: #0d47a1;
-    
-    /* Secondary Colors */
-    --secondary-color: #ffd700; /* Gold */
-    --secondary-light: #ffeb3b;
-    --secondary-dark: #ff8f00;
-    
-    /* Neutral Colors */
-    --dark-color: #212121;
+    --secondary-color: #ffd700;
     --text-primary: #212121;
     --text-secondary: #757575;
-    --text-light: #9e9e9e;
     --background: #ffffff;
-    --surface: #f5f5f5;
+    --surface: #f8fafc;
     --border: #e0e0e0;
-    
-    /* Status Colors */
     --success: #4caf50;
-    --warning: #ff9800;
     --error: #f44336;
-    --info: #2196f3;
-    
-    /* Spacing */
+    --warning: #ff9800;
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
     --spacing-xxl: 3rem;
-    
-    /* Typography */
-    --font-family: 'Arial', 'Helvetica', sans-serif;
-    --font-weight-light: 300;
-    --font-weight-normal: 400;
-    --font-weight-medium: 500;
-    --font-weight-bold: 700;
-    
-    /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
-    --radius-round: 50%;
-    
-    /* Transitions */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-    --transition-slow: 0.5s ease;
-    
-    /* Z-index */
-    --z-header: 1000;
-    --z-modal: 2000;
-    --z-dropdown: 1500;
-    --z-tooltip: 3000;
+    --transition: 0.3s ease;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
-/* Dark Theme Variables */
-[data-theme="dark"] {
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --text-light: #808080;
-    --background: #121212;
-    --surface: #1e1e1e;
-    --border: #333333;
-    --dark-color: #ffffff;
-}
-
-/* RTL Support */
-[dir="rtl"] {
-    text-align: right;
-}
-
-[dir="rtl"] .header-container {
-    flex-direction: row-reverse;
-}
-
-[dir="rtl"] .checkout-grid {
-    grid-template-columns: 1fr 2fr;
-}
-
-[dir="rtl"] .language-dropdown {
-    right: auto;
-    left: 0;
-}
-
-[dir="rtl"] .form-actions {
-    flex-direction: row-reverse;
-}
-
-[dir="rtl"] .confirm-actions {
-    flex-direction: row-reverse;
-}
-
-/* Base Styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
 body {
-    font-family: var(--font-family);
+    font-family: 'Arial', sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
-    background: var(--background);
-    transition: background var(--transition-normal), color var(--transition-normal);
+    background: var(--surface);
+    direction: ltr;
 }
 
-/* Header Styles */
+body.rtl {
+    direction: rtl;
+}
+
+/* Header */
 .header {
-    background: var(--background);
+    background: var(--primary-color);
+    color: white;
+    padding: var(--spacing-md) 0;
     position: sticky;
     top: 0;
-    z-index: var(--z-header);
-    transition: background var(--transition-normal);
-    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+    box-shadow: var(--shadow);
 }
 
-.header-container {
+.nav-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: 0 var(--spacing-lg);
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
 }
 
-/* Logo */
 .logo-section {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    font-size: 1.5rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-color);
 }
 
 .logo-image {
@@ -156,247 +81,177 @@ body {
     width: auto;
 }
 
-.logo-text {
+.logo {
     font-size: 1.8rem;
-    font-weight: var(--font-weight-bold);
+    font-weight: bold;
+    color: var(--secondary-color);
 }
 
-/* Checkout Progress */
-.checkout-progress {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-lg);
-}
-
-.progress-step {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    opacity: 0.5;
-    transition: opacity var(--transition-normal);
-}
-
-.progress-step.active {
-    opacity: 1;
-}
-
-.step-number {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-round);
-    background: var(--border);
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: var(--font-weight-bold);
-    font-size: 0.875rem;
-    transition: all var(--transition-normal);
-}
-
-.progress-step.active .step-number {
-    background: var(--primary-color);
-    color: white;
-}
-
-.step-label {
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-    color: var(--text-secondary);
-    transition: color var(--transition-normal);
-}
-
-.progress-step.active .step-label {
-    color: var(--text-primary);
-}
-
-.progress-line {
-    width: 40px;
-    height: 2px;
-    background: var(--border);
-}
-
-/* Header Controls */
-.header-controls {
+.nav-actions {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
 }
 
-.control-btn {
-    background: none;
-    border: none;
-    padding: var(--spacing-sm);
+.language-switcher {
+    position: relative;
+}
+
+.lang-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background var(--transition-fast);
-    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.lang-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--secondary-color);
+}
+
+.lang-btn img {
+    width: 16px;
+    height: 16px;
+    filter: brightness(0) invert(1);
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--secondary-color);
+}
+
+.back-btn img {
+    width: 16px;
+    height: 16px;
+    filter: brightness(0) invert(1);
+}
+
+/* Progress Steps */
+.progress-section {
+    background: var(--background);
+    padding: var(--spacing-lg) 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.progress-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+}
+
+.progress-steps {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    text-decoration: none;
-    color: var(--text-primary);
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-.control-btn:hover {
-    background: var(--surface);
-}
-
-.control-btn img {
-    width: 20px;
-    height: 20px;
-}
-
-/* Language Selector */
-.language-selector {
-    position: relative;
-}
-
-.language-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    z-index: var(--z-dropdown);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all var(--transition-fast);
-    min-width: 150px;
-    overflow: hidden;
-}
-
-.language-dropdown.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.language-option {
+.step {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    border: none;
-    background: none;
-    width: 100%;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    color: var(--text-primary);
-    text-align: left;
+    transition: var(--transition);
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.step.active .step-number {
+    background: var(--primary-color);
+    color: white;
+}
+
+.step.completed .step-number {
+    background: var(--success);
+    color: white;
+}
+
+.step-label {
     font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-align: center;
 }
 
-.language-option:hover {
-    background: var(--surface);
+.step.active .step-label {
+    color: var(--primary-color);
+    font-weight: bold;
 }
 
-.language-option img {
-    width: 20px;
-    height: 15px;
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin: 0 var(--spacing-md);
+    min-width: 40px;
 }
 
 /* Main Container */
-.main-container {
+.container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: var(--spacing-xl) var(--spacing-lg);
-    min-height: calc(100vh - 80px);
-}
-
-/* Access Warning */
-.access-warning {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 60vh;
-}
-
-.warning-content {
-    text-align: center;
-    max-width: 500px;
-    padding: var(--spacing-xxl);
-}
-
-.warning-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto var(--spacing-lg);
-    opacity: 0.8;
-}
-
-.warning-content h2 {
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-lg);
-}
-
-.warning-content p {
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xl);
-}
-
-.return-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: var(--spacing-md) var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    font-weight: var(--font-weight-medium);
-    text-decoration: none;
-    display: inline-block;
-    transition: transform var(--transition-fast);
-}
-
-.return-btn:hover {
-    transform: translateY(-2px);
-}
-
-/* Checkout Grid */
-.checkout-grid {
+    padding: var(--spacing-xl);
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: var(--spacing-xxl);
+    grid-template-columns: 1fr 400px;
+    gap: var(--spacing-xl);
     align-items: start;
 }
 
-/* Form Section */
-.form-section {
+/* Checkout Form */
+.checkout-form {
     background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
     padding: var(--spacing-xxl);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
 }
 
-.section-header {
-    margin-bottom: var(--spacing-xl);
-}
-
-.section-title {
-    font-size: 1.75rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-sm);
-}
-
-.section-description {
-    color: var(--text-secondary);
-    font-size: 1rem;
-}
-
-/* Messages */
+/* Message Display */
 .message {
     padding: var(--spacing-md);
     border-radius: var(--radius-lg);
     margin-bottom: var(--spacing-lg);
-    font-weight: var(--font-weight-medium);
     display: none;
     align-items: center;
     gap: var(--spacing-sm);
+    font-weight: 500;
+}
+
+.message.show {
+    display: flex;
 }
 
 .message.success {
@@ -417,10 +272,61 @@ body {
     border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
-/* Form Styles */
-.checkout-form {
+/* Form Steps */
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+}
+
+.step-header {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xxl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--border);
+}
+
+.step-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.step-icon img {
+    width: 30px;
+    height: 30px;
+    filter: brightness(0) invert(1);
+}
+
+.step-info {
+    flex: 1;
+}
+
+.step-title {
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    font-weight: bold;
+}
+
+.step-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Form Styles */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: var(--spacing-lg);
 }
 
@@ -430,21 +336,26 @@ body {
     gap: var(--spacing-sm);
 }
 
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
 .form-label {
-    font-weight: var(--font-weight-medium);
+    font-weight: 600;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
 }
 
-.required {
-    color: var(--error);
-    font-weight: var(--font-weight-bold);
+.label-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
 }
 
-.form-input {
+.form-input, .form-textarea, .form-select {
     width: 100%;
     padding: var(--spacing-md);
     border: 2px solid var(--border);
@@ -452,64 +363,45 @@ body {
     font-size: 1rem;
     background: var(--background);
     color: var(--text-primary);
-    transition: all var(--transition-fast);
+    transition: var(--transition);
     font-family: inherit;
 }
 
-.form-input:focus {
+.form-input:focus, .form-textarea:focus, .form-select:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
 }
 
-.form-input::placeholder {
-    color: var(--text-light);
-}
-
-textarea.form-input {
-    min-height: 80px;
+.form-textarea {
+    min-height: 100px;
     resize: vertical;
 }
 
-select.form-input {
+.form-select {
     cursor: pointer;
 }
 
-/* Section Divider */
-.section-divider {
-    margin: var(--spacing-xl) 0 var(--spacing-lg) 0;
-    padding-top: var(--spacing-xl);
-    border-top: 1px solid var(--border);
-}
-
-.subsection-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-lg);
-}
-
-/* Form Actions */
-.form-actions {
-    display: flex;
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-xl);
-    border-top: 1px solid var(--border);
-}
-
+/* Buttons */
 .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
     padding: var(--spacing-md) var(--spacing-xl);
     border: none;
     border-radius: var(--radius-lg);
     font-size: 1rem;
-    font-weight: var(--font-weight-bold);
+    font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition);
     text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 140px;
+    min-height: 48px;
+}
+
+.btn img {
+    width: 18px;
+    height: 18px;
 }
 
 .btn-primary {
@@ -518,8 +410,13 @@ select.form-input {
 }
 
 .btn-primary:hover {
-    background: var(--primary-dark);
+    background: var(--primary-light);
     transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-primary img {
+    filter: brightness(0) invert(1);
 }
 
 .btn-secondary {
@@ -530,418 +427,185 @@ select.form-input {
 
 .btn-secondary:hover {
     background: var(--border);
-    transform: translateY(-1px);
+    border-color: var(--primary-color);
 }
 
-/* Summary Section */
-.summary-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
-    position: sticky;
-    top: calc(80px + var(--spacing-lg));
-    height: fit-content;
+.btn-success {
+    background: var(--success);
+    color: white;
 }
 
-.summary-header {
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-lg);
-    border-bottom: 1px solid var(--border);
+.btn-success:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
 }
 
-.summary-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
+.btn-success img {
+    filter: brightness(0) invert(1);
 }
 
-.summary-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-}
-
-/* Cart Items */
-.cart-items {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
-.cart-item {
-    display: flex;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-    background: var(--background);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-}
-
-.cart-item-image {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--radius-md);
-    background: var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 1.5rem;
-    color: var(--text-light);
-}
-
-.cart-item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: var(--radius-md);
-}
-
-.cart-item-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-
-.cart-item-name {
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    line-height: 1.3;
-}
-
-.cart-item-details {
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-}
-
-.cart-item-price {
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-color);
-    font-size: 0.875rem;
-    margin-top: auto;
-}
-
-/* Empty Cart */
-.empty-cart {
-    text-align: center;
-    padding: var(--spacing-xl);
-}
-
-.empty-icon {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto var(--spacing-lg);
+.btn:disabled {
     opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
-.empty-cart h4 {
-    font-size: 1.1rem;
-    margin-bottom: var(--spacing-md);
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+    margin-top: var(--spacing-xl);
+}
+
+.form-actions.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Review Sections */
+.review-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
     color: var(--text-primary);
-}
-
-.empty-cart p {
-    color: var(--text-secondary);
     margin-bottom: var(--spacing-lg);
-}
-
-/* Order Total */
-.order-total {
-    padding: var(--spacing-lg);
-    background: var(--background);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-}
-
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-sm);
-    font-size: 0.875rem;
-}
-
-.total-row:last-child {
-    margin-bottom: 0;
-}
-
-.total-row.subtotal {
-    color: var(--text-secondary);
-}
-
-.total-row.delivery {
-    color: var(--text-secondary);
-}
-
-.delivery-note {
-    color: var(--success);
-    font-weight: var(--font-weight-medium);
-}
-
-.total-row.final-total {
-    font-size: 1.1rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    padding-top: var(--spacing-sm);
-    border-top: 1px solid var(--border);
-    margin-top: var(--spacing-sm);
-}
-
-/* Trust Indicators */
-.trust-indicators {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-lg);
-    background: var(--background);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-}
-
-.trust-item {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    font-size: 0.75rem;
-    color: var(--text-secondary);
 }
 
-.trust-icon {
-    width: 16px;
-    height: 16px;
+.section-icon {
+    width: 20px;
+    height: 20px;
     opacity: 0.7;
 }
 
-/* Review Content */
-.review-content {
-    animation: slideIn 0.4s ease;
+.review-card {
+    background: var(--surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    margin-bottom: var(--spacing-md);
 }
 
-.review-container {
-    max-width: 800px;
-    margin: 0 auto;
+.review-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border);
 }
 
-.review-header {
-    text-align: center;
-    margin-bottom: var(--spacing-xxl);
+.review-detail:last-child {
+    border-bottom: none;
 }
 
-.review-section {
-    margin-bottom: var(--spacing-xxl);
+.review-label {
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
-.review-section-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
+.review-value {
     color: var(--text-primary);
+    text-align: right;
+}
+
+.edit-btn {
     margin-bottom: var(--spacing-lg);
 }
 
-.review-card {
-    background: var(--background);
+/* Order Items Review */
+.order-items-review {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
-    position: relative;
 }
 
 .review-item {
     display: flex;
+    align-items: center;
     gap: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-    align-items: start;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border);
 }
 
 .review-item:last-child {
-    margin-bottom: 0;
+    border-bottom: none;
 }
 
-.review-item strong {
-    min-width: 150px;
-    color: var(--text-secondary);
-    font-weight: var(--font-weight-medium);
-    font-size: 0.875rem;
-}
-
-.review-item span {
-    color: var(--text-primary);
-    font-weight: var(--font-weight-medium);
-}
-
-.edit-btn {
-    position: absolute;
-    top: var(--spacing-lg);
-    right: var(--spacing-lg);
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: var(--spacing-sm) var(--spacing-md);
+.review-item-image {
+    width: 60px;
+    height: 60px;
     border-radius: var(--radius-md);
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: background var(--transition-fast);
-}
-
-.edit-btn:hover {
-    background: var(--primary-dark);
-}
-
-/* Review Items */
-.review-items {
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--background);
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-}
-
-.review-item-row {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-md);
-    background: var(--surface);
-    border-radius: var(--radius-lg);
+    justify-content: center;
 }
 
-.review-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-
-.review-item-name {
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    font-size: 0.875rem;
+.review-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .review-item-details {
+    flex: 1;
+}
+
+.review-item-name {
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+}
+
+.review-item-variant {
     color: var(--text-secondary);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
 }
 
 .review-item-price {
-    font-weight: var(--font-weight-bold);
+    font-weight: 600;
     color: var(--primary-color);
-}
-
-.review-total {
-    padding: var(--spacing-lg);
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-}
-
-.review-total .total-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--spacing-sm);
-}
-
-.review-total .total-row.final {
     font-size: 1.1rem;
-    font-weight: var(--font-weight-bold);
-    padding-top: var(--spacing-sm);
-    border-top: 1px solid var(--border);
-    margin-top: var(--spacing-sm);
-}
-
-/* Confirm Actions */
-.confirm-actions {
-    display: flex;
-    gap: var(--spacing-lg);
-    justify-content: center;
-    margin-top: var(--spacing-xxl);
 }
 
 /* Success Content */
 .success-content {
+    text-align: center;
+    padding: var(--spacing-xxl) 0;
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto var(--spacing-xl);
+    background: var(--success);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 60vh;
-    animation: fadeIn 0.6s ease;
 }
 
-.success-container {
-    text-align: center;
-    max-width: 600px;
-    padding: var(--spacing-xxl);
-}
-
-.success-animation {
-    margin-bottom: var(--spacing-xl);
-}
-
-.success-checkmark {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto;
-}
-
-.checkmark {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-round);
-    display: block;
-    stroke-width: 2;
-    stroke: var(--success);
-    stroke-miterlimit: 10;
-    animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
-}
-
-.checkmark-circle {
-    stroke-dasharray: 166;
-    stroke-dashoffset: 166;
-    stroke-width: 2;
-    stroke-miterlimit: 10;
-    stroke: var(--success);
-    fill: none;
-    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-}
-
-.checkmark-check {
-    transform-origin: 50% 50%;
-    stroke-dasharray: 48;
-    stroke-dashoffset: 48;
-    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-}
-
-@keyframes stroke {
-    100% {
-        stroke-dashoffset: 0;
-    }
-}
-
-@keyframes scale {
-    0%, 100% {
-        transform: none;
-    }
-    50% {
-        transform: scale3d(1.1, 1.1, 1);
-    }
-}
-
-@keyframes fill {
-    100% {
-        background: rgba(76, 175, 80, 0.1);
-    }
+.success-icon img {
+    width: 50px;
+    height: 50px;
+    filter: brightness(0) invert(1);
 }
 
 .success-title {
-    font-size: 2rem;
-    font-weight: var(--font-weight-bold);
+    font-size: 2.5rem;
     color: var(--success);
     margin-bottom: var(--spacing-lg);
+    font-weight: bold;
 }
 
 .success-message {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     color: var(--text-secondary);
     margin-bottom: var(--spacing-xl);
     line-height: 1.6;
@@ -949,16 +613,17 @@ select.form-input {
 
 .success-details {
     background: var(--surface);
-    border-radius: var(--radius-lg);
     padding: var(--spacing-xl);
-    margin-bottom: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    margin: var(--spacing-xl) 0;
     text-align: left;
 }
 
-.success-details p {
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
+.success-details h4 {
+    font-size: 1.1rem;
     margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+    text-align: center;
 }
 
 .success-steps {
@@ -972,550 +637,771 @@ select.form-input {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    color: var(--text-secondary);
+    padding: var(--spacing-md);
+    background: var(--background);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
 }
 
-.success-steps li::before {
-    content: '✓';
-    width: 20px;
-    height: 20px;
-    background: var(--success);
-    color: white;
-    border-radius: var(--radius-round);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-bold);
-    flex-shrink: 0;
-}
-
-.success-actions {
-    margin-top: var(--spacing-xl);
-}
-
-/* Animations */
-.fade-in {
-    animation: fadeIn 0.5s ease;
-}
-
-.slide-up {
-    animation: slideUp 0.5s ease;
-}
-
-.slide-in {
-    animation: slideIn 0.4s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Form Loading Animation */
-.form-loading {
-    pointer-events: none;
+.success-steps li img {
+    width: 24px;
+    height: 24px;
     opacity: 0.7;
 }
 
-.form-loading .btn-primary {
-    background: var(--text-light);
-    cursor: not-allowed;
+.success-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
-/* Field Error States */
-.form-input.error {
-    border-color: var(--error);
-    animation: shake 0.5s ease;
+/* Order Summary Sidebar */
+.order-summary {
+    background: var(--background);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    height: fit-content;
+    position: sticky;
+    top: calc(60px + var(--spacing-xl));
 }
 
-@keyframes shake {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-4px);
-    }
-    20%, 40%, 60%, 80% {
-        transform: translateX(4px);
-    }
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--border);
+}
+
+.summary-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+}
+
+.summary-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Cart Items in Summary */
+.cart-items {
+    margin-bottom: var(--spacing-lg);
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.cart-item-image {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-item-details {
+    flex: 1;
+}
+
+.cart-item-name {
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+.cart-item-variant {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.cart-item-price {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+/* Empty Cart */
+.empty-cart {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+.return-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+    transition: var(--transition);
+}
+
+.return-btn:hover {
+    background: var(--primary-light);
+}
+
+.return-btn img {
+    width: 16px;
+    height: 16px;
+    filter: brightness(0) invert(1);
+}
+
+/* Order Total */
+.order-total {
+    border-top: 1px solid var(--border);
+    padding-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.95rem;
+}
+
+.total-row.subtotal {
+    color: var(--text-secondary);
+}
+
+.total-row.delivery {
+    color: var(--text-secondary);
+}
+
+.delivery-note {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--success);
+    font-weight: 600;
+}
+
+.delivery-note img {
+    width: 14px;
+    height: 14px;
+}
+
+.total-row.final-total {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 2px solid var(--border);
+}
+
+/* Trust Indicators */
+.trust-indicators {
+    border-top: 1px solid var(--border);
+    padding-top: var(--spacing-lg);
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.trust-item:last-child {
+    margin-bottom: 0;
+}
+
+.trust-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+}
+
+/* Footer */
+.footer {
+    background: var(--text-primary);
+    color: white;
+    padding: var(--spacing-xl) 0;
+    margin-top: var(--spacing-xxl);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    text-align: center;
+}
+
+.footer-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.footer-logo img {
+    width: 30px;
+    height: 30px;
+}
+
+.footer-contact {
+    margin: var(--spacing-lg) 0;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin: var(--spacing-lg) 0;
+}
+
+.social-link {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--spacing-sm);
+    border-radius: 50%;
+    text-decoration: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.social-link:hover {
+    background: var(--primary-light);
+}
+
+.social-link img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+}
+
+/* Floating WhatsApp Button */
+.whatsapp-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #25d366;
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+.whatsapp-float:hover {
+    transform: scale(1.1);
+}
+
+.whatsapp-float img {
+    width: 30px;
+    height: 30px;
+    filter: brightness(0) invert(1);
+}
+
+/* RTL Support */
+body.rtl .nav-container {
+    direction: rtl;
+}
+
+body.rtl .form-grid {
+    direction: rtl;
+}
+
+body.rtl .review-detail {
+    flex-direction: row-reverse;
+}
+
+body.rtl .review-value {
+    text-align: left;
+}
+
+body.rtl .total-row {
+    flex-direction: row-reverse;
+}
+
+body.rtl .step-header {
+    flex-direction: row-reverse;
+    text-align: right;
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-    .checkout-grid {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-xl);
-    }
-    
-    .summary-section {
-        position: static;
-        order: -1;
-    }
-    
-    .checkout-progress {
-        gap: var(--spacing-md);
-    }
-    
-    .progress-line {
-        width: 30px;
-    }
-}
-
 @media (max-width: 768px) {
-    .header-container {
+    .container {
+        grid-template-columns: 1fr;
         padding: var(--spacing-md);
+        gap: var(--spacing-lg);
     }
-    
-    .main-container {
-        padding: var(--spacing-lg) var(--spacing-md);
+
+    .order-summary {
+        order: -1;
+        position: static;
     }
-    
-    .form-section,
-    .summary-section {
+
+    .checkout-form {
         padding: var(--spacing-lg);
     }
-    
-    .checkout-progress {
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .form-actions {
         flex-direction: column;
-        gap: var(--spacing-sm);
+    }
+
+    .step-header {
+        flex-direction: column;
         text-align: center;
+        gap: var(--spacing-md);
     }
-    
-    .progress-line {
+
+    .step-title {
+        font-size: 1.5rem;
+    }
+
+    .success-title {
+        font-size: 2rem;
+    }
+
+    .success-actions {
+        flex-direction: column;
+    }
+
+    .progress-steps {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .step-line {
         width: 2px;
-        height: 20px;
-    }
-    
-    .form-actions,
-    .confirm-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .btn {
+        height: 40px;
+        margin: var(--spacing-md) 0;
         min-width: auto;
-    }
-    
-    .review-item {
-        flex-direction: column;
-        gap: var(--spacing-xs);
-    }
-    
-    .review-item strong {
-        min-width: auto;
-    }
-    
-    .edit-btn {
-        position: static;
-        margin-top: var(--spacing-lg);
-        align-self: start;
     }
 }
 
 @media (max-width: 480px) {
-    .header-controls {
-        gap: var(--spacing-sm);
+    .nav-container {
+        flex-direction: column;
+        gap: var(--spacing-md);
     }
-    
-    .control-btn {
-        width: 36px;
-        height: 36px;
+
+    .nav-actions {
+        width: 100%;
+        justify-content: space-between;
     }
-    
-    .section-title {
-        font-size: 1.5rem;
-    }
-    
-    .form-section,
-    .summary-section {
-        padding: var(--spacing-md);
-        border-radius: var(--radius-lg);
-    }
-    
-    .cart-item {
+
+    .container {
         padding: var(--spacing-sm);
     }
-    
-    .cart-item-image {
-        width: 50px;
-        height: 50px;
+
+    .checkout-form {
+        padding: var(--spacing-md);
     }
-    
+
+    .step-title {
+        font-size: 1.25rem;
+    }
+
     .success-title {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
     }
-    
-    .success-container {
-        padding: var(--spacing-lg);
-    }
-}
 
-/* Focus Styles for Accessibility */
-.control-btn:focus,
-.form-input:focus,
-.btn:focus,
-.language-option:focus,
-.edit-btn:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-    :root {
-        --border: #000000;
-        --text-secondary: #000000;
-    }
-    
-    [data-theme="dark"] {
-        --border: #ffffff;
-        --text-secondary: #ffffff;
+    .btn {
+        padding: var(--spacing-md);
+        font-size: 0.9rem;
     }
 }
-   </style>
+    </style>
 </head>
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="header-container">
-            <!-- Left: Logo -->
+        <nav class="nav-container">
             <div class="logo-section">
                 <img src="/api/image/logo.png" alt="Qotor" class="logo-image" onerror="this.style.display='none';">
-                <span class="logo-text">Qotor</span>
+                <div class="logo">Qotor</div>
             </div>
-
-            <!-- Center: Progress -->
-            <div class="checkout-progress">
-                <div class="progress-step active">
-                    <div class="step-number">1</div>
-                    <span class="step-label" data-key="step_details">Details</span>
-                </div>
-                <div class="progress-line"></div>
-                <div class="progress-step">
-                    <div class="step-number">2</div>
-                    <span class="step-label" data-key="step_confirm">Confirm</span>
-                </div>
-            </div>
-
-            <!-- Right: Controls -->
-            <div class="header-controls">
+            
+            <div class="nav-actions">
                 <!-- Language Switcher -->
-                <div class="language-selector">
-                    <button class="control-btn language-btn" id="languageBtn" title="Language">
-                        <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='EN';">
+                <div class="language-switcher">
+                    <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">
+                        <img src="/api/image/language-icon.png" alt="Language" onerror="this.textContent='🌐';">
+                        <span id="currentLang">EN</span>
                     </button>
-                    <div class="language-dropdown" id="languageDropdown">
-                        <button class="language-option" data-lang="en">
-                            <img src="/api/image/en-flag.png" alt="English" onerror="this.textContent='EN';">
-                            <span>English</span>
-                        </button>
-                        <button class="language-option" data-lang="ar">
-                            <img src="/api/image/ar-flag.png" alt="العربية" onerror="this.textContent='AR';">
-                            <span>العربية</span>
-                        </button>
-                    </div>
                 </div>
-
+                
                 <!-- Back to Store -->
-                <a href="/index.html" class="control-btn back-btn" title="Back to Store">
+                <a href="/" class="back-btn">
                     <img src="/api/image/back-icon.png" alt="Back" onerror="this.textContent='←';">
+                    <span data-key="back_to_store">Back to Store</span>
                 </a>
             </div>
-        </div>
+        </nav>
     </header>
 
-    <!-- Main Content -->
-    <main class="main-container">
-        <!-- Access Warning (hidden by default) -->
-        <div id="accessWarning" class="access-warning" style="display: none;">
-            <div class="warning-content">
-                <img src="/api/image/warning-icon.png" alt="Warning" class="warning-icon" onerror="this.textContent='⚠️';">
-                <h2 data-key="unauthorized_access">Unauthorized Access</h2>
-                <p data-key="checkout_redirect_only">This page can only be accessed through the checkout process.</p>
-                <a href="/index.html" class="return-btn" data-key="return_to_store">Return to Store</a>
-            </div>
-        </div>
-
-        <!-- Checkout Content -->
-        <div id="checkoutContent" class="checkout-content">
-            <div class="checkout-grid">
-                <!-- Customer Information Form -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <h2 class="section-title" data-key="customer_information">Customer Information</h2>
-                        <p class="section-description" data-key="fill_details_below">Please fill in your details below</p>
-                    </div>
-
-                    <!-- Messages -->
-                    <div id="formMessage" class="message" style="display: none;"></div>
-
-                    <form id="checkoutForm" class="checkout-form">
-                        <!-- Personal Details -->
-                        <div class="form-group">
-                            <label for="fullName" class="form-label">
-                                <span data-key="full_name">Full Name</span>
-                                <span class="required">*</span>
-                            </label>
-                            <input type="text" id="fullName" name="fullName" class="form-input" required
-                                   data-key-placeholder="full_name_placeholder">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email" class="form-label">
-                                <span data-key="email_address">Email Address</span>
-                                <span class="required">*</span>
-                            </label>
-                            <input type="email" id="email" name="email" class="form-input" required
-                                   data-key-placeholder="email_placeholder">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="phone" class="form-label">
-                                <span data-key="phone_number">Phone Number</span>
-                                <span class="required">*</span>
-                            </label>
-                            <input type="tel" id="phone" name="phone" class="form-input" required
-                                   data-key-placeholder="phone_placeholder">
-                        </div>
-
-                        <!-- Delivery Information -->
-                        <div class="section-divider">
-                            <h3 class="subsection-title" data-key="delivery_information">Delivery Information</h3>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="deliveryAddress" class="form-label">
-                                <span data-key="delivery_address">Delivery Address</span>
-                                <span class="required">*</span>
-                            </label>
-                            <textarea id="deliveryAddress" name="deliveryAddress" class="form-input" required rows="3"
-                                      data-key-placeholder="delivery_address_placeholder"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="deliveryTime" class="form-label" data-key="preferred_delivery_time">Preferred Delivery Time</label>
-                            <select id="deliveryTime" name="deliveryTime" class="form-input">
-                                <option value="" data-key="select_time">Select preferred time</option>
-                                <option value="morning" data-key="morning">Morning (9 AM - 12 PM)</option>
-                                <option value="afternoon" data-key="afternoon">Afternoon (12 PM - 6 PM)</option>
-                                <option value="evening" data-key="evening">Evening (6 PM - 9 PM)</option>
-                                <option value="anytime" data-key="anytime">Anytime</option>
-                            </select>
-                        </div>
-
-                        <!-- Special Instructions -->
-                        <div class="form-group">
-                            <label for="specialInstructions" class="form-label" data-key="special_instructions">Special Instructions</label>
-                            <textarea id="specialInstructions" name="specialInstructions" class="form-input" rows="3"
-                                      data-key-placeholder="special_instructions_placeholder"></textarea>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="goBackToStore()" data-key="back_to_store">Back to Store</button>
-                            <button type="submit" class="btn btn-primary" id="continueBtn" data-key="continue_to_review">Continue to Review</button>
-                        </div>
-                    </form>
+    <!-- Progress Steps -->
+    <section class="progress-section">
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="step active" id="step1Progress">
+                    <div class="step-number">1</div>
+                    <span class="step-label" data-key="customer_details">Customer Details</span>
                 </div>
-
-                <!-- Order Summary -->
-                <div class="summary-section">
-                    <div class="summary-header">
-                        <h3 class="summary-title" data-key="order_summary">Order Summary</h3>
-                    </div>
-
-                    <div class="summary-content">
-                        <!-- Cart Items -->
-                        <div class="cart-items" id="cartItems">
-                            <!-- Items will be populated here -->
-                        </div>
-
-                        <!-- Empty Cart -->
-                        <div id="emptyCart" class="empty-cart" style="display: none;">
-                            <img src="/api/image/empty-cart-icon.png" alt="Empty Cart" class="empty-icon" onerror="this.textContent='🛒';">
-                            <h4 data-key="no_items_cart">No items in cart</h4>
-                            <p data-key="add_items_first">Please add items to your cart first</p>
-                            <a href="/index.html" class="return-btn" data-key="browse_fragrances">Browse Fragrances</a>
-                        </div>
-
-                        <!-- Order Total -->
-                        <div class="order-total" id="orderTotal" style="display: none;">
-                            <div class="total-row subtotal">
-                                <span data-key="subtotal">Subtotal</span>
-                                <span id="subtotalAmount">0.000 OMR</span>
-                            </div>
-                            <div class="total-row delivery">
-                                <span data-key="delivery_fee">Delivery Fee</span>
-                                <span class="delivery-note" data-key="free_delivery">Free</span>
-                            </div>
-                            <div class="total-row final-total">
-                                <span data-key="total">Total</span>
-                                <span id="totalAmount">0.000 OMR</span>
-                            </div>
-                        </div>
-
-                        <!-- Trust Indicators -->
-                        <div class="trust-indicators">
-                            <div class="trust-item">
-                                <img src="/api/image/authentic-icon.png" alt="Authentic" class="trust-icon" onerror="this.textContent='✓';">
-                                <span data-key="authentic_products">100% Authentic</span>
-                            </div>
-                            <div class="trust-item">
-                                <img src="/api/image/delivery-icon.png" alt="Delivery" class="trust-icon" onerror="this.textContent='🚚';">
-                                <span data-key="fast_delivery">Fast Delivery</span>
-                            </div>
-                            <div class="trust-item">
-                                <img src="/api/image/secure-icon.png" alt="Secure" class="trust-icon" onerror="this.textContent='🛡️';">
-                                <span data-key="secure_checkout">Secure Checkout</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="step-line"></div>
+                <div class="step" id="step2Progress">
+                    <div class="step-number">2</div>
+                    <span class="step-label" data-key="review_order">Review Order</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step3Progress">
+                    <div class="step-number">3</div>
+                    <span class="step-label" data-key="confirmation">Confirmation</span>
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- Order Review (Step 2) -->
-        <div id="reviewContent" class="review-content" style="display: none;">
-            <div class="review-container">
-                <div class="review-header">
-                    <h2 class="section-title" data-key="review_order">Review Your Order</h2>
-                    <p class="section-description" data-key="review_before_confirm">Please review your order details before confirming</p>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Checkout Form -->
+        <div class="checkout-form">
+            <!-- Message Display -->
+            <div id="message" class="message"></div>
+
+            <!-- Step 1: Customer Details -->
+            <div class="form-step active" id="step1">
+                <div class="step-header">
+                    <div class="step-icon">
+                        <img src="/api/image/user-icon.png" alt="User" onerror="this.textContent='👤';">
+                    </div>
+                    <div class="step-info">
+                        <h2 class="step-title" data-key="customer_information">Customer Information</h2>
+                        <p class="step-subtitle" data-key="fill_details_below">Please fill in your details below</p>
+                    </div>
                 </div>
 
-                <!-- Customer Details Review -->
+                <form id="customerForm" class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="fullName">
+                            <img src="/api/image/user-icon.png" alt="Name" class="label-icon" onerror="this.style.display='none';">
+                            <span data-key="full_name">Full Name</span> *
+                        </label>
+                        <input type="text" id="fullName" class="form-input" required 
+                               placeholder="Enter your full name" data-key-placeholder="full_name_placeholder">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">
+                            <img src="/api/image/email-icon.png" alt="Email" class="label-icon" onerror="this.style.display='none';">
+                            <span data-key="email_address">Email Address</span> *
+                        </label>
+                        <input type="email" id="email" class="form-input" required 
+                               placeholder="Enter your email address" data-key-placeholder="email_placeholder">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="phone">
+                            <img src="/api/image/phone-icon.png" alt="Phone" class="label-icon" onerror="this.style.display='none';">
+                            <span data-key="phone_number">Phone Number</span> *
+                        </label>
+                        <input type="tel" id="phone" class="form-input" required 
+                               placeholder="Enter your phone number" data-key-placeholder="phone_placeholder">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="address">
+                            <img src="/api/image/location-icon.png" alt="Address" class="label-icon" onerror="this.style.display='none';">
+                            <span data-key="delivery_address">Delivery Address</span> *
+                        </label>
+                        <textarea id="address" class="form-textarea" required 
+                                  placeholder="Enter your full delivery address" data-key-placeholder="delivery_address_placeholder"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="deliveryTime">
+                            <img src="/api/image/clock-icon.png" alt="Time" class="label-icon" onerror="this.style.display='none';">
+                            <span data-key="preferred_delivery_time">Preferred Delivery Time</span>
+                        </label>
+                        <select id="deliveryTime" class="form-select">
+                            <option value="" data-key="select_time">Select preferred time</option>
+                            <option value="morning" data-key="morning">Morning (9 AM - 12 PM)</option>
+                            <option value="afternoon" data-key="afternoon">Afternoon (12 PM - 6 PM)</option>
+                            <option value="evening" data-key="evening">Evening (6 PM - 9 PM)</option>
+                            <option value="anytime" data-key="anytime">Anytime</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="instructions">
+                            <img src="/api/image/note-icon.png" alt="Notes" class="label-icon" onerror="this.style.display='none';">
+                            <span data-key="special_instructions">Special Instructions</span>
+                        </label>
+                        <textarea id="instructions" class="form-textarea" 
+                                  placeholder="Any special delivery instructions..." data-key-placeholder="special_instructions_placeholder"></textarea>
+                    </div>
+
+                    <div class="form-actions full-width">
+                        <button type="button" class="btn btn-primary" onclick="continueToReview()">
+                            <span data-key="continue_to_review">Continue to Review</span>
+                            <img src="/api/image/arrow-right-icon.png" alt="Continue" onerror="this.textContent='→';">
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: Review Order -->
+            <div class="form-step" id="step2">
+                <div class="step-header">
+                    <div class="step-icon">
+                        <img src="/api/image/review-icon.png" alt="Review" onerror="this.textContent='👁️';">
+                    </div>
+                    <div class="step-info">
+                        <h2 class="step-title" data-key="review_your_order">Review Your Order</h2>
+                        <p class="step-subtitle" data-key="review_before_confirm">Please review your order details before confirming</p>
+                    </div>
+                </div>
+
+                <!-- Customer Review -->
                 <div class="review-section">
-                    <h3 class="review-section-title" data-key="customer_details">Customer Details</h3>
-                    <div class="review-card">
-                        <div class="review-item">
-                            <strong data-key="name">Name:</strong>
-                            <span id="reviewName"></span>
-                        </div>
-                        <div class="review-item">
-                            <strong data-key="email">Email:</strong>
-                            <span id="reviewEmail"></span>
-                        </div>
-                        <div class="review-item">
-                            <strong data-key="phone">Phone:</strong>
-                            <span id="reviewPhone"></span>
-                        </div>
-                        <div class="review-item">
-                            <strong data-key="delivery_address">Delivery Address:</strong>
-                            <span id="reviewAddress"></span>
-                        </div>
-                        <div class="review-item" id="reviewTimeContainer" style="display: none;">
-                            <strong data-key="preferred_time">Preferred Time:</strong>
-                            <span id="reviewTime"></span>
-                        </div>
-                        <div class="review-item" id="reviewInstructionsContainer" style="display: none;">
-                            <strong data-key="special_instructions">Special Instructions:</strong>
-                            <span id="reviewInstructions"></span>
-                        </div>
-                        <button type="button" class="edit-btn" onclick="goBackToForm()" data-key="edit_details">Edit Details</button>
+                    <h3 class="section-title">
+                        <img src="/api/image/user-icon.png" alt="Customer" class="section-icon" onerror="this.style.display='none';">
+                        <span data-key="customer_details">Customer Details</span>
+                    </h3>
+                    <div id="customerReview" class="review-card">
+                        <!-- Customer details will be populated here -->
                     </div>
+                    <button type="button" class="btn btn-secondary edit-btn" onclick="editDetails()">
+                        <img src="/api/image/edit-icon.png" alt="Edit" onerror="this.textContent='✏️';">
+                        <span data-key="edit_details">Edit Details</span>
+                    </button>
                 </div>
 
-                <!-- Order Items Review -->
+                <!-- Order Review -->
                 <div class="review-section">
-                    <h3 class="review-section-title" data-key="order_items">Order Items</h3>
-                    <div class="review-card">
-                        <div class="review-items" id="reviewItems">
-                            <!-- Items will be populated here -->
-                        </div>
-                        <div class="review-total">
-                            <div class="total-row">
-                                <span data-key="subtotal">Subtotal:</span>
-                                <span id="reviewSubtotal">0.000 OMR</span>
-                            </div>
-                            <div class="total-row">
-                                <span data-key="delivery_fee">Delivery Fee:</span>
-                                <span data-key="free">Free</span>
-                            </div>
-                            <div class="total-row final">
-                                <span data-key="total_amount">Total Amount:</span>
-                                <span id="reviewTotal">0.000 OMR</span>
-                            </div>
-                        </div>
+                    <h3 class="section-title">
+                        <img src="/api/image/package-icon.png" alt="Items" class="section-icon" onerror="this.style.display='none';">
+                        <span data-key="order_items">Order Items</span>
+                    </h3>
+                    <div id="orderReview" class="order-items-review">
+                        <!-- Order items will be populated here -->
                     </div>
                 </div>
 
-                <!-- Confirm Actions -->
-                <div class="confirm-actions">
-                    <button type="button" class="btn btn-secondary" onclick="goBackToForm()" data-key="back_to_details">Back to Details</button>
-                    <button type="button" class="btn btn-primary" id="confirmOrderBtn" onclick="confirmOrder()" data-key="confirm_order">Confirm Order</button>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="backToDetails()">
+                        <img src="/api/image/arrow-left-icon.png" alt="Back" onerror="this.textContent='←';">
+                        <span data-key="back_to_details">Back to Details</span>
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="confirmOrder()" id="confirmOrderBtn">
+                        <img src="/api/image/check-icon.png" alt="Confirm" onerror="this.textContent='✓';">
+                        <span data-key="confirm_order">Confirm Order</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Success Page -->
+            <div class="form-step" id="step3">
+                <div class="success-content">
+                    <div class="success-icon">
+                        <img src="/api/image/success-icon.png" alt="Success" onerror="this.textContent='✅';">
+                    </div>
+                    <h2 class="success-title" data-key="order_confirmed">Order Confirmed!</h2>
+                    <p class="success-message" data-key="order_success_message">
+                        Thank you for your order. We'll contact you shortly to confirm delivery details.
+                    </p>
+                    
+                    <div class="success-details">
+                        <h4 data-key="what_happens_next">What happens next:</h4>
+                        <ul class="success-steps">
+                            <li>
+                                <img src="/api/image/clock-icon.png" alt="Time" onerror="this.style.display='none';">
+                                <span data-key="step_contact">We'll contact you within 24 hours</span>
+                            </li>
+                            <li>
+                                <img src="/api/image/package-icon.png" alt="Package" onerror="this.style.display='none';">
+                                <span data-key="step_prepare">We'll prepare your fragrances</span>
+                            </li>
+                            <li>
+                                <img src="/api/image/delivery-icon.png" alt="Delivery" onerror="this.style.display='none';">
+                                <span data-key="step_deliver">Fast delivery to your address</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="success-actions">
+                        <a href="/" class="btn btn-primary">
+                            <img src="/api/image/shop-icon.png" alt="Shop" onerror="this.style.display='none';">
+                            <span data-key="continue_shopping">Continue Shopping</span>
+                        </a>
+                        <button class="btn btn-secondary" onclick="shareOrder()">
+                            <img src="/api/image/share-icon.png" alt="Share" onerror="this.style.display='none';">
+                            <span data-key="share_order">Share Order</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Success Message (Step 3) -->
-        <div id="successContent" class="success-content" style="display: none;">
-            <div class="success-container">
-                <div class="success-animation">
-                    <div class="success-checkmark">
-                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
-                            <path class="checkmark-check" fill="none" d="m14.1 27.2l7.1 7.2 16.7-16.8"/>
-                        </svg>
+        <!-- Order Summary Sidebar -->
+        <div class="order-summary">
+            <div class="summary-header">
+                <img src="/api/image/cart-icon.png" alt="Cart" class="summary-icon" onerror="this.style.display='none';">
+                <h3 class="summary-title" data-key="order_summary">Order Summary</h3>
+            </div>
+            
+            <div class="summary-content">
+                <!-- Cart Items -->
+                <div class="cart-items" id="cartItems">
+                    <!-- Items will be populated here -->
+                </div>
+
+                <!-- Empty Cart -->
+                <div id="emptyCart" class="empty-cart" style="display: none;">
+                    <img src="/api/image/empty-cart-icon.png" alt="Empty Cart" class="empty-icon" onerror="this.style.display='none';">
+                    <h4 data-key="no_items_cart">No items in cart</h4>
+                    <p data-key="add_items_first">Please add items to your cart first</p>
+                    <a href="/" class="return-btn">
+                        <img src="/api/image/shop-icon.png" alt="Shop" onerror="this.style.display='none';">
+                        <span data-key="browse_fragrances">Browse Fragrances</span>
+                    </a>
+                </div>
+
+                <!-- Order Total -->
+                <div class="order-total" id="orderTotal" style="display: none;">
+                    <div class="total-row subtotal">
+                        <span data-key="subtotal">Subtotal</span>
+                        <span id="subtotalAmount">0.000 OMR</span>
+                    </div>
+                    <div class="total-row delivery">
+                        <span data-key="delivery_fee">Delivery Fee</span>
+                        <span class="delivery-note">
+                            <img src="/api/image/free-icon.png" alt="Free" onerror="this.style.display='none';">
+                            <span data-key="free_delivery">Free</span>
+                        </span>
+                    </div>
+                    <div class="total-row final-total">
+                        <span data-key="total">Total</span>
+                        <span id="totalAmount">0.000 OMR</span>
                     </div>
                 </div>
-                <h2 class="success-title" data-key="order_confirmed">Order Confirmed!</h2>
-                <p class="success-message" data-key="order_success_message">Thank you for your order. We'll contact you shortly to confirm delivery details.</p>
-                <div class="success-details">
-                    <p data-key="what_happens_next">What happens next:</p>
-                    <ul class="success-steps">
-                        <li data-key="step_contact">We'll contact you within 24 hours</li>
-                        <li data-key="step_prepare">We'll prepare your fragrances</li>
-                        <li data-key="step_deliver">Fast delivery to your address</li>
-                    </ul>
-                </div>
-                <div class="success-actions">
-                    <a href="/index.html" class="btn btn-primary" data-key="continue_shopping">Continue Shopping</a>
+
+                <!-- Trust Indicators -->
+                <div class="trust-indicators">
+                    <div class="trust-item">
+                        <img src="/api/image/authentic-icon.png" alt="Authentic" class="trust-icon" onerror="this.textContent='✓';">
+                        <span data-key="authentic_products">100% Authentic</span>
+                    </div>
+                    <div class="trust-item">
+                        <img src="/api/image/delivery-icon.png" alt="Delivery" class="trust-icon" onerror="this.textContent='🚚';">
+                        <span data-key="fast_delivery">Fast Delivery</span>
+                    </div>
+                    <div class="trust-item">
+                        <img src="/api/image/secure-icon.png" alt="Secure" class="trust-icon" onerror="this.textContent='🔒';">
+                        <span data-key="secure_checkout">Secure Checkout</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="/api/image/logo-white.png" alt="Qotor" onerror="this.style.display='none';">
+                <span>Qotor</span>
+            </div>
+            <p data-key="footer_tagline">Premium fragrances for discerning tastes</p>
+            
+            <div class="social-links">
+                <a href="https://instagram.com/qotor" class="social-link" target="_blank">
+                    <img src="/api/image/instagram-icon.png" alt="Instagram" onerror="this.textContent='📷';">
+                </a>
+                <a href="https://snapchat.com/add/qotor" class="social-link" target="_blank">
+                    <img src="/api/image/snapchat-icon.png" alt="Snapchat" onerror="this.textContent='👻';">
+                </a>
+                <a href="https://wa.me/96812345678" class="social-link" target="_blank">
+                    <img src="/api/image/whatsapp-icon.png" alt="WhatsApp" onerror="this.textContent='💬';">
+                </a>
+            </div>
+            
+            <div class="footer-contact">
+                <p data-key="footer_contact">Contact: info@qotor.com</p>
+                <p data-key="footer_copyright">&copy; 2024 Qotor. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp -->
+    <a href="https://wa.me/96812345678" class="whatsapp-float" target="_blank">
+        <img src="/api/image/whatsapp-icon.png" alt="WhatsApp" onerror="this.textContent='💬';">
+    </a>
 
     <script>
         // Global variables
 let cart = [];
-let currentLanguage = 'en';
-let currentStep = 1;
 let customerData = {};
+let currentStep = 1;
+let currentLanguage = 'en';
 
 // Language translations
 const translations = {
     en: {
-        step_details: 'Details',
-        step_confirm: 'Confirm',
-        unauthorized_access: 'Unauthorized Access',
-        checkout_redirect_only: 'This page can only be accessed through the checkout process.',
-        return_to_store: 'Return to Store',
+        back_to_store: 'Back to Store',
+        customer_details: 'Customer Details',
+        review_order: 'Review Order',
+        confirmation: 'Confirmation',
         customer_information: 'Customer Information',
         fill_details_below: 'Please fill in your details below',
         full_name: 'Full Name',
@@ -1524,7 +1410,6 @@ const translations = {
         email_placeholder: 'Enter your email address',
         phone_number: 'Phone Number',
         phone_placeholder: 'Enter your phone number',
-        delivery_information: 'Delivery Information',
         delivery_address: 'Delivery Address',
         delivery_address_placeholder: 'Enter your full delivery address',
         preferred_delivery_time: 'Preferred Delivery Time',
@@ -1535,8 +1420,21 @@ const translations = {
         anytime: 'Anytime',
         special_instructions: 'Special Instructions',
         special_instructions_placeholder: 'Any special delivery instructions...',
-        back_to_store: 'Back to Store',
         continue_to_review: 'Continue to Review',
+        review_your_order: 'Review Your Order',
+        review_before_confirm: 'Please review your order details before confirming',
+        edit_details: 'Edit Details',
+        order_items: 'Order Items',
+        back_to_details: 'Back to Details',
+        confirm_order: 'Confirm Order',
+        order_confirmed: 'Order Confirmed!',
+        order_success_message: 'Thank you for your order. We\'ll contact you shortly to confirm delivery details.',
+        what_happens_next: 'What happens next:',
+        step_contact: 'We\'ll contact you within 24 hours',
+        step_prepare: 'We\'ll prepare your fragrances',
+        step_deliver: 'Fast delivery to your address',
+        continue_shopping: 'Continue Shopping',
+        share_order: 'Share Order',
         order_summary: 'Order Summary',
         no_items_cart: 'No items in cart',
         add_items_first: 'Please add items to your cart first',
@@ -1548,56 +1446,34 @@ const translations = {
         authentic_products: '100% Authentic',
         fast_delivery: 'Fast Delivery',
         secure_checkout: 'Secure Checkout',
-        review_order: 'Review Your Order',
-        review_before_confirm: 'Please review your order details before confirming',
-        customer_details: 'Customer Details',
-        name: 'Name',
-        email: 'Email',
-        phone: 'Phone',
-        preferred_time: 'Preferred Time',
-        edit_details: 'Edit Details',
-        order_items: 'Order Items',
-        free: 'Free',
-        total_amount: 'Total Amount',
-        back_to_details: 'Back to Details',
-        confirm_order: 'Confirm Order',
-        order_confirmed: 'Order Confirmed!',
-        order_success_message: 'Thank you for your order. We\'ll contact you shortly to confirm delivery details.',
-        what_happens_next: 'What happens next:',
-        step_contact: 'We\'ll contact you within 24 hours',
-        step_prepare: 'We\'ll prepare your fragrances',
-        step_deliver: 'Fast delivery to your address',
-        continue_shopping: 'Continue Shopping',
+        footer_tagline: 'Premium fragrances for discerning tastes',
+        footer_contact: 'Contact: info@qotor.com',
+        footer_copyright: '© 2024 Qotor. All rights reserved.',
         // Validation messages
         please_fill_required: 'Please fill in all required fields',
         invalid_email: 'Please enter a valid email address',
         invalid_phone: 'Please enter a valid phone number',
-        form_submitted: 'Processing your order...',
+        processing_order: 'Processing your order...',
         order_confirmed_success: 'Your order has been confirmed successfully!',
-        // Time options
-        time_morning: 'Morning (9 AM - 12 PM)',
-        time_afternoon: 'Afternoon (12 PM - 6 PM)',
-        time_evening: 'Evening (6 PM - 9 PM)',
-        time_anytime: 'Anytime'
+        failed_to_confirm: 'Failed to confirm order. Please try again.',
+        connection_error: 'Connection error. Please check your internet connection.'
     },
     ar: {
-        step_details: 'التفاصيل',
-        step_confirm: 'تأكيد',
-        unauthorized_access: 'وصول غير مصرح',
-        checkout_redirect_only: 'يمكن الوصول لهذه الصفحة فقط من خلال عملية الدفع.',
-        return_to_store: 'العودة إلى المتجر',
+        back_to_store: 'العودة للمتجر',
+        customer_details: 'بيانات العميل',
+        review_order: 'مراجعة الطلب',
+        confirmation: 'التأكيد',
         customer_information: 'معلومات العميل',
-        fill_details_below: 'يرجى ملء التفاصيل أدناه',
+        fill_details_below: 'يرجى ملء بياناتك أدناه',
         full_name: 'الاسم الكامل',
         full_name_placeholder: 'أدخل اسمك الكامل',
         email_address: 'عنوان البريد الإلكتروني',
         email_placeholder: 'أدخل عنوان بريدك الإلكتروني',
         phone_number: 'رقم الهاتف',
         phone_placeholder: 'أدخل رقم هاتفك',
-        delivery_information: 'معلومات التوصيل',
         delivery_address: 'عنوان التوصيل',
         delivery_address_placeholder: 'أدخل عنوان التوصيل الكامل',
-        preferred_delivery_time: 'الوقت المفضل للتوصيل',
+        preferred_delivery_time: 'وقت التوصيل المفضل',
         select_time: 'اختر الوقت المفضل',
         morning: 'الصباح (9 صباحاً - 12 ظهراً)',
         afternoon: 'بعد الظهر (12 ظهراً - 6 مساءً)',
@@ -1605,8 +1481,21 @@ const translations = {
         anytime: 'أي وقت',
         special_instructions: 'تعليمات خاصة',
         special_instructions_placeholder: 'أي تعليمات خاصة للتوصيل...',
-        back_to_store: 'العودة إلى المتجر',
-        continue_to_review: 'متابعة للمراجعة',
+        continue_to_review: 'المتابعة للمراجعة',
+        review_your_order: 'راجع طلبك',
+        review_before_confirm: 'يرجى مراجعة تفاصيل طلبك قبل التأكيد',
+        edit_details: 'تعديل البيانات',
+        order_items: 'عناصر الطلب',
+        back_to_details: 'العودة للبيانات',
+        confirm_order: 'تأكيد الطلب',
+        order_confirmed: 'تم تأكيد الطلب!',
+        order_success_message: 'شكراً لك على طلبك. سنتواصل معك قريباً لتأكيد تفاصيل التوصيل.',
+        what_happens_next: 'ما يحدث بعد ذلك:',
+        step_contact: 'سنتواصل معك خلال 24 ساعة',
+        step_prepare: 'سنحضر عطورك',
+        step_deliver: 'توصيل سريع لعنوانك',
+        continue_shopping: 'متابعة التسوق',
+        share_order: 'مشاركة الطلب',
         order_summary: 'ملخص الطلب',
         no_items_cart: 'لا توجد عناصر في السلة',
         add_items_first: 'يرجى إضافة عناصر إلى سلتك أولاً',
@@ -1618,544 +1507,391 @@ const translations = {
         authentic_products: '100% أصلي',
         fast_delivery: 'توصيل سريع',
         secure_checkout: 'دفع آمن',
-        review_order: 'مراجعة طلبك',
-        review_before_confirm: 'يرجى مراجعة تفاصيل طلبك قبل التأكيد',
-        customer_details: 'تفاصيل العميل',
-        name: 'الاسم',
-        email: 'البريد الإلكتروني',
-        phone: 'الهاتف',
-        preferred_time: 'الوقت المفضل',
-        edit_details: 'تعديل التفاصيل',
-        order_items: 'عناصر الطلب',
-        free: 'مجاني',
-        total_amount: 'المبلغ الإجمالي',
-        back_to_details: 'العودة للتفاصيل',
-        confirm_order: 'تأكيد الطلب',
-        order_confirmed: 'تم تأكيد الطلب!',
-        order_success_message: 'شكراً لك على طلبك. سنتواصل معك قريباً لتأكيد تفاصيل التوصيل.',
-        what_happens_next: 'ما سيحدث بعد ذلك:',
-        step_contact: 'سنتواصل معك خلال 24 ساعة',
-        step_prepare: 'سنقوم بتحضير عطورك',
-        step_deliver: 'توصيل سريع إلى عنوانك',
-        continue_shopping: 'متابعة التسوق',
+        footer_tagline: 'العطور الفاخرة لأصحاب الذوق الرفيع',
+        footer_contact: 'التواصل: info@qotor.com',
+        footer_copyright: '© 2024 قطر. جميع الحقوق محفوظة.',
         // Validation messages
         please_fill_required: 'يرجى ملء جميع الحقول المطلوبة',
         invalid_email: 'يرجى إدخال عنوان بريد إلكتروني صحيح',
         invalid_phone: 'يرجى إدخال رقم هاتف صحيح',
-        form_submitted: 'جاري معالجة طلبك...',
+        processing_order: 'جاري معالجة طلبك...',
         order_confirmed_success: 'تم تأكيد طلبك بنجاح!',
-        // Time options
-        time_morning: 'الصباح (9 صباحاً - 12 ظهراً)',
-        time_afternoon: 'بعد الظهر (12 ظهراً - 6 مساءً)',
-        time_evening: 'المساء (6 مساءً - 9 مساءً)',
-        time_anytime: 'أي وقت'
+        failed_to_confirm: 'فشل في تأكيد الطلب. يرجى المحاولة مرة أخرى.',
+        connection_error: 'خطأ في الاتصال. يرجى التحقق من اتصالك بالإنترنت.'
     }
 };
 
-// Utility function to get image URL with automatic path matching
-function getImageUrl(imagePath) {
-    if (!imagePath || imagePath.trim() === '') {
-        return '';
-    }
-    
-    // If it's already a full URL, return as is
-    if (imagePath.startsWith('http')) {
-        return imagePath;
-    }
-    
-    // If it starts with fragrance-images/, extract filename
-    if (imagePath.startsWith('fragrance-images/')) {
-        const filename = imagePath.replace('fragrance-images/', '');
-        return `/api/image/${filename}`;
-    }
-    
-    // Default case - assume it's just a filename
-    return `/api/image/${imagePath}`;
-}
-
-// DOM Content Loaded
+// Initialize checkout page
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    // Check if user came from cart
+    const checkoutCart = sessionStorage.getItem('checkout_cart');
+    if (!checkoutCart) {
+        // Redirect to home if no cart data
+        window.location.href = '/';
+        return;
+    }
+    
+    cart = JSON.parse(checkoutCart);
+    displayCartItems();
+    updateOrderTotal();
+    updateLanguage();
+    
+    // Load saved language preference
+    const savedLang = localStorage.getItem('qotor_language');
+    if (savedLang) {
+        currentLanguage = savedLang;
+        document.getElementById('currentLang').textContent = currentLanguage.toUpperCase();
+        document.body.className = currentLanguage === 'ar' ? 'rtl' : '';
+        updateLanguage();
+    }
+    
+    // Setup form event listeners
+    setupEventListeners();
 });
 
-// Initialize App
-function initializeApp() {
-    initializeLanguage();
-    checkAccess();
-    loadCartData();
-    initializeEventListeners();
-    initializeForm();
-    addAnimations();
+// Setup event listeners
+function setupEventListeners() {
+    // Form submission
+    document.getElementById('customerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        continueToReview();
+    });
+    
+    // Input validation on change
+    const inputs = document.querySelectorAll('.form-input, .form-textarea');
+    inputs.forEach(input => {
+        input.addEventListener('blur', validateField);
+        input.addEventListener('input', clearFieldError);
+    });
 }
 
-// Language Management
-function initializeLanguage() {
-    const savedLanguage = localStorage.getItem('qotor_language') || 'en';
-    setLanguage(savedLanguage);
+// Language switching
+function toggleLanguage() {
+    currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+    localStorage.setItem('qotor_language', currentLanguage);
     
-    const languageBtn = document.getElementById('languageBtn');
-    const languageDropdown = document.getElementById('languageDropdown');
+    // Update language button
+    document.getElementById('currentLang').textContent = currentLanguage.toUpperCase();
     
-    if (languageBtn && languageDropdown) {
-        languageBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            languageDropdown.classList.toggle('show');
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.language-selector')) {
-                languageDropdown.classList.remove('show');
-            }
-        });
-        
-        document.querySelectorAll('.language-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                const lang = e.currentTarget.dataset.lang;
-                setLanguage(lang);
-                languageDropdown.classList.remove('show');
-            });
-        });
-    }
+    // Update body direction
+    document.body.className = currentLanguage === 'ar' ? 'rtl' : '';
+    
+    // Update all translated elements
+    updateLanguage();
 }
 
-function setLanguage(lang) {
-    currentLanguage = lang;
-    document.documentElement.setAttribute('lang', lang);
-    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-    localStorage.setItem('qotor_language', lang);
-    
-    updateTexts();
-    updatePlaceholders();
-    updateSelectOptions();
-    
-    const languageIcon = document.querySelector('#languageBtn img');
-    if (languageIcon) {
-        languageIcon.src = getImageUrl(`${lang}-flag.png`);
-        languageIcon.alt = lang === 'ar' ? 'العربية' : 'English';
-    }
-}
-
-function updateTexts() {
-    document.querySelectorAll('[data-key]').forEach(element => {
+// Update language for all elements
+function updateLanguage() {
+    const elements = document.querySelectorAll('[data-key]');
+    elements.forEach(element => {
         const key = element.getAttribute('data-key');
-        if (translations[currentLanguage][key]) {
+        if (translations[currentLanguage] && translations[currentLanguage][key]) {
+            element.textContent = translations[currentLanguage][key];
+        }
+    });
+    
+    // Update placeholders
+    const placeholderElements = document.querySelectorAll('[data-key-placeholder]');
+    placeholderElements.forEach(element => {
+        const key = element.getAttribute('data-key-placeholder');
+        if (translations[currentLanguage] && translations[currentLanguage][key]) {
+            element.placeholder = translations[currentLanguage][key];
+        }
+    });
+    
+    // Update option elements
+    const optionElements = document.querySelectorAll('option[data-key]');
+    optionElements.forEach(element => {
+        const key = element.getAttribute('data-key');
+        if (translations[currentLanguage] && translations[currentLanguage][key]) {
             element.textContent = translations[currentLanguage][key];
         }
     });
 }
 
-function updatePlaceholders() {
-    document.querySelectorAll('[data-key-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-key-placeholder');
-        if (translations[currentLanguage][key]) {
-            element.placeholder = translations[currentLanguage][key];
-        }
-    });
-}
-
-function updateSelectOptions() {
-    document.querySelectorAll('select option[data-key]').forEach(option => {
-        const key = option.getAttribute('data-key');
-        if (translations[currentLanguage][key]) {
-            option.textContent = translations[currentLanguage][key];
-        }
-    });
-}
-
-// Check Access - Only allow access from checkout flow
-function checkAccess() {
-    const cartData = sessionStorage.getItem('checkout_cart');
-    const accessWarning = document.getElementById('accessWarning');
-    const checkoutContent = document.getElementById('checkoutContent');
-    
-    if (!cartData) {
-        // No cart data means unauthorized access
-        accessWarning.style.display = 'flex';
-        checkoutContent.style.display = 'none';
-        return false;
-    }
-    
-    accessWarning.style.display = 'none';
-    checkoutContent.style.display = 'block';
-    return true;
-}
-
-// Load Cart Data
-function loadCartData() {
-    const cartData = sessionStorage.getItem('checkout_cart');
-    
-    if (cartData) {
-        try {
-            cart = JSON.parse(cartData);
-            renderCartSummary();
-        } catch (error) {
-            console.error('Error loading cart data:', error);
-            cart = [];
-            showEmptyCart();
-        }
-    } else {
-        cart = [];
-        showEmptyCart();
-    }
-}
-
-// Render Cart Summary
-function renderCartSummary() {
-    const cartItemsContainer = document.getElementById('cartItems');
+// Display cart items in summary
+function displayCartItems() {
+    const cartItems = document.getElementById('cartItems');
     const emptyCart = document.getElementById('emptyCart');
     const orderTotal = document.getElementById('orderTotal');
     
     if (cart.length === 0) {
-        showEmptyCart();
+        cartItems.style.display = 'none';
+        emptyCart.style.display = 'block';
+        orderTotal.style.display = 'none';
         return;
     }
     
+    cartItems.style.display = 'block';
     emptyCart.style.display = 'none';
     orderTotal.style.display = 'block';
     
-    cartItemsContainer.innerHTML = '';
-    
-    cart.forEach(item => {
-        const cartItemDiv = document.createElement('div');
-        cartItemDiv.className = 'cart-item';
-        
-        let imageHtml = '<div class="cart-item-image">💎</div>';
-        if (item.fragranceImage) {
-            const imageUrl = getImageUrl(item.fragranceImage);
-            if (imageUrl) {
-                imageHtml = `
-                    <div class="cart-item-image">
-                        <img src="${imageUrl}" alt="${item.fragranceName}" onerror="this.parentNode.innerHTML='💎';">
-                    </div>
-                `;
-            }
-        }
-        
+    cartItems.innerHTML = cart.map(item => {
         const displayName = item.fragranceBrand ? 
             `${item.fragranceBrand} ${item.fragranceName}` : 
             item.fragranceName;
-            
+        
         const itemTotal = (item.variantPrice * item.quantity).toFixed(3);
         
-        cartItemDiv.innerHTML = `
-            ${imageHtml}
-            <div class="cart-item-info">
-                <div class="cart-item-name">${displayName}</div>
-                <div class="cart-item-details">${item.variantSize} × ${item.quantity}</div>
+        return `
+            <div class="cart-item">
+                <div class="cart-item-image">
+                    ${item.fragranceImage ? 
+                        `<img src="${item.fragranceImage}" alt="${item.fragranceName}" onerror="this.src='/api/image/placeholder-fragrance.png'">` : 
+                        `<img src="/api/image/placeholder-fragrance.png" alt="${item.fragranceName}">`
+                    }
+                </div>
+                <div class="cart-item-details">
+                    <div class="cart-item-name">${displayName}</div>
+                    <div class="cart-item-variant">${item.variantSize} × ${item.quantity}</div>
+                </div>
                 <div class="cart-item-price">${itemTotal} OMR</div>
             </div>
         `;
-        
-        cartItemsContainer.appendChild(cartItemDiv);
-    });
-    
-    updateOrderTotal();
+    }).join('');
 }
 
-function showEmptyCart() {
-    const cartItemsContainer = document.getElementById('cartItems');
-    const emptyCart = document.getElementById('emptyCart');
-    const orderTotal = document.getElementById('orderTotal');
-    
-    cartItemsContainer.innerHTML = '';
-    emptyCart.style.display = 'block';
-    orderTotal.style.display = 'none';
-}
-
+// Update order total
 function updateOrderTotal() {
     const subtotal = cart.reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0);
-    
     document.getElementById('subtotalAmount').textContent = `${subtotal.toFixed(3)} OMR`;
     document.getElementById('totalAmount').textContent = `${subtotal.toFixed(3)} OMR`;
 }
 
-// Event Listeners
-function initializeEventListeners() {
-    // Form submission
-    const checkoutForm = document.getElementById('checkoutForm');
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', handleFormSubmit);
-    }
-    
-    // Real-time validation
-    const inputs = document.querySelectorAll('.form-input');
-    inputs.forEach(input => {
-        input.addEventListener('input', function() {
-            clearFieldError(this);
-        });
-        
-        input.addEventListener('blur', function() {
-            validateField(this);
-        });
-    });
-    
-    // Escape key handler
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const languageDropdown = document.getElementById('languageDropdown');
-            if (languageDropdown) {
-                languageDropdown.classList.remove('show');
-            }
-        }
-    });
-}
-
-// Form Management
-function initializeForm() {
-    // Auto-format phone number
-    const phoneInput = document.getElementById('phone');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function() {
-            // Remove non-digits
-            let value = this.value.replace(/\D/g, '');
-            
-            // Add Oman country code if not present
-            if (value.length > 0 && !value.startsWith('968')) {
-                if (value.startsWith('9')) {
-                    value = '968' + value;
-                } else {
-                    value = '968' + value;
-                }
-            }
-            
-            // Format the number
-            if (value.length >= 3) {
-                value = value.substring(0, 3) + ' ' + value.substring(3);
-            }
-            if (value.length >= 6) {
-                value = value.substring(0, 6) + ' ' + value.substring(6);
-            }
-            
-            this.value = value;
-        });
-    }
-}
-
-// Form Submission
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    
-    if (cart.length === 0) {
-        showMessage('error', translations[currentLanguage]['add_items_first']);
-        return;
-    }
-    
-    // Collect form data
-    const formData = collectFormData();
-    
-    // Validate form
-    if (!validateForm(formData)) {
-        return;
-    }
-    
-    // Store customer data
-    customerData = formData;
-    
-    // Move to review step
-    goToReviewStep();
-}
-
-function collectFormData() {
-    return {
-        fullName: document.getElementById('fullName').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
-        deliveryAddress: document.getElementById('deliveryAddress').value.trim(),
-        deliveryTime: document.getElementById('deliveryTime').value,
-        specialInstructions: document.getElementById('specialInstructions').value.trim()
-    };
-}
-
-function validateForm(data) {
-    let isValid = true;
-    
-    // Clear previous errors
-    clearAllFieldErrors();
-    
-    // Required fields validation
-    if (!data.fullName) {
-        addFieldError(document.getElementById('fullName'));
-        isValid = false;
-    }
-    
-    if (!data.email) {
-        addFieldError(document.getElementById('email'));
-        isValid = false;
-    } else if (!isValidEmail(data.email)) {
-        addFieldError(document.getElementById('email'));
-        showMessage('error', translations[currentLanguage]['invalid_email']);
-        isValid = false;
-    }
-    
-    if (!data.phone) {
-        addFieldError(document.getElementById('phone'));
-        isValid = false;
-    } else if (!isValidPhone(data.phone)) {
-        addFieldError(document.getElementById('phone'));
-        showMessage('error', translations[currentLanguage]['invalid_phone']);
-        isValid = false;
-    }
-    
-    if (!data.deliveryAddress) {
-        addFieldError(document.getElementById('deliveryAddress'));
-        isValid = false;
-    }
-    
-    if (!isValid) {
-        showMessage('error', translations[currentLanguage]['please_fill_required']);
-    }
-    
-    return isValid;
-}
-
-function validateField(field) {
+// Field validation
+function validateField(e) {
+    const field = e.target;
     const value = field.value.trim();
+    const fieldId = field.id;
     
-    switch (field.type) {
-        case 'email':
-            if (value && !isValidEmail(value)) {
-                addFieldError(field);
-                return false;
-            }
-            break;
-        case 'tel':
-            if (value && !isValidPhone(value)) {
-                addFieldError(field);
-                return false;
-            }
-            break;
+    // Clear previous error
+    clearFieldError(e);
+    
+    if (!value && field.required) {
+        showFieldError(field, translations[currentLanguage]['please_fill_required']);
+        return false;
     }
     
-    clearFieldError(field);
+    // Email validation
+    if (fieldId === 'email' && value && !isValidEmail(value)) {
+        showFieldError(field, translations[currentLanguage]['invalid_email']);
+        return false;
+    }
+    
+    // Phone validation (basic)
+    if (fieldId === 'phone' && value && value.length < 8) {
+        showFieldError(field, translations[currentLanguage]['invalid_phone']);
+        return false;
+    }
+    
     return true;
 }
 
+function clearFieldError(e) {
+    const field = e.target;
+    field.classList.remove('error');
+    
+    // Remove error message
+    const errorElement = field.parentElement.querySelector('.field-error');
+    if (errorElement) {
+        errorElement.remove();
+    }
+}
+
+function showFieldError(field, message) {
+    field.classList.add('error');
+    
+    // Add error message
+    const errorElement = document.createElement('div');
+    errorElement.className = 'field-error';
+    errorElement.textContent = message;
+    errorElement.style.cssText = `
+        color: var(--error);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    `;
+    
+    field.parentElement.appendChild(errorElement);
+}
+
+// Email validation helper
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
 
-function isValidPhone(phone) {
-    // Remove spaces and check if it's a valid Oman number
-    const cleanPhone = phone.replace(/\s/g, '');
-    return cleanPhone.length >= 11 && cleanPhone.startsWith('968');
+// Continue to review step
+function continueToReview() {
+    if (!validateCustomerForm()) {
+        return;
+    }
+    
+    // Store customer data
+    customerData = {
+        name: document.getElementById('fullName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        deliveryTime: document.getElementById('deliveryTime').value,
+        instructions: document.getElementById('instructions').value.trim()
+    };
+    
+    // Display customer review
+    displayCustomerReview();
+    displayOrderReview();
+    
+    // Switch to step 2
+    showStep(2);
 }
 
-// Step Navigation
-function goToReviewStep() {
-    document.getElementById('checkoutContent').style.display = 'none';
-    document.getElementById('reviewContent').style.display = 'block';
+// Validate customer form
+function validateCustomerForm() {
+    const requiredFields = ['fullName', 'email', 'phone', 'address'];
+    let isValid = true;
     
-    currentStep = 2;
-    updateProgressSteps();
-    populateReviewData();
-    
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function goBackToForm() {
-    document.getElementById('reviewContent').style.display = 'none';
-    document.getElementById('checkoutContent').style.display = 'block';
-    
-    currentStep = 1;
-    updateProgressSteps();
-    
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function updateProgressSteps() {
-    const steps = document.querySelectorAll('.progress-step');
-    steps.forEach((step, index) => {
-        if (index + 1 <= currentStep) {
-            step.classList.add('active');
-        } else {
-            step.classList.remove('active');
+    for (const fieldId of requiredFields) {
+        const field = document.getElementById(fieldId);
+        if (!validateField({ target: field })) {
+            isValid = false;
+            if (!field.parentElement.querySelector('.field-error')) {
+                field.focus();
+            }
         }
-    });
-}
-
-// Review Step
-function populateReviewData() {
-    // Customer details
-    document.getElementById('reviewName').textContent = customerData.fullName;
-    document.getElementById('reviewEmail').textContent = customerData.email;
-    document.getElementById('reviewPhone').textContent = customerData.phone;
-    document.getElementById('reviewAddress').textContent = customerData.deliveryAddress;
-    
-    // Optional fields
-    const timeContainer = document.getElementById('reviewTimeContainer');
-    const instructionsContainer = document.getElementById('reviewInstructionsContainer');
-    
-    if (customerData.deliveryTime) {
-        const timeOptions = {
-            'morning': translations[currentLanguage]['time_morning'],
-            'afternoon': translations[currentLanguage]['time_afternoon'],
-            'evening': translations[currentLanguage]['time_evening'],
-            'anytime': translations[currentLanguage]['time_anytime']
-        };
-        document.getElementById('reviewTime').textContent = timeOptions[customerData.deliveryTime] || customerData.deliveryTime;
-        timeContainer.style.display = 'block';
-    } else {
-        timeContainer.style.display = 'none';
     }
     
-    if (customerData.specialInstructions) {
-        document.getElementById('reviewInstructions').textContent = customerData.specialInstructions;
-        instructionsContainer.style.display = 'block';
-    } else {
-        instructionsContainer.style.display = 'none';
+    if (!isValid) {
+        showMessage(translations[currentLanguage]['please_fill_required'], 'error');
     }
     
-    // Order items
-    populateReviewItems();
+    return isValid;
 }
 
-function populateReviewItems() {
-    const reviewItemsContainer = document.getElementById('reviewItems');
-    reviewItemsContainer.innerHTML = '';
+// Display customer review
+function displayCustomerReview() {
+    const reviewContainer = document.getElementById('customerReview');
     
-    cart.forEach(item => {
-        const reviewItemDiv = document.createElement('div');
-        reviewItemDiv.className = 'review-item-row';
-        
+    const deliveryTimeText = {
+        'morning': translations[currentLanguage]['morning'],
+        'afternoon': translations[currentLanguage]['afternoon'],
+        'evening': translations[currentLanguage]['evening'],
+        'anytime': translations[currentLanguage]['anytime'],
+        '': 'Not specified'
+    };
+    
+    reviewContainer.innerHTML = `
+        <div class="review-detail">
+            <span class="review-label">${translations[currentLanguage]['full_name']}:</span>
+            <span class="review-value">${customerData.name}</span>
+        </div>
+        <div class="review-detail">
+            <span class="review-label">${translations[currentLanguage]['email_address']}:</span>
+            <span class="review-value">${customerData.email}</span>
+        </div>
+        <div class="review-detail">
+            <span class="review-label">${translations[currentLanguage]['phone_number']}:</span>
+            <span class="review-value">${customerData.phone}</span>
+        </div>
+        <div class="review-detail">
+            <span class="review-label">${translations[currentLanguage]['delivery_address']}:</span>
+            <span class="review-value">${customerData.address}</span>
+        </div>
+        <div class="review-detail">
+            <span class="review-label">${translations[currentLanguage]['preferred_delivery_time']}:</span>
+            <span class="review-value">${deliveryTimeText[customerData.deliveryTime]}</span>
+        </div>
+        ${customerData.instructions ? `
+            <div class="review-detail">
+                <span class="review-label">${translations[currentLanguage]['special_instructions']}:</span>
+                <span class="review-value">${customerData.instructions}</span>
+            </div>
+        ` : ''}
+    `;
+}
+
+// Display order review
+function displayOrderReview() {
+    const reviewContainer = document.getElementById('orderReview');
+    
+    reviewContainer.innerHTML = cart.map(item => {
         const displayName = item.fragranceBrand ? 
             `${item.fragranceBrand} ${item.fragranceName}` : 
             item.fragranceName;
-            
+        
         const itemTotal = (item.variantPrice * item.quantity).toFixed(3);
         
-        reviewItemDiv.innerHTML = `
-            <div class="review-item-info">
-                <div class="review-item-name">${displayName}</div>
-                <div class="review-item-details">${item.variantSize} × ${item.quantity}</div>
+        return `
+            <div class="review-item">
+                <div class="review-item-image">
+                    ${item.fragranceImage ? 
+                        `<img src="${item.fragranceImage}" alt="${item.fragranceName}" onerror="this.src='/api/image/placeholder-fragrance.png'">` : 
+                        `<img src="/api/image/placeholder-fragrance.png" alt="${item.fragranceName}">`
+                    }
+                </div>
+                <div class="review-item-details">
+                    <div class="review-item-name">${displayName}</div>
+                    <div class="review-item-variant">${item.variantSize} × ${item.quantity}</div>
+                </div>
+                <div class="review-item-price">${itemTotal} OMR</div>
             </div>
-            <div class="review-item-price">${itemTotal} OMR</div>
         `;
-        
-        reviewItemsContainer.appendChild(reviewItemDiv);
-    });
-    
-    // Update totals
-    const subtotal = cart.reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0);
-    document.getElementById('reviewSubtotal').textContent = `${subtotal.toFixed(3)} OMR`;
-    document.getElementById('reviewTotal').textContent = `${subtotal.toFixed(3)} OMR`;
+    }).join('');
 }
 
-// Order Confirmation
+// Show specific step
+function showStep(stepNumber) {
+    // Hide all steps
+    document.querySelectorAll('.form-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // Show target step
+    document.getElementById(`step${stepNumber}`).classList.add('active');
+    currentStep = stepNumber;
+    
+    // Update progress indicators
+    updateProgressSteps(stepNumber);
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+// Update progress steps
+function updateProgressSteps(activeStep) {
+    for (let i = 1; i <= 3; i++) {
+        const stepElement = document.getElementById(`step${i}Progress`);
+        stepElement.classList.remove('active', 'completed');
+        
+        if (i < activeStep) {
+            stepElement.classList.add('completed');
+        } else if (i === activeStep) {
+            stepElement.classList.add('active');
+        }
+    }
+}
+
+// Edit details (go back to step 1)
+function editDetails() {
+    showStep(1);
+}
+
+// Back to details
+function backToDetails() {
+    showStep(1);
+}
+
+// Confirm order
 async function confirmOrder() {
     if (cart.length === 0) {
-        showMessage('error', translations[currentLanguage]['add_items_first']);
+        showMessage(translations[currentLanguage]['add_items_first'], 'error');
         return;
     }
     
     const confirmBtn = document.getElementById('confirmOrderBtn');
-    const originalText = confirmBtn.textContent;
+    const originalText = confirmBtn.querySelector('span').textContent;
     
     // Set loading state
     confirmBtn.disabled = true;
-    confirmBtn.textContent = translations[currentLanguage]['form_submitted'];
+    confirmBtn.querySelector('span').textContent = translations[currentLanguage]['processing_order'];
     
     try {
         // Prepare order data
@@ -2168,199 +1904,197 @@ async function confirmOrder() {
             total: cart.reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0)
         };
         
-        // Create email content
-        const emailContent = createOrderEmail(orderData);
+        // Send order to API
+        const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
         
-        // Send order via email
-        const emailSuccess = await sendOrderEmail(emailContent);
-        
-        if (emailSuccess) {
+        if (response.ok) {
             // Clear cart data
             sessionStorage.removeItem('checkout_cart');
             localStorage.removeItem('qotor_cart');
             
             // Show success page
-            showSuccessPage();
+            showStep(3);
+            showMessage(translations[currentLanguage]['order_confirmed_success'], 'success');
         } else {
-            throw new Error('Failed to send order email');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to place order');
         }
         
     } catch (error) {
         console.error('Order confirmation error:', error);
-        showMessage('error', 'Failed to confirm order. Please try again.');
+        showMessage(translations[currentLanguage]['failed_to_confirm'], 'error');
         
         // Reset button
         confirmBtn.disabled = false;
-        confirmBtn.textContent = originalText;
+        confirmBtn.querySelector('span').textContent = originalText;
     }
 }
 
-function createOrderEmail(orderData) {
-    let orderSummary = 'QOTOR - New Order\n\n';
-    orderSummary += `Order Date: ${new Date(orderData.orderDate).toLocaleString()}\n\n`;
-    
-    // Customer Information
-    orderSummary += 'CUSTOMER INFORMATION:\n';
-    orderSummary += '----------------------------------------\n';
-    orderSummary += `Name: ${orderData.customer.fullName}\n`;
-    orderSummary += `Email: ${orderData.customer.email}\n`;
-    orderSummary += `Phone: ${orderData.customer.phone}\n`;
-    orderSummary += `Delivery Address: ${orderData.customer.deliveryAddress}\n`;
-    
-    if (orderData.customer.deliveryTime) {
-        const timeOptions = {
-            'morning': 'Morning (9 AM - 12 PM)',
-            'afternoon': 'Afternoon (12 PM - 6 PM)',
-            'evening': 'Evening (6 PM - 9 PM)',
-            'anytime': 'Anytime'
-        };
-        orderSummary += `Preferred Time: ${timeOptions[orderData.customer.deliveryTime] || orderData.customer.deliveryTime}\n`;
-    }
-    
-    if (orderData.customer.specialInstructions) {
-        orderSummary += `Special Instructions: ${orderData.customer.specialInstructions}\n`;
-    }
-    
-    orderSummary += '\n';
-    
-    // Order Items
-    orderSummary += 'ORDER ITEMS:\n';
-    orderSummary += '----------------------------------------\n';
-    
-    orderData.items.forEach((item, index) => {
-        const displayName = item.fragranceBrand ? 
-            `${item.fragranceBrand} ${item.fragranceName}` : 
-            item.fragranceName;
-        
-        const itemTotal = item.variantPrice * item.quantity;
-        
-        orderSummary += `${index + 1}. ${displayName}\n`;
-        orderSummary += `   Size: ${item.variantSize}\n`;
-        orderSummary += `   Price: ${item.variantPrice.toFixed(3)} OMR each\n`;
-        orderSummary += `   Quantity: ${item.quantity}\n`;
-        orderSummary += `   Subtotal: ${itemTotal.toFixed(3)} OMR\n\n`;
-    });
-    
-    orderSummary += '----------------------------------------\n';
-    orderSummary += `Subtotal: ${orderData.subtotal.toFixed(3)} OMR\n`;
-    orderSummary += `Delivery Fee: Free\n`;
-    orderSummary += `TOTAL: ${orderData.total.toFixed(3)} OMR\n\n`;
-    orderSummary += 'Please process this order and contact the customer to confirm delivery details.\n\n';
-    orderSummary += 'Thank you!\nQotor Fragrance Store';
-    
-    return orderSummary;
-}
-
-async function sendOrderEmail(emailContent) {
-    try {
-        const subject = encodeURIComponent('New Order - Qotor Fragrance Store');
-        const body = encodeURIComponent(emailContent);
-        const mailtoLink = `mailto:info@qotor.com?subject=${subject}&body=${body}`;
-        
-        // Open email client
-        window.location.href = mailtoLink;
-        
-        // Return true as we assume the email will be sent
-        return true;
-    } catch (error) {
-        console.error('Email sending error:', error);
-        return false;
+// Share order function
+function shareOrder() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Qotor Order Confirmed',
+            text: 'I just ordered premium fragrances from Qotor!',
+            url: window.location.origin
+        });
+    } else {
+        // Fallback to WhatsApp
+        const message = encodeURIComponent('I just ordered premium fragrances from Qotor! Check them out: ' + window.location.origin);
+        window.open(`https://wa.me/?text=${message}`, '_blank');
     }
 }
 
-function showSuccessPage() {
-    document.getElementById('reviewContent').style.display = 'none';
-    document.getElementById('successContent').style.display = 'flex';
+// Show message
+function showMessage(text, type = 'error') {
+    const messageEl = document.getElementById('message');
+    messageEl.innerHTML = `
+        <img src="/api/image/${type}-icon.png" alt="${type}" style="width: 20px; height: 20px;" onerror="this.style.display='none';">
+        <span>${text}</span>
+    `;
+    messageEl.className = `message ${type} show`;
     
-    // Update progress to show completion
-    currentStep = 3;
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+        messageEl.classList.remove('show');
+    }, 5000);
     
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to message
+    messageEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// Utility Functions
-function goBackToStore() {
-    if (confirm('Are you sure you want to leave checkout? Your cart data will be preserved.')) {
-        window.location.href = '/index.html';
-    }
-}
-
-// Message Display
-function showMessage(type, message) {
-    const messageDiv = document.getElementById('formMessage');
-    if (messageDiv) {
-        messageDiv.className = `message ${type}`;
-        messageDiv.textContent = message;
-        messageDiv.style.display = 'flex';
-        
-        // Add animation
-        messageDiv.classList.add('slide-up');
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            hideMessage();
-        }, 5000);
-        
-        // Scroll into view
-        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-}
-
-function hideMessage() {
-    const messageDiv = document.getElementById('formMessage');
-    if (messageDiv) {
-        messageDiv.style.display = 'none';
-        messageDiv.classList.remove('slide-up');
-    }
-}
-
-// Field Error Handling
-function addFieldError(field) {
-    field.classList.add('error');
-    field.style.borderColor = 'var(--error)';
-}
-
-function clearFieldError(field) {
-    field.classList.remove('error');
-    field.style.borderColor = '';
-}
-
-function clearAllFieldErrors() {
-    const inputs = document.querySelectorAll('.form-input');
-    inputs.forEach(input => {
-        clearFieldError(input);
-    });
-}
-
-// Add animations on page load
-function addAnimations() {
-    // Animate form sections
-    const sections = document.querySelectorAll('.form-section, .summary-section');
-    sections.forEach((section, index) => {
-        section.style.opacity = '0';
-        section.style.transform = 'translateY(30px)';
-        
-        setTimeout(() => {
-            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            section.style.opacity = '1';
-            section.style.transform = 'translateY(0)';
-        }, index * 200 + 300);
-    });
-}
-
-// Handle window resize
-window.addEventListener('resize', function() {
-    const languageDropdown = document.getElementById('languageDropdown');
-    if (languageDropdown) {
-        languageDropdown.classList.remove('show');
+// Handle browser back button
+window.addEventListener('popstate', function(e) {
+    if (currentStep === 2) {
+        showStep(1);
+    } else if (currentStep === 3) {
+        // Prevent going back from success page
+        window.history.pushState(null, null, window.location.href);
+    } else {
+        window.location.href = '/';
     }
 });
 
-// Global functions for onclick handlers
-window.goBackToStore = goBackToStore;
-window.goBackToForm = goBackToForm;
-window.confirmOrder = confirmOrder;
+// Prevent leaving page during order processing
+window.addEventListener('beforeunload', function(e) {
+    const confirmBtn = document.getElementById('confirmOrderBtn');
+    if (confirmBtn && confirmBtn.disabled && currentStep === 2) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Language toggle with Ctrl/Cmd + L
+    if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault();
+        toggleLanguage();
+    }
+    
+    // Navigate steps with arrow keys
+    if (e.altKey) {
+        if (e.key === 'ArrowRight' && currentStep < 3) {
+            e.preventDefault();
+            if (currentStep === 1) {
+                continueToReview();
+            } else if (currentStep === 2) {
+                confirmOrder();
+            }
+        } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+            e.preventDefault();
+            showStep(currentStep - 1);
+        }
+    }
+});
+
+// Auto-save form data
+function autoSaveFormData() {
+    const formData = {
+        fullName: document.getElementById('fullName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        address: document.getElementById('address').value,
+        deliveryTime: document.getElementById('deliveryTime').value,
+        instructions: document.getElementById('instructions').value
+    };
+    
+    sessionStorage.setItem('checkout_form_data', JSON.stringify(formData));
+}
+
+// Restore form data
+function restoreFormData() {
+    const savedData = sessionStorage.getItem('checkout_form_data');
+    if (savedData) {
+        const formData = JSON.parse(savedData);
+        Object.keys(formData).forEach(key => {
+            const element = document.getElementById(key);
+            if (element && formData[key]) {
+                element.value = formData[key];
+            }
+        });
+    }
+}
+
+// Setup auto-save
+document.addEventListener('DOMContentLoaded', function() {
+    restoreFormData();
+    
+    // Auto-save on input
+    const formInputs = document.querySelectorAll('.form-input, .form-textarea, .form-select');
+    formInputs.forEach(input => {
+        input.addEventListener('input', autoSaveFormData);
+        input.addEventListener('change', autoSaveFormData);
+    });
+});
+
+// Clear saved form data on successful order
+function clearSavedFormData() {
+    sessionStorage.removeItem('checkout_form_data');
+}
+
+// Add to order confirmation success
+function onOrderSuccess() {
+    clearSavedFormData();
+    // Analytics tracking could go here
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'purchase', {
+            'transaction_id': Date.now().toString(),
+            'value': cart.reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0),
+            'currency': 'OMR'
+        });
+    }
+}
+
+// Handle connection issues
+window.addEventListener('online', function() {
+    showMessage('Connection restored', 'success');
+});
+
+window.addEventListener('offline', function() {
+    showMessage(translations[currentLanguage]['connection_error'], 'error');
+});
+
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
     </script>
 </body>
 </html>
