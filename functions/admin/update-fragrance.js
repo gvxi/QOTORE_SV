@@ -1,4 +1,4 @@
-// functions/admin/update-fragrance.js - Update existing fragrances
+// functions/admin/update-fragrance.js - Update existing fragrances (FIXED VERSION)
 export async function onRequestPut(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -157,7 +157,21 @@ export async function onRequestPut(context) {
       }
     }
 
-    // Step 3: Update fragrance
+    // Step 3: Get existing variants to compare
+    const existingVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?fragrance_id=eq.${id}&select=id,size_ml,price_cents,is_whole_bottle,sku`, {
+      headers: {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+      }
+    });
+
+    let existingVariants = [];
+    if (existingVariantsResponse.ok) {
+      existingVariants = await existingVariantsResponse.json();
+      console.log('Found existing variants:', existingVariants.length);
+    }
+
+    // Step 4: Update fragrance
     const fragrancePayload = {
       name: name.trim(),
       slug: slug.trim().toLowerCase(),
@@ -200,23 +214,8 @@ export async function onRequestPut(context) {
     const updatedFragrance = await updateFragranceResponse.json();
     console.log('Updated fragrance:', updatedFragrance[0]);
 
-    // Step 4: Delete existing variants
-    const deleteVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?fragrance_id=eq.${id}`, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-      }
-    });
-
-    if (!deleteVariantsResponse.ok) {
-      console.warn('Failed to delete existing variants:', await deleteVariantsResponse.text());
-    } else {
-      console.log('Deleted existing variants for fragrance:', id);
-    }
-
-    // Step 5: Create new variants
-    const variantsPayload = validVariants.map(variant => {
+    // Step 5: Smart variant management - only update what changed
+    const newVariantsPayload = validVariants.map(variant => {
       if (variant.is_whole_bottle) {
         return {
           fragrance_id: parseInt(id),
@@ -238,36 +237,147 @@ export async function onRequestPut(context) {
       }
     });
 
-    console.log('Creating new variants:', variantsPayload);
+    // Compare existing variants with new variants to determine changes
+    const variantsToDelete = [];
+    const variantsToUpdate = [];
+    const variantsToCreate = [];
 
-    const createVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(variantsPayload)
+    // Find variants that should be deleted (exist in DB but not in new data)
+    existingVariants.forEach(existing => {
+      const stillExists = newVariantsPayload.some(newVar => {
+        if (existing.is_whole_bottle && newVar.is_whole_bottle) {
+          return true;
+        }
+        if (!existing.is_whole_bottle && !newVar.is_whole_bottle) {
+          return existing.size_ml === newVar.size_ml;
+        }
+        return false;
+      });
+
+      if (!stillExists) {
+        variantsToDelete.push(existing.id);
+      }
     });
 
-    if (!createVariantsResponse.ok) {
-      const errorText = await createVariantsResponse.text();
-      console.error('Failed to create new variants:', errorText);
-      
-      return new Response(JSON.stringify({
-        error: 'Fragrance updated but variants failed to save',
-        details: errorText,
-        fragranceId: id,
-        partialSuccess: true
-      }), {
-        status: 207, // Multi-status
-        headers: corsHeaders
+    // Find variants to update or create
+    newVariantsPayload.forEach(newVar => {
+      const existing = existingVariants.find(existing => {
+        if (existing.is_whole_bottle && newVar.is_whole_bottle) {
+          return true;
+        }
+        if (!existing.is_whole_bottle && !newVar.is_whole_bottle) {
+          return existing.size_ml === newVar.size_ml;
+        }
+        return false;
       });
+
+      if (existing) {
+        // Check if update is needed
+        const needsUpdate = 
+          existing.price_cents !== newVar.price_cents ||
+          existing.sku !== newVar.sku ||
+          existing.is_whole_bottle !== newVar.is_whole_bottle;
+
+        if (needsUpdate) {
+          variantsToUpdate.push({ id: existing.id, ...newVar });
+        }
+      } else {
+        // New variant to create
+        variantsToCreate.push(newVar);
+      }
+    });
+
+    console.log('Variant changes:', {
+      toDelete: variantsToDelete.length,
+      toUpdate: variantsToUpdate.length,
+      toCreate: variantsToCreate.length
+    });
+
+    // Step 6: Execute variant changes
+    
+    // Delete removed variants
+    if (variantsToDelete.length > 0) {
+      const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?id=in.(${variantsToDelete.join(',')})`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        }
+      });
+
+      if (!deleteResponse.ok) {
+        console.warn('Failed to delete some variants:', await deleteResponse.text());
+      } else {
+        console.log('Deleted variants:', variantsToDelete);
+      }
     }
 
-    const createdVariants = await createVariantsResponse.json();
-    console.log('Created new variants:', createdVariants.length);
+    // Update existing variants
+    for (const variantToUpdate of variantsToUpdate) {
+      const { id: variantId, ...updatePayload } = variantToUpdate;
+      
+      const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?id=eq.${variantId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        },
+        body: JSON.stringify(updatePayload)
+      });
+
+      if (!updateResponse.ok) {
+        console.warn(`Failed to update variant ${variantId}:`, await updateResponse.text());
+      }
+    }
+
+    // Create new variants
+    let createdVariants = [];
+    if (variantsToCreate.length > 0) {
+      const createVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(variantsToCreate)
+      });
+
+      if (!createVariantsResponse.ok) {
+        const errorText = await createVariantsResponse.text();
+        console.error('Failed to create new variants:', errorText);
+        
+        return new Response(JSON.stringify({
+          error: 'Fragrance updated but some new variants failed to save',
+          details: errorText,
+          fragranceId: id,
+          partialSuccess: true
+        }), {
+          status: 207, // Multi-status
+          headers: corsHeaders
+        });
+      }
+
+      createdVariants = await createVariantsResponse.json();
+      console.log('Created new variants:', createdVariants.length);
+    }
+
+    // Step 7: Get final variant count
+    const finalVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?fragrance_id=eq.${id}&select=id,size_ml,price_cents,is_whole_bottle`, {
+      headers: {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+      }
+    });
+
+    let finalVariantCount = 0;
+    let finalVariants = [];
+    if (finalVariantsResponse.ok) {
+      finalVariants = await finalVariantsResponse.json();
+      finalVariantCount = finalVariants.length;
+    }
 
     // Success response
     return new Response(JSON.stringify({ 
@@ -280,8 +390,8 @@ export async function onRequestPut(context) {
         brand: updatedFragrance[0].brand,
         image_path: updatedFragrance[0].image_path,
         updated_at: updatedFragrance[0].updated_at,
-        variantCount: createdVariants.length,
-        variants: createdVariants.map(v => {
+        variantCount: finalVariantCount,
+        variants: finalVariants.map(v => {
           if (v.is_whole_bottle) {
             return {
               size: 'Whole Bottle',
@@ -293,7 +403,12 @@ export async function onRequestPut(context) {
               price: `${(v.price_cents / 1000).toFixed(3)} OMR`
             };
           }
-        })
+        }),
+        changes: {
+          deleted: variantsToDelete.length,
+          updated: variantsToUpdate.length,
+          created: variantsToCreate.length
+        }
       }
     }), {
       status: 200,
@@ -336,11 +451,17 @@ export async function onRequestGet(context) {
   const isAuthenticated = !!sessionCookie;
   
   return new Response(JSON.stringify({
-    message: 'Update fragrance endpoint is working!',
+    message: 'Update fragrance endpoint is working! (FIXED VERSION)',
     authenticated: isAuthenticated,
     method: 'PUT /admin/update-fragrance to update a fragrance',
     requiredFields: ['id', 'name', 'slug', 'description', 'variants'],
     optionalFields: ['brand', 'image'],
+    improvements: [
+      'Smart variant management - only updates changed variants',
+      'Prevents duplicate variants',
+      'Properly removes unchecked variants',
+      'Maintains data integrity'
+    ],
     note: 'Authentication required via admin_session cookie'
   }), {
     headers: { 'Content-Type': 'application/json' }

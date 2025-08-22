@@ -454,6 +454,102 @@
             border: 1px solid #f5c6cb;
         }
 
+        /* Custom Modal Styles */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .custom-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-modal-content {
+            background: white;
+            border-radius: 15px;
+            min-width: 300px;
+            max-width: 500px;
+            margin: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: translateY(-50px) scale(0.9);
+            transition: all 0.3s ease;
+        }
+
+        .custom-modal.active .custom-modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .custom-modal-header {
+            padding: 1.5rem 2rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .custom-modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.25rem;
+        }
+
+        .custom-modal-body {
+            padding: 1.5rem 2rem;
+        }
+
+        .custom-modal-body p {
+            margin: 0;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .custom-modal-footer {
+            padding: 1rem 2rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .custom-modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .custom-modal-btn.primary {
+            background: #8B4513;
+            color: white;
+        }
+
+        .custom-modal-btn.primary:hover {
+            background: #A0522D;
+            transform: translateY(-1px);
+        }
+
+        .custom-modal-btn.secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .custom-modal-btn.secondary:hover {
+            background: #eee;
+            transform: translateY(-1px);
+        }
+
         /* RTL Support */
         [dir="rtl"] .checkout-item-image {
             margin-inline-end: 0;
@@ -488,6 +584,19 @@
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
+            }
+
+            .custom-modal-content {
+                margin: 1rem;
+                min-width: auto;
+            }
+
+            .custom-modal-footer {
+                flex-direction: column;
+            }
+
+            .custom-modal-btn {
+                width: 100%;
             }
         }
     </style>
@@ -583,10 +692,11 @@
                             🛍️ تأكيد الطلب
                         </button>
                     </form>
-                </div>
 
-                <div class="back-link">
-                    <a href="index.html" data-key="checkout.continue_shopping">← متابعة التسوق</a>
+                    <!-- Back link only shows when checkout form is visible -->
+                    <div class="back-link">
+                        <a href="index.html" data-key="checkout.continue_shopping">← متابعة التسوق</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -899,7 +1009,7 @@
                 ? `إزالة ${item.fragranceName} (${item.variant.size}) من السلة؟`
                 : `Remove ${item.fragranceName} (${item.variant.size}) from cart?`;
                 
-            if (confirm(confirmMessage)) {
+            showCustomConfirm(confirmMessage, () => {
                 cart.splice(index, 1);
                 saveCart();
                 displayOrderSummary();
@@ -907,7 +1017,7 @@
                 if (cart.length === 0) {
                     showEmptyCart();
                 }
-            }
+            });
         }
 
         function saveCart() {
@@ -980,36 +1090,119 @@
                 if (result.success) {
                     localStorage.removeItem('qotore_cart');
                     
-                    showMessage('success', translations[currentLanguage]['checkout.success']);
-                    
-                    setTimeout(() => {
+                    showCustomAlert(translations[currentLanguage]['checkout.success'], () => {
                         window.location.href = 'index.html';
-                    }, 3000);
+                    });
                 } else {
                     throw new Error(result.error || 'Failed to place order');
                 }
             } catch (error) {
                 console.error('Order error:', error);
-                showMessage('error', translations[currentLanguage]['checkout.error']);
+                showCustomAlert(translations[currentLanguage]['checkout.error']);
                 
                 button.innerHTML = translations[currentLanguage]['checkout.place_order'];
                 button.disabled = false;
             }
         });
 
-        function showMessage(type, message) {
-            const existingMessages = document.querySelectorAll('.success-message, .error-message');
-            existingMessages.forEach(msg => msg.remove());
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
-            messageDiv.textContent = message;
-
-            const checkoutContent = document.querySelector('.checkout-content');
-            checkoutContent.insertBefore(messageDiv, checkoutContent.firstChild);
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Custom Modal Functions
+        function showCustomAlert(message, onClose) {
+            createCustomModal({
+                title: '🌸 Qotore',
+                message: message,
+                type: 'alert',
+                buttons: [
+                    { text: currentLanguage === 'ar' ? 'حسناً' : 'OK', action: onClose || 'close', primary: true }
+                ]
+            });
         }
+
+        function showCustomConfirm(message, onConfirm) {
+            createCustomModal({
+                title: '🌸 ' + (currentLanguage === 'ar' ? 'تأكيد' : 'Confirm'),
+                message: message,
+                type: 'confirm',
+                buttons: [
+                    { text: currentLanguage === 'ar' ? 'إلغاء' : 'Cancel', action: 'close', primary: false },
+                    { text: currentLanguage === 'ar' ? 'تأكيد' : 'Confirm', action: onConfirm, primary: true }
+                ]
+            });
+        }
+
+        function createCustomModal(config) {
+            // Remove existing custom modal if any
+            const existingModal = document.getElementById('customModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const modal = document.createElement('div');
+            modal.id = 'customModal';
+            modal.className = 'custom-modal';
+            
+            modal.innerHTML = `
+                <div class="custom-modal-content">
+                    <div class="custom-modal-header">
+                        <h3>${config.title}</h3>
+                    </div>
+                    <div class="custom-modal-body">
+                        <p>${config.message}</p>
+                    </div>
+                    <div class="custom-modal-footer">
+                        ${config.buttons.map((button, index) => `
+                            <button class="custom-modal-btn ${button.primary ? 'primary' : 'secondary'}" 
+                                    data-action-index="${index}">
+                                ${button.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            
+            // Show modal with animation
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+
+            // Add event listeners
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeCustomModal();
+                }
+            });
+
+            modal.querySelectorAll('.custom-modal-btn').forEach((btn, index) => {
+                btn.addEventListener('click', function() {
+                    const actionIndex = parseInt(this.getAttribute('data-action-index'));
+                    const button = config.buttons[actionIndex];
+                    
+                    closeCustomModal();
+                    
+                    if (button.action !== 'close' && typeof button.action === 'function') {
+                        button.action();
+                    }
+                });
+            });
+        }
+
+        function closeCustomModal() {
+            const modal = document.getElementById('customModal');
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.remove();
+                }, 300);
+            }
+        }
+
+        // ESC key to close modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCustomModal();
+            }
+        });
     </script>
 </body>
 </html>
