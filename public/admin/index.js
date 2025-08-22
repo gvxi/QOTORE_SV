@@ -1,9 +1,189 @@
+// Display Functions
+function displayFragrances() {
+    const loading = document.getElementById('fragrancesLoading');
+    const table = document.getElementById('fragrancesTable');
+    const mobile = document.getElementById('fragrancesMobile');
+    const empty = document.getElementById('fragrancesEmpty');
+    const controls = document.getElementById('fragrancesControls');
+    const noResults = document.getElementById('fragrancesNoResults');
+    
+    loading.style.display = 'none';
+    
+    // Filter fragrances first
+    filterFragrances();
+    
+    if (fragrances.length === 0) {
+        table.style.display = 'none';
+        mobile.style.display = 'none';
+        controls.style.display = 'none';
+        noResults.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+    }
+    
+    if (filteredFragrances.length === 0 && fragrancesSearchTerm) {
+        table.style.display = 'none';
+        mobile.style.display = 'none';
+        empty.style.display = 'none';
+        controls.style.display = 'flex';
+        noResults.style.display = 'block';
+        updateFragrancesPagination();
+        return;
+    }
+    
+    empty.style.display = 'none';
+    noResults.style.display = 'none';
+    controls.style.display = 'flex';
+    
+    if (isMobile) {
+        // Show mobile card view
+        table.style.display = 'none';
+        mobile.style.display = 'block';
+        displayFragrancesMobile();
+    } else {
+        // Show desktop table view
+        mobile.style.display = 'none';
+        table.style.display = 'block';
+        displayFragrancesTable();
+    }
+    
+    updateFragrancesPagination();
+}
+
+function displayFragrancesTable() {
+    const tbody = document.getElementById('fragrancesTableBody');
+    tbody.innerHTML = '';
+    
+    const paginatedFragrances = getFragrancesPaginatedData();
+    
+    paginatedFragrances.forEach(fragrance => {
+        const row = document.createElement('tr');
+        
+        const variantCount = fragrance.variants ? fragrance.variants.length : 0;
+        const variantsText = variantCount > 0 ? `${variantCount} variants` : 'No variants';
+        
+        row.innerHTML = `
+            <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #ccc; flex-shrink: 0;">
+                        ${fragrance.image_path ? 
+                            `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` :
+                            '🌸'
+                        }
+                    </div>
+                    <div style="min-width: 0;">
+                        <strong style="display: block; word-break: break-word;">${fragrance.name}</strong>
+                        <small style="color: #666; word-break: break-all;">${fragrance.slug}</small>
+                    </div>
+                </div>
+            </td>
+            <td>${fragrance.brand || '-'}</td>
+            <td>${variantsText}</td>
+            <td>
+                <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
+                    ${fragrance.hidden ? 'Hidden' : 'Visible'}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})">Edit</button>
+                    <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
+                            onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})">
+                        ${fragrance.hidden ? 'Show' : 'Hide'}
+                    </button>
+                    <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})">Delete</button>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+function displayFragrancesMobile() {
+    const container = document.getElementById('fragrancesMobile');
+    container.innerHTML = '';
+    
+    const paginatedFragrances = getFragrancesPaginatedData();
+    
+    paginatedFragrances.forEach(fragrance => {
+        const card = document.createElement('div');
+        card.className = 'mobile-card';
+        
+        const variantCount = fragrance.variants ? fragrance.variants.length : 0;
+        const variantsText = variantCount > 0 ? `${variantCount} variants` : 'No variants';
+        
+        card.innerHTML = `
+            <div class="mobile-card-header">
+                <div class="mobile-card-image">
+                    ${fragrance.image_path ? 
+                        `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}" alt="${fragrance.name}" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` :
+                        '🌸'
+                    }
+                </div>
+                <div class="mobile-card-info">
+                    <div class="mobile-card-title">${fragrance.name}</div>
+                    <div class="mobile-card-subtitle">${fragrance.slug}</div>
+                </div>
+            </div>
+            <div class="mobile-card-body">
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Brand</div>
+                    <div class="mobile-field-value">${fragrance.brand || '-'}</div>
+                </div>
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Variants</div>
+                    <div class="mobile-field-value">${variantsText}</div>
+                </div>
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Status</div>
+                    <div class="mobile-field-value">
+                        <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
+                            ${fragrance.hidden ? 'Hidden' : 'Visible'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})">Edit</button>
+                <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
+                        onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})">
+                    ${fragrance.hidden ? 'Show' : 'Hide'}
+                </button>
+                <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})">Delete</button>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function displayOrders() {
+    const loading = document.getElementById('ordersLoading');
+    const table = document.getElementById('ordersTable');
+    const mobile = document.getElementById('ordersMobile');
+    const empty = document.getElementById('ordersEmpty');
+    const controls = document.getElementById('ordersControls');
+    const noResults = document.getElementById('ordersNoResults');
+
 // Global Variables
+loading.style.display = 'none';
 let fragrances = [];
 let orders = [];
 let currentEditingId = null;
 let isMobile = window.innerWidth <= 768;
 let isRefreshing = false;
+
+// Pagination and Search Variables
+let fragrancesPage = 1;
+let fragrancesPerPage = 5;
+let fragrancesSearchTerm = '';
+let filteredFragrances = [];
+
+let ordersPage = 1;
+let ordersPerPage = 5;
+let ordersSearchTerm = '';
+let filteredOrders = [];
 
 // Initialize Admin Panel
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadNotificationSettings();
     initializeImageUpload();
     initializeFormHandlers();
+    initializeSearchAndPagination();
     
     // Handle window resize
     window.addEventListener('resize', handleResize);
@@ -27,6 +208,237 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 2000); // Wait 2 seconds after initial load
 });
+
+// Initialize Search and Pagination
+function initializeSearchAndPagination() {
+    // Fragrances search
+    const fragrancesSearch = document.getElementById('fragrancesSearch');
+    if (fragrancesSearch) {
+        fragrancesSearch.addEventListener('input', function(e) {
+            fragrancesSearchTerm = e.target.value.toLowerCase();
+            fragrancesPage = 1; // Reset to first page
+            filterAndDisplayFragrances();
+            toggleSearchClear('fragrances');
+        });
+    }
+    
+    // Orders search
+    const ordersSearch = document.getElementById('ordersSearch');
+    if (ordersSearch) {
+        ordersSearch.addEventListener('input', function(e) {
+            ordersSearchTerm = e.target.value.toLowerCase();
+            ordersPage = 1; // Reset to first page
+            filterAndDisplayOrders();
+            toggleSearchClear('orders');
+        });
+    }
+}
+
+// Search and Filter Functions
+function filterFragrances() {
+    if (!fragrancesSearchTerm) {
+        filteredFragrances = [...fragrances];
+    } else {
+        filteredFragrances = fragrances.filter(fragrance => {
+            const searchFields = [
+                fragrance.name,
+                fragrance.brand,
+                fragrance.slug,
+                fragrance.description
+            ].filter(Boolean).join(' ').toLowerCase();
+            
+            return searchFields.includes(fragrancesSearchTerm);
+        });
+    }
+}
+
+function filterOrders() {
+    if (!ordersSearchTerm) {
+        filteredOrders = [...orders];
+    } else {
+        filteredOrders = orders.filter(order => {
+            const customerName = `${order.customer.firstName} ${order.customer.lastName}`.toLowerCase();
+            const orderNumber = (order.orderNumber || `#${order.id}`).toLowerCase();
+            const phone = order.customer.phone.toLowerCase();
+            const email = (order.customer.email || '').toLowerCase();
+            
+            return customerName.includes(ordersSearchTerm) ||
+                   orderNumber.includes(ordersSearchTerm) ||
+                   phone.includes(ordersSearchTerm) ||
+                   email.includes(ordersSearchTerm);
+        });
+    }
+}
+
+function filterAndDisplayFragrances() {
+    filterFragrances();
+    displayFragrances();
+}
+
+function filterAndDisplayOrders() {
+    filterOrders();
+    displayOrders();
+}
+
+// Clear Search Functions
+function clearFragrancesSearch() {
+    document.getElementById('fragrancesSearch').value = '';
+    fragrancesSearchTerm = '';
+    fragrancesPage = 1;
+    filterAndDisplayFragrances();
+    toggleSearchClear('fragrances');
+}
+
+function clearOrdersSearch() {
+    document.getElementById('ordersSearch').value = '';
+    ordersSearchTerm = '';
+    ordersPage = 1;
+    filterAndDisplayOrders();
+    toggleSearchClear('orders');
+}
+
+function toggleSearchClear(type) {
+    const searchInput = document.getElementById(`${type}Search`);
+    const clearBtn = document.getElementById(`${type}ClearSearch`);
+    
+    if (searchInput && clearBtn) {
+        clearBtn.style.display = searchInput.value ? 'block' : 'none';
+    }
+}
+
+// Pagination Functions
+function getFragrancesPaginatedData() {
+    const startIndex = (fragrancesPage - 1) * fragrancesPerPage;
+    const endIndex = startIndex + fragrancesPerPage;
+    return filteredFragrances.slice(startIndex, endIndex);
+}
+
+function getOrdersPaginatedData() {
+    const startIndex = (ordersPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    return filteredOrders.slice(startIndex, endIndex);
+}
+
+function updateFragrancesPagination() {
+    const totalItems = filteredFragrances.length;
+    const totalPages = Math.ceil(totalItems / fragrancesPerPage);
+    const startItem = totalItems === 0 ? 0 : (fragrancesPage - 1) * fragrancesPerPage + 1;
+    const endItem = Math.min(fragrancesPage * fragrancesPerPage, totalItems);
+    
+    // Update pagination info
+    const paginationInfo = document.getElementById('fragrancesPaginationInfo');
+    if (paginationInfo) {
+        paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} fragrances`;
+    }
+    
+    // Update pagination buttons
+    const prevBtn = document.getElementById('fragrancesPrevBtn');
+    const nextBtn = document.getElementById('fragrancesNextBtn');
+    
+    if (prevBtn) prevBtn.disabled = fragrancesPage <= 1;
+    if (nextBtn) nextBtn.disabled = fragrancesPage >= totalPages;
+    
+    // Update page numbers
+    const numbersContainer = document.getElementById('fragrancesPaginationNumbers');
+    if (numbersContainer) {
+        numbersContainer.innerHTML = '';
+        
+        const maxVisiblePages = isMobile ? 3 : 5;
+        let startPage = Math.max(1, fragrancesPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `pagination-btn ${i === fragrancesPage ? 'active' : ''}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => {
+                fragrancesPage = i;
+                filterAndDisplayFragrances();
+            };
+            numbersContainer.appendChild(pageBtn);
+        }
+    }
+}
+
+function updateOrdersPagination() {
+    const totalItems = filteredOrders.length;
+    const totalPages = Math.ceil(totalItems / ordersPerPage);
+    const startItem = totalItems === 0 ? 0 : (ordersPage - 1) * ordersPerPage + 1;
+    const endItem = Math.min(ordersPage * ordersPerPage, totalItems);
+    
+    // Update pagination info
+    const paginationInfo = document.getElementById('ordersPaginationInfo');
+    if (paginationInfo) {
+        paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} orders`;
+    }
+    
+    // Update pagination buttons
+    const prevBtn = document.getElementById('ordersPrevBtn');
+    const nextBtn = document.getElementById('ordersNextBtn');
+    
+    if (prevBtn) prevBtn.disabled = ordersPage <= 1;
+    if (nextBtn) nextBtn.disabled = ordersPage >= totalPages;
+    
+    // Update page numbers
+    const numbersContainer = document.getElementById('ordersPaginationNumbers');
+    if (numbersContainer) {
+        numbersContainer.innerHTML = '';
+        
+        const maxVisiblePages = isMobile ? 3 : 5;
+        let startPage = Math.max(1, ordersPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `pagination-btn ${i === ordersPage ? 'active' : ''}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => {
+                ordersPage = i;
+                filterAndDisplayOrders();
+            };
+            numbersContainer.appendChild(pageBtn);
+        }
+    }
+}
+
+// Navigation Functions
+function previousFragrancesPage() {
+    if (fragrancesPage > 1) {
+        fragrancesPage--;
+        filterAndDisplayFragrances();
+    }
+}
+
+function nextFragrancesPage() {
+    const totalPages = Math.ceil(filteredFragrances.length / fragrancesPerPage);
+    if (fragrancesPage < totalPages) {
+        fragrancesPage++;
+        filterAndDisplayFragrances();
+    }
+}
+
+function previousOrdersPage() {
+    if (ordersPage > 1) {
+        ordersPage--;
+        filterAndDisplayOrders();
+    }
+}
+
+function nextOrdersPage() {
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+    if (ordersPage < totalPages) {
+        ordersPage++;
+        filterAndDisplayOrders();
+    }
+}
 
 // Handle page visibility for better polling management
 document.addEventListener('visibilitychange', function() {
@@ -318,8 +730,252 @@ function displayOrders() {
     const table = document.getElementById('ordersTable');
     const mobile = document.getElementById('ordersMobile');
     const empty = document.getElementById('ordersEmpty');
+    const controls = document.getElementById('ordersControls');
+    const noResults = document.getElementById('ordersNoResults');
     
     loading.style.display = 'none';
+    
+    // Filter orders first
+    filterOrders();
+    
+    if (orders.length === 0) {
+        table.style.display = 'none';
+        mobile.style.display = 'none';
+        controls.style.display = 'none';
+        noResults.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+    }
+    
+    if (filteredOrders.length === 0 && ordersSearchTerm) {
+        table.style.display = 'none';
+        mobile.style.display = 'none';
+        empty.style.display = 'none';
+        controls.style.display = 'flex';
+        noResults.style.display = 'block';
+        updateOrdersPagination();
+        return;
+    }
+    
+    empty.style.display = 'none';
+    noResults.style.display = 'none';
+    controls.style.display = 'flex';
+    
+    if (isMobile) {
+        // Show mobile card view
+        table.style.display = 'none';
+        mobile.style.display = 'block';
+        displayOrdersMobile();
+    } else {
+        // Show desktop table view
+        mobile.style.display = 'none';
+        table.style.display = 'block';
+        displayOrdersTable();
+    }
+    
+    updateOrdersPagination();
+}
+
+function displayOrdersTable() {
+    const tbody = document.getElementById('ordersTableBody');
+    tbody.innerHTML = '';
+    
+    const paginatedOrders = getOrdersPaginatedData();
+    
+    paginatedOrders.forEach(order => {
+        const row = document.createElement('tr');
+        
+        const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
+        const totalQuantity = order.totalQuantity || 0;
+        const itemsText = `${order.itemCount} items (${totalQuantity} total)`;
+        
+        row.innerHTML = `
+            <td>
+                <strong>${order.orderNumber || `#${order.id}`}</strong>
+                <br><small style="color: #666;">${new Date(order.orderDate).toLocaleDateString()}</small>
+            </td>
+            <td>
+                <strong style="word-break: break-word;">${customerName}</strong>
+                <br><small style="color: #666; word-break: break-all;">${order.customer.phone}</small>
+            </td>
+            <td>${itemsText}</td>
+            <td><strong>${order.total.toFixed(3)} OMR</strong></td>
+            <td>
+                <span class="status-badge ${order.status === 'completed' ? 'status-completed' : 'status-pending'}">
+                    ${order.status === 'completed' ? 'Completed' : 'Pending'}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-small btn-edit" onclick="viewOrder(${order.id})">View</button>
+                    <button class="btn-small ${order.status === 'completed' ? 'btn-hide' : 'btn-show'}"
+                            onclick="toggleOrderStatus(${order.id})">
+                        ${order.status === 'completed' ? 'Mark Pending' : 'Mark Complete'}
+                    </button>
+                    <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">Delete</button>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+function displayOrdersMobile() {
+    const container = document.getElementById('ordersMobile');
+    container.innerHTML = '';
+    
+    const paginatedOrders = getOrdersPaginatedData();
+    
+    paginatedOrders.forEach(order => {
+        const card = document.createElement('div');
+        card.className = 'mobile-card';
+        
+        const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
+        const totalQuantity = order.totalQuantity || order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        const itemsText = `${order.itemCount} items (${totalQuantity} total)`;
+        
+        card.innerHTML = `
+            <div class="mobile-card-header">
+                <div class="mobile-card-image">📦</div>
+                <div class="mobile-card-info">
+                    <div class="mobile-card-title">${order.orderNumber || `#${order.id}`}</div>
+                    <div class="mobile-card-subtitle">${new Date(order.orderDate).toLocaleDateString()}</div>
+                </div>
+            </div>
+            <div class="mobile-card-body">
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Customer</div>
+                    <div class="mobile-field-value">${customerName}</div>
+                </div>
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Phone</div>
+                    <div class="mobile-field-value">${order.customer.phone}</div>
+                </div>
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Items</div>
+                    <div class="mobile-field-value">${itemsText}</div>
+                </div>
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Total</div>
+                    <div class="mobile-field-value"><strong>${order.total.toFixed(3)} OMR</strong></div>
+                </div>
+                <div class="mobile-field">
+                    <div class="mobile-field-label">Status</div>
+                    <div class="mobile-field-value">
+                        <span class="status-badge ${order.status === 'completed' ? 'status-completed' : 'status-pending'}">
+                            ${order.status === 'completed' ? 'Completed' : 'Pending'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn-small btn-edit" onclick="viewOrder(${order.id})">View</button>
+                <button class="btn-small ${order.status === 'completed' ? 'btn-hide' : 'btn-show'}"
+                        onclick="toggleOrderStatus(${order.id})">
+                    ${order.status === 'completed' ? 'Mark Pending' : 'Mark Complete'}
+                </button>
+                <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">Delete</button>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function showFragrancesError() {
+    document.getElementById('fragrancesLoading').style.display = 'none';
+    document.getElementById('fragrancesTable').style.display = 'none';
+    document.getElementById('fragrancesMobile').style.display = 'none';
+    document.getElementById('fragrancesControls').style.display = 'none';
+    document.getElementById('fragrancesEmpty').style.display = 'block';
+    document.querySelector('#fragrancesEmpty h3').textContent = 'Error loading fragrances';
+    document.querySelector('#fragrancesEmpty p').textContent = 'Please refresh the page to try again';
+}
+
+function updateStats() {
+    const totalFragrances = fragrances.length;
+    const visibleFragrances = fragrances.filter(f => !f.hidden).length;
+    const totalOrders = orders.length;
+    const pendingOrders = orders.filter(o => o.status !== 'completed').length;
+    
+    document.getElementById('totalFragrances').textContent = totalFragrances;
+    document.getElementById('visibleFragrances').textContent = visibleFragrances;
+    document.getElementById('totalOrders').textContent = totalOrders;
+    document.getElementById('pendingOrders').textContent = pendingOrders;
+}
+
+// Load Fragrances (updated to handle pagination)
+async function loadFragrances() {
+    try {
+        const response = await fetch('/admin/fragrances', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                fragrances = result.data || [];
+                // Reset pagination when loading new data
+                fragrancesPage = 1;
+                displayFragrances();
+            } else {
+                throw new Error(result.error);
+            }
+        } else if (response.status === 401) {
+            window.location.href = '/login.html';
+        } else {
+            throw new Error('Failed to load fragrances');
+        }
+    } catch (error) {
+        console.error('Error loading fragrances:', error);
+        showFragrancesError();
+    }
+}
+
+// Load Orders (updated to handle pagination)
+async function loadOrders() {
+    try {
+        const response = await fetch('/admin/orders', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                orders = result.data || [];
+                // Reset pagination when loading new data
+                ordersPage = 1;
+                displayOrders();
+            } else {
+                orders = [];
+                displayOrders();
+            }
+        } else {
+            orders = [];
+            displayOrders();
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        orders = [];
+        displayOrders();
+    }
+}
+
+// Handle responsive behavior (updated)
+function handleResize() {
+    const newIsMobile = window.innerWidth <= 768;
+    if (newIsMobile !== isMobile) {
+        isMobile = newIsMobile;
+        // Re-render data with appropriate view
+        if (fragrances.length > 0) {
+            displayFragrances();
+        }
+        if (orders.length > 0) {
+            displayOrders();
+        }
+    }
+}
     
     if (orders.length === 0) {
         table.style.display = 'none';

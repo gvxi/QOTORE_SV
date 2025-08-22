@@ -442,7 +442,146 @@
             font-size: 0.9rem;
         }
 
-        /* Custom Modal Styles */
+        /* Search and Pagination Styles */
+        .search-pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 2.5rem 0.6rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            pointer-events: none;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .search-clear:hover {
+            background: #f8f9fa;
+            color: #495057;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pagination-info {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-right: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .pagination-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 0.4rem 0.8rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: #8B4513;
+            border-color: #8B4513;
+            color: white;
+        }
+
+        .pagination-btn.active:hover {
+            background: #A0522D;
+            border-color: #A0522D;
+        }
+
+        .items-per-page {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .items-per-page select {
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* No results message */
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .no-results h4 {
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .no-results p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
         .custom-modal {
             position: fixed;
             top: 0;
@@ -835,6 +974,23 @@
                 <p>Loading fragrances...</p>
             </div>
 
+            <!-- Search and Pagination Controls -->
+            <div id="fragrancesControls" class="search-pagination-container" style="display: none;">
+                <div class="search-box">
+                    <input type="text" id="fragrancesSearch" class="search-input" placeholder="Search fragrances...">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <button class="search-clear" id="fragrancesClearSearch" onclick="clearFragrancesSearch()">✕</button>
+                </div>
+                <div class="pagination">
+                    <div class="pagination-info" id="fragrancesPaginationInfo"></div>
+                    <button class="pagination-btn" id="fragrancesPrevBtn" onclick="previousFragrancesPage()">‹</button>
+                    <div id="fragrancesPaginationNumbers"></div>
+                    <button class="pagination-btn" id="fragrancesNextBtn" onclick="nextFragrancesPage()">›</button>
+                </div>
+            </div>
+
             <!-- Desktop Table View -->
             <div id="fragrancesTable" class="table-wrapper" style="display: none;">
                 <table class="table">
@@ -856,6 +1012,12 @@
             <!-- Mobile Card View -->
             <div id="fragrancesMobile" class="mobile-card-view">
                 <!-- Mobile cards will be loaded here -->
+            </div>
+
+            <!-- No Results Message -->
+            <div id="fragrancesNoResults" class="no-results" style="display: none;">
+                <h4>No fragrances found</h4>
+                <p>Try adjusting your search terms or clear the search to see all fragrances.</p>
             </div>
 
             <div id="fragrancesEmpty" class="empty-state" style="display: none;">
@@ -885,6 +1047,23 @@
                 <p>Loading orders...</p>
             </div>
 
+            <!-- Search and Pagination Controls -->
+            <div id="ordersControls" class="search-pagination-container" style="display: none;">
+                <div class="search-box">
+                    <input type="text" id="ordersSearch" class="search-input" placeholder="Search orders by customer, phone, or order number...">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <button class="search-clear" id="ordersClearSearch" onclick="clearOrdersSearch()">✕</button>
+                </div>
+                <div class="pagination">
+                    <div class="pagination-info" id="ordersPaginationInfo"></div>
+                    <button class="pagination-btn" id="ordersPrevBtn" onclick="previousOrdersPage()">‹</button>
+                    <div id="ordersPaginationNumbers"></div>
+                    <button class="pagination-btn" id="ordersNextBtn" onclick="nextOrdersPage()">›</button>
+                </div>
+            </div>
+
             <!-- Desktop Table View -->
             <div id="ordersTable" class="table-wrapper" style="display: none;">
                 <table class="table">
@@ -907,6 +1086,12 @@
             <!-- Mobile Card View -->
             <div id="ordersMobile" class="mobile-card-view">
                 <!-- Mobile cards will be loaded here -->
+            </div>
+
+            <!-- No Results Message -->
+            <div id="ordersNoResults" class="no-results" style="display: none;">
+                <h4>No orders found</h4>
+                <p>Try adjusting your search terms or clear the search to see all orders.</p>
             </div>
 
             <div id="ordersEmpty" class="empty-state" style="display: none;">
