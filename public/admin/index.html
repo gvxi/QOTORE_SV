@@ -326,7 +326,7 @@
     <header class="header">
         <div class="logo">🌸 Qotore Admin</div>
         <div class="nav-buttons">
-            <a href="index.html" class="nav-btn">View Store</a>
+            <a href="/public/index.html" class="nav-btn">View Store</a>
             <button onclick="logout()" class="nav-btn">Logout</button>
         </div>
     </header>
@@ -444,6 +444,15 @@
                 <div class="form-group">
                     <label for="fragranceBrand">Brand</label>
                     <input type="text" id="fragranceBrand" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="fragranceImage">Product Image (PNG only)</label>
+                     <input type="file" id="fragranceImage" accept=".png" class="form-control">
+                     <div id="imagePreview" style="margin-top: 10px; display: none;">
+                    <img id="previewImg" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                    <button type="button" onclick="clearImage()" style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px;">Remove</button>
+                    </div>
                 </div>
 
                 <div class="form-group">

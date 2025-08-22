@@ -166,33 +166,39 @@ function displayOrders() {
         const itemCount = order.items.length;
         const itemsText = itemCount === 1 ? '1 item' : `${itemCount} items`;
         
-        row.innerHTML = `
-            <td>
-                <strong>#${order.id}</strong>
-                <br><small style="color: #666;">${new Date(order.orderDate).toLocaleDateString()}</small>
-            </td>
-            <td>
-                <strong>${customerName}</strong>
-                <br><small style="color: #666;">${order.customer.phone}</small>
-            </td>
-            <td>${itemsText}</td>
-            <td><strong>${order.total.toFixed(3)} OMR</strong></td>
-            <td>
-                <span class="status-badge ${order.status === 'completed' ? 'status-completed' : 'status-pending'}">
-                    ${order.status === 'completed' ? 'Completed' : 'Pending'}
-                </span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-small btn-edit" onclick="viewOrder(${order.id})">View</button>
-                    <button class="btn-small ${order.status === 'completed' ? 'btn-hide' : 'btn-show'}"
-                            onclick="toggleOrderStatus(${order.id})">
-                        ${order.status === 'completed' ? 'Mark Pending' : 'Mark Complete'}
-                    </button>
-                    <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">Delete</button>
-                </div>
-            </td>
-        `;
+       row.innerHTML = `
+    <td>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ccc;">
+                ${fragrance.image_path ? 
+                    `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` :
+                    '🌸'
+                }
+            </div>
+            <div>
+                <strong>${fragrance.name}</strong>
+                <br><small style="color: #666;">${fragrance.slug}</small>
+            </div>
+        </div>
+    </td>
+    <td>${fragrance.brand || '-'}</td>
+    <td>${variantsText}</td>
+    <td>
+        <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
+            ${fragrance.hidden ? 'Hidden' : 'Visible'}
+        </span>
+    </td>
+    <td>
+        <div class="action-buttons">
+            <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})">Edit</button>
+            <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
+                    onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})">
+                ${fragrance.hidden ? 'Show' : 'Hide'}
+            </button>
+            <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})">Delete</button>
+        </div>
+    </td>
+`;
         
         tbody.appendChild(row);
     });
@@ -218,6 +224,51 @@ function updateStats() {
     document.getElementById('pendingOrders').textContent = pendingOrders;
 }
 
+// Add after DOMContentLoaded
+document.getElementById('fragranceImage').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (!file.type.includes('png')) {
+            alert('Only PNG files are allowed');
+            this.value = '';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function clearImage() {
+    document.getElementById('fragranceImage').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+}
+
+// Update form submission to handle image upload
+async function uploadImageIfPresent(slug) {
+    const imageFile = document.getElementById('fragranceImage').files[0];
+    if (!imageFile) return null;
+    
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    formData.append('slug', slug);
+    
+    const response = await fetch('/admin/upload-image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    });
+    
+    if (response.ok) {
+        const result = await response.json();
+        return result.data.path;
+    }
+    throw new Error('Image upload failed');
+}
+
 // Fragrance Management
 function openAddFragranceModal() {
     currentEditingId = null;
@@ -235,8 +286,12 @@ function openAddFragranceModal() {
 
 function editFragrance(id) {
     const fragrance = fragrances.find(f => f.id === id);
-    if (!fragrance) return;
-    
+    if (!fragrance) {
+        console.error('Fragrance not found:', id);
+        alert('Fragrance not found. Please refresh the page.');
+        return;
+    }
+
     currentEditingId = id;
     document.getElementById('fragranceModalTitle').textContent = 'Edit Fragrance';
     
@@ -416,7 +471,7 @@ async function deleteOrder(id) {
 }
 
 // Form Handlers
-document.getElementById('fragranceForm').addEventListener('submit', async function(e) {
+cument.getElementById('fragranceForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const formData = {
@@ -426,6 +481,17 @@ document.getElementById('fragranceForm').addEventListener('submit', async functi
         slug: document.getElementById('fragranceName').value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         variants: []
     };
+    
+    // Upload image if present
+    try {
+        const imagePath = await uploadImageIfPresent(formData.slug);
+        if (imagePath) {
+            formData.image = imagePath;
+        }
+    } catch (error) {
+        alert('Image upload failed: ' + error.message);
+        return;
+    }
     
     // Collect variants
     const variantInputs = [
