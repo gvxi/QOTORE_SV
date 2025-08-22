@@ -396,6 +396,18 @@
             e.preventDefault();
 
             const formData = new FormData(e.target);
+
+            // Map cart items to backend expected format
+            const mappedItems = cart.map(item => ({
+                fragranceId: item.fragranceId ?? item.fragrance_id ?? null,
+                fragranceName: item.fragranceName ?? item.fragrance_name ?? '',
+                fragranceBrand: item.fragranceBrand ?? item.fragrance_brand ?? '',
+                variantId: item.variant?.id ?? item.variantId ?? item.variant_id ?? null,
+                variantSize: item.variant?.size ?? item.variantSize ?? '',
+                variantPrice: item.variant?.price ?? item.variantPrice ?? item.price ?? 0,
+                quantity: item.quantity ?? 1
+            }));
+
             const orderData = {
                 customer: {
                     firstName: formData.get('firstName'),
@@ -409,8 +421,8 @@
                     region: formData.get('region')
                 },
                 notes: formData.get('notes'),
-                items: cart,
-                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                items: mappedItems,
+                total: mappedItems.reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0),
                 orderDate: new Date().toISOString()
             };
 

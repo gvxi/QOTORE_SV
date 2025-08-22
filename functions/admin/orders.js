@@ -98,16 +98,18 @@ export async function onRequestGet(context) {
 
     // Transform orders for frontend
     const orders = ordersData.map(order => {
-      const items = order.order_items.map(item => ({
-        fragranceId: item.fragrance_id,
-        fragranceName: item.fragrance_name,
-        fragranceBrand: item.fragrance_brand || '',
-        variantSize: item.variant_size,
-        variantPrice: item.unit_price_cents / 1000, // Convert from fils to OMR
-        quantity: item.quantity,
-        totalPrice: item.total_price_cents / 1000,
-        isWholeBottle: item.is_whole_bottle
-      }));
+      const items = Array.isArray(order.order_items)
+        ? order.order_items.map(item => ({
+            fragranceId: item.fragrance_id,
+            fragranceName: item.fragrance_name,
+            fragranceBrand: item.fragrance_brand || '',
+            variantSize: item.variant_size,
+            variantPrice: item.unit_price_cents / 1000, // Convert from fils to OMR
+            quantity: item.quantity,
+            totalPrice: item.total_price_cents / 1000,
+            isWholeBottle: item.is_whole_bottle
+          }))
+        : [];
 
       return {
         id: order.id,

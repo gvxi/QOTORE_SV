@@ -58,6 +58,21 @@ export async function onRequestPost(context) {
       }), { status: 400, headers: corsHeaders });
     }
 
+    // Defensive: filter out items with missing required fields
+    const validItems = items.filter(item =>
+      item.fragranceId !== undefined &&
+      item.variantId !== undefined &&
+      item.variantSize &&
+      item.variantPrice !== undefined &&
+      item.quantity > 0
+    );
+    if (validItems.length === 0) {
+      return new Response(JSON.stringify({
+        error: 'No valid items in order',
+        details: items
+      }), { status: 400, headers: corsHeaders });
+    }
+
     console.log('Saving order to Supabase:', {
       customerName: `${customer.firstName} ${customer.lastName || ''}`.trim(),
       itemCount: items.length,
@@ -116,7 +131,7 @@ export async function onRequestPost(context) {
 
     // Prepare order_items rows
     const nowIso = new Date().toISOString();
-    const orderItemsPayload = items.map((item) => {
+    const orderItemsPayload = validItems.map((item) => {
       const price = Number(item.variantPrice || 0);
       const qty = Number(item.quantity || 0);
       const perBaisa = Math.round(price * 1000);
@@ -127,7 +142,7 @@ export async function onRequestPost(context) {
         fragrance_name: item.fragranceName ?? '',
         fragrance_brand: item.fragranceBrand || '',
         variant_size: item.variantSize ?? '',
-        variant_price_cents: perBaisa, // keeping your existing column name
+        variant_price_cents: perBaisa,
         quantity: qty,
         unit_price_cents: perBaisa,
         total_price_cents: Math.round(price * qty * 1000),
