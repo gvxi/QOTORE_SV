@@ -170,7 +170,7 @@
     <script>
         // Check if already logged in
         if (document.cookie.includes('admin_session=')) {
-            window.location.href = 'admin.html';
+            window.location.href = '/admin/index.html';
         }
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -206,7 +206,7 @@
                     button.innerHTML = '✅ Success!';
                     
                     setTimeout(() => {
-                        window.location.href = 'admin.html';
+                        window.location.href = '/admin/index.html';
                     }, 1000);
                 } else {
                     messageDiv.textContent = '❌ ' + result.error;
