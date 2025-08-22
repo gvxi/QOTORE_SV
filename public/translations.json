@@ -1,0 +1,150 @@
+{
+  "en": {
+    "nav": {
+      "products": "Products",
+      "language": "Language",
+      "cart": "Cart",
+      "admin": "Admin"
+    },
+    "hero": {
+      "title": "Premium Fragrances",
+      "subtitle": "Discover luxury scents from around the world",
+      "cta": "Explore Collection"
+    },
+    "products": {
+      "title": "Our Collection",
+      "loading": "Loading fragrances...",
+      "empty_title": "Coming Soon",
+      "empty_subtitle": "New fragrances are being added",
+      "contact_pricing": "Contact for pricing"
+    },
+    "modal": {
+      "choose_size": "Choose Size:",
+      "add_to_cart": "Add to Cart",
+      "contact_full_bottle": "Contact for Full Bottle",
+      "added_to_cart": "Added to cart!"
+    },
+    "cart": {
+      "title": "Shopping Cart",
+      "empty": "Your cart is empty",
+      "total": "Total:",
+      "clear": "Clear",
+      "checkout": "Checkout",
+      "remove": "Remove"
+    },
+    "checkout": {
+      "title": "Checkout",
+      "subtitle": "Complete your order",
+      "order_summary": "Order Summary",
+      "contact_info": "Contact Information",
+      "delivery_info": "Delivery Information",
+      "additional_notes": "Additional Notes",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "address": "Delivery Address",
+      "city": "City",
+      "region": "Region/Wilayat",
+      "notes": "Special Instructions",
+      "place_order": "Place Order",
+      "processing": "Processing Order...",
+      "success": "Order placed successfully! We will contact you soon.",
+      "error": "Failed to place order. Please try again or contact us directly.",
+      "continue_shopping": "Continue Shopping",
+      "cart_empty": "Your cart is empty",
+      "cart_empty_subtitle": "Add some fragrances to your cart before checkout"
+    },
+    "footer": {
+      "description": "Premium fragrances for discerning tastes",
+      "contact": "Contact Us",
+      "rights": "All rights reserved"
+    },
+    "admin": {
+      "dashboard": "Admin Dashboard",
+      "total_fragrances": "Total Fragrances",
+      "visible_fragrances": "Visible Fragrances",
+      "total_orders": "Total Orders",
+      "pending_orders": "Pending Orders",
+      "manage_fragrances": "Manage Fragrances",
+      "manage_orders": "Manage Orders",
+      "add_fragrance": "Add New Fragrance",
+      "edit_fragrance": "Edit Fragrance",
+      "notifications": "Enable Order Notifications"
+    }
+  },
+  "ar": {
+    "nav": {
+      "products": "المنتجات",
+      "language": "اللغة",
+      "cart": "السلة",
+      "admin": "الإدارة"
+    },
+    "hero": {
+      "title": "عطور فاخرة",
+      "subtitle": "اكتشف العطور الفاخرة من جميع أنحاء العالم",
+      "cta": "استكشف المجموعة"
+    },
+    "products": {
+      "title": "مجموعتنا",
+      "loading": "جار تحميل العطور...",
+      "empty_title": "قريباً",
+      "empty_subtitle": "يتم إضافة عطور جديدة",
+      "contact_pricing": "اتصل للاستفسار عن السعر"
+    },
+    "modal": {
+      "choose_size": "اختر الحجم:",
+      "add_to_cart": "أضف إلى السلة",
+      "contact_full_bottle": "اتصل للزجاجة الكاملة",
+      "added_to_cart": "تم إضافته إلى السلة!"
+    },
+    "cart": {
+      "title": "سلة التسوق",
+      "empty": "سلتك فارغة",
+      "total": "المجموع:",
+      "clear": "مسح",
+      "checkout": "الدفع",
+      "remove": "إزالة"
+    },
+    "checkout": {
+      "title": "الدفع",
+      "subtitle": "أكمل طلبك",
+      "order_summary": "ملخص الطلب",
+      "contact_info": "معلومات الاتصال",
+      "delivery_info": "معلومات التوصيل",
+      "additional_notes": "ملاحظات إضافية",
+      "first_name": "الاسم الأول",
+      "last_name": "اسم العائلة",
+      "phone": "رقم الهاتف",
+      "email": "البريد الإلكتروني",
+      "address": "عنوان التوصيل",
+      "city": "المدينة",
+      "region": "المنطقة/الولاية",
+      "notes": "تعليمات خاصة",
+      "place_order": "تأكيد الطلب",
+      "processing": "جار معالجة الطلب...",
+      "success": "تم تأكيد الطلب بنجاح! سنتواصل معك قريباً.",
+      "error": "فشل في تأكيد الطلب. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرة.",
+      "continue_shopping": "متابعة التسوق",
+      "cart_empty": "سلتك فارغة",
+      "cart_empty_subtitle": "أضف بعض العطور إلى سلتك قبل الدفع"
+    },
+    "footer": {
+      "description": "عطور فاخرة للأذواق المميزة",
+      "contact": "اتصل بنا",
+      "rights": "جميع الحقوق محفوظة"
+    },
+    "admin": {
+      "dashboard": "لوحة الإدارة",
+      "total_fragrances": "إجمالي العطور",
+      "visible_fragrances": "العطور المرئية",
+      "total_orders": "إجمالي الطلبات",
+      "pending_orders": "الطلبات المعلقة",
+      "manage_fragrances": "إدارة العطور",
+      "manage_orders": "إدارة الطلبات",
+      "add_fragrance": "إضافة عطر جديد",
+      "edit_fragrance": "تعديل العطر",
+      "notifications": "تفعيل إشعارات الطلبات"
+    }
+  }
+}

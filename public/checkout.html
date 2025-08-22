@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Qotore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fafafa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 2rem;
+            color: #8B4513;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .checkout-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .checkout-header {
+            background: #8B4513;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .checkout-content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h3 {
+            color: #8B4513;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .order-summary {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #8B4513;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .item-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #8B4513;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .required {
+            color: #ff4444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .place-order-btn {
+            width: 100%;
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .place-order-btn:hover {
+            background: #A0522D;
+            transform: translateY(-2px);
+        }
+
+        .place-order-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .back-link a {
+            color: #8B4513;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-cart h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🌸 Qotore</div>
+        </div>
+
+        <div class="checkout-container">
+            <div class="checkout-header">
+                <h1>Checkout</h1>
+                <p>Complete your order</p>
+            </div>
+
+            <div class="checkout-content">
+                <!-- Empty Cart State -->
+                <div id="emptyCart" class="empty-cart" style="display: none;">
+                    <h3>Your cart is empty</h3>
+                    <p>Add some fragrances to your cart before checkout</p>
+                    <div class="back-link">
+                        <a href="index.html">← Continue Shopping</a>
+                    </div>
+                </div>
+
+                <!-- Checkout Form -->
+                <div id="checkoutForm" style="display: none;">
+                    <!-- Order Summary -->
+                    <div class="section">
+                        <h3>📦 Order Summary</h3>
+                        <div class="order-summary" id="orderSummary">
+                            <!-- Order items will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <form id="orderForm">
+                        <div class="section">
+                            <h3>👤 Contact Information</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">First Name <span class="required">*</span></label>
+                                    <input type="text" id="firstName" name="firstName" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Last Name <span class="required">*</span></label>
+                                    <input type="text" id="lastName" name="lastName" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">Phone Number <span class="required">*</span></label>
+                                <input type="tel" id="phone" name="phone" class="form-control" required placeholder="+968 XXXX XXXX">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com">
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <h3>📍 Delivery Information</h3>
+                            
+                            <div class="form-group">
+                                <label for="address">Delivery Address <span class="required">*</span></label>
+                                <textarea id="address" name="address" class="form-control" rows="3" required placeholder="Street address, building number, area..."></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="city">City <span class="required">*</span></label>
+                                    <input type="text" id="city" name="city" class="form-control" required placeholder="e.g., Muscat">
+                                </div>
+                                <div class="form-group">
+                                    <label for="region">Region/Wilayat</label>
+                                    <input type="text" id="region" name="region" class="form-control" placeholder="e.g., Seeb">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <h3>💬 Additional Notes</h3>
+                            <div class="form-group">
+                                <label for="notes">Special Instructions</label>
+                                <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Any special delivery instructions or notes..."></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="place-order-btn" id="placeOrderBtn">
+                            🛍️ Place Order
+                        </button>
+                    </form>
+                </div>
+
+                <div class="back-link">
+                    <a href="index.html">← Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCart();
+            if (cart.length === 0) {
+                showEmptyCart();
+            } else {
+                showCheckoutForm();
+                displayOrderSummary();
+            }
+        });
+
+        function loadCart() {
+            const savedCart = localStorage.getItem('qotore_cart');
+            if (savedCart) {
+                try {
+                    cart = JSON.parse(savedCart);
+                } catch (error) {
+                    cart = [];
+                }
+            }
+        }
+
+        function showEmptyCart() {
+            document.getElementById('emptyCart').style.display = 'block';
+            document.getElementById('checkoutForm').style.display = 'none';
+        }
+
+        function showCheckoutForm() {
+            document.getElementById('emptyCart').style.display = 'none';
+            document.getElementById('checkoutForm').style.display = 'block';
+        }
+
+        function displayOrderSummary() {
+            const orderSummary = document.getElementById('orderSummary');
+            orderSummary.innerHTML = '';
+
+            let total = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                orderItem.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
+                        <div class="item-details">${item.variant.size} × ${item.quantity}</div>
+                    </div>
+                    <div class="item-price">${itemTotal.toFixed(3)} OMR</div>
+                `;
+                orderSummary.appendChild(orderItem);
+            });
+
+            // Total
+            const totalItem = document.createElement('div');
+            totalItem.className = 'order-item';
+            totalItem.innerHTML = `
+                <div class="item-info">
+                    <div class="item-name">Total</div>
+                </div>
+                <div class="item-price">${total.toFixed(3)} OMR</div>
+            `;
+            orderSummary.appendChild(totalItem);
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const orderData = {
+                customer: {
+                    firstName: formData.get('firstName'),
+                    lastName: formData.get('lastName'),
+                    phone: formData.get('phone'),
+                    email: formData.get('email')
+                },
+                delivery: {
+                    address: formData.get('address'),
+                    city: formData.get('city'),
+                    region: formData.get('region')
+                },
+                notes: formData.get('notes'),
+                items: cart,
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                orderDate: new Date().toISOString()
+            };
+
+            const button = document.getElementById('placeOrderBtn');
+            button.innerHTML = '<span class="spinner"></span>Processing Order...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/admin/add-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Clear cart
+                    localStorage.removeItem('qotore_cart');
+                    
+                    // Show success and redirect
+                    alert('Order placed successfully! We will contact you soon.');
+                    window.location.href = 'index.html';
+                } else {
+                    throw new Error(result.error || 'Failed to place order');
+                }
+            } catch (error) {
+                console.error('Order error:', error);
+                alert('Failed to place order. Please try again or contact us directly.');
+                
+                button.innerHTML = '🛍️ Place Order';
+                button.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
