@@ -1,4 +1,4 @@
-// functions/admin/add-order.js - Save customer orders
+// functions/admin/add-order.js - Save customer orders with proper variant handling
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -36,6 +36,7 @@ export async function onRequestPost(context) {
         });
       }
       orderData = JSON.parse(text);
+      console.log('Received order data:', JSON.stringify(orderData, null, 2));
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       return new Response(JSON.stringify({ error: 'Invalid order data format' }), {
@@ -54,29 +55,49 @@ export async function onRequestPost(context) {
     ) {
       return new Response(JSON.stringify({
         error: 'Missing required order fields',
-        required: ['customer.firstName', 'customer.phone', 'delivery.address', 'delivery.city', 'items', 'total']
+        required: ['customer.firstName', 'customer.phone', 'delivery.address', 'delivery.city', 'items', 'total'],
+        received: {
+          hasCustomer: !!customer,
+          hasDelivery: !!delivery,
+          itemsCount: Array.isArray(items) ? items.length : 0,
+          totalType: typeof total
+        }
       }), { status: 400, headers: corsHeaders });
     }
 
-    // Defensive: filter out items with missing required fields
-    const validItems = items.filter(item =>
-      item.fragranceId !== undefined &&
-      item.variantId !== undefined &&
-      item.variantSize &&
-      item.variantPrice !== undefined &&
-      item.quantity > 0
-    );
+    // Validate and filter items
+    const validItems = items.filter(item => {
+      const hasRequiredFields = (
+        typeof item.fragranceId === 'number' &&
+        typeof item.variantId === 'number' &&
+        item.variantSize &&
+        typeof item.quantity === 'number' &&
+        item.quantity > 0
+      );
+      
+      if (!hasRequiredFields) {
+        console.warn('Invalid item filtered out:', item);
+      }
+      
+      return hasRequiredFields;
+    });
+
     if (validItems.length === 0) {
       return new Response(JSON.stringify({
         error: 'No valid items in order',
-        details: items
+        details: 'All items missing required fields (fragranceId, variantId, variantSize, quantity)',
+        receivedItems: items
       }), { status: 400, headers: corsHeaders });
     }
 
-    // Check that all variantIds exist in the variants table
+    console.log(`Validated ${validItems.length} out of ${items.length} items`);
+
+    // Verify that all variant IDs exist in the database
     const variantIds = [...new Set(validItems.map(item => item.variantId))];
+    console.log('Checking variant IDs:', variantIds);
+
     const variantCheckResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/variants?id=in.(${variantIds.join(',')})&select=id`,
+      `${SUPABASE_URL}/rest/v1/variants?id=in.(${variantIds.join(',')})&select=id,fragrance_id,size_ml,is_whole_bottle`,
       {
         headers: {
           'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -84,28 +105,30 @@ export async function onRequestPost(context) {
         }
       }
     );
+
     if (!variantCheckResponse.ok) {
       const errorText = await variantCheckResponse.text();
+      console.error('Variant validation failed:', errorText);
       return new Response(JSON.stringify({
         error: 'Failed to validate variants',
         details: errorText
       }), { status: 500, headers: corsHeaders });
     }
+
     const foundVariants = await variantCheckResponse.json();
+    console.log('Found variants:', foundVariants);
+    
     const foundVariantIds = foundVariants.map(v => v.id);
     const missingVariantIds = variantIds.filter(id => !foundVariantIds.includes(id));
+    
     if (missingVariantIds.length > 0) {
       return new Response(JSON.stringify({
         error: 'Invalid variant(s) in order',
-        details: { missingVariantIds }
+        details: { missingVariantIds, requestedIds: variantIds, foundIds: foundVariantIds }
       }), { status: 400, headers: corsHeaders });
     }
 
-    console.log('Saving order to Supabase:', {
-      customerName: `${customer.firstName} ${customer.lastName || ''}`.trim(),
-      itemCount: items.length,
-      total
-    });
+    console.log('All variants validated successfully');
 
     // Create order in orders table
     const orderPayload = {
@@ -117,7 +140,7 @@ export async function onRequestPost(context) {
       delivery_city: delivery.city.trim(),
       delivery_region: delivery.region?.trim() || null,
       notes: orderData.notes?.trim() || null,
-      total_amount: Math.round(total * 1000), // store in baisa (1 OMR = 1000 baisa)
+      total_amount: Math.round(total * 1000), // Convert to baisa (fils)
       status: 'pending',
       created_at: new Date().toISOString()
     };
@@ -144,45 +167,45 @@ export async function onRequestPost(context) {
       }), { status: 500, headers: corsHeaders });
     }
 
-    const createdOrder = await orderResponse.json(); // Supabase returns an array
+    const createdOrder = await orderResponse.json();
     const orderId = createdOrder?.[0]?.id;
     const createdAt = createdOrder?.[0]?.created_at;
+    
     if (!orderId) {
       console.error('Order created but no ID returned:', createdOrder);
-      return new Response(JSON.stringify({ error: 'Order creation failed: missing ID' }), {
-        status: 500,
-        headers: corsHeaders
-      });
+      return new Response(JSON.stringify({ 
+        error: 'Order creation failed: missing ID',
+        response: createdOrder 
+      }), { status: 500, headers: corsHeaders });
     }
 
     console.log('Created order with ID:', orderId);
 
-    // Prepare order_items rows
+    // Create order items
     const nowIso = new Date().toISOString();
-    const orderItemsPayload = validItems.map((item) => {
-      const price = Number(item.variantPrice || 0);
-      const qty = Number(item.quantity || 0);
-      const perBaisa = Math.round(price * 1000);
-      // Ensure variant_size is always a string and is_whole_bottle is boolean
-      const variantSizeStr = String(item.variantSize ?? '');
-      const isWholeBottleBool = variantSizeStr.toLowerCase().includes('whole') || item.isWholeBottle === true;
+    const orderItemsPayload = validItems.map(item => {
+      const variantPrice = item.isWholeBottle ? 0 : parseFloat(item.variantPrice || 0);
+      const quantity = parseInt(item.quantity);
+      const unitPriceCents = Math.round(variantPrice * 1000); // Convert to baisa
+      const totalPriceCents = Math.round(variantPrice * quantity * 1000);
+
       return {
         order_id: orderId,
-        fragrance_id: item.fragranceId ?? null,
-        variant_id: item.variantId ?? null,
-        fragrance_name: item.fragranceName ?? '',
+        fragrance_id: parseInt(item.fragranceId),
+        variant_id: parseInt(item.variantId),
+        fragrance_name: item.fragranceName || '',
         fragrance_brand: item.fragranceBrand || '',
-        variant_size: variantSizeStr,
-        variant_price_cents: perBaisa,
-        quantity: qty,
-        unit_price_cents: perBaisa,
-        total_price_cents: Math.round(price * qty * 1000),
-        is_whole_bottle: isWholeBottleBool,
+        variant_size: String(item.variantSize),
+        variant_price_cents: unitPriceCents,
+        quantity: quantity,
+        unit_price_cents: unitPriceCents,
+        total_price_cents: totalPriceCents,
+        is_whole_bottle: Boolean(item.isWholeBottle),
         created_at: nowIso
       };
     });
 
-    console.log('Order items payload:', JSON.stringify(orderItemsPayload, null, 2));
+    console.log('Creating order items:', JSON.stringify(orderItemsPayload, null, 2));
 
     const orderItemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
       method: 'POST',
@@ -197,15 +220,18 @@ export async function onRequestPost(context) {
 
     if (!orderItemsResponse.ok) {
       const errorText = await orderItemsResponse.text();
-      let errorJson = {};
-      try {
-        errorJson = JSON.parse(errorText);
-      } catch {
-        errorJson = { error: errorText };
-      }
-      console.error('Failed to create order items:', errorJson);
+      console.error('Failed to create order items:', errorText);
 
-      // Best-effort cleanup of the orphan order
+      // Try to parse error for better debugging
+      let errorDetail = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetail = errorJson;
+      } catch {
+        // Keep original text if not JSON
+      }
+
+      // Clean up orphaned order
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
           method: 'DELETE',
@@ -214,26 +240,31 @@ export async function onRequestPost(context) {
             'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
           }
         });
-      } catch (cleanupErr) {
-        console.error('Cleanup (delete order) failed:', cleanupErr);
+        console.log('Cleaned up orphaned order:', orderId);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup orphaned order:', cleanupError);
       }
 
       return new Response(JSON.stringify({
         error: 'Failed to save order items',
-        details: errorJson
+        details: errorDetail,
+        orderData: orderItemsPayload // Include for debugging
       }), { status: 500, headers: corsHeaders });
     }
 
-    // Success
+    const createdItems = await orderItemsResponse.json();
+    console.log(`Successfully created ${createdItems.length} order items`);
+
+    // Success response
     return new Response(JSON.stringify({
       success: true,
       message: 'Order placed successfully!',
       data: {
         id: orderId,
-        orderNumber: `ORD-${orderId}`,
+        orderNumber: `ORD-${String(orderId).padStart(5, '0')}`,
         customer: `${customer.firstName} ${customer.lastName || ''}`.trim(),
-        itemCount: items.length,
-        total,
+        itemCount: validItems.length,
+        total: total,
         status: 'pending',
         created_at: createdAt
       }
@@ -243,7 +274,8 @@ export async function onRequestPost(context) {
     console.error('Add order error:', error);
     return new Response(JSON.stringify({
       error: 'Failed to place order',
-      details: error.message
+      details: error.message,
+      stack: error.stack
     }), { status: 500, headers: corsHeaders });
   }
 }
@@ -262,7 +294,7 @@ export async function onRequestOptions() {
   });
 }
 
-// Simple test endpoint
+// Test endpoint
 export async function onRequestGet(context) {
   return new Response(JSON.stringify({
     message: 'Add order endpoint is working!',
@@ -270,6 +302,7 @@ export async function onRequestGet(context) {
     requiredFields: ['customer', 'delivery', 'items', 'total'],
     customerFields: ['firstName', 'lastName', 'phone', 'email'],
     deliveryFields: ['address', 'city', 'region'],
+    itemFields: ['fragranceId (number)', 'variantId (number)', 'fragranceName', 'variantSize', 'variantPrice (number)', 'quantity (number)', 'isWholeBottle (boolean)'],
     supabaseConfig: {
       hasUrl: !!context.env.SUPABASE_URL,
       hasServiceKey: !!context.env.SUPABASE_SERVICE_ROLE_KEY

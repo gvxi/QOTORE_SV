@@ -207,6 +207,24 @@
             color: #333;
         }
 
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #f5c6cb;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -370,24 +388,33 @@
 
                 const orderItem = document.createElement('div');
                 orderItem.className = 'order-item';
+                
+                // Handle whole bottle display
+                const priceDisplay = item.variant.is_whole_bottle 
+                    ? 'Contact for pricing' 
+                    : `${item.variant.price_display}`;
+                
                 orderItem.innerHTML = `
                     <div class="item-info">
                         <div class="item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
-                        <div class="item-details">${item.variant.size} × ${item.quantity}</div>
+                        <div class="item-details">${item.variant.size} × ${item.quantity} @ ${priceDisplay}</div>
                     </div>
-                    <div class="item-price">${itemTotal.toFixed(3)} OMR</div>
+                    <div class="item-price">${item.variant.is_whole_bottle ? 'Contact us' : itemTotal.toFixed(3) + ' OMR'}</div>
                 `;
                 orderSummary.appendChild(orderItem);
             });
 
-            // Total
+            // Total (only for non-whole-bottle items)
+            const paidItems = cart.filter(item => !item.variant.is_whole_bottle);
+            const paidTotal = paidItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
             const totalItem = document.createElement('div');
             totalItem.className = 'order-item';
             totalItem.innerHTML = `
                 <div class="item-info">
-                    <div class="item-name">Total</div>
+                    <div class="item-name">Total (Samples)</div>
                 </div>
-                <div class="item-price">${total.toFixed(3)} OMR</div>
+                <div class="item-price">${paidTotal.toFixed(3)} OMR</div>
             `;
             orderSummary.appendChild(totalItem);
         }
@@ -397,34 +424,48 @@
 
             const formData = new FormData(e.target);
 
-            // Map cart items to backend expected format
-            const mappedItems = cart.map(item => ({
-                fragranceId: item.fragranceId ?? item.fragrance_id ?? null,
-                fragranceName: item.fragranceName ?? item.fragrance_name ?? '',
-                fragranceBrand: item.fragranceBrand ?? item.fragrance_brand ?? '',
-                variantId: item.variant?.id ?? item.variantId ?? item.variant_id ?? null,
-                variantSize: item.variant?.size ?? item.variantSize ?? '',
-                variantPrice: item.variant?.price ?? item.variantPrice ?? item.price ?? 0,
-                quantity: item.quantity ?? 1
-            }));
+            // Transform cart items to match backend expected format
+            const orderItems = cart.map(item => {
+                console.log('Processing cart item:', item);
+                
+                return {
+                    fragranceId: parseInt(item.fragranceId), // Ensure it's a number
+                    fragranceName: item.fragranceName || '',
+                    fragranceBrand: item.fragranceBrand || '',
+                    variantId: parseInt(item.variant.id), // Use variant.id, ensure it's a number
+                    variantSize: item.variant.size || '',
+                    variantPrice: item.variant.is_whole_bottle ? 0 : parseFloat(item.variant.price || item.price || 0),
+                    quantity: parseInt(item.quantity),
+                    isWholeBottle: item.variant.is_whole_bottle || false
+                };
+            });
+
+            console.log('Transformed order items:', orderItems);
+
+            // Calculate total (only for non-whole-bottle items)
+            const total = orderItems
+                .filter(item => !item.isWholeBottle)
+                .reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0);
 
             const orderData = {
                 customer: {
-                    firstName: formData.get('firstName'),
-                    lastName: formData.get('lastName'),
-                    phone: formData.get('phone'),
-                    email: formData.get('email')
+                    firstName: formData.get('firstName').trim(),
+                    lastName: formData.get('lastName').trim(),
+                    phone: formData.get('phone').trim(),
+                    email: formData.get('email')?.trim() || null
                 },
                 delivery: {
-                    address: formData.get('address'),
-                    city: formData.get('city'),
-                    region: formData.get('region')
+                    address: formData.get('address').trim(),
+                    city: formData.get('city').trim(),
+                    region: formData.get('region')?.trim() || null
                 },
-                notes: formData.get('notes'),
-                items: mappedItems,
-                total: mappedItems.reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0),
+                notes: formData.get('notes')?.trim() || null,
+                items: orderItems,
+                total: total,
                 orderDate: new Date().toISOString()
             };
+
+            console.log('Final order data:', orderData);
 
             const button = document.getElementById('placeOrderBtn');
             button.innerHTML = '<span class="spinner"></span>Processing Order...';
@@ -439,26 +480,48 @@
                     body: JSON.stringify(orderData)
                 });
 
+                console.log('Response status:', response.status);
                 const result = await response.json();
+                console.log('Response data:', result);
 
                 if (result.success) {
                     // Clear cart
                     localStorage.removeItem('qotore_cart');
                     
-                    // Show success and redirect
-                    alert('Order placed successfully! We will contact you soon.');
-                    window.location.href = 'index.html';
+                    // Show success message
+                    showMessage('success', 'Order placed successfully! We will contact you soon.');
+                    
+                    // Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
                 } else {
                     throw new Error(result.error || 'Failed to place order');
                 }
             } catch (error) {
                 console.error('Order error:', error);
-                alert('Failed to place order. Please try again or contact us directly.');
+                showMessage('error', 'Failed to place order. Please try again or contact us directly.');
                 
                 button.innerHTML = '🛍️ Place Order';
                 button.disabled = false;
             }
         });
+
+        function showMessage(type, message) {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.success-message, .error-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+            messageDiv.textContent = message;
+
+            const checkoutContent = document.querySelector('.checkout-content');
+            checkoutContent.insertBefore(messageDiv, checkoutContent.firstChild);
+
+            // Scroll to top to show message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
