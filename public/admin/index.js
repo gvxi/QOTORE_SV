@@ -525,7 +525,7 @@ async function logout() {
         }
         
         document.cookie = 'admin_session=; Path=/; Max-Age=0';
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
     }
 }
 
