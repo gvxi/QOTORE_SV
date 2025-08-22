@@ -111,10 +111,13 @@ async function loadFragrances() {
         const response = await fetch('/api/fragrances');
         const data = await response.json();
         
+        console.log('Fragrances API response:', data);
+        
         if (data.success && data.data) {
             fragrances = data.data;
             displayFragrances();
         } else {
+            console.error('Failed to load fragrances:', data);
             showEmptyState();
         }
     } catch (error) {
@@ -201,6 +204,8 @@ function openProductModal(fragrance) {
     currentFragrance = fragrance;
     selectedVariant = null;
     
+    console.log('Opening modal for fragrance:', fragrance);
+    
     document.getElementById('modalTitle').textContent = fragrance.name;
     document.getElementById('modalBrand').textContent = fragrance.brand || '';
     document.getElementById('modalDescription').textContent = fragrance.description || '';
@@ -228,6 +233,8 @@ function displayVariants(variants) {
     const variantsList = document.getElementById('variantsList');
     variantsList.innerHTML = '';
     
+    console.log('Displaying variants:', variants);
+    
     variants.forEach((variant, index) => {
         const variantDiv = document.createElement('div');
         variantDiv.className = 'variant-item';
@@ -251,6 +258,8 @@ function displayVariants(variants) {
 }
 
 function selectVariant(variant, element) {
+    console.log('Selected variant:', variant);
+    
     // Remove previous selection
     document.querySelectorAll('.variant-item').forEach(item => {
         item.classList.remove('selected');
@@ -267,7 +276,7 @@ function selectVariant(variant, element) {
         addToCartBtn.textContent = 'Contact for Full Bottle';
     } else {
         addToCartBtn.disabled = false;
-        addToCartBtn.textContent = translations[currentLanguage]['modal.add_to_cart'];
+        addToCartBtn.textContent = translations[currentLanguage]['modal.add_to_cart'] || 'Add to Cart';
     }
 }
 
@@ -280,25 +289,40 @@ function closeModal() {
 
 // Cart Functions
 function addToCart() {
-    if (!selectedVariant || selectedVariant.is_whole_bottle) return;
+    if (!selectedVariant || selectedVariant.is_whole_bottle) {
+        console.warn('Cannot add to cart:', { selectedVariant, isWholeBottle: selectedVariant?.is_whole_bottle });
+        return;
+    }
+    
+    console.log('Adding to cart:', { fragrance: currentFragrance, variant: selectedVariant });
     
     const cartItem = {
         id: `${currentFragrance.id}-${selectedVariant.id}`,
         fragranceId: currentFragrance.id,
         fragranceName: currentFragrance.name,
         fragranceBrand: currentFragrance.brand || '',
-        variant: selectedVariant,
+        variant: {
+            id: selectedVariant.id,
+            size: selectedVariant.size,
+            price: selectedVariant.price,
+            price_display: selectedVariant.price_display,
+            is_whole_bottle: selectedVariant.is_whole_bottle || false
+        },
         quantity: 1,
         price: selectedVariant.price
     };
+    
+    console.log('Cart item created:', cartItem);
     
     // Check if item already exists
     const existingIndex = cart.findIndex(item => item.id === cartItem.id);
     
     if (existingIndex !== -1) {
         cart[existingIndex].quantity += 1;
+        console.log('Updated existing cart item quantity');
     } else {
         cart.push(cartItem);
+        console.log('Added new cart item');
     }
     
     saveCart();
@@ -333,11 +357,11 @@ function displayCartItems() {
     let total = 0;
     
     cart.forEach((item, index) => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'cart-item';
-        
         const itemTotal = item.price * item.quantity;
         total += itemTotal;
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'cart-item';
         
         itemDiv.innerHTML = `
             <div class="cart-item-info">
@@ -376,6 +400,7 @@ function proceedToCheckout() {
         return;
     }
     
+    console.log('Proceeding to checkout with cart:', cart);
     window.location.href = 'checkout.html';
 }
 
@@ -387,6 +412,7 @@ function updateCartCount() {
 
 function saveCart() {
     localStorage.setItem('qotore_cart', JSON.stringify(cart));
+    console.log('Cart saved:', cart);
 }
 
 function loadCart() {
@@ -394,7 +420,9 @@ function loadCart() {
     if (savedCart) {
         try {
             cart = JSON.parse(savedCart);
+            console.log('Cart loaded:', cart);
         } catch (error) {
+            console.error('Error loading cart:', error);
             cart = [];
         }
     }
@@ -409,20 +437,28 @@ function scrollToSection(sectionId) {
 }
 
 // Event Listeners
-document.getElementById('addToCartBtn').addEventListener('click', addToCart);
-
-// Fix cart opening
-function openCart() {
-    displayCartItems();
-    document.getElementById('cartModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-document.getElementById('productModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', addToCart);
+    }
 });
 
-document.getElementById('cartModal').addEventListener('click', function(e) {
-    if (e.target === this) closeCartModal();
+// Modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const productModal = document.getElementById('productModal');
+    if (productModal) {
+        productModal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    }
+
+    const cartModal = document.getElementById('cartModal');
+    if (cartModal) {
+        cartModal.addEventListener('click', function(e) {
+            if (e.target === this) closeCartModal();
+        });
+    }
 });
 
 // ESC key to close modals
@@ -430,6 +466,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeModal();
         closeCartModal();
+        closeCustomModal();
     }
 });
 
@@ -477,9 +514,9 @@ function createCustomModal(config) {
                 <p>${config.message}</p>
             </div>
             <div class="custom-modal-footer">
-                ${config.buttons.map(button => `
+                ${config.buttons.map((button, index) => `
                     <button class="custom-modal-btn ${button.primary ? 'primary' : 'secondary'}" 
-                            data-action="${button.action}">
+                            data-action-index="${index}">
                         ${button.text}
                     </button>
                 `).join('')}
@@ -501,17 +538,15 @@ function createCustomModal(config) {
         }
     });
 
-    modal.querySelectorAll('.custom-modal-btn').forEach(btn => {
+    modal.querySelectorAll('.custom-modal-btn').forEach((btn, index) => {
         btn.addEventListener('click', function() {
-            const action = this.getAttribute('data-action');
+            const actionIndex = parseInt(this.getAttribute('data-action-index'));
+            const button = config.buttons[actionIndex];
+            
             closeCustomModal();
             
-            if (action !== 'close' && typeof action === 'string') {
-                // If action is a function reference, we need to execute the callback
-                if (config.buttons.find(b => b.text === this.textContent && typeof b.action === 'function')) {
-                    const callback = config.buttons.find(b => b.text === this.textContent).action;
-                    callback();
-                }
+            if (button.action !== 'close' && typeof button.action === 'function') {
+                button.action();
             }
         });
     });
