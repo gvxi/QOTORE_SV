@@ -45,10 +45,10 @@ const translations = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', function() {
+    loadLanguage(); // Load language first
     loadCart();
     loadFragrances();
     updateCartCount();
-    updateLanguage();
     initializeEventListeners();
 });
 
@@ -122,8 +122,14 @@ function initializeEventListeners() {
 // Language Functions
 function toggleLanguage() {
     currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+    
+    // Save language preference
+    localStorage.setItem('qotore_language', currentLanguage);
+    
+    // Update HTML attributes
     document.documentElement.lang = currentLanguage;
     document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+    
     updateLanguage();
 }
 
@@ -135,6 +141,18 @@ function updateLanguage() {
             element.textContent = translations[currentLanguage][key];
         }
     });
+}
+
+function loadLanguage() {
+    // Load saved language preference, default to Arabic
+    const savedLanguage = localStorage.getItem('qotore_language') || 'ar';
+    currentLanguage = savedLanguage;
+    
+    // Update HTML attributes
+    document.documentElement.lang = currentLanguage;
+    document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+    
+    updateLanguage();
 }
 
 // API Functions
@@ -454,12 +472,12 @@ function clearCart() {
 
 function proceedToCheckout() {
     if (cart.length === 0) {
-        showCustomAlert('Your cart is empty');
+        alert('Your cart is empty');
         return;
     }
     
     console.log('Proceeding to checkout with cart:', cart);
-    window.location.href = '/checkout.html';
+    window.location.href = 'checkout.html';
 }
 
 function updateCartCount() {

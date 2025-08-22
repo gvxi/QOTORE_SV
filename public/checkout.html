@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - Qotore</title>
+    <title data-key="checkout.title">الدفع - قطرة</title>
     <style>
         * {
             margin: 0;
@@ -36,6 +36,28 @@
             margin-bottom: 1rem;
         }
 
+        .lang-btn {
+            background: none;
+            border: 2px solid #8B4513;
+            color: #8B4513;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: #8B4513;
+            color: white;
+        }
+
+        .lang-btn:hover {
+            background: #A0522D;
+            color: white;
+            border-color: #A0522D;
+        }
+
         .checkout-container {
             background: white;
             border-radius: 15px;
@@ -44,7 +66,7 @@
         }
 
         .checkout-header {
-            background: #8B4513;
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
             color: white;
             padding: 2rem;
             text-align: center;
@@ -105,6 +127,204 @@
             color: #8B4513;
         }
 
+        /* Enhanced Quantity Controls */
+        .checkout-qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+
+        .checkout-qty-btn {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(139, 69, 19, 0.3);
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .checkout-qty-btn:hover {
+            background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+        }
+
+        .checkout-qty-btn.minus::before {
+            content: "−";
+            font-size: 18px;
+        }
+
+        .checkout-qty-btn.plus::before {
+            content: "+";
+            font-size: 16px;
+        }
+
+        .checkout-qty-input {
+            width: 60px;
+            height: 36px;
+            text-align: center;
+            border: 2px solid #8B4513;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #8B4513;
+            background: white;
+            transition: all 0.3s ease;
+            order: 2;
+        }
+
+        .checkout-qty-input:focus {
+            outline: none;
+            border-color: #A0522D;
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+            transform: scale(1.05);
+        }
+
+        .checkout-qty-btn.minus {
+            order: 3;
+        }
+
+        .checkout-qty-btn.plus {
+            order: 1;
+        }
+
+        .checkout-remove-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .checkout-remove-btn:hover {
+            background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .checkout-remove-btn::before {
+            content: "✕";
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkout-item-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+            min-width: 160px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .cart-item-price {
+            font-weight: 700;
+            color: #8B4513;
+            font-size: 1.1rem;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 2px solid #8B4513;
+            box-shadow: 0 2px 6px rgba(139, 69, 19, 0.2);
+        }
+
+        .checkout-item-image {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-inline-end: 15px;
+            border: 3px solid #e9ecef;
+            flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .checkout-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .checkout-item-image-placeholder {
+            font-size: 2rem;
+            color: #8B4513;
+        }
+
+        .checkout-cart-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 20px;
+            gap: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            margin-bottom: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .checkout-cart-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #8B4513;
+        }
+
+        .checkout-item-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkout-item-details {
+            flex: 1;
+        }
+
+        .whole-bottle-qty {
+            text-align: center;
+            color: #8B4513;
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid #f1c40f;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(241, 196, 15, 0.3);
+        }
+
+        .whole-bottle-qty::before {
+            content: "🎁 ";
+            margin-inline-end: 4px;
+        }
+
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -142,21 +362,23 @@
 
         .place-order-btn {
             width: 100%;
-            background: #8B4513;
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
             color: white;
             border: none;
             padding: 18px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1.2rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
         }
 
         .place-order-btn:hover {
-            background: #A0522D;
+            background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
         }
 
         .place-order-btn:disabled {
@@ -174,10 +396,17 @@
             color: #8B4513;
             text-decoration: none;
             font-weight: 500;
+            padding: 12px 24px;
+            border: 2px solid #8B4513;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
 
         .back-link a:hover {
-            text-decoration: underline;
+            background: #8B4513;
+            color: white;
+            transform: translateY(-2px);
         }
 
         .spinner {
@@ -188,7 +417,7 @@
             border-radius: 50%;
             border-top: 2px solid white;
             animation: spin 1s linear infinite;
-            margin-right: 10px;
+            margin-inline-end: 10px;
         }
 
         @keyframes spin {
@@ -225,6 +454,16 @@
             border: 1px solid #f5c6cb;
         }
 
+        /* RTL Support */
+        [dir="rtl"] .checkout-item-image {
+            margin-inline-end: 0;
+            margin-inline-start: 15px;
+        }
+
+        [dir="rtl"] .checkout-item-controls {
+            align-items: flex-start;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -234,10 +473,21 @@
                 grid-template-columns: 1fr;
             }
             
-            .order-item {
+            .checkout-cart-item {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 0.5rem;
+                gap: 1rem;
+            }
+
+            .checkout-item-info {
+                width: 100%;
+            }
+
+            .checkout-item-controls {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
             }
         }
     </style>
@@ -245,22 +495,22 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🌸 Qotore</div>
+            <div class="logo">🌸 قطرة</div>
         </div>
 
         <div class="checkout-container">
             <div class="checkout-header">
-                <h1>Checkout</h1>
-                <p>Complete your order</p>
+                <h1 data-key="checkout.title">الدفع</h1>
+                <p data-key="checkout.subtitle">أكمل طلبك</p>
             </div>
 
             <div class="checkout-content">
                 <!-- Empty Cart State -->
                 <div id="emptyCart" class="empty-cart" style="display: none;">
-                    <h3>Your cart is empty</h3>
-                    <p>Add some fragrances to your cart before checkout</p>
+                    <h3 data-key="checkout.cart_empty">سلتك فارغة</h3>
+                    <p data-key="checkout.cart_empty_subtitle">أضف بعض العطور إلى سلتك قبل الدفع</p>
                     <div class="back-link">
-                        <a href="index.html">← Continue Shopping</a>
+                        <a href="index.html" data-key="checkout.continue_shopping">← متابعة التسوق</a>
                     </div>
                 </div>
 
@@ -268,7 +518,7 @@
                 <div id="checkoutForm" style="display: none;">
                     <!-- Order Summary -->
                     <div class="section">
-                        <h3>📦 Order Summary</h3>
+                        <h3 data-key="checkout.order_summary">📦 ملخص الطلب</h3>
                         <div class="order-summary" id="orderSummary">
                             <!-- Order items will be loaded here -->
                         </div>
@@ -277,75 +527,211 @@
                     <!-- Customer Information -->
                     <form id="orderForm">
                         <div class="section">
-                            <h3>👤 Contact Information</h3>
+                            <h3 data-key="checkout.contact_info">👤 معلومات الاتصال</h3>
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="firstName">First Name <span class="required">*</span></label>
+                                    <label for="firstName" data-key="checkout.first_name">الاسم الأول <span class="required">*</span></label>
                                     <input type="text" id="firstName" name="firstName" class="form-control" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="lastName">Last Name <span class="required">*</span></label>
+                                    <label for="lastName" data-key="checkout.last_name">اسم العائلة <span class="required">*</span></label>
                                     <input type="text" id="lastName" name="lastName" class="form-control" required>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="phone">Phone Number <span class="required">*</span></label>
+                                <label for="phone" data-key="checkout.phone">رقم الهاتف <span class="required">*</span></label>
                                 <input type="tel" id="phone" name="phone" class="form-control" required placeholder="+968 XXXX XXXX">
                             </div>
 
                             <div class="form-group">
-                                <label for="email">Email</label>
+                                <label for="email" data-key="checkout.email">البريد الإلكتروني</label>
                                 <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com">
                             </div>
                         </div>
 
                         <div class="section">
-                            <h3>📍 Delivery Information</h3>
+                            <h3 data-key="checkout.delivery_info">📍 معلومات التوصيل</h3>
                             
                             <div class="form-group">
-                                <label for="address">Delivery Address <span class="required">*</span></label>
-                                <textarea id="address" name="address" class="form-control" rows="3" required placeholder="Street address, building number, area..."></textarea>
+                                <label for="address" data-key="checkout.address">عنوان التوصيل <span class="required">*</span></label>
+                                <textarea id="address" name="address" class="form-control" rows="3" required placeholder="عنوان الشارع، رقم المبنى، المنطقة..."></textarea>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="city">City <span class="required">*</span></label>
-                                    <input type="text" id="city" name="city" class="form-control" required placeholder="e.g., Muscat">
+                                    <label for="city" data-key="checkout.city">المدينة <span class="required">*</span></label>
+                                    <input type="text" id="city" name="city" class="form-control" required placeholder="مثلاً: مسقط">
                                 </div>
                                 <div class="form-group">
-                                    <label for="region">Region/Wilayat</label>
-                                    <input type="text" id="region" name="region" class="form-control" placeholder="e.g., Seeb">
+                                    <label for="region" data-key="checkout.region">المنطقة/الولاية</label>
+                                    <input type="text" id="region" name="region" class="form-control" placeholder="مثلاً: السيب">
                                 </div>
                             </div>
                         </div>
 
                         <div class="section">
-                            <h3>💬 Additional Notes</h3>
+                            <h3 data-key="checkout.additional_notes">💬 ملاحظات إضافية</h3>
                             <div class="form-group">
-                                <label for="notes">Special Instructions</label>
-                                <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Any special delivery instructions or notes..."></textarea>
+                                <label for="notes" data-key="checkout.notes">تعليمات خاصة</label>
+                                <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="أي تعليمات خاصة للتوصيل أو ملاحظات..."></textarea>
                             </div>
                         </div>
 
-                        <button type="submit" class="place-order-btn" id="placeOrderBtn">
-                            🛍️ Place Order
+                        <button type="submit" class="place-order-btn" id="placeOrderBtn" data-key="checkout.place_order">
+                            🛍️ تأكيد الطلب
                         </button>
                     </form>
                 </div>
 
                 <div class="back-link">
-                    <a href="index.html">← Continue Shopping</a>
+                    <a href="index.html" data-key="checkout.continue_shopping">← متابعة التسوق</a>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Language system - automatically detect from main page
+        let currentLanguage = 'ar'; // Default to Arabic
+
+        const translations = {
+            ar: {
+                "checkout.title": "الدفع - قطرة",
+                "checkout.subtitle": "أكمل طلبك",
+                "checkout.order_summary": "📦 ملخص الطلب",
+                "checkout.contact_info": "👤 معلومات الاتصال",
+                "checkout.delivery_info": "📍 معلومات التوصيل",
+                "checkout.additional_notes": "💬 ملاحظات إضافية",
+                "checkout.first_name": "الاسم الأول",
+                "checkout.last_name": "اسم العائلة",
+                "checkout.phone": "رقم الهاتف",
+                "checkout.email": "البريد الإلكتروني",
+                "checkout.address": "عنوان التوصيل",
+                "checkout.city": "المدينة",
+                "checkout.region": "المنطقة/الولاية",
+                "checkout.notes": "تعليمات خاصة",
+                "checkout.place_order": "🛍️ تأكيد الطلب",
+                "checkout.processing": "جار معالجة الطلب...",
+                "checkout.success": "تم تأكيد الطلب بنجاح! سنتواصل معك قريباً.",
+                "checkout.error": "فشل في تأكيد الطلب. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرة.",
+                "checkout.continue_shopping": "← متابعة التسوق",
+                "checkout.cart_empty": "سلتك فارغة",
+                "checkout.cart_empty_subtitle": "أضف بعض العطور إلى سلتك قبل الدفع",
+                "checkout.total_samples": "المجموع (العينات)"
+            },
+            en: {
+                "checkout.title": "Checkout - Qotore",
+                "checkout.subtitle": "Complete your order",
+                "checkout.order_summary": "📦 Order Summary",
+                "checkout.contact_info": "👤 Contact Information",
+                "checkout.delivery_info": "📍 Delivery Information",
+                "checkout.additional_notes": "💬 Additional Notes",
+                "checkout.first_name": "First Name",
+                "checkout.last_name": "Last Name",
+                "checkout.phone": "Phone Number",
+                "checkout.email": "Email",
+                "checkout.address": "Delivery Address",
+                "checkout.city": "City",
+                "checkout.region": "Region/Wilayat",
+                "checkout.notes": "Special Instructions",
+                "checkout.place_order": "🛍️ Place Order",
+                "checkout.processing": "Processing Order...",
+                "checkout.success": "Order placed successfully! We will contact you soon.",
+                "checkout.error": "Failed to place order. Please try again or contact us directly.",
+                "checkout.continue_shopping": "← Continue Shopping",
+                "checkout.cart_empty": "Your cart is empty",
+                "checkout.cart_empty_subtitle": "Add some fragrances to your cart before checkout",
+                "checkout.total_samples": "Total (Samples)"
+            }
+        };
+
         let cart = [];
 
+        function initializeLanguage() {
+            // Get language from main page (localStorage)
+            const savedLanguage = localStorage.getItem('qotore_language') || 'ar';
+            setLanguage(savedLanguage);
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update HTML attributes
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            // Update page title
+            document.title = translations[lang]['checkout.title'];
+            
+            // Update logo text based on language
+            const logo = document.querySelector('.logo');
+            if (logo) {
+                logo.textContent = lang === 'ar' ? '🌸 قطرة' : '🌸 Qotore';
+            }
+            
+            // Update all text
+            updateLanguage();
+            
+            // Refresh order summary to update text
+            if (cart.length > 0) {
+                displayOrderSummary();
+            }
+        }
+
+        function updateLanguage() {
+            const elements = document.querySelectorAll('[data-key]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[currentLanguage] && translations[currentLanguage][key]) {
+                    if (element.tagName === 'INPUT' && element.type === 'submit') {
+                        element.value = translations[currentLanguage][key];
+                    } else {
+                        element.textContent = translations[currentLanguage][key];
+                    }
+                }
+            });
+
+            // Update placeholder texts based on language
+            updatePlaceholders();
+        }
+
+        function updatePlaceholders() {
+            const placeholders = {
+                ar: {
+                    phone: "+968 XXXX XXXX",
+                    email: "your@email.com",
+                    address: "عنوان الشارع، رقم المبنى، المنطقة...",
+                    city: "مثلاً: مسقط",
+                    region: "مثلاً: السيب",
+                    notes: "أي تعليمات خاصة للتوصيل أو ملاحظات..."
+                },
+                en: {
+                    phone: "+968 XXXX XXXX",
+                    email: "your@email.com",
+                    address: "Street address, building number, area...",
+                    city: "e.g., Muscat",
+                    region: "e.g., Seeb",
+                    notes: "Any special delivery instructions or notes..."
+                }
+            };
+
+            Object.keys(placeholders[currentLanguage]).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.placeholder = placeholders[currentLanguage][id];
+                }
+            });
+        }
+
+        function loadLanguage() {
+            // This function is now replaced by initializeLanguage
+            initializeLanguage();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            loadLanguage();
             loadCart();
             if (cart.length === 0) {
                 showEmptyCart();
@@ -360,7 +746,6 @@
             if (savedCart) {
                 try {
                     const parsedCart = JSON.parse(savedCart);
-                    // Validate cart items
                     cart = parsedCart.filter(item => {
                         const isValid = (
                             item.variant &&
@@ -399,7 +784,7 @@
             orderSummary.innerHTML = '';
 
             if (cart.length === 0) {
-                orderSummary.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Your cart is empty</p>';
+                orderSummary.innerHTML = `<p style="text-align: center; padding: 2rem; color: #666;">${translations[currentLanguage]['checkout.cart_empty']}</p>`;
                 return;
             }
 
@@ -412,15 +797,12 @@
                 const orderItem = document.createElement('div');
                 orderItem.className = 'checkout-cart-item';
                 
-                // Handle whole bottle display
                 const priceDisplay = item.variant.is_whole_bottle 
-                    ? 'Contact for pricing' 
+                    ? (currentLanguage === 'ar' ? 'اتصل للاستفسار عن السعر' : 'Contact for pricing')
                     : `${item.variant.price_display}`;
 
-                // Get image URL - try to load from page-images bucket first, then fragrance-images
                 const getImageUrl = (item) => {
                     if (item.image_path) {
-                        // Try page-images bucket first
                         return `/api/image/page-images/${item.slug || item.fragranceName.toLowerCase().replace(/\s+/g, '-')}.png`;
                     }
                     return null;
@@ -445,15 +827,15 @@
                     <div class="checkout-item-controls">
                         ${!item.variant.is_whole_bottle ? `
                             <div class="checkout-qty-controls">
-                                <button type="button" class="checkout-qty-btn minus" onclick="updateCartQuantity(${index}, -1)" title="Decrease quantity"></button>
+                                <button type="button" class="checkout-qty-btn plus" onclick="updateCartQuantity(${index}, 1)" title="${currentLanguage === 'ar' ? 'زيادة الكمية' : 'Increase quantity'}"></button>
                                 <input type="number" class="checkout-qty-input" value="${item.quantity}" min="1" max="10" 
                                        onchange="setCartQuantity(${index}, this.value)" id="qty-${index}">
-                                <button type="button" class="checkout-qty-btn plus" onclick="updateCartQuantity(${index}, 1)" title="Increase quantity"></button>
+                                <button type="button" class="checkout-qty-btn minus" onclick="updateCartQuantity(${index}, -1)" title="${currentLanguage === 'ar' ? 'تقليل الكمية' : 'Decrease quantity'}"></button>
                             </div>
-                        ` : `<div class="whole-bottle-qty">Qty: ${item.quantity}</div>`}
-                        <div class="cart-item-price">${item.variant.is_whole_bottle ? 'Contact us' : itemTotal.toFixed(3) + ' OMR'}</div>
-                        <button type="button" class="checkout-remove-btn" onclick="removeCartItem(${index})" title="Remove item from cart">
-                            Remove
+                        ` : `<div class="whole-bottle-qty">${currentLanguage === 'ar' ? 'الكمية' : 'Qty'}: ${item.quantity}</div>`}
+                        <div class="cart-item-price">${item.variant.is_whole_bottle ? (currentLanguage === 'ar' ? 'اتصل بنا' : 'Contact us') : itemTotal.toFixed(3) + ' OMR'}</div>
+                        <button type="button" class="checkout-remove-btn" onclick="removeCartItem(${index})" title="${currentLanguage === 'ar' ? 'إزالة العنصر من السلة' : 'Remove item from cart'}">
+                            ${currentLanguage === 'ar' ? 'إزالة' : 'Remove'}
                         </button>
                     </div>
                 `;
@@ -477,10 +859,7 @@
             totalItem.innerHTML = `
                 <div class="item-info">
                     <div class="item-name" style="color: white; font-size: 1.2rem;">
-                        <svg style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                        </svg>
-                        Total (Samples)
+                        🛒 ${translations[currentLanguage]['checkout.total_samples']}
                     </div>
                 </div>
                 <div class="item-price" style="color: white; font-size: 1.3rem; font-weight: 700;">${paidTotal.toFixed(3)} OMR</div>
@@ -505,7 +884,6 @@
             const quantity = Math.max(1, Math.min(10, parseInt(value) || 1));
             cart[index].quantity = quantity;
             
-            // Update the input field to show the corrected value
             const input = document.getElementById(`qty-${index}`);
             if (input) input.value = quantity;
             
@@ -517,12 +895,15 @@
             if (index < 0 || index >= cart.length) return;
             
             const item = cart[index];
-            if (confirm(`Remove ${item.fragranceName} (${item.variant.size}) from cart?`)) {
+            const confirmMessage = currentLanguage === 'ar' 
+                ? `إزالة ${item.fragranceName} (${item.variant.size}) من السلة؟`
+                : `Remove ${item.fragranceName} (${item.variant.size}) from cart?`;
+                
+            if (confirm(confirmMessage)) {
                 cart.splice(index, 1);
                 saveCart();
                 displayOrderSummary();
                 
-                // Check if cart is now empty
                 if (cart.length === 0) {
                     showEmptyCart();
                 }
@@ -538,15 +919,14 @@
 
             const formData = new FormData(e.target);
 
-            // Transform cart items to match backend expected format
             const orderItems = cart.map(item => {
                 console.log('Processing cart item:', item);
                 
                 return {
-                    fragranceId: parseInt(item.fragranceId), // Ensure it's a number
+                    fragranceId: parseInt(item.fragranceId),
                     fragranceName: item.fragranceName || '',
                     fragranceBrand: item.fragranceBrand || '',
-                    variantId: parseInt(item.variant.id), // Use variant.id, ensure it's a number
+                    variantId: parseInt(item.variant.id),
                     variantSize: item.variant.size || '',
                     variantPrice: item.variant.is_whole_bottle ? 0 : parseFloat(item.variant.price || item.price || 0),
                     quantity: parseInt(item.quantity),
@@ -556,7 +936,6 @@
 
             console.log('Transformed order items:', orderItems);
 
-            // Calculate total (only for non-whole-bottle items)
             const total = orderItems
                 .filter(item => !item.isWholeBottle)
                 .reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0);
@@ -582,7 +961,7 @@
             console.log('Final order data:', orderData);
 
             const button = document.getElementById('placeOrderBtn');
-            button.innerHTML = '<span class="spinner"></span>Processing Order...';
+            button.innerHTML = `<span class="spinner"></span>${translations[currentLanguage]['checkout.processing']}`;
             button.disabled = true;
 
             try {
@@ -599,13 +978,10 @@
                 console.log('Response data:', result);
 
                 if (result.success) {
-                    // Clear cart
                     localStorage.removeItem('qotore_cart');
                     
-                    // Show success message
-                    showMessage('success', 'Order placed successfully! We will contact you soon.');
+                    showMessage('success', translations[currentLanguage]['checkout.success']);
                     
-                    // Redirect after delay
                     setTimeout(() => {
                         window.location.href = 'index.html';
                     }, 3000);
@@ -614,15 +990,14 @@
                 }
             } catch (error) {
                 console.error('Order error:', error);
-                showMessage('error', 'Failed to place order. Please try again or contact us directly.');
+                showMessage('error', translations[currentLanguage]['checkout.error']);
                 
-                button.innerHTML = '🛍️ Place Order';
+                button.innerHTML = translations[currentLanguage]['checkout.place_order'];
                 button.disabled = false;
             }
         });
 
         function showMessage(type, message) {
-            // Remove existing messages
             const existingMessages = document.querySelectorAll('.success-message, .error-message');
             existingMessages.forEach(msg => msg.remove());
 
@@ -633,7 +1008,6 @@
             const checkoutContent = document.querySelector('.checkout-content');
             checkoutContent.insertBefore(messageDiv, checkoutContent.firstChild);
 
-            // Scroll to top to show message
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
