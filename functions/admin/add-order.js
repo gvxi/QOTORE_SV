@@ -8,12 +8,12 @@ export async function onRequestPost(context) {
 
   try {
     console.log('Add order request received');
-    
+
     // Get Supabase credentials
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
-    
+
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error('Missing Supabase environment variables');
       return new Response(JSON.stringify({
@@ -22,20 +22,15 @@ export async function onRequestPost(context) {
           hasUrl: !!SUPABASE_URL,
           hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
         }
-      }), {
-        status: 500,
-        headers: corsHeaders
-      });
+      }), { status: 500, headers: corsHeaders });
     }
-    
+
     // Parse order data
     let orderData;
     try {
       const text = await context.request.text();
       if (!text || text.trim() === '') {
-        return new Response(JSON.stringify({ 
-          error: 'No order data provided' 
-        }), {
+        return new Response(JSON.stringify({ error: 'No order data provided' }), {
           status: 400,
           headers: corsHeaders
         });
@@ -43,33 +38,33 @@ export async function onRequestPost(context) {
       orderData = JSON.parse(text);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      return new Response(JSON.stringify({ 
-        error: 'Invalid order data format' 
-      }), {
+      return new Response(JSON.stringify({ error: 'Invalid order data format' }), {
         status: 400,
         headers: corsHeaders
       });
     }
-    
+
     // Validate required fields
     const { customer, delivery, items, total } = orderData;
-    
-    if (!customer || !customer.firstName || !customer.phone || 
-        !delivery || !delivery.address || !delivery.city ||
-        !items || !Array.isArray(items) || items.length === 0 ||
-        typeof total !== 'number') {
-      return new Response(JSON.stringify({ 
+    if (
+      !customer || !customer.firstName || !customer.phone ||
+      !delivery || !delivery.address || !delivery.city ||
+      !items || !Array.isArray(items) || items.length === 0 ||
+      typeof total !== 'number'
+    ) {
+      return new Response(JSON.stringify({
         error: 'Missing required order fields',
         required: ['customer.firstName', 'customer.phone', 'delivery.address', 'delivery.city', 'items', 'total']
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
+      }), { status: 400, headers: corsHeaders });
     }
 
-    console.log('Saving order to Supabase:', { customerName: `${customer.firstName} ${customer.lastName}`, itemCount: items.length, total });
+    console.log('Saving order to Supabase:', {
+      customerName: `${customer.firstName} ${customer.lastName || ''}`.trim(),
+      itemCount: items.length,
+      total
+    });
 
-    // Prepare order payload for database
+    // Create order in orders table
     const orderPayload = {
       customer_first_name: customer.firstName.trim(),
       customer_last_name: customer.lastName?.trim() || '',
@@ -79,15 +74,13 @@ export async function onRequestPost(context) {
       delivery_city: delivery.city.trim(),
       delivery_region: delivery.region?.trim() || null,
       notes: orderData.notes?.trim() || null,
-      items: JSON.stringify(items), // Store items as JSON
-      total_amount: Math.round(total * 1000), // Convert to fils (smallest currency unit)
+      total_amount: Math.round(total * 1000), // store in baisa (1 OMR = 1000 baisa)
       status: 'pending',
       created_at: new Date().toISOString()
     };
 
     console.log('Creating order with payload:', orderPayload);
 
-    // Save order to database
     const orderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
       method: 'POST',
       headers: {
@@ -102,47 +95,104 @@ export async function onRequestPost(context) {
     if (!orderResponse.ok) {
       const errorText = await orderResponse.text();
       console.error('Failed to create order:', errorText);
-      
       return new Response(JSON.stringify({
         error: 'Failed to save order to database',
-        details: errorText
-      }), {
+        details: `HTTP ${orderResponse.status}: ${errorText}`
+      }), { status: 500, headers: corsHeaders });
+    }
+
+    const createdOrder = await orderResponse.json(); // Supabase returns an array
+    const orderId = createdOrder?.[0]?.id;
+    const createdAt = createdOrder?.[0]?.created_at;
+    if (!orderId) {
+      console.error('Order created but no ID returned:', createdOrder);
+      return new Response(JSON.stringify({ error: 'Order creation failed: missing ID' }), {
         status: 500,
         headers: corsHeaders
       });
     }
 
-    const createdOrder = await orderResponse.json();
-    const orderId = createdOrder[0].id;
     console.log('Created order with ID:', orderId);
 
-    // Success response
-    return new Response(JSON.stringify({ 
+    // Prepare order_items rows
+    const nowIso = new Date().toISOString();
+    const orderItemsPayload = items.map((item) => {
+      const price = Number(item.variantPrice || 0);
+      const qty = Number(item.quantity || 0);
+      const perBaisa = Math.round(price * 1000);
+      return {
+        order_id: orderId,
+        fragrance_id: item.fragranceId ?? null,
+        variant_id: item.variantId ?? null,
+        fragrance_name: item.fragranceName ?? '',
+        fragrance_brand: item.fragranceBrand || '',
+        variant_size: item.variantSize ?? '',
+        variant_price_cents: perBaisa, // keeping your existing column name
+        quantity: qty,
+        unit_price_cents: perBaisa,
+        total_price_cents: Math.round(price * qty * 1000),
+        is_whole_bottle: item.variantSize === 'Whole Bottle',
+        created_at: nowIso
+      };
+    });
+
+    console.log('Creating order items:', orderItemsPayload.length);
+
+    const orderItemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(orderItemsPayload)
+    });
+
+    if (!orderItemsResponse.ok) {
+      const errorText = await orderItemsResponse.text();
+      console.error('Failed to create order items:', errorText);
+
+      // Best-effort cleanup of the orphan order
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+          }
+        });
+      } catch (cleanupErr) {
+        console.error('Cleanup (delete order) failed:', cleanupErr);
+      }
+
+      return new Response(JSON.stringify({
+        error: 'Failed to save order items',
+        details: `HTTP ${orderItemsResponse.status}: ${errorText}`
+      }), { status: 500, headers: corsHeaders });
+    }
+
+    // Success
+    return new Response(JSON.stringify({
       success: true,
       message: 'Order placed successfully!',
       data: {
         id: orderId,
         orderNumber: `ORD-${orderId}`,
-        customer: `${customer.firstName} ${customer.lastName}`,
+        customer: `${customer.firstName} ${customer.lastName || ''}`.trim(),
         itemCount: items.length,
-        total: total,
+        total,
         status: 'pending',
-        created_at: createdOrder[0].created_at
+        created_at: createdAt
       }
-    }), {
-      status: 200,
-      headers: corsHeaders
-    });
-    
+    }), { status: 200, headers: corsHeaders });
+
   } catch (error) {
     console.error('Add order error:', error);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: 'Failed to place order',
       details: error.message
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    }), { status: 500, headers: corsHeaders });
   }
 }
 
@@ -160,7 +210,7 @@ export async function onRequestOptions() {
   });
 }
 
-// Test endpoint
+// Simple test endpoint
 export async function onRequestGet(context) {
   return new Response(JSON.stringify({
     message: 'Add order endpoint is working!',
@@ -173,7 +223,5 @@ export async function onRequestGet(context) {
       hasServiceKey: !!context.env.SUPABASE_SERVICE_ROLE_KEY
     },
     note: 'No authentication required for placing orders'
-  }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
+  }), { headers: { 'Content-Type': 'application/json' } });
 }

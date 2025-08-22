@@ -175,12 +175,12 @@ function displayOrders() {
         const row = document.createElement('tr');
         
         const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
-        const itemCount = order.items.length;
-        const itemsText = itemCount === 1 ? '1 item' : `${itemCount} items`;
+        const totalQuantity = order.totalQuantity || 0;
+        const itemsText = `${order.itemCount} items (${totalQuantity} total)`;
         
         row.innerHTML = `
             <td>
-                <strong>#${order.id}</strong>
+                <strong>${order.orderNumber || `#${order.id}`}</strong>
                 <br><small style="color: #666;">${new Date(order.orderDate).toLocaleDateString()}</small>
             </td>
             <td>
@@ -439,7 +439,7 @@ function viewOrder(id) {
     const order = orders.find(o => o.id === id);
     if (!order) return;
     
-    let orderDetails = `Order #${order.id}\n\n`;
+    let orderDetails = `Order ${order.orderNumber || `#${order.id}`}\n\n`;
     orderDetails += `Customer: ${order.customer.firstName} ${order.customer.lastName}\n`;
     orderDetails += `Phone: ${order.customer.phone}\n`;
     if (order.customer.email) orderDetails += `Email: ${order.customer.email}\n`;
@@ -449,11 +449,21 @@ function viewOrder(id) {
     orderDetails += `\n\nItems:\n`;
     
     order.items.forEach((item, index) => {
-        orderDetails += `${index + 1}. ${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}\n`;
-        orderDetails += `   ${item.variant.size} × ${item.quantity} = ${(item.price * item.quantity).toFixed(3)} OMR\n`;
+        const brandName = item.fragranceBrand ? `${item.fragranceBrand} ` : '';
+        orderDetails += `${index + 1}. ${brandName}${item.fragranceName}\n`;
+        orderDetails += `   ${item.variantSize} × ${item.quantity}`;
+        if (!item.isWholeBottle) {
+            orderDetails += ` @ ${item.variantPrice.toFixed(3)} OMR each`;
+            orderDetails += ` = ${item.totalPrice.toFixed(3)} OMR`;
+        } else {
+            orderDetails += ` (Contact for pricing)`;
+        }
+        orderDetails += `\n`;
     });
     
-    orderDetails += `\nTotal: ${order.total.toFixed(3)} OMR\n`;
+    const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+    orderDetails += `\nTotal Items: ${totalQuantity}\n`;
+    orderDetails += `Total Amount: ${order.total.toFixed(3)} OMR\n`;
     orderDetails += `Status: ${order.status}\n`;
     orderDetails += `Order Date: ${new Date(order.orderDate).toLocaleString()}`;
     
