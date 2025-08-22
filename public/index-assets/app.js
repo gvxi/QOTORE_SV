@@ -269,14 +269,20 @@ function selectVariant(variant, element) {
     element.classList.add('selected');
     selectedVariant = variant;
     
-    // Enable/disable add to cart button
+    // Show/hide quantity selector and update button
+    const quantitySection = document.getElementById('quantitySection');
     const addToCartBtn = document.getElementById('addToCartBtn');
+    
     if (variant.is_whole_bottle) {
+        quantitySection.style.display = 'none';
         addToCartBtn.disabled = true;
         addToCartBtn.textContent = 'Contact for Full Bottle';
     } else {
+        quantitySection.style.display = 'block';
         addToCartBtn.disabled = false;
         addToCartBtn.textContent = translations[currentLanguage]['modal.add_to_cart'] || 'Add to Cart';
+        // Reset quantity to 1
+        document.getElementById('quantityInput').value = 1;
     }
 }
 
@@ -300,8 +306,17 @@ function addToCart() {
         showCustomAlert('Error: Invalid product variant. Please refresh the page and try again.');
         return;
     }
+
+    // Get quantity from input
+    const quantityInput = document.getElementById('quantityInput');
+    const requestedQuantity = parseInt(quantityInput.value) || 1;
     
-    console.log('Adding to cart:', { fragrance: currentFragrance, variant: selectedVariant });
+    if (requestedQuantity < 1 || requestedQuantity > 10) {
+        showCustomAlert('Please select a quantity between 1 and 10.');
+        return;
+    }
+    
+    console.log('Adding to cart:', { fragrance: currentFragrance, variant: selectedVariant, quantity: requestedQuantity });
     
     const cartItem = {
         id: `${currentFragrance.id}-${selectedVariant.id}`,
@@ -315,7 +330,7 @@ function addToCart() {
             price_display: selectedVariant.price_display,
             is_whole_bottle: selectedVariant.is_whole_bottle || false
         },
-        quantity: 1,
+        quantity: requestedQuantity,
         price: selectedVariant.price
     };
     
@@ -325,7 +340,7 @@ function addToCart() {
     const existingIndex = cart.findIndex(item => item.id === cartItem.id);
     
     if (existingIndex !== -1) {
-        cart[existingIndex].quantity += 1;
+        cart[existingIndex].quantity += requestedQuantity;
         console.log('Updated existing cart item quantity');
     } else {
         cart.push(cartItem);
@@ -337,7 +352,7 @@ function addToCart() {
     closeModal();
     
     // Show success message
-    showCustomAlert('Added to cart!');
+    showCustomAlert(`Added ${requestedQuantity} × ${selectedVariant.size} to cart!`);
 }
 
 function openCart() {

@@ -398,14 +398,19 @@
             const orderSummary = document.getElementById('orderSummary');
             orderSummary.innerHTML = '';
 
+            if (cart.length === 0) {
+                orderSummary.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Your cart is empty</p>';
+                return;
+            }
+
             let total = 0;
 
-            cart.forEach(item => {
+            cart.forEach((item, index) => {
                 const itemTotal = item.price * item.quantity;
                 total += itemTotal;
 
                 const orderItem = document.createElement('div');
-                orderItem.className = 'order-item';
+                orderItem.className = 'checkout-cart-item';
                 
                 // Handle whole bottle display
                 const priceDisplay = item.variant.is_whole_bottle 
@@ -413,11 +418,22 @@
                     : `${item.variant.price_display}`;
                 
                 orderItem.innerHTML = `
-                    <div class="item-info">
+                    <div class="checkout-item-info">
                         <div class="item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
-                        <div class="item-details">${item.variant.size} × ${item.quantity} @ ${priceDisplay}</div>
+                        <div class="item-details">${item.variant.size} @ ${priceDisplay}</div>
                     </div>
-                    <div class="item-price">${item.variant.is_whole_bottle ? 'Contact us' : itemTotal.toFixed(3) + ' OMR'}</div>
+                    <div class="checkout-item-controls">
+                        ${!item.variant.is_whole_bottle ? `
+                            <div class="checkout-qty-controls">
+                                <button type="button" class="checkout-qty-btn" onclick="updateCartQuantity(${index}, -1)">-</button>
+                                <input type="number" class="checkout-qty-input" value="${item.quantity}" min="1" max="10" 
+                                       onchange="setCartQuantity(${index}, this.value)" id="qty-${index}">
+                                <button type="button" class="checkout-qty-btn" onclick="updateCartQuantity(${index}, 1)">+</button>
+                            </div>
+                        ` : `<div style="text-align: center; color: #666; font-size: 0.8rem;">Qty: ${item.quantity}</div>`}
+                        <div class="cart-item-price">${item.variant.is_whole_bottle ? 'Contact us' : itemTotal.toFixed(3) + ' OMR'}</div>
+                        <button type="button" class="checkout-remove-btn" onclick="removeCartItem(${index})">Remove</button>
+                    </div>
                 `;
                 orderSummary.appendChild(orderItem);
             });
@@ -435,6 +451,51 @@
                 <div class="item-price">${paidTotal.toFixed(3)} OMR</div>
             `;
             orderSummary.appendChild(totalItem);
+        }
+
+        // Cart management functions
+        function updateCartQuantity(index, delta) {
+            if (index < 0 || index >= cart.length) return;
+            
+            const newQuantity = Math.max(1, Math.min(10, cart[index].quantity + delta));
+            cart[index].quantity = newQuantity;
+            
+            saveCart();
+            displayOrderSummary();
+        }
+
+        function setCartQuantity(index, value) {
+            if (index < 0 || index >= cart.length) return;
+            
+            const quantity = Math.max(1, Math.min(10, parseInt(value) || 1));
+            cart[index].quantity = quantity;
+            
+            // Update the input field to show the corrected value
+            const input = document.getElementById(`qty-${index}`);
+            if (input) input.value = quantity;
+            
+            saveCart();
+            displayOrderSummary();
+        }
+
+        function removeCartItem(index) {
+            if (index < 0 || index >= cart.length) return;
+            
+            const item = cart[index];
+            if (confirm(`Remove ${item.fragranceName} (${item.variant.size}) from cart?`)) {
+                cart.splice(index, 1);
+                saveCart();
+                displayOrderSummary();
+                
+                // Check if cart is now empty
+                if (cart.length === 0) {
+                    showEmptyCart();
+                }
+            }
+        }
+
+        function saveCart() {
+            localStorage.setItem('qotore_cart', JSON.stringify(cart));
         }
 
         document.getElementById('orderForm').addEventListener('submit', async function(e) {
