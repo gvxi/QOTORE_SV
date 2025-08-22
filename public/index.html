@@ -14,17 +14,17 @@
                 <span>🌸 Qotore</span>
             </div>
             <nav class="nav-menu">
-                <button class="nav-btn" onclick="scrollToSection('products')">
+                <button class="nav-btn" id="productsButton">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20C20.55 4 21 4.45 21 5S20.55 6 20 6H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 3V4H15V3H9ZM7 6V19H17V6H7Z"/>
                     </svg>
                 </button>
-                <button class="nav-btn" onclick="toggleLanguage()">
+                <button class="nav-btn" id="languageButton">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12.87 15.07L10.33 12.56L10.36 12.53C12.1 10.59 13.34 8.36 14.07 6H17V4H10V2H8V4H1V6H12.17C11.5 7.92 10.44 9.75 9 11.35C8.07 10.32 7.3 9.19 6.69 8H4.69C5.42 9.63 6.42 11.17 7.67 12.56L2.58 17.58L4 19L9 14L12.11 17.11L12.87 15.07Z"/>
                     </svg>
                 </button>
-                <button class="nav-btn" onclick="openCart()">
+                <button class="nav-btn" id="cartButton">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M7 18C5.9 18 5 18.9 5 20S5.9 22 7 22 9 21.1 9 20 8.1 18 7 18ZM1 2V4H3L6.6 11.59L5.25 14.04C5.09 14.32 5 14.65 5 15C5 16.1 5.9 17 7 17H19V15H7.42C7.28 15 7.17 14.89 7.17 14.75L7.2 14.63L8.1 13H15.55C16.3 13 16.96 12.59 17.3 11.97L20.88 5H18.21L15.27 11H8.53L4.27 2H1ZM17 18C15.9 18 15 18.9 15 20S15.9 22 17 22 19 21.1 19 20 18.1 18 17 18Z"/>
                     </svg>
@@ -44,7 +44,7 @@
         <div class="hero-content">
             <h1 data-key="hero.title">Premium Fragrances</h1>
             <p data-key="hero.subtitle">Discover luxury scents from around the world</p>
-            <button class="cta-button" onclick="scrollToSection('products')" data-key="hero.cta">
+            <button class="cta-button" id="ctaButton" data-key="hero.cta">
                 Explore Collection
             </button>
         </div>

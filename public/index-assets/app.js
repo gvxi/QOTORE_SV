@@ -49,6 +49,41 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFragrances();
     updateCartCount();
     updateLanguage();
+    
+    // Set up cart button click handler
+    const cartButton = document.getElementById('cartButton');
+    if (cartButton) {
+        cartButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            openCart();
+        });
+    }
+    
+    // Set up other navigation buttons
+    const languageButton = document.getElementById('languageButton');
+    if (languageButton) {
+        languageButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleLanguage();
+        });
+    }
+    
+    const productsButton = document.getElementById('productsButton');
+    if (productsButton) {
+        productsButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection('products');
+        });
+    }
+    
+    // Set up CTA button
+    const ctaButton = document.getElementById('ctaButton');
+    if (ctaButton) {
+        ctaButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection('products');
+        });
+    }
 });
 
 // Language Functions
