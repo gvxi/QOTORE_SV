@@ -73,6 +73,34 @@ export async function onRequestPost(context) {
       }), { status: 400, headers: corsHeaders });
     }
 
+    // Check that all variantIds exist in the variants table
+    const variantIds = [...new Set(validItems.map(item => item.variantId))];
+    const variantCheckResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/variants?id=in.(${variantIds.join(',')})&select=id`,
+      {
+        headers: {
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        }
+      }
+    );
+    if (!variantCheckResponse.ok) {
+      const errorText = await variantCheckResponse.text();
+      return new Response(JSON.stringify({
+        error: 'Failed to validate variants',
+        details: errorText
+      }), { status: 500, headers: corsHeaders });
+    }
+    const foundVariants = await variantCheckResponse.json();
+    const foundVariantIds = foundVariants.map(v => v.id);
+    const missingVariantIds = variantIds.filter(id => !foundVariantIds.includes(id));
+    if (missingVariantIds.length > 0) {
+      return new Response(JSON.stringify({
+        error: 'Invalid variant(s) in order',
+        details: { missingVariantIds }
+      }), { status: 400, headers: corsHeaders });
+    }
+
     console.log('Saving order to Supabase:', {
       customerName: `${customer.firstName} ${customer.lastName || ''}`.trim(),
       itemCount: items.length,
