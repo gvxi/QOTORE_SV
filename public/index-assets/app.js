@@ -49,7 +49,10 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFragrances();
     updateCartCount();
     updateLanguage();
-    
+    initializeEventListeners();
+});
+
+function initializeEventListeners() {
     // Set up cart button click handler
     const cartButton = document.getElementById('cartButton');
     if (cartButton) {
@@ -84,7 +87,37 @@ document.addEventListener('DOMContentLoaded', function() {
             scrollToSection('products');
         });
     }
-});
+
+    // Set up add to cart button
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', addToCart);
+    }
+
+    // Set up modal event listeners
+    const productModal = document.getElementById('productModal');
+    if (productModal) {
+        productModal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    }
+
+    const cartModal = document.getElementById('cartModal');
+    if (cartModal) {
+        cartModal.addEventListener('click', function(e) {
+            if (e.target === this) closeCartModal();
+        });
+    }
+
+    // ESC key to close modals
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeCartModal();
+            closeCustomModal();
+        }
+    });
+}
 
 // Language Functions
 function toggleLanguage() {
@@ -351,8 +384,11 @@ function addToCart() {
     updateCartCount();
     closeModal();
     
-    // Show success message
-    showCustomAlert(`Added ${requestedQuantity} × ${selectedVariant.size} to cart!`);
+    // Show success message with delay to ensure modal is closed first
+    setTimeout(() => {
+        const productName = `${currentFragrance.brand ? currentFragrance.brand + ' ' : ''}${currentFragrance.name}`;
+        showCustomAlert(`✅ Added ${requestedQuantity} × ${selectedVariant.size} ${productName} to cart!`);
+    }, 100);
 }
 
 function openCart() {
@@ -418,12 +454,12 @@ function clearCart() {
 
 function proceedToCheckout() {
     if (cart.length === 0) {
-        alert('Your cart is empty');
+        showCustomAlert('Your cart is empty');
         return;
     }
     
     console.log('Proceeding to checkout with cart:', cart);
-    window.location.href = 'checkout.html';
+    window.location.href = '/checkout.html';
 }
 
 function updateCartCount() {
@@ -479,44 +515,20 @@ function scrollToSection(sectionId) {
     }
 }
 
-// Event Listeners
-document.addEventListener('DOMContentLoaded', function() {
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    if (addToCartBtn) {
-        addToCartBtn.addEventListener('click', addToCart);
-    }
-});
-
-// Modal event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    const productModal = document.getElementById('productModal');
-    if (productModal) {
-        productModal.addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-    }
-
-    const cartModal = document.getElementById('cartModal');
-    if (cartModal) {
-        cartModal.addEventListener('click', function(e) {
-            if (e.target === this) closeCartModal();
-        });
-    }
-});
-
-// ESC key to close modals
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeModal();
-        closeCartModal();
-        closeCustomModal();
-    }
-});
+// Quantity control functions for modal
+function changeQuantity(delta) {
+    const input = document.getElementById('quantityInput');
+    if (!input) return;
+    
+    const currentValue = parseInt(input.value) || 1;
+    const newValue = Math.max(1, Math.min(10, currentValue + delta));
+    input.value = newValue;
+}
 
 // Custom Modal Functions
 function showCustomAlert(message) {
     createCustomModal({
-        title: 'Notice',
+        title: '🌸 Qotore',
         message: message,
         type: 'alert',
         buttons: [
@@ -527,7 +539,7 @@ function showCustomAlert(message) {
 
 function showCustomConfirm(message, onConfirm) {
     createCustomModal({
-        title: 'Confirm',
+        title: '🌸 Confirm',
         message: message,
         type: 'confirm',
         buttons: [
