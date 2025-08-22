@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
     loadDashboardData();
     loadNotificationSettings();
+    initializeImageUpload();
+    initializeFormHandlers();
 });
 
 // Authentication Check
@@ -19,7 +21,7 @@ function checkAuth() {
     
     if (!adminSession) {
         alert('Please log in to access admin panel');
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return;
     }
 }
@@ -49,7 +51,7 @@ async function loadFragrances() {
                 throw new Error(result.error);
             }
         } else if (response.status === 401) {
-            window.location.href = 'login.html';
+            window.location.href = '/login.html';
         } else {
             throw new Error('Failed to load fragrances');
         }
@@ -114,8 +116,18 @@ function displayFragrances() {
         
         row.innerHTML = `
             <td>
-                <strong>${fragrance.name}</strong>
-                <br><small style="color: #666;">${fragrance.slug}</small>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ccc;">
+                        ${fragrance.image_path ? 
+                            `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` :
+                            '🌸'
+                        }
+                    </div>
+                    <div>
+                        <strong>${fragrance.name}</strong>
+                        <br><small style="color: #666;">${fragrance.slug}</small>
+                    </div>
+                </div>
             </td>
             <td>${fragrance.brand || '-'}</td>
             <td>${variantsText}</td>
@@ -166,39 +178,33 @@ function displayOrders() {
         const itemCount = order.items.length;
         const itemsText = itemCount === 1 ? '1 item' : `${itemCount} items`;
         
-       row.innerHTML = `
-    <td>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ccc;">
-                ${fragrance.image_path ? 
-                    `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` :
-                    '🌸'
-                }
-            </div>
-            <div>
-                <strong>${fragrance.name}</strong>
-                <br><small style="color: #666;">${fragrance.slug}</small>
-            </div>
-        </div>
-    </td>
-    <td>${fragrance.brand || '-'}</td>
-    <td>${variantsText}</td>
-    <td>
-        <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
-            ${fragrance.hidden ? 'Hidden' : 'Visible'}
-        </span>
-    </td>
-    <td>
-        <div class="action-buttons">
-            <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})">Edit</button>
-            <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
-                    onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})">
-                ${fragrance.hidden ? 'Show' : 'Hide'}
-            </button>
-            <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})">Delete</button>
-        </div>
-    </td>
-`;
+        row.innerHTML = `
+            <td>
+                <strong>#${order.id}</strong>
+                <br><small style="color: #666;">${new Date(order.orderDate).toLocaleDateString()}</small>
+            </td>
+            <td>
+                <strong>${customerName}</strong>
+                <br><small style="color: #666;">${order.customer.phone}</small>
+            </td>
+            <td>${itemsText}</td>
+            <td><strong>${order.total.toFixed(3)} OMR</strong></td>
+            <td>
+                <span class="status-badge ${order.status === 'completed' ? 'status-completed' : 'status-pending'}">
+                    ${order.status === 'completed' ? 'Completed' : 'Pending'}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-small btn-edit" onclick="viewOrder(${order.id})">View</button>
+                    <button class="btn-small ${order.status === 'completed' ? 'btn-hide' : 'btn-show'}"
+                            onclick="toggleOrderStatus(${order.id})">
+                        ${order.status === 'completed' ? 'Mark Pending' : 'Mark Complete'}
+                    </button>
+                    <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">Delete</button>
+                </div>
+            </td>
+        `;
         
         tbody.appendChild(row);
     });
@@ -224,33 +230,46 @@ function updateStats() {
     document.getElementById('pendingOrders').textContent = pendingOrders;
 }
 
-// Add after DOMContentLoaded
-document.getElementById('fragranceImage').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        if (!file.type.includes('png')) {
-            alert('Only PNG files are allowed');
-            this.value = '';
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('previewImg').src = e.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
+// Image Upload Functions
+function initializeImageUpload() {
+    const imageInput = document.getElementById('fragranceImage');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (!file.type.includes('png')) {
+                    alert('Only PNG files are allowed');
+                    this.value = '';
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image too large. Maximum size is 5MB.');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     }
-});
-
-function clearImage() {
-    document.getElementById('fragranceImage').value = '';
-    document.getElementById('imagePreview').style.display = 'none';
 }
 
-// Update form submission to handle image upload
+function clearImage() {
+    const imageInput = document.getElementById('fragranceImage');
+    const imagePreview = document.getElementById('imagePreview');
+    if (imageInput) imageInput.value = '';
+    if (imagePreview) imagePreview.style.display = 'none';
+}
+
 async function uploadImageIfPresent(slug) {
     const imageFile = document.getElementById('fragranceImage').files[0];
     if (!imageFile) return null;
+    
+    console.log('Uploading image for slug:', slug);
     
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -264,9 +283,13 @@ async function uploadImageIfPresent(slug) {
     
     if (response.ok) {
         const result = await response.json();
+        console.log('Image upload successful:', result);
         return result.data.path;
+    } else {
+        const error = await response.json();
+        console.error('Image upload failed:', error);
+        throw new Error(error.error || 'Image upload failed');
     }
-    throw new Error('Image upload failed');
 }
 
 // Fragrance Management
@@ -274,12 +297,22 @@ function openAddFragranceModal() {
     currentEditingId = null;
     document.getElementById('fragranceModalTitle').textContent = 'Add New Fragrance';
     document.getElementById('fragranceForm').reset();
+    clearImage();
     
     // Reset variants to default
     document.getElementById('variant5ml').checked = true;
     document.getElementById('variant10ml').checked = true;
     document.getElementById('variant30ml').checked = true;
     document.getElementById('variantFull').checked = true;
+    
+    // Reset variant prices to defaults
+    const price5ml = document.querySelector('#variant5ml').parentElement.querySelector('input[type="number"]');
+    const price10ml = document.querySelector('#variant10ml').parentElement.querySelector('input[type="number"]');
+    const price30ml = document.querySelector('#variant30ml').parentElement.querySelector('input[type="number"]');
+    
+    if (price5ml) price5ml.value = '2.500';
+    if (price10ml) price10ml.value = '4.500';
+    if (price30ml) price30ml.value = '12.000';
     
     document.getElementById('fragranceModal').classList.add('active');
 }
@@ -291,7 +324,7 @@ function editFragrance(id) {
         alert('Fragrance not found. Please refresh the page.');
         return;
     }
-
+    
     currentEditingId = id;
     document.getElementById('fragranceModalTitle').textContent = 'Edit Fragrance';
     
@@ -299,6 +332,16 @@ function editFragrance(id) {
     document.getElementById('fragranceName').value = fragrance.name;
     document.getElementById('fragranceBrand').value = fragrance.brand || '';
     document.getElementById('fragranceDescription').value = fragrance.description || '';
+    
+    // Clear image preview
+    clearImage();
+    
+    // Show existing image if available
+    if (fragrance.image_path) {
+        const imageUrl = `/api/image/${fragrance.image_path.replace('fragrance-images/', '')}`;
+        document.getElementById('previewImg').src = imageUrl;
+        document.getElementById('imagePreview').style.display = 'block';
+    }
     
     // Reset variants
     document.getElementById('variant5ml').checked = false;
@@ -313,13 +356,16 @@ function editFragrance(id) {
                 document.getElementById('variantFull').checked = true;
             } else if (variant.size === '5ml') {
                 document.getElementById('variant5ml').checked = true;
-                document.querySelector('#variant5ml').nextElementSibling.nextElementSibling.value = variant.price.toFixed(3);
+                const priceInput = document.querySelector('#variant5ml').parentElement.querySelector('input[type="number"]');
+                if (priceInput) priceInput.value = variant.price.toFixed(3);
             } else if (variant.size === '10ml') {
                 document.getElementById('variant10ml').checked = true;
-                document.querySelector('#variant10ml').nextElementSibling.nextElementSibling.value = variant.price.toFixed(3);
+                const priceInput = document.querySelector('#variant10ml').parentElement.querySelector('input[type="number"]');
+                if (priceInput) priceInput.value = variant.price.toFixed(3);
             } else if (variant.size === '30ml') {
                 document.getElementById('variant30ml').checked = true;
-                document.querySelector('#variant30ml').nextElementSibling.nextElementSibling.value = variant.price.toFixed(3);
+                const priceInput = document.querySelector('#variant30ml').parentElement.querySelector('input[type="number"]');
+                if (priceInput) priceInput.value = variant.price.toFixed(3);
             }
         });
     }
@@ -329,6 +375,8 @@ function editFragrance(id) {
 
 function closeFragranceModal() {
     document.getElementById('fragranceModal').classList.remove('active');
+    document.getElementById('fragranceForm').reset();
+    clearImage();
     currentEditingId = null;
 }
 
@@ -471,73 +519,87 @@ async function deleteOrder(id) {
 }
 
 // Form Handlers
-cument.getElementById('fragranceForm').addEventListener('submit', async function(e) {
+function initializeFormHandlers() {
+    const fragranceForm = document.getElementById('fragranceForm');
+    if (fragranceForm) {
+        fragranceForm.addEventListener('submit', handleFragranceFormSubmit);
+    }
+}
+
+async function handleFragranceFormSubmit(e) {
     e.preventDefault();
     
-    const formData = {
-        name: document.getElementById('fragranceName').value.trim(),
-        brand: document.getElementById('fragranceBrand').value.trim(),
-        description: document.getElementById('fragranceDescription').value.trim(),
-        slug: document.getElementById('fragranceName').value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        variants: []
-    };
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Saving...';
+    submitBtn.disabled = true;
     
-    // Upload image if present
     try {
-        const imagePath = await uploadImageIfPresent(formData.slug);
-        if (imagePath) {
-            formData.image = imagePath;
-        }
-    } catch (error) {
-        alert('Image upload failed: ' + error.message);
-        return;
-    }
-    
-    // Collect variants
-    const variantInputs = [
-        { id: 'variant5ml', size: '5ml', size_ml: 5 },
-        { id: 'variant10ml', size: '10ml', size_ml: 10 },
-        { id: 'variant30ml', size: '30ml', size_ml: 30 },
-        { id: 'variantFull', size: 'Whole Bottle', is_whole_bottle: true }
-    ];
-    
-    variantInputs.forEach(variant => {
-        const checkbox = document.getElementById(variant.id);
-        if (checkbox.checked) {
-            if (variant.is_whole_bottle) {
-                formData.variants.push({
-                    size: variant.size,
-                    is_whole_bottle: true,
-                    price: null,
-                    size_ml: null
-                });
-            } else {
-                const priceInput = checkbox.parentElement.querySelector('input[type="number"]');
-                const price = parseFloat(priceInput.value);
-                if (price > 0) {
+        const formData = {
+            name: document.getElementById('fragranceName').value.trim(),
+            brand: document.getElementById('fragranceBrand').value.trim(),
+            description: document.getElementById('fragranceDescription').value.trim(),
+            slug: document.getElementById('fragranceName').value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            variants: []
+        };
+        
+        // Collect variants
+        const variantInputs = [
+            { id: 'variant5ml', size: '5ml', size_ml: 5 },
+            { id: 'variant10ml', size: '10ml', size_ml: 10 },
+            { id: 'variant30ml', size: '30ml', size_ml: 30 },
+            { id: 'variantFull', size: 'Whole Bottle', is_whole_bottle: true }
+        ];
+        
+        variantInputs.forEach(variant => {
+            const checkbox = document.getElementById(variant.id);
+            if (checkbox && checkbox.checked) {
+                if (variant.is_whole_bottle) {
                     formData.variants.push({
                         size: variant.size,
-                        size_ml: variant.size_ml,
-                        price: price,
-                        is_whole_bottle: false
+                        is_whole_bottle: true,
+                        price: null,
+                        size_ml: null
                     });
+                } else {
+                    const priceInput = checkbox.parentElement.querySelector('input[type="number"]');
+                    const price = parseFloat(priceInput.value);
+                    if (price > 0) {
+                        formData.variants.push({
+                            size: variant.size,
+                            size_ml: variant.size_ml,
+                            price: price,
+                            is_whole_bottle: false
+                        });
+                    }
                 }
             }
+        });
+        
+        if (formData.variants.length === 0) {
+            alert('Please select at least one variant');
+            return;
         }
-    });
-    
-    if (formData.variants.length === 0) {
-        alert('Please select at least one variant');
-        return;
-    }
-    
-    if (currentEditingId) {
-        formData.id = currentEditingId;
-    }
-    
-    try {
+        
+        // Upload image if present
+        try {
+            const imagePath = await uploadImageIfPresent(formData.slug);
+            if (imagePath) {
+                formData.image = imagePath;
+            }
+        } catch (error) {
+            alert('Image upload failed: ' + error.message);
+            return;
+        }
+        
+        if (currentEditingId) {
+            formData.id = currentEditingId;
+        }
+        
         const endpoint = currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance';
         const method = currentEditingId ? 'PUT' : 'POST';
+        
+        console.log('Submitting fragrance data:', formData);
         
         const response = await fetch(endpoint, {
             method: method,
@@ -549,24 +611,32 @@ cument.getElementById('fragranceForm').addEventListener('submit', async function
         });
         
         const result = await response.json();
+        console.log('Server response:', result);
+        
         if (result.success) {
             closeFragranceModal();
             await loadFragrances();
             updateStats();
             alert(currentEditingId ? 'Fragrance updated successfully!' : 'Fragrance added successfully!');
         } else {
-            throw new Error(result.error);
+            throw new Error(result.error || 'Unknown error');
         }
     } catch (error) {
         console.error('Error saving fragrance:', error);
         alert('Failed to save fragrance: ' + error.message);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
     }
-});
+}
 
 // Notification Settings
 function loadNotificationSettings() {
     const enabled = localStorage.getItem('notificationsEnabled') === 'true';
-    document.getElementById('notificationsEnabled').checked = enabled;
+    const checkbox = document.getElementById('notificationsEnabled');
+    if (checkbox) {
+        checkbox.checked = enabled;
+    }
 }
 
 function toggleNotifications() {
@@ -596,8 +666,13 @@ async function logout() {
 }
 
 // Close modals when clicking outside
-document.getElementById('fragranceModal').addEventListener('click', function(e) {
-    if (e.target === this) closeFragranceModal();
+document.addEventListener('DOMContentLoaded', function() {
+    const fragranceModal = document.getElementById('fragranceModal');
+    if (fragranceModal) {
+        fragranceModal.addEventListener('click', function(e) {
+            if (e.target === this) closeFragranceModal();
+        });
+    }
 });
 
 // ESC key to close modals

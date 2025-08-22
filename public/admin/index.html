@@ -369,7 +369,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Fragrance</th>
                             <th>Brand</th>
                             <th>Variants</th>
                             <th>Status</th>
@@ -447,17 +447,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="fragranceImage">Product Image (PNG only)</label>
-                     <input type="file" id="fragranceImage" accept=".png" class="form-control">
-                     <div id="imagePreview" style="margin-top: 10px; display: none;">
-                    <img id="previewImg" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-                    <button type="button" onclick="clearImage()" style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px;">Remove</button>
-                    </div>
+                    <label for="fragranceDescription">Description *</label>
+                    <textarea id="fragranceDescription" class="form-control" rows="3" required></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="fragranceDescription">Description *</label>
-                    <textarea id="fragranceDescription" class="form-control" rows="3" required></textarea>
+                    <label for="fragranceImage">Product Image (PNG only)</label>
+                    <input type="file" id="fragranceImage" accept=".png" class="form-control">
+                    <div id="imagePreview" style="margin-top: 10px; display: none;">
+                        <img id="previewImg" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                        <button type="button" onclick="clearImage()" style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px;">Remove</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
