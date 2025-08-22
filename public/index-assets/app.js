@@ -271,7 +271,7 @@ function addToCart() {
     closeModal();
     
     // Show success message
-    alert('Added to cart!');
+    showCustomAlert('Added to cart!');
 }
 
 function openCart() {
@@ -376,7 +376,12 @@ function scrollToSection(sectionId) {
 // Event Listeners
 document.getElementById('addToCartBtn').addEventListener('click', addToCart);
 
-// Close modals when clicking outside
+// Fix cart opening
+function openCart() {
+    displayCartItems();
+    document.getElementById('cartModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
 document.getElementById('productModal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
 });
@@ -392,3 +397,97 @@ document.addEventListener('keydown', function(e) {
         closeCartModal();
     }
 });
+
+// Custom Modal Functions
+function showCustomAlert(message) {
+    createCustomModal({
+        title: 'Notice',
+        message: message,
+        type: 'alert',
+        buttons: [
+            { text: 'OK', action: 'close', primary: true }
+        ]
+    });
+}
+
+function showCustomConfirm(message, onConfirm) {
+    createCustomModal({
+        title: 'Confirm',
+        message: message,
+        type: 'confirm',
+        buttons: [
+            { text: 'Cancel', action: 'close', primary: false },
+            { text: 'Confirm', action: onConfirm, primary: true }
+        ]
+    });
+}
+
+function createCustomModal(config) {
+    // Remove existing custom modal if any
+    const existingModal = document.getElementById('customModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'customModal';
+    modal.className = 'custom-modal';
+    
+    modal.innerHTML = `
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3>${config.title}</h3>
+            </div>
+            <div class="custom-modal-body">
+                <p>${config.message}</p>
+            </div>
+            <div class="custom-modal-footer">
+                ${config.buttons.map(button => `
+                    <button class="custom-modal-btn ${button.primary ? 'primary' : 'secondary'}" 
+                            data-action="${button.action}">
+                        ${button.text}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    
+    // Show modal with animation
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+
+    // Add event listeners
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeCustomModal();
+        }
+    });
+
+    modal.querySelectorAll('.custom-modal-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            closeCustomModal();
+            
+            if (action !== 'close' && typeof action === 'string') {
+                // If action is a function reference, we need to execute the callback
+                if (config.buttons.find(b => b.text === this.textContent && typeof b.action === 'function')) {
+                    const callback = config.buttons.find(b => b.text === this.textContent).action;
+                    callback();
+                }
+            }
+        });
+    });
+}
+
+function closeCustomModal() {
+    const modal = document.getElementById('customModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}

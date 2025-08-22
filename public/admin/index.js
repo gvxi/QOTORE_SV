@@ -238,12 +238,12 @@ function initializeImageUpload() {
             const file = e.target.files[0];
             if (file) {
                 if (!file.type.includes('png')) {
-                    alert('Only PNG files are allowed');
+                    showCustomAlert('Only PNG files are allowed');
                     this.value = '';
                     return;
                 }
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('Image too large. Maximum size is 5MB.');
+                    showCustomAlert('Image too large. Maximum size is 5MB.');
                     this.value = '';
                     return;
                 }
@@ -321,7 +321,7 @@ function editFragrance(id) {
     const fragrance = fragrances.find(f => f.id === id);
     if (!fragrance) {
         console.error('Fragrance not found:', id);
-        alert('Fragrance not found. Please refresh the page.');
+        showCustomAlert('Fragrance not found. Please refresh the page.');
         return;
     }
     
@@ -400,7 +400,7 @@ async function toggleFragranceVisibility(id, hide) {
         }
     } catch (error) {
         console.error('Error toggling visibility:', error);
-        alert('Failed to update fragrance visibility');
+        showCustomAlert('Failed to update fragrance visibility');
     }
 }
 
@@ -408,29 +408,30 @@ async function deleteFragrance(id) {
     const fragrance = fragrances.find(f => f.id === id);
     if (!fragrance) return;
     
-    if (!confirm(`Delete "${fragrance.name}"? This action cannot be undone.`)) return;
-    
-    try {
-        const response = await fetch('/admin/delete-fragrance', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ id })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            await loadFragrances();
-            updateStats();
-        } else {
-            throw new Error(result.error);
+    showCustomConfirm(`Delete "${fragrance.name}"? This action cannot be undone.`, async () => {
+        try {
+            const response = await fetch('/admin/delete-fragrance', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ id })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                await loadFragrances();
+                updateStats();
+                showCustomAlert('Fragrance deleted successfully!');
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting fragrance:', error);
+            showCustomAlert('Failed to delete fragrance');
         }
-    } catch (error) {
-        console.error('Error deleting fragrance:', error);
-        alert('Failed to delete fragrance');
-    }
+    });
 }
 
 // Order Management
@@ -488,34 +489,35 @@ async function toggleOrderStatus(id) {
         }
     } catch (error) {
         console.error('Error updating order status:', error);
-        alert('Failed to update order status');
+        showCustomAlert('Failed to update order status');
     }
 }
 
 async function deleteOrder(id) {
-    if (!confirm('Delete this order? This action cannot be undone.')) return;
-    
-    try {
-        const response = await fetch('/admin/delete-order', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ id })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            await loadOrders();
-            updateStats();
-        } else {
-            throw new Error(result.error);
+    showCustomConfirm('Delete this order? This action cannot be undone.', async () => {
+        try {
+            const response = await fetch('/admin/delete-order', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ id })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                await loadOrders();
+                updateStats();
+                showCustomAlert('Order deleted successfully!');
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting order:', error);
+            showCustomAlert('Failed to delete order');
         }
-    } catch (error) {
-        console.error('Error deleting order:', error);
-        alert('Failed to delete order');
-    }
+    });
 }
 
 // Form Handlers
@@ -577,7 +579,7 @@ async function handleFragranceFormSubmit(e) {
         });
         
         if (formData.variants.length === 0) {
-            alert('Please select at least one variant');
+            showCustomAlert('Please select at least one variant');
             return;
         }
         
@@ -588,7 +590,7 @@ async function handleFragranceFormSubmit(e) {
                 formData.image = imagePath;
             }
         } catch (error) {
-            alert('Image upload failed: ' + error.message);
+            showCustomAlert('Image upload failed: ' + error.message);
             return;
         }
         
@@ -617,13 +619,13 @@ async function handleFragranceFormSubmit(e) {
             closeFragranceModal();
             await loadFragrances();
             updateStats();
-            alert(currentEditingId ? 'Fragrance updated successfully!' : 'Fragrance added successfully!');
+            showCustomAlert(currentEditingId ? 'Fragrance updated successfully!' : 'Fragrance added successfully!');
         } else {
             throw new Error(result.error || 'Unknown error');
         }
     } catch (error) {
         console.error('Error saving fragrance:', error);
-        alert('Failed to save fragrance: ' + error.message);
+        showCustomAlert('Failed to save fragrance: ' + error.message);
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
@@ -650,7 +652,7 @@ function toggleNotifications() {
 
 // Logout Function
 async function logout() {
-    if (confirm('Are you sure you want to logout?')) {
+    showCustomConfirm('Are you sure you want to logout?', async () => {
         try {
             await fetch('/logout', {
                 method: 'POST',
@@ -662,7 +664,7 @@ async function logout() {
         
         document.cookie = 'admin_session=; Path=/; Max-Age=0';
         window.location.href = '/login.html';
-    }
+    });
 }
 
 // Close modals when clicking outside
@@ -679,5 +681,100 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeFragranceModal();
+        closeCustomModal();
     }
 });
+
+// Custom Modal Functions
+function showCustomAlert(message) {
+    createCustomModal({
+        title: 'Notice',
+        message: message,
+        type: 'alert',
+        buttons: [
+            { text: 'OK', action: 'close', primary: true }
+        ]
+    });
+}
+
+function showCustomConfirm(message, onConfirm) {
+    createCustomModal({
+        title: 'Confirm',
+        message: message,
+        type: 'confirm',
+        buttons: [
+            { text: 'Cancel', action: 'close', primary: false },
+            { text: 'Confirm', action: onConfirm, primary: true }
+        ]
+    });
+}
+
+function createCustomModal(config) {
+    // Remove existing custom modal if any
+    const existingModal = document.getElementById('customModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'customModal';
+    modal.className = 'custom-modal';
+    
+    modal.innerHTML = `
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3>${config.title}</h3>
+            </div>
+            <div class="custom-modal-body">
+                <p>${config.message}</p>
+            </div>
+            <div class="custom-modal-footer">
+                ${config.buttons.map(button => `
+                    <button class="custom-modal-btn ${button.primary ? 'primary' : 'secondary'}" 
+                            data-action="${button.action}">
+                        ${button.text}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    
+    // Show modal with animation
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+
+    // Add event listeners
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeCustomModal();
+        }
+    });
+
+    modal.querySelectorAll('.custom-modal-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            closeCustomModal();
+            
+            if (action !== 'close' && typeof action === 'string') {
+                // If action is a function reference, we need to execute the callback
+                if (config.buttons.find(b => b.text === this.textContent && typeof b.action === 'function')) {
+                    const callback = config.buttons.find(b => b.text === this.textContent).action;
+                    callback();
+                }
+            }
+        });
+    });
+}
+
+function closeCustomModal() {
+    const modal = document.getElementById('customModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
