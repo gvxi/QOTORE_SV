@@ -739,9 +739,9 @@ function createCustomModal(config) {
                 <p>${config.message}</p>
             </div>
             <div class="custom-modal-footer">
-                ${config.buttons.map(button => `
+                ${config.buttons.map((button, index) => `
                     <button class="custom-modal-btn ${button.primary ? 'primary' : 'secondary'}" 
-                            data-action="${button.action}">
+                            data-action-index="${index}">
                         ${button.text}
                     </button>
                 `).join('')}
@@ -763,17 +763,15 @@ function createCustomModal(config) {
         }
     });
 
-    modal.querySelectorAll('.custom-modal-btn').forEach(btn => {
+    modal.querySelectorAll('.custom-modal-btn').forEach((btn, index) => {
         btn.addEventListener('click', function() {
-            const action = this.getAttribute('data-action');
+            const actionIndex = parseInt(this.getAttribute('data-action-index'));
+            const button = config.buttons[actionIndex];
+            
             closeCustomModal();
             
-            if (action !== 'close' && typeof action === 'string') {
-                // If action is a function reference, we need to execute the callback
-                if (config.buttons.find(b => b.text === this.textContent && typeof b.action === 'function')) {
-                    const callback = config.buttons.find(b => b.text === this.textContent).action;
-                    callback();
-                }
+            if (button.action !== 'close' && typeof button.action === 'function') {
+                button.action();
             }
         });
     });
