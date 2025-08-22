@@ -416,23 +416,56 @@
                 const priceDisplay = item.variant.is_whole_bottle 
                     ? 'Contact for pricing' 
                     : `${item.variant.price_display}`;
+
+                // Get image URL - try to load from page-images bucket first, then fragrance-images
+                const getImageUrl = (item) => {
+                    if (item.image_path) {
+                        // Try page-images bucket first
+                        return `/api/image/page-images/${item.slug || item.fragranceName.toLowerCase().replace(/\s+/g, '-')}.png`;
+                    }
+                    return null;
+                };
+
+                const imageUrl = getImageUrl(item);
                 
                 orderItem.innerHTML = `
                     <div class="checkout-item-info">
-                        <div class="item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
-                        <div class="item-details">${item.variant.size} @ ${priceDisplay}</div>
+                        <div class="checkout-item-image">
+                            ${imageUrl ? 
+                                `<img src="${imageUrl}" alt="${item.fragranceName}" 
+                                      onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\\"checkout-item-image-placeholder\\">🌸</div>';">` :
+                                '<div class="checkout-item-image-placeholder">🌸</div>'
+                            }
+                        </div>
+                        <div class="checkout-item-details">
+                            <div class="item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
+                            <div class="item-details">${item.variant.size} @ ${priceDisplay}</div>
+                        </div>
                     </div>
                     <div class="checkout-item-controls">
                         ${!item.variant.is_whole_bottle ? `
                             <div class="checkout-qty-controls">
-                                <button type="button" class="checkout-qty-btn" onclick="updateCartQuantity(${index}, -1)">-</button>
+                                <button type="button" class="checkout-qty-btn" onclick="updateCartQuantity(${index}, -1)">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19 13H5v-2h14v2z"/>
+                                    </svg>
+                                </button>
                                 <input type="number" class="checkout-qty-input" value="${item.quantity}" min="1" max="10" 
                                        onchange="setCartQuantity(${index}, this.value)" id="qty-${index}">
-                                <button type="button" class="checkout-qty-btn" onclick="updateCartQuantity(${index}, 1)">+</button>
+                                <button type="button" class="checkout-qty-btn" onclick="updateCartQuantity(${index}, 1)">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                    </svg>
+                                </button>
                             </div>
-                        ` : `<div style="text-align: center; color: #666; font-size: 0.8rem;">Qty: ${item.quantity}</div>`}
+                        ` : `<div style="text-align: center; color: #666; font-size: 0.85rem; background: white; padding: 4px 8px; border-radius: 6px;">Qty: ${item.quantity}</div>`}
                         <div class="cart-item-price">${item.variant.is_whole_bottle ? 'Contact us' : itemTotal.toFixed(3) + ' OMR'}</div>
-                        <button type="button" class="checkout-remove-btn" onclick="removeCartItem(${index})">Remove</button>
+                        <button type="button" class="checkout-remove-btn" onclick="removeCartItem(${index})">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Remove
+                        </button>
                     </div>
                 `;
                 orderSummary.appendChild(orderItem);
@@ -444,11 +477,24 @@
             
             const totalItem = document.createElement('div');
             totalItem.className = 'order-item';
+            totalItem.style.cssText = `
+                background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+                color: white;
+                padding: 1.5rem;
+                border-radius: 12px;
+                margin-top: 1rem;
+                box-shadow: 0 4px 16px rgba(139, 69, 19, 0.3);
+            `;
             totalItem.innerHTML = `
                 <div class="item-info">
-                    <div class="item-name">Total (Samples)</div>
+                    <div class="item-name" style="color: white; font-size: 1.2rem;">
+                        <svg style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                        </svg>
+                        Total (Samples)
+                    </div>
                 </div>
-                <div class="item-price">${paidTotal.toFixed(3)} OMR</div>
+                <div class="item-price" style="color: white; font-size: 1.3rem; font-weight: 700;">${paidTotal.toFixed(3)} OMR</div>
             `;
             orderSummary.appendChild(totalItem);
         }
