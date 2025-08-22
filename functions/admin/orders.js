@@ -19,6 +19,56 @@ export async function onRequestGet(context) {
       .find(c => c.trim().startsWith('admin_session='));
     
     if (!sessionCookie) {
+      return new Response(JSON.stringify({ 
+        error: 'Authentication required',
+        redirectUrl: '/login.html'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
+    const { env } = context;
+    
+    // Check if Supabase environment variables are set
+    const SUPABASE_URL = env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    console.log('Environment check:', {
+      hasUrl: !!SUPABASE_URL,
+      hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
+    });
+    
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase environment variables');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Database not configured for admin operations',
+        debug: {
+          hasUrl: !!SUPABASE_URL,
+          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
+        }
+      }), {
+        status: 500,
+        headers: corsHeaders
+      });
+    }
+
+    console.log('Fetching orders from Supabase for admin...');
+
+    // Fetch all orders with their items using a join
+    const ordersResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=*,order_items(*)&order=created_at.desc`, {
+      headers: {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!ordersResponse.ok) {
+      const errorText = await ordersResponse.text();
+      console.error('Orders fetch failed:', ordersResponse.status, errorText);
+      
       return new Response(JSON.stringify({
         success: false,
         error: 'Failed to fetch orders from database',
@@ -48,16 +98,20 @@ export async function onRequestGet(context) {
 
     // Transform orders for frontend
     const orders = ordersData.map(order => {
-      let items = [];
-      try {
-        items = JSON.parse(order.items || '[]');
-      } catch (error) {
-        console.error('Error parsing order items:', error);
-        items = [];
-      }
+      const items = order.order_items.map(item => ({
+        fragranceId: item.fragrance_id,
+        fragranceName: item.fragrance_name,
+        fragranceBrand: item.fragrance_brand || '',
+        variantSize: item.variant_size,
+        variantPrice: item.unit_price_cents / 1000, // Convert from fils to OMR
+        quantity: item.quantity,
+        totalPrice: item.total_price_cents / 1000,
+        isWholeBottle: item.is_whole_bottle
+      }));
 
       return {
         id: order.id,
+        orderNumber: order.order_number || `ORD-${String(order.id).padStart(5, '0')}`,
         customer: {
           firstName: order.customer_first_name,
           lastName: order.customer_last_name || '',
@@ -71,6 +125,8 @@ export async function onRequestGet(context) {
         },
         notes: order.notes || '',
         items: items,
+        itemCount: items.length,
+        totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
         total: order.total_amount / 1000, // Convert from fils to OMR
         status: order.status || 'pending',
         orderDate: order.created_at,
@@ -153,61 +209,5 @@ export async function onRequestPost(context) {
     note: 'Authentication required via admin_session cookie'
   }), {
     headers: { 'Content-Type': 'application/json' }
-  });
-}JSON.stringify({ 
-        error: 'Authentication required',
-        redirectUrl: '/login.html'
-      }), {
-        status: 401,
-        headers: corsHeaders
-      };
-
-    const { env } = context;
-    
-    // Check if Supabase environment variables are set
-    const SUPABASE_URL = env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    console.log('Environment check:', {
-      hasUrl: !!SUPABASE_URL,
-      hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
-    });
-    
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Missing Supabase environment variables');
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Database not configured for admin operations',
-        debug: {
-          hasUrl: !!SUPABASE_URL,
-          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
-        }
-      }), {
-        status: 500,
-        headers: corsHeaders
-      });
-    }
-
-    console.log('Fetching orders from Supabase for admin...');
-
-    // Fetch all orders ordered by creation date (newest first)
-    const ordersResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=*&order=created_at.desc`, {
-      headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-if (!ordersResponse.ok) {
-  const errorText = await ordersResponse.text();
-  console.error('Orders fetch failed:', ordersResponse.status, errorText);
-  
-  return new Response(JSON.stringify({
-    success: false,
-    error: 'Failed to fetch orders from database',
-    details: `HTTP ${ordersResponse.status}: ${errorText}`
-  }), {
-    status: 500,
-    headers: corsHeaders
   });
 }
