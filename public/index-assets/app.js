@@ -294,6 +294,13 @@ function addToCart() {
         return;
     }
     
+    // Validate variant has required fields
+    if (!selectedVariant.id || typeof selectedVariant.id !== 'number') {
+        console.error('Invalid variant - missing or invalid ID:', selectedVariant);
+        showCustomAlert('Error: Invalid product variant. Please refresh the page and try again.');
+        return;
+    }
+    
     console.log('Adding to cart:', { fragrance: currentFragrance, variant: selectedVariant });
     
     const cartItem = {
@@ -419,11 +426,32 @@ function loadCart() {
     const savedCart = localStorage.getItem('qotore_cart');
     if (savedCart) {
         try {
-            cart = JSON.parse(savedCart);
-            console.log('Cart loaded:', cart);
+            const parsedCart = JSON.parse(savedCart);
+            // Validate cart items have required fields
+            cart = parsedCart.filter(item => {
+                const isValid = (
+                    item.id &&
+                    item.fragranceId &&
+                    item.variant &&
+                    typeof item.variant.id === 'number' &&
+                    item.variant.size &&
+                    typeof item.quantity === 'number'
+                );
+                if (!isValid) {
+                    console.warn('Removing invalid cart item:', item);
+                }
+                return isValid;
+            });
+            console.log('Cart loaded and validated:', cart);
+            
+            // Save cleaned cart back to localStorage
+            if (cart.length !== parsedCart.length) {
+                saveCart();
+            }
         } catch (error) {
             console.error('Error loading cart:', error);
             cart = [];
+            localStorage.removeItem('qotore_cart');
         }
     }
 }

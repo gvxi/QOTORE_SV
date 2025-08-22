@@ -359,8 +359,26 @@
             const savedCart = localStorage.getItem('qotore_cart');
             if (savedCart) {
                 try {
-                    cart = JSON.parse(savedCart);
+                    const parsedCart = JSON.parse(savedCart);
+                    // Validate cart items
+                    cart = parsedCart.filter(item => {
+                        const isValid = (
+                            item.variant &&
+                            typeof item.variant.id === 'number' &&
+                            typeof item.fragranceId === 'number'
+                        );
+                        if (!isValid) {
+                            console.warn('Removing invalid cart item from checkout:', item);
+                        }
+                        return isValid;
+                    });
+                    
+                    if (cart.length !== parsedCart.length) {
+                        console.log('Cleaned cart, saving back to localStorage');
+                        localStorage.setItem('qotore_cart', JSON.stringify(cart));
+                    }
                 } catch (error) {
+                    console.error('Error loading cart:', error);
                     cart = [];
                 }
             }
