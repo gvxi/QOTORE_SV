@@ -135,23 +135,26 @@ export async function onRequestPost(context) {
       const price = Number(item.variantPrice || 0);
       const qty = Number(item.quantity || 0);
       const perBaisa = Math.round(price * 1000);
+      // Ensure variant_size is always a string and is_whole_bottle is boolean
+      const variantSizeStr = String(item.variantSize ?? '');
+      const isWholeBottleBool = variantSizeStr.toLowerCase().includes('whole') || item.isWholeBottle === true;
       return {
         order_id: orderId,
         fragrance_id: item.fragranceId ?? null,
         variant_id: item.variantId ?? null,
         fragrance_name: item.fragranceName ?? '',
         fragrance_brand: item.fragranceBrand || '',
-        variant_size: item.variantSize ?? '',
+        variant_size: variantSizeStr,
         variant_price_cents: perBaisa,
         quantity: qty,
         unit_price_cents: perBaisa,
         total_price_cents: Math.round(price * qty * 1000),
-        is_whole_bottle: item.variantSize === 'Whole Bottle',
+        is_whole_bottle: isWholeBottleBool,
         created_at: nowIso
       };
     });
 
-    console.log('Creating order items:', orderItemsPayload.length);
+    console.log('Order items payload:', JSON.stringify(orderItemsPayload, null, 2));
 
     const orderItemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
       method: 'POST',
@@ -166,7 +169,13 @@ export async function onRequestPost(context) {
 
     if (!orderItemsResponse.ok) {
       const errorText = await orderItemsResponse.text();
-      console.error('Failed to create order items:', errorText);
+      let errorJson = {};
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch {
+        errorJson = { error: errorText };
+      }
+      console.error('Failed to create order items:', errorJson);
 
       // Best-effort cleanup of the orphan order
       try {
@@ -183,7 +192,7 @@ export async function onRequestPost(context) {
 
       return new Response(JSON.stringify({
         error: 'Failed to save order items',
-        details: `HTTP ${orderItemsResponse.status}: ${errorText}`
+        details: errorJson
       }), { status: 500, headers: corsHeaders });
     }
 
