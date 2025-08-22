@@ -15,143 +15,274 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
             color: #333;
+            font-size: 14px;
         }
 
         .header {
             background: #8B4513;
             color: white;
-            padding: 1rem 2rem;
+            padding: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: bold;
         }
 
         .nav-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
             background: rgba(255,255,255,0.1);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s ease;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
         }
 
         .nav-btn:hover {
             background: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn svg {
+            flex-shrink: 0;
+        }
+
+        .nav-btn.refreshing {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .nav-btn.refreshing svg {
+            animation: spin 1s linear infinite;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1rem;
         }
 
         .dashboard-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
         .stat-card {
             background: white;
-            padding: 2rem;
+            padding: 1.5rem 1rem;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             text-align: center;
         }
 
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: #8B4513;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
 
         .stat-label {
             color: #666;
             font-weight: 500;
+            font-size: 0.8rem;
+            line-height: 1.2;
         }
 
         .section {
             background: white;
             border-radius: 10px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .section-title {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: #8B4513;
             font-weight: 600;
+            flex: 1;
+            min-width: 200px;
         }
 
         .btn-primary {
             background: #8B4513;
             color: white;
             border: none;
-            padding: 0.8rem 1.5rem;
+            padding: 0.7rem 1.2rem;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
+            font-size: 0.9rem;
+            white-space: nowrap;
         }
 
         .btn-primary:hover {
             background: #A0522D;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+        }
+
+        /* Mobile-friendly table wrapper */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: -1rem;
+            padding: 1rem;
         }
 
         .table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
+            min-width: 600px;
+            background: white;
         }
 
         .table th,
         .table td {
-            padding: 1rem;
+            padding: 0.8rem 0.5rem;
             text-align: left;
             border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
         }
 
         .table th {
             background: #f8f9fa;
             font-weight: 600;
             color: #333;
+            position: sticky;
+            top: 0;
         }
 
         .table tr:hover {
             background: #f8f9fa;
         }
 
+        /* Mobile card view for tables */
+        .mobile-card-view {
+            display: none;
+        }
+
+        .mobile-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .mobile-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .mobile-card-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.5rem;
+        }
+
+        .mobile-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .mobile-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mobile-card-title {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
+        }
+
+        .mobile-card-subtitle {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .mobile-card-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-field {
+            background: white;
+            padding: 0.6rem;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .mobile-field-label {
+            font-size: 0.7rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.2rem;
+        }
+
+        .mobile-field-value {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
         .status-badge {
             padding: 0.3rem 0.8rem;
             border-radius: 15px;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 600;
+            display: inline-block;
         }
 
         .status-visible {
@@ -176,18 +307,20 @@
 
         .action-buttons {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
             flex-wrap: wrap;
+            justify-content: flex-start;
         }
 
         .btn-small {
-            padding: 0.4rem 0.8rem;
+            padding: 0.35rem 0.7rem;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .btn-edit {
@@ -230,6 +363,7 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 1rem;
         }
 
         .modal.active {
@@ -240,29 +374,30 @@
             background: white;
             border-radius: 15px;
             max-width: 600px;
-            width: 90%;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             font-weight: 600;
             color: #333;
+            font-size: 0.9rem;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.8rem;
+            padding: 0.7rem;
             border: 2px solid #eee;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             transition: border-color 0.3s ease;
         }
 
@@ -277,10 +412,10 @@
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #8B4513;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #8B4513;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
@@ -293,8 +428,18 @@
 
         .empty-state {
             text-align: center;
-            padding: 3rem;
+            padding: 2rem 1rem;
             color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .empty-state p {
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
         }
 
         /* Custom Modal Styles */
@@ -313,6 +458,7 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            padding: 1rem;
         }
 
         .custom-modal.active {
@@ -323,9 +469,8 @@
         .custom-modal-content {
             background: white;
             border-radius: 15px;
-            min-width: 300px;
-            max-width: 500px;
-            margin: 2rem;
+            width: 100%;
+            max-width: 400px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             transform: translateY(-50px) scale(0.9);
             transition: all 0.3s ease;
@@ -336,41 +481,43 @@
         }
 
         .custom-modal-header {
-            padding: 1.5rem 2rem 1rem;
+            padding: 1.2rem 1.5rem 0.8rem;
             border-bottom: 1px solid #eee;
         }
 
         .custom-modal-header h3 {
             margin: 0;
             color: #333;
-            font-size: 1.25rem;
+            font-size: 1.1rem;
         }
 
         .custom-modal-body {
-            padding: 1.5rem 2rem;
+            padding: 1.2rem 1.5rem;
         }
 
         .custom-modal-body p {
             margin: 0;
             color: #666;
             line-height: 1.5;
+            font-size: 0.9rem;
         }
 
         .custom-modal-footer {
-            padding: 1rem 2rem 1.5rem;
+            padding: 0.8rem 1.5rem 1.2rem;
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
             justify-content: flex-end;
         }
 
         .custom-modal-btn {
-            padding: 0.75rem 1.5rem;
+            padding: 0.6rem 1.2rem;
             border: none;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            flex: 1;
         }
 
         .custom-modal-btn.primary {
@@ -393,38 +540,247 @@
             transform: translateY(-1px);
         }
 
+        /* Responsive breakpoints */
         @media (max-width: 768px) {
+            .header {
+                padding: 0.8rem;
+            }
+            
+            .logo {
+                font-size: 1rem;
+            }
+            
+            .nav-buttons {
+                gap: 0.3rem;
+            }
+            
+            .nav-btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+                gap: 0.2rem;
+            }
+            
+            .nav-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+            
             .container {
-                padding: 1rem;
+                padding: 0.8rem;
             }
             
             .dashboard-stats {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .stat-card {
+                padding: 1rem 0.8rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            
+            .section {
+                padding: 0.8rem;
+                margin-bottom: 1rem;
             }
             
             .section-header {
                 flex-direction: column;
-                gap: 1rem;
+                align-items: stretch;
+                gap: 0.8rem;
             }
             
-            .table {
-                font-size: 0.9rem;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .custom-modal-content {
-                margin: 1rem;
+            .section-title {
+                font-size: 1.1rem;
                 min-width: auto;
             }
-
+            
+            .btn-primary {
+                width: 100%;
+                padding: 0.8rem;
+            }
+            
+            /* Hide table view, show card view on mobile */
+            .table-wrapper {
+                display: none;
+            }
+            
+            .mobile-card-view {
+                display: block;
+            }
+            
+            .modal-content {
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+            
+            .form-control {
+                padding: 0.8rem;
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+            
             .custom-modal-footer {
                 flex-direction: column;
             }
-
+            
             .custom-modal-btn {
+                flex: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobile-card-body {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+            
+            .btn-small {
+                flex: 1;
+                text-align: center;
+            }
+        }
+
+        /* Large screen optimizations */
+        @media (min-width: 1200px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .table th,
+            .table td {
+                padding: 1rem 0.8rem;
+            }
+        }
+
+        /* Tablet landscape */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .section-header {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) {
+            .btn-small,
+            .btn-primary,
+            .nav-btn {
+                padding: 0.6rem 1rem;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .table th,
+            .table td {
+                padding: 1rem 0.8rem;
+            }
+        }
+
+        /* Form improvements for mobile */
+        .variant-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .variant-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .variant-item input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        .variant-item input[type="number"] {
+            width: 80px;
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .form-buttons button {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.8rem;
+        }
+
+        /* Image preview improvements */
+        #imagePreview {
+            margin-top: 0.8rem;
+            text-align: center;
+        }
+
+        #previewImg {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        /* Notification toggle */
+        .notification-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .notification-toggle input {
+            transform: scale(1.2);
+        }
+
+        @media (max-width: 768px) {
+            .notification-toggle {
+                width: 100%;
+                justify-content: flex-start;
+                margin-bottom: 0.8rem;
+            }
+            
+            .notification-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                width: 100%;
+            }
+            
+            .notification-controls button {
+                margin-left: 0 !important;
                 width: 100%;
             }
         }
@@ -435,8 +791,13 @@
     <header class="header">
         <div class="logo">🌸 Qotore Admin</div>
         <div class="nav-buttons">
-            <a href="/" class="nav-btn">View Store</a>
-            <button onclick="logout()" class="nav-btn">Logout</button>
+            <button onclick="refreshData()" class="nav-btn" title="Refresh Data">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                </svg>
+            </button>
+            <a href="/" class="nav-btn" title="View Store">View Store</a>
+            <button onclick="logout()" class="nav-btn" title="Logout">Logout</button>
         </div>
     </header>
 
@@ -474,7 +835,8 @@
                 <p>Loading fragrances...</p>
             </div>
 
-            <div id="fragrancesTable" style="display: none;">
+            <!-- Desktop Table View -->
+            <div id="fragrancesTable" class="table-wrapper" style="display: none;">
                 <table class="table">
                     <thead>
                         <tr>
@@ -491,6 +853,11 @@
                 </table>
             </div>
 
+            <!-- Mobile Card View -->
+            <div id="fragrancesMobile" class="mobile-card-view">
+                <!-- Mobile cards will be loaded here -->
+            </div>
+
             <div id="fragrancesEmpty" class="empty-state" style="display: none;">
                 <h3>No fragrances found</h3>
                 <p>Start by adding your first fragrance</p>
@@ -502,10 +869,15 @@
         <div class="section">
             <div class="section-header">
                 <h2 class="section-title">📦 Manage Orders</h2>
-                <label>
-                    <input type="checkbox" id="notificationsEnabled" onchange="toggleNotifications()">
-                    Enable Order Notifications
-                </label>
+                <div class="notification-controls">
+                    <label class="notification-toggle">
+                        <input type="checkbox" id="notificationsEnabled" onchange="toggleNotifications()">
+                        <span>Enable Order Notifications</span>
+                    </label>
+                    <button onclick="testNotification()" class="btn-primary" style="margin-left: 1rem; padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                        Test Notification
+                    </button>
+                </div>
             </div>
             
             <div id="ordersLoading" class="loading">
@@ -513,7 +885,8 @@
                 <p>Loading orders...</p>
             </div>
 
-            <div id="ordersTable" style="display: none;">
+            <!-- Desktop Table View -->
+            <div id="ordersTable" class="table-wrapper" style="display: none;">
                 <table class="table">
                     <thead>
                         <tr>
@@ -529,6 +902,11 @@
                         <!-- Orders will be loaded here -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div id="ordersMobile" class="mobile-card-view">
+                <!-- Mobile cards will be loaded here -->
             </div>
 
             <div id="ordersEmpty" class="empty-state" style="display: none;">
@@ -563,24 +941,42 @@
                 <div class="form-group">
                     <label for="fragranceImage">Product Image (PNG only)</label>
                     <input type="file" id="fragranceImage" accept=".png" class="form-control">
-                    <div id="imagePreview" style="margin-top: 10px; display: none;">
-                        <img id="previewImg" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-                        <button type="button" onclick="clearImage()" style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px;">Remove</button>
+                    <div id="imagePreview" style="display: none;">
+                        <img id="previewImg">
+                        <button type="button" onclick="clearImage()" style="margin-top: 0.5rem; background: #ff4444; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer;">Remove</button>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Variants (OMR) *</label>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <label><input type="checkbox" id="variant5ml" checked> 5ml - <input type="number" step="0.001" value="2.500" style="width: 100px;"> OMR</label>
-                        <label><input type="checkbox" id="variant10ml" checked> 10ml - <input type="number" step="0.001" value="4.500" style="width: 100px;"> OMR</label>
-                        <label><input type="checkbox" id="variant30ml" checked> 30ml - <input type="number" step="0.001" value="12.000" style="width: 100px;"> OMR</label>
-                        <label><input type="checkbox" id="variantFull" checked> 🎁 Full Bottle (Contact for pricing)</label>
+                    <div class="variant-grid">
+                        <label class="variant-item">
+                            <input type="checkbox" id="variant5ml" checked> 
+                            <span>5ml -</span>
+                            <input type="number" step="0.001" value="2.500"> 
+                            <span>OMR</span>
+                        </label>
+                        <label class="variant-item">
+                            <input type="checkbox" id="variant10ml" checked> 
+                            <span>10ml -</span>
+                            <input type="number" step="0.001" value="4.500"> 
+                            <span>OMR</span>
+                        </label>
+                        <label class="variant-item">
+                            <input type="checkbox" id="variant30ml" checked> 
+                            <span>30ml -</span>
+                            <input type="number" step="0.001" value="12.000"> 
+                            <span>OMR</span>
+                        </label>
+                        <label class="variant-item">
+                            <input type="checkbox" id="variantFull" checked> 
+                            <span>🎁 Full Bottle (Contact for pricing)</span>
+                        </label>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="button" onclick="closeFragranceModal()" class="btn-small" style="background: #ccc;">Cancel</button>
+                <div class="form-buttons">
+                    <button type="button" onclick="closeFragranceModal()" class="btn-small" style="background: #ccc; flex: 0.4;">Cancel</button>
                     <button type="submit" class="btn-primary">Save Fragrance</button>
                 </div>
             </form>
