@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Admin Dashboard - Qotore</title>
-    
+    <link rel="stylesheet" href="style.css">
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
     
@@ -26,13 +27,6 @@
     <link rel="apple-touch-icon" sizes="384x384" href="/icon-384.png">
     <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
     
-    <!-- iOS Splash Screens -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-startup-image" href="/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)">
-    
     <!-- Theme Colors -->
     <meta name="theme-color" content="#8B4513">
     <meta name="msapplication-TileColor" content="#8B4513">
@@ -41,8 +35,6 @@
     <!-- Standard Icon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
-    <!-- Notification Permission Preload -->
-    <link rel="preload" as="script" href="/sw.js">
     <style>
         * {
             margin: 0;
@@ -161,19 +153,16 @@
         .section-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f0f0f0;
+            align-items: center;
+            margin-bottom: 1rem;
             flex-wrap: wrap;
             gap: 1rem;
         }
 
         .section-title {
             font-size: 1.2rem;
-            color: #8B4513;
             font-weight: 600;
-            flex: 1;
+            color: #333;
             min-width: 200px;
         }
 
@@ -181,13 +170,15 @@
             background: #8B4513;
             color: white;
             border: none;
-            padding: 0.7rem 1.2rem;
-            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: 600;
+            font-size: 0.85rem;
+            font-weight: 500;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
-            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn-primary:hover {
@@ -195,166 +186,91 @@
             transform: translateY(-1px);
         }
 
-        /* Mobile-friendly table wrapper */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 2.5rem 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            display: none;
+            padding: 0.25rem;
+        }
+
         .table-wrapper {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: -1rem;
-            padding: 1rem;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
-            min-width: 600px;
             background: white;
+            font-size: 0.85rem;
         }
 
         .table th,
         .table td {
-            padding: 0.8rem 0.5rem;
+            padding: 0.8rem 0.6rem;
             text-align: left;
             border-bottom: 1px solid #eee;
-            font-size: 0.85rem;
         }
 
         .table th {
             background: #f8f9fa;
             font-weight: 600;
-            color: #333;
-            position: sticky;
-            top: 0;
+            color: #555;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .table tr:hover {
             background: #f8f9fa;
         }
 
-        /* Mobile card view for tables */
-        .mobile-card-view {
-            display: none;
-        }
-
-        .mobile-card {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid #e9ecef;
-        }
-
-        .mobile-card-header {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .mobile-card-image {
-            width: 50px;
-            height: 50px;
-            border-radius: 6px;
-            background: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 1.5rem;
-        }
-
-        .mobile-card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-
-        .mobile-card-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .mobile-card-title {
-            font-weight: 600;
-            margin-bottom: 0.2rem;
-            word-break: break-word;
-        }
-
-        .mobile-card-subtitle {
-            color: #666;
-            font-size: 0.8rem;
-        }
-
-        .mobile-card-body {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.8rem;
-            margin-bottom: 1rem;
-        }
-
-        .mobile-field {
-            background: white;
-            padding: 0.6rem;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
-        }
-
-        .mobile-field-label {
-            font-size: 0.7rem;
-            color: #666;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.2rem;
-        }
-
-        .mobile-field-value {
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .status-badge {
-            padding: 0.3rem 0.8rem;
-            border-radius: 15px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .status-visible {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-hidden {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-
         .action-buttons {
             display: flex;
             gap: 0.4rem;
             flex-wrap: wrap;
-            justify-content: flex-start;
         }
 
         .btn-small {
-            padding: 0.35rem 0.7rem;
+            padding: 0.3rem 0.6rem;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 0.75rem;
             font-weight: 500;
@@ -371,15 +287,22 @@
             background: #0056b3;
         }
 
-        .btn-hide,
-        .btn-show {
+        .btn-hide {
             background: #ffc107;
-            color: #333;
+            color: #212529;
         }
 
-        .btn-hide:hover,
-        .btn-show:hover {
+        .btn-hide:hover {
             background: #e0a800;
+        }
+
+        .btn-show {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-show:hover {
+            background: #1e7e34;
         }
 
         .btn-delete {
@@ -391,70 +314,45 @@
             background: #c82333;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.4rem;
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
             font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .form-control {
-            width: 100%;
-            padding: 0.7rem;
-            border: 2px solid #eee;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            transition: border-color 0.3s ease;
+        .status-visible {
+            background: #d4edda;
+            color: #155724;
         }
 
-        .form-control:focus {
-            outline: none;
-            border-color: #8B4513;
+        .status-hidden {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
         }
 
         .loading {
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 0;
         }
 
         .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #8B4513;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8B4513;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
@@ -467,108 +365,92 @@
 
         .empty-state {
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 3rem 0;
             color: #666;
         }
 
         .empty-state h3 {
-            margin-bottom: 0.8rem;
-            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #333;
         }
 
-        .empty-state p {
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-        }
-
-        /* Search and Pagination Styles */
-        .search-pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .search-box {
-            position: relative;
-            flex: 1;
-            min-width: 200px;
-            max-width: 300px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.6rem 2.5rem 0.6rem 1rem;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #8B4513;
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            pointer-events: none;
-        }
-
-        .search-clear {
-            position: absolute;
-            right: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 0.2rem;
-            border-radius: 50%;
+        .mobile-card-view {
             display: none;
         }
 
-        .search-clear:hover {
+        .mobile-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1rem;
             background: #f8f9fa;
-            color: #495057;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .mobile-card-body {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .mobile-card-body > div {
+            font-size: 0.85rem;
+        }
+
+        .mobile-card-body strong {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .mobile-card .action-buttons {
+            padding: 1rem;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+            justify-content: center;
         }
 
         .pagination {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
         }
 
         .pagination-info {
-            font-size: 0.8rem;
-            color: #6c757d;
-            margin-right: 0.8rem;
-            white-space: nowrap;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .pagination-btn {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            color: #495057;
             padding: 0.4rem 0.8rem;
-            border-radius: 5px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 0.8rem;
             transition: all 0.3s ease;
-            min-width: 32px;
-            text-align: center;
         }
 
         .pagination-btn:hover:not(:disabled) {
-            background: #e9ecef;
-            border-color: #adb5bd;
+            background: #f8f9fa;
+            border-color: #8B4513;
         }
 
         .pagination-btn:disabled {
@@ -576,134 +458,286 @@
             cursor: not-allowed;
         }
 
-        .pagination-btn.active {
-            background: #8B4513;
-            border-color: #8B4513;
-            color: white;
-        }
-
-        .pagination-btn.active:hover {
-            background: #A0522D;
-            border-color: #A0522D;
-        }
-
-        .items-per-page {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-
-        .items-per-page select {
-            padding: 0.3rem 0.5rem;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        /* No results message */
-        .no-results {
-            text-align: center;
-            padding: 2rem;
-            color: #6c757d;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-
-        .no-results h4 {
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
-
-        .no-results p {
-            margin: 0;
-            font-size: 0.9rem;
-        }
-        .custom-modal {
+        /* Modal Styles */
+        .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            z-index: 3000;
-            display: flex;
+            z-index: 1000;
+            display: none;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
             padding: 1rem;
         }
 
-        .custom-modal.active {
-            opacity: 1;
-            visibility: visible;
+        .modal.active {
+            display: flex;
         }
 
-        .custom-modal-content {
+        .modal-content {
             background: white;
-            border-radius: 15px;
+            border-radius: 10px;
+            padding: 2rem;
+            max-width: 600px;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transform: translateY(-50px) scale(0.9);
-            transition: all 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .custom-modal.active .custom-modal-content {
-            transform: translateY(0) scale(1);
-        }
-
-        .custom-modal-header {
-            padding: 1.2rem 1.5rem 0.8rem;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
             border-bottom: 1px solid #eee;
         }
 
-        .custom-modal-header h3 {
+        .modal-header h3 {
             margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
             color: #333;
-            font-size: 1.1rem;
         }
 
-        .custom-modal-body {
-            padding: 1.2rem 1.5rem;
-        }
-
-        .custom-modal-body p {
-            margin: 0;
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
             color: #666;
-            line-height: 1.5;
-            font-size: 0.9rem;
+            padding: 0.5rem;
+            line-height: 1;
         }
 
-        .custom-modal-footer {
-            padding: 0.8rem 1.5rem 1.2rem;
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #8B4513;
+            box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        .variant-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .variant-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .variant-item input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        .variant-item input[type="number"] {
+            width: 80px;
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .image-upload {
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload:hover {
+            border-color: #8B4513;
+        }
+
+        .image-upload input[type="file"] {
+            display: none;
+        }
+
+        .image-upload-label {
+            cursor: pointer;
+            color: #666;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            display: none;
+            text-align: center;
+        }
+
+        .form-buttons {
             display: flex;
             gap: 0.8rem;
-            justify-content: flex-end;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .form-buttons button {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.8rem;
+        }
+
+        .notification-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #8B4513;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Custom Alert Styles */
+        .custom-alert-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .custom-alert-content {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .custom-alert-message {
+            margin-bottom: 1.5rem;
+            white-space: pre-line;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .custom-alert-actions {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
         }
 
         .custom-modal-btn {
-            padding: 0.6rem 1.2rem;
+            padding: 0.6rem 1.5rem;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
             transition: all 0.3s ease;
-            font-size: 0.85rem;
-            flex: 1;
+            min-width: 80px;
         }
 
-        .custom-modal-btn.primary {
+        .custom-modal-btn:not(.secondary) {
             background: #8B4513;
             color: white;
         }
 
-        .custom-modal-btn.primary:hover {
+        .custom-modal-btn:not(.secondary):hover {
             background: #A0522D;
             transform: translateY(-1px);
         }
@@ -844,364 +878,273 @@
                 padding: 1rem 0.8rem;
             }
         }
-
-        /* Tablet landscape */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .dashboard-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .section-header {
-                flex-direction: row;
-                align-items: center;
-            }
-        }
-
-        /* Touch-friendly improvements */
-        @media (hover: none) {
-            .btn-small,
-            .btn-primary,
-            .nav-btn {
-                padding: 0.6rem 1rem;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .table th,
-            .table td {
-                padding: 1rem 0.8rem;
-            }
-        }
-
-        /* Form improvements for mobile */
-        .variant-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .variant-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
-        }
-
-        .variant-item input[type="checkbox"] {
-            transform: scale(1.2);
-        }
-
-        .variant-item input[type="number"] {
-            width: 80px;
-            padding: 0.4rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .form-buttons {
-            display: flex;
-            gap: 0.8rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .form-buttons button {
-            flex: 1;
-            min-width: 120px;
-            padding: 0.8rem;
-        }
-
-        /* Image preview improvements */
-        #imagePreview {
-            margin-top: 0.8rem;
-            text-align: center;
-        }
-
-        #previewImg {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-        }
-
-        /* Notification toggle */
-        .notification-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .notification-toggle input {
-            transform: scale(1.2);
-        }
-
-        @media (max-width: 768px) {
-            .notification-toggle {
-                width: 100%;
-                justify-content: flex-start;
-                margin-bottom: 0.8rem;
-            }
-            
-            .notification-controls {
-                display: flex;
-                flex-direction: column;
-                gap: 0.8rem;
-                width: 100%;
-            }
-            
-            .notification-controls button {
-                margin-left: 0 !important;
-                width: 100%;
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="logo">🌸 Qotore Admin</div>
+    <div class="header">
+        <div class="logo">Qotore Admin</div>
         <div class="nav-buttons">
-            <button onclick="refreshData()" class="nav-btn" title="Refresh Data">
+            <button class="nav-btn" onclick="refreshData()" id="refreshBtn" title="Refresh Data">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                 </svg>
+                Refresh
             </button>
-            <a href="/" class="nav-btn" title="View Store">View Store</a>
-            <button onclick="logout()" class="nav-btn" title="Logout">Logout</button>
+            <a href="../" class="nav-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                Home
+            </a>
+            <a href="../login.html" class="nav-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                </svg>
+                Logout
+            </a>
         </div>
-    </header>
+    </div>
 
-    <!-- Main Container -->
     <div class="container">
         <!-- Dashboard Stats -->
         <div class="dashboard-stats">
             <div class="stat-card">
-                <div class="stat-number" id="totalFragrances">-</div>
+                <div class="stat-number" id="totalFragrances">0</div>
                 <div class="stat-label">Total Fragrances</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="visibleFragrances">-</div>
+                <div class="stat-number" id="visibleFragrances">0</div>
                 <div class="stat-label">Visible Fragrances</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalOrders">-</div>
+                <div class="stat-number" id="totalOrders">0</div>
                 <div class="stat-label">Total Orders</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="pendingOrders">-</div>
+                <div class="stat-number" id="pendingOrders">0</div>
                 <div class="stat-label">Pending Orders</div>
             </div>
         </div>
 
-        <!-- Fragrances Management -->
+        <!-- Notifications Toggle -->
+        <div class="notification-toggle">
+            <label class="switch">
+                <input type="checkbox" id="notificationToggle">
+                <span class="slider"></span>
+            </label>
+            <span>Enable Order Notifications</span>
+        </div>
+
+        <!-- Fragrances Section -->
         <div class="section">
             <div class="section-header">
-                <h2 class="section-title">🌸 Manage Fragrances</h2>
-                <button class="btn-primary" onclick="openAddFragranceModal()">Add New Fragrance</button>
+                <h2 class="section-title">Manage Fragrances</h2>
+                <button class="btn-primary" onclick="openFragranceModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Add New Fragrance
+                </button>
             </div>
-            
-            <div id="fragrancesLoading" class="loading">
+
+            <!-- Fragrances Controls -->
+            <div class="controls" id="fragrancesControls" style="display: none;">
+                <div class="search-container">
+                    <input type="text" class="search-input" id="fragrancesSearch" placeholder="Search fragrances...">
+                    <button class="search-clear" id="fragrancesClearSearch" onclick="clearFragrancesSearch()">×</button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="fragrancesLoading">
                 <div class="spinner"></div>
                 <p>Loading fragrances...</p>
             </div>
 
-            <!-- Search and Pagination Controls -->
-            <div id="fragrancesControls" class="search-pagination-container" style="display: none;">
-                <div class="search-box">
-                    <input type="text" id="fragrancesSearch" class="search-input" placeholder="Search fragrances...">
-                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                    </svg>
-                    <button class="search-clear" id="fragrancesClearSearch" onclick="clearFragrancesSearch()">✕</button>
-                </div>
-                <div class="pagination">
-                    <div class="pagination-info" id="fragrancesPaginationInfo"></div>
-                    <button class="pagination-btn" id="fragrancesPrevBtn" onclick="previousFragrancesPage()">‹</button>
-                    <div id="fragrancesPaginationNumbers"></div>
-                    <button class="pagination-btn" id="fragrancesNextBtn" onclick="nextFragrancesPage()">›</button>
-                </div>
+            <!-- Empty State -->
+            <div class="empty-state" id="fragrancesEmpty" style="display: none;">
+                <h3>No Fragrances Found</h3>
+                <p>Add your first fragrance to get started</p>
+            </div>
+
+            <!-- No Results -->
+            <div class="empty-state" id="fragrancesNoResults" style="display: none;">
+                <h3>No Results Found</h3>
+                <p>Try adjusting your search terms</p>
             </div>
 
             <!-- Desktop Table View -->
-            <div id="fragrancesTable" class="table-wrapper" style="display: none;">
+            <div class="table-wrapper" id="fragrancesTable" style="display: none;">
                 <table class="table">
                     <thead>
                         <tr>
                             <th>Fragrance</th>
-                            <th>Brand</th>
+                            <th>Description</th>
                             <th>Variants</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="fragrancesTableBody">
-                        <!-- Fragrances will be loaded here -->
-                    </tbody>
+                    <tbody id="fragrancesTableBody"></tbody>
                 </table>
             </div>
 
             <!-- Mobile Card View -->
-            <div id="fragrancesMobile" class="mobile-card-view">
-                <!-- Mobile cards will be loaded here -->
+            <div class="mobile-card-view" id="fragrancesMobile" style="display: none;">
+                <div id="fragrancesMobileContainer"></div>
             </div>
 
-            <!-- No Results Message -->
-            <div id="fragrancesNoResults" class="no-results" style="display: none;">
-                <h4>No fragrances found</h4>
-                <p>Try adjusting your search terms or clear the search to see all fragrances.</p>
-            </div>
-
-            <div id="fragrancesEmpty" class="empty-state" style="display: none;">
-                <h3>No fragrances found</h3>
-                <p>Start by adding your first fragrance</p>
-                <button class="btn-primary" onclick="openAddFragranceModal()">Add First Fragrance</button>
+            <!-- Pagination -->
+            <div class="pagination" id="fragrancesPagination" style="display: none;">
+                <div class="pagination-info" id="fragrancesPaginationInfo"></div>
+                <div class="pagination-buttons">
+                    <button class="pagination-btn" id="fragrancesPrevBtn" onclick="previousFragrancesPage()">Previous</button>
+                    <button class="pagination-btn" id="fragrancesNextBtn" onclick="nextFragrancesPage()">Next</button>
+                </div>
             </div>
         </div>
 
-        <!-- Orders Management -->
+        <!-- Orders Section -->
         <div class="section">
             <div class="section-header">
-                <h2 class="section-title">📦 Manage Orders</h2>
-                <div class="notification-controls">
-                    <label class="notification-toggle">
-                        <input type="checkbox" id="notificationsEnabled" onchange="toggleNotifications()">
-                        <span>Enable Order Notifications</span>
-                    </label>
-                    <button onclick="testNotification()" class="btn-primary" style="margin-left: 1rem; padding: 0.4rem 0.8rem; font-size: 0.8rem;">
-                        Test Notification
-                    </button>
+                <h2 class="section-title">Manage Orders</h2>
+            </div>
+
+            <!-- Orders Controls -->
+            <div class="controls" id="ordersControls" style="display: none;">
+                <div class="search-container">
+                    <input type="text" class="search-input" id="ordersSearch" placeholder="Search orders...">
+                    <button class="search-clear" id="ordersClearSearch" onclick="clearOrdersSearch()">×</button>
                 </div>
             </div>
-            
-            <div id="ordersLoading" class="loading">
+
+            <!-- Loading -->
+            <div class="loading" id="ordersLoading">
                 <div class="spinner"></div>
                 <p>Loading orders...</p>
             </div>
 
-            <!-- Search and Pagination Controls -->
-            <div id="ordersControls" class="search-pagination-container" style="display: none;">
-                <div class="search-box">
-                    <input type="text" id="ordersSearch" class="search-input" placeholder="Search orders by customer, phone, or order number...">
-                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                    </svg>
-                    <button class="search-clear" id="ordersClearSearch" onclick="clearOrdersSearch()">✕</button>
-                </div>
-                <div class="pagination">
-                    <div class="pagination-info" id="ordersPaginationInfo"></div>
-                    <button class="pagination-btn" id="ordersPrevBtn" onclick="previousOrdersPage()">‹</button>
-                    <div id="ordersPaginationNumbers"></div>
-                    <button class="pagination-btn" id="ordersNextBtn" onclick="nextOrdersPage()">›</button>
-                </div>
+            <!-- Empty State -->
+            <div class="empty-state" id="ordersEmpty" style="display: none;">
+                <h3>No Orders Found</h3>
+                <p>Orders will appear here when customers place them</p>
+            </div>
+
+            <!-- No Results -->
+            <div class="empty-state" id="ordersNoResults" style="display: none;">
+                <h3>No Results Found</h3>
+                <p>Try adjusting your search terms</p>
             </div>
 
             <!-- Desktop Table View -->
-            <div id="ordersTable" class="table-wrapper" style="display: none;">
+            <div class="table-wrapper" id="ordersTable" style="display: none;">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
+                            <th>Order #</th>
                             <th>Customer</th>
                             <th>Items</th>
                             <th>Total</th>
+                            <th>Date</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="ordersTableBody">
-                        <!-- Orders will be loaded here -->
-                    </tbody>
+                    <tbody id="ordersTableBody"></tbody>
                 </table>
             </div>
 
             <!-- Mobile Card View -->
-            <div id="ordersMobile" class="mobile-card-view">
-                <!-- Mobile cards will be loaded here -->
+            <div class="mobile-card-view" id="ordersMobile" style="display: none;">
+                <div id="ordersMobileContainer"></div>
             </div>
 
-            <!-- No Results Message -->
-            <div id="ordersNoResults" class="no-results" style="display: none;">
-                <h4>No orders found</h4>
-                <p>Try adjusting your search terms or clear the search to see all orders.</p>
-            </div>
-
-            <div id="ordersEmpty" class="empty-state" style="display: none;">
-                <h3>No orders yet</h3>
-                <p>Orders will appear here when customers place them</p>
+            <!-- Pagination -->
+            <div class="pagination" id="ordersPagination" style="display: none;">
+                <div class="pagination-info" id="ordersPaginationInfo"></div>
+                <div class="pagination-buttons">
+                    <button class="pagination-btn" id="ordersPrevBtn" onclick="previousOrdersPage()">Previous</button>
+                    <button class="pagination-btn" id="ordersNextBtn" onclick="nextOrdersPage()">Next</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Add/Edit Fragrance Modal -->
-    <div id="fragranceModal" class="modal">
+    <!-- Fragrance Modal -->
+    <div class="modal" id="fragranceModal">
         <div class="modal-content">
-            <h2 id="fragranceModalTitle">Add New Fragrance</h2>
+            <div class="modal-header">
+                <h3 id="fragranceModalTitle">Add New Fragrance</h3>
+                <button class="modal-close" onclick="closeFragranceModal()">×</button>
+            </div>
+            
             <form id="fragranceForm">
-                <input type="hidden" id="fragranceId">
-                
                 <div class="form-group">
                     <label for="fragranceName">Name *</label>
-                    <input type="text" id="fragranceName" class="form-control" required>
+                    <input type="text" id="fragranceName" name="name" class="form-control" required>
                 </div>
-
+                
+                <div class="form-group">
+                    <label for="fragranceSlug">URL Slug *</label>
+                    <input type="text" id="fragranceSlug" name="slug" class="form-control" placeholder="e.g., luxury-perfume-2024" required>
+                    <small style="color: #666; font-size: 0.8rem;">Used in the website URL. Use lowercase letters, numbers, and hyphens only.</small>
+                </div>
+                
                 <div class="form-group">
                     <label for="fragranceBrand">Brand</label>
-                    <input type="text" id="fragranceBrand" class="form-control">
+                    <input type="text" id="fragranceBrand" name="brand" class="form-control">
                 </div>
-
+                
                 <div class="form-group">
-                    <label for="fragranceDescription">Description *</label>
-                    <textarea id="fragranceDescription" class="form-control" rows="3" required></textarea>
+                    <label for="fragranceDescription">Description</label>
+                    <textarea id="fragranceDescription" name="description" class="form-control" rows="3"></textarea>
                 </div>
-
+                
                 <div class="form-group">
-                    <label for="fragranceImage">Product Image (PNG only)</label>
-                    <input type="file" id="fragranceImage" accept=".png" class="form-control">
-                    <div id="imagePreview" style="display: none;">
-                        <img id="previewImg">
-                        <button type="button" onclick="clearImage()" style="margin-top: 0.5rem; background: #ff4444; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer;">Remove</button>
+                    <label>Image</label>
+                    <div class="image-upload">
+                        <input type="file" id="fragranceImage" name="image" accept="image/*">
+                        <label for="fragranceImage" class="image-upload-label">
+                            Click to upload image or drag and drop
+                        </label>
                     </div>
+                    <div class="image-preview" id="imagePreview"></div>
                 </div>
-
+                
                 <div class="form-group">
-                    <label>Variants (OMR) *</label>
+                    <label>Available Variants</label>
                     <div class="variant-grid">
-                        <label class="variant-item">
-                            <input type="checkbox" id="variant5ml" checked> 
-                            <span>5ml -</span>
-                            <input type="number" step="0.001" value="2.500"> 
-                            <span>OMR</span>
-                        </label>
-                        <label class="variant-item">
-                            <input type="checkbox" id="variant10ml" checked> 
-                            <span>10ml -</span>
-                            <input type="number" step="0.001" value="4.500"> 
-                            <span>OMR</span>
-                        </label>
-                        <label class="variant-item">
-                            <input type="checkbox" id="variant30ml" checked> 
-                            <span>30ml -</span>
-                            <input type="number" step="0.001" value="12.000"> 
-                            <span>OMR</span>
-                        </label>
-                        <label class="variant-item">
-                            <input type="checkbox" id="variantFull" checked> 
-                            <span>🎁 Full Bottle (Contact for pricing)</span>
-                        </label>
+                        <div class="variant-item">
+                            <input type="checkbox" id="variant5ml" data-variant="5ml">
+                            <label for="variant5ml">5ml</label>
+                            <input type="number" data-variant-price="5ml" placeholder="Price (OMR)" step="0.001" min="0">
+                        </div>
+                        <div class="variant-item">
+                            <input type="checkbox" id="variant10ml" data-variant="10ml">
+                            <label for="variant10ml">10ml</label>
+                            <input type="number" data-variant-price="10ml" placeholder="Price (OMR)" step="0.001" min="0">
+                        </div>
+                        <div class="variant-item">
+                            <input type="checkbox" id="variant30ml" data-variant="30ml">
+                            <label for="variant30ml">30ml</label>
+                            <input type="number" data-variant-price="30ml" placeholder="Price (OMR)" step="0.001" min="0">
+                        </div>
+                        <div class="variant-item">
+                            <input type="checkbox" id="variantWhole" data-variant="Whole Bottle">
+                            <label for="variantWhole">Whole Bottle (Contact for pricing)</label>
+                        </div>
                     </div>
                 </div>
-
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="fragranceHidden" name="hidden">
+                    <label for="fragranceHidden">Hide from public view</label>
+                </div>
+                
                 <div class="form-buttons">
-                    <button type="button" onclick="closeFragranceModal()" class="btn-small" style="background: #ccc; flex: 0.4;">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Fragrance</button>
+                    <button type="button" class="btn-secondary" onclick="closeFragranceModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitFragranceBtn">Save Fragrance</button>
                 </div>
             </form>
         </div>
