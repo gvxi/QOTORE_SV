@@ -822,16 +822,22 @@ async function toggleOrderStatus(id) {
             body: JSON.stringify({ id, status: newStatus })
         });
         
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
         const result = await response.json();
         if (result.success) {
             await loadOrders();
             updateStats();
+            showCustomAlert(`Order marked as ${newStatus}!`);
         } else {
-            throw new Error(result.error);
+            throw new Error(result.error || 'Failed to update order status');
         }
     } catch (error) {
         console.error('Error toggling order status:', error);
-        showCustomAlert('Failed to update order status');
+        showCustomAlert('Failed to update order status: ' + error.message);
     }
 }
 
@@ -981,7 +987,6 @@ async function handleFragranceSubmit(e) {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
         
-        const formData = new FormData();
         const form = e.target;
         
         // Basic fragrance data
@@ -993,7 +998,12 @@ async function handleFragranceSubmit(e) {
             hidden: form.fragranceHidden.checked,
             variants: []
         };
-        
+
+        // Validate required fields
+        if (!fragranceData.name || !fragranceData.slug) {
+            throw new Error('Name and slug are required');
+        }
+
         // Collect variants
         const variantCheckboxes = form.querySelectorAll('input[data-variant]');
         variantCheckboxes.forEach(checkbox => {
@@ -1016,26 +1026,55 @@ async function handleFragranceSubmit(e) {
                 fragranceData.variants.push(variant);
             }
         });
+
+        let response;
         
-        // Add image if provided
+        // Handle image upload for both add and update
         const imageFile = form.fragranceImage.files[0];
-        if (imageFile) {
-            formData.append('image', imageFile);
+        if (imageFile || !currentEditingId) {
+            // Use FormData for image upload
+            const formData = new FormData();
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            formData.append('data', JSON.stringify(fragranceData));
+            
+            if (currentEditingId) {
+                formData.append('id', currentEditingId);
+                // Use PUT method for update
+                response = await fetch('/admin/update-fragrance', {
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: formData
+                });
+            } else {
+                response = await fetch('/admin/add-fragrance', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+            }
+        } else {
+            // Update without image - use JSON
+            if (currentEditingId) {
+                fragranceData.id = currentEditingId;
+            }
+            
+            response = await fetch(currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance', {
+                method: currentEditingId ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(fragranceData)
+            });
         }
         
-        formData.append('data', JSON.stringify(fragranceData));
-        
-        if (currentEditingId) {
-            formData.append('id', currentEditingId);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
-        
-        const url = currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance';
-        const response = await fetch(url, {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-        });
-        
+
         const result = await response.json();
         if (result.success) {
             closeFragranceModal();
