@@ -166,33 +166,39 @@ function displayOrders() {
     const controls = document.getElementById('ordersControls');
     const noResults = document.getElementById('ordersNoResults');
 
-// Global Variables
-loading.style.display = 'none';
-let fragrances = [];
-let orders = [];
-let currentEditingId = null;
-let isMobile = window.innerWidth <= 768;
-let isRefreshing = false;
+    loading.style.display = 'none';
+    let fragrances = [];
+    let orders = [];
+    let currentEditingId = null;
+    let isMobile = window.innerWidth <= 768;
+    let isRefreshing = false;
+
+// Service Worker and Notification Variables
+let serviceWorker = null;
+let notificationPermission = null;
+let isIOSPWA = false;
 
 // Pagination and Search Variables
 let fragrancesPage = 1;
-let fragrancesPerPage = 5;
+let fragrancesPerPage = 10;
 let fragrancesSearchTerm = '';
 let filteredFragrances = [];
 
 let ordersPage = 1;
-let ordersPerPage = 5;
+let ordersPerPage = 10;
 let ordersSearchTerm = '';
 let filteredOrders = [];
 
 // Initialize Admin Panel
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
+    initializeServiceWorker();
     loadDashboardData();
     loadNotificationSettings();
     initializeImageUpload();
     initializeFormHandlers();
     initializeSearchAndPagination();
+    detectIOSPWA();
     
     // Handle window resize
     window.addEventListener('resize', handleResize);
@@ -200,14 +206,375 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial render mode
     handleResize();
     
-    // Start order polling if notifications are enabled
-    setTimeout(() => {
-        const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
-        if (notificationsEnabled && Notification.permission === 'granted') {
-            startOrderPolling();
-        }
-    }, 2000); // Wait 2 seconds after initial load
+    // Handle page visibility for better notification management
+    handlePageVisibility();
 });
+
+// Detect if running as iOS PWA
+function detectIOSPWA() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  window.navigator.standalone === true;
+    
+    isIOSPWA = isIOS && isPWA;
+    
+    console.log('Device detection:', {
+        isIOS: isIOS,
+        isPWA: isPWA,
+        isIOSPWA: isIOSPWA,
+        userAgent: navigator.userAgent
+    });
+}
+
+// Initialize Service Worker for iOS PWA compatibility
+async function initializeServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            console.log('Registering service worker...');
+            
+            const registration = await navigator.serviceWorker.register('/sw.js', {
+                scope: '/'
+            });
+            
+            console.log('Service Worker registered:', registration);
+            
+            // Wait for service worker to be ready
+            await navigator.serviceWorker.ready;
+            
+            serviceWorker = registration;
+            
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+            
+            // Handle service worker updates
+            registration.addEventListener('updatefound', () => {
+                console.log('Service Worker update found');
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('New Service Worker installed, reloading...');
+                        window.location.reload();
+                    }
+                });
+            });
+            
+            console.log('Service Worker initialized successfully');
+            
+        } catch (error) {
+            console.error('Service Worker registration failed:', error);
+        }
+    } else {
+        console.warn('Service Worker not supported');
+    }
+}
+
+// Handle messages from service worker
+function handleServiceWorkerMessage(event) {
+    const { type, data } = event.data;
+    
+    console.log('Message from Service Worker:', type, data);
+    
+    switch (type) {
+        case 'NEW_ORDERS':
+            console.log(`${data.count} new order(s) detected by Service Worker`);
+            // Refresh orders display
+            loadOrders();
+            break;
+            
+        case 'NOTIFICATION_CLICKED':
+            console.log('Notification clicked, order data:', data);
+            // Scroll to orders section
+            const ordersSection = document.querySelector('.section:nth-child(3)');
+            if (ordersSection) {
+                ordersSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            // Refresh orders
+            loadOrders();
+            break;
+            
+        case 'SHOW_NOTIFICATION':
+            // Fallback for older iOS versions
+            if (data.title && data.options) {
+                showFallbackNotification(data.title, data.options);
+            }
+            break;
+            
+        case 'NOTIFICATION_CLOSED':
+            console.log('Notification closed:', data.tag);
+            break;
+    }
+}
+
+// Fallback notification for older iOS versions
+function showFallbackNotification(title, options) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            const notification = new Notification(title, options);
+            
+            notification.onclick = function(event) {
+                event.preventDefault();
+                window.focus();
+                notification.close();
+                
+                // Handle the click action
+                if (options.data && options.data.url) {
+                    // Focus the current window instead of opening new one
+                    const ordersSection = document.querySelector('.section:nth-child(3)');
+                    if (ordersSection) {
+                        ordersSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                    loadOrders();
+                }
+            };
+            
+            // Auto-close after 10 seconds for fallback notifications
+            setTimeout(() => {
+                notification.close();
+            }, 10000);
+            
+        } catch (error) {
+            console.error('Error showing fallback notification:', error);
+        }
+    }
+}
+
+// Handle page visibility changes
+function handlePageVisibility() {
+    document.addEventListener('visibilitychange', () => {
+        const isVisible = !document.hidden;
+        console.log('Page visibility changed:', isVisible ? 'visible' : 'hidden');
+        
+        // Notify service worker about visibility change
+        if (serviceWorker && serviceWorker.active) {
+            serviceWorker.active.postMessage({
+                type: 'PAGE_VISIBILITY',
+                visible: isVisible
+            });
+        }
+        
+        if (isVisible) {
+            // Refresh data when page becomes visible
+            loadDashboardData();
+        }
+    });
+}
+
+// Send message to service worker
+function sendMessageToServiceWorker(type, data) {
+    return new Promise((resolve, reject) => {
+        if (!serviceWorker || !serviceWorker.active) {
+            reject(new Error('Service Worker not available'));
+            return;
+        }
+        
+        const messageChannel = new MessageChannel();
+        
+        messageChannel.port1.onmessage = (event) => {
+            if (event.data.success) {
+                resolve(event.data);
+            } else {
+                reject(new Error(event.data.error || 'Service Worker operation failed'));
+            }
+        };
+        
+        serviceWorker.active.postMessage({
+            type: type,
+            ...data
+        }, [messageChannel.port2]);
+    });
+}
+
+// Enhanced notification settings
+async function loadNotificationSettings() {
+    const enabled = localStorage.getItem('notificationsEnabled') === 'true';
+    const checkbox = document.getElementById('notificationsEnabled');
+    if (checkbox) {
+        checkbox.checked = enabled;
+    }
+    
+    // Check notification permission status
+    if ('Notification' in window) {
+        notificationPermission = Notification.permission;
+        
+        if (enabled && notificationPermission === 'granted') {
+            console.log('Notifications are enabled and permission granted');
+            await startServiceWorkerMonitoring();
+        } else if (enabled && notificationPermission === 'denied') {
+            console.log('Notifications denied by user');
+            showCustomAlert('Notifications are blocked in your browser. Please enable them in browser settings to receive order notifications.');
+        }
+    }
+}
+
+// Start service worker order monitoring
+async function startServiceWorkerMonitoring() {
+    try {
+        if (serviceWorker && serviceWorker.active) {
+            // Initialize service worker with current known orders
+            const currentOrderIds = orders.map(order => order.id);
+            
+            await sendMessageToServiceWorker('INIT_KNOWN_ORDERS', {
+                orderIds: currentOrderIds
+            });
+            
+            await sendMessageToServiceWorker('START_ORDER_MONITORING', {
+                enabled: true
+            });
+            
+            console.log('Service Worker order monitoring started');
+        }
+    } catch (error) {
+        console.error('Failed to start Service Worker monitoring:', error);
+    }
+}
+
+// Stop service worker order monitoring
+async function stopServiceWorkerMonitoring() {
+    try {
+        if (serviceWorker && serviceWorker.active) {
+            await sendMessageToServiceWorker('STOP_ORDER_MONITORING', {});
+            console.log('Service Worker order monitoring stopped');
+        }
+    } catch (error) {
+        console.error('Failed to stop Service Worker monitoring:', error);
+    }
+}
+
+// Enhanced toggle notifications with iOS PWA support
+async function toggleNotifications() {
+    const enabled = document.getElementById('notificationsEnabled').checked;
+    localStorage.setItem('notificationsEnabled', enabled);
+    
+    if (enabled && 'Notification' in window) {
+        if (Notification.permission === 'default') {
+            const permission = await Notification.requestPermission();
+            notificationPermission = permission;
+            
+            if (permission === 'granted') {
+                await startServiceWorkerMonitoring();
+                
+                showCustomAlert('✅ Order notifications enabled! You will receive notifications for new orders even when the tab is in the background.');
+                
+                // Send a welcome notification via service worker
+                if (serviceWorker && serviceWorker.active) {
+                    serviceWorker.active.postMessage({
+                        type: 'SHOW_NOTIFICATION',
+                        data: {
+                            title: '🔔 Notifications Enabled',
+                            options: {
+                                body: 'You will now receive notifications for new orders.',
+                                icon: '/favicon.ico',
+                                tag: 'welcome-notification'
+                            }
+                        }
+                    });
+                }
+                
+            } else if (permission === 'denied') {
+                document.getElementById('notificationsEnabled').checked = false;
+                localStorage.setItem('notificationsEnabled', 'false');
+                
+                let message = '❌ Notification permission denied.';
+                if (isIOSPWA) {
+                    message += ' On iOS, please enable notifications in Settings > Notifications > Safari > Allow Notifications.';
+                } else {
+                    message += ' Please enable notifications in your browser settings to receive order alerts.';
+                }
+                showCustomAlert(message);
+            }
+        } else if (Notification.permission === 'granted') {
+            await startServiceWorkerMonitoring();
+            showCustomAlert('✅ Order notifications enabled!');
+        } else {
+            document.getElementById('notificationsEnabled').checked = false;
+            localStorage.setItem('notificationsEnabled', 'false');
+            
+            let message = '❌ Notifications are blocked.';
+            if (isIOSPWA) {
+                message += ' Please enable notifications in iOS Settings > Notifications > Safari.';
+            } else {
+                message += ' Please enable them in your browser settings.';
+            }
+            showCustomAlert(message);
+        }
+    } else if (!enabled) {
+        await stopServiceWorkerMonitoring();
+        showCustomAlert('Order notifications disabled.');
+    } else {
+        showCustomAlert('❌ Your browser does not support notifications.');
+    }
+}
+
+// Enhanced test notification for iOS PWA
+function testNotification() {
+    if (!('Notification' in window)) {
+        showCustomAlert('❌ Your browser does not support notifications.');
+        return;
+    }
+    
+    if (Notification.permission !== 'granted') {
+        showCustomAlert('❌ Please enable notifications first by checking the "Enable Order Notifications" checkbox.');
+        return;
+    }
+    
+    const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    if (!notificationsEnabled) {
+        showCustomAlert('❌ Please enable notifications first by checking the "Enable Order Notifications" checkbox.');
+        return;
+    }
+    
+    // Test notification data
+    const testOrderData = {
+        id: 999999,
+        orderNumber: 'ORD-TEST123',
+        customer: {
+            firstName: 'Test',
+            lastName: 'Customer'
+        },
+        total: 15.500,
+        itemCount: 3,
+        items: [{ quantity: 2 }, { quantity: 1 }]
+    };
+    
+    // Send test notification via service worker for better iOS PWA compatibility
+    if (serviceWorker && serviceWorker.active) {
+        serviceWorker.active.postMessage({
+            type: 'SHOW_TEST_NOTIFICATION',
+            data: {
+                title: '🧪 Test Order Notification',
+                options: {
+                    body: `Test order ${testOrderData.orderNumber} from ${testOrderData.customer.firstName} ${testOrderData.customer.lastName}\n💰 ${testOrderData.total.toFixed(3)} OMR | 📦 3 items`,
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                    tag: 'test-order',
+                    data: testOrderData,
+                    requireInteraction: true,
+                    actions: [
+                        { action: 'view', title: '👀 View Orders' },
+                        { action: 'dismiss', title: '✕ Dismiss' }
+                    ]
+                }
+            }
+        });
+    } else {
+        // Fallback to regular notification
+        showFallbackNotification('🧪 Test Order Notification', {
+            body: `Test order ${testOrderData.orderNumber} from ${testOrderData.customer.firstName} ${testOrderData.customer.lastName}\n💰 ${testOrderData.total.toFixed(3)} OMR | 📦 3 items`,
+            icon: '/favicon.ico',
+            tag: 'test-order',
+            data: testOrderData
+        });
+    }
+    
+    let message = '✅ Test notification sent!';
+    if (isIOSPWA) {
+        message += ' Check for the notification banner at the top of your screen.';
+    } else {
+        message += ' Check your browser for the notification.';
+    }
+    
+    showCustomAlert(message);
+}
 
 // Initialize Search and Pagination
 function initializeSearchAndPagination() {
@@ -933,7 +1300,7 @@ async function loadFragrances() {
     }
 }
 
-// Load Orders (updated to handle pagination)
+// Load Orders (updated to initialize service worker)
 async function loadOrders() {
     try {
         const response = await fetch('/admin/orders', {
@@ -947,6 +1314,17 @@ async function loadOrders() {
                 // Reset pagination when loading new data
                 ordersPage = 1;
                 displayOrders();
+                
+                // Update service worker with current orders if notifications are enabled
+                const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+                if (notificationsEnabled && serviceWorker && serviceWorker.active) {
+                    const currentOrderIds = orders.map(order => order.id);
+                    sendMessageToServiceWorker('INIT_KNOWN_ORDERS', {
+                        orderIds: currentOrderIds
+                    }).catch(error => {
+                        console.warn('Failed to update service worker with order IDs:', error);
+                    });
+                }
             } else {
                 orders = [];
                 displayOrders();
@@ -959,6 +1337,29 @@ async function loadOrders() {
         console.error('Error loading orders:', error);
         orders = [];
         displayOrders();
+    }
+}
+
+// Remove old polling functions and replace with service worker monitoring
+function startOrderPolling() {
+    // Legacy function - now handled by service worker
+    console.log('Order polling is now handled by Service Worker');
+}
+
+function stopOrderPolling() {
+    // Legacy function - now handled by service worker
+    console.log('Order polling stop is now handled by Service Worker');
+}
+function checkForNewOrders() {
+    // Legacy function - now handled by service worker
+    console.log('Order checking is now handled by Service Worker');
+
+    // Example fallback (optional)
+    try {
+        let orders = [];
+        displayOrders();
+    } catch (error) {
+        console.error("Error displaying orders:", error);
     }
 }
 
@@ -997,7 +1398,6 @@ function handleResize() {
         table.style.display = 'block';
         displayOrdersTable();
     }
-}
 
 function displayOrdersTable() {
     const tbody = document.getElementById('ordersTableBody');
@@ -1700,95 +2100,78 @@ function showOrderNotification(options) {
     }
 }
 
-// Check for new orders periodically (when notifications are enabled)
-let orderCheckInterval = null;
-
-function startOrderPolling() {
-    const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+function showOrderNotification(options) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        console.log('Notifications not available or not permitted');
+        return;
+    }
     
-    if (notificationsEnabled && Notification.permission === 'granted') {
-        // Check for new orders every 30 seconds
-        orderCheckInterval = setInterval(async () => {
-            await checkForNewOrders();
-        }, 30000);
+    const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    if (!notificationsEnabled) {
+        console.log('Notifications disabled by user');
+        return;
+    }
+    
+    try {
+        const notification = new Notification(options.title, {
+            body: options.body,
+            icon: options.icon || '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: options.tag || 'qotore-order',
+            data: options.data || {},
+            requireInteraction: true, // Keep notification visible until user interacts
+            silent: false,
+            timestamp: Date.now(),
+            actions: [
+                {
+                    action: 'view',
+                    title: 'View Orders',
+                    icon: '/favicon.ico'
+                },
+                {
+                    action: 'dismiss',
+                    title: 'Dismiss',
+                    icon: '/favicon.ico'
+                }
+            ]
+        });
         
-        console.log('Order polling started - checking every 30 seconds');
+        // Handle notification click
+        notification.onclick = function(event) {
+            event.preventDefault();
+            window.focus(); // Focus the admin window
+            notification.close();
+            
+            // Scroll to orders section if not test notification
+            if (options.tag !== 'test-order') {
+                document.querySelector('.section:nth-child(3)').scrollIntoView({
+                    behavior: 'smooth'
+                });
+                
+                // Refresh orders to show the new one
+                loadOrders();
+            }
+        };
+        
+        // Auto-close after 10 seconds if not requiring interaction
+        if (!options.requireInteraction) {
+            setTimeout(() => {
+                notification.close();
+            }, 10000);
+        }
+        
+        console.log('Order notification sent:', options.title);
+        
+    } catch (error) {
+        console.error('Error showing notification:', error);
     }
 }
 
-function stopOrderPolling() {
-    if (orderCheckInterval) {
-        clearInterval(orderCheckInterval);
-        orderCheckInterval = null;
-        console.log('Order polling stopped');
-    }
-}
-
+let orderCheckInterval = null;
 let lastOrderCount = 0;
 let knownOrderIds = new Set();
 
-async function checkForNewOrders() {
-    try {
-        const response = await fetch('/admin/orders', {
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            if (result.success) {
-                const currentOrders = result.data || [];
-                
-                // Initialize known orders on first load
-                if (lastOrderCount === 0) {
-                    lastOrderCount = currentOrders.length;
-                    knownOrderIds = new Set(currentOrders.map(order => order.id));
-                    return;
-                }
-                
-                // Check for new orders
-                const newOrders = currentOrders.filter(order => !knownOrderIds.has(order.id));
-                
-                if (newOrders.length > 0) {
-                    console.log(`Found ${newOrders.length} new order(s)`);
-                    
-                    // Show notification for each new order
-                    newOrders.forEach(order => {
-                        const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
-                        const totalQuantity = order.totalQuantity || order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-                        
-                        showOrderNotification({
-                            title: '🛍️ New Order Received!',
-                            body: `Order ${order.orderNumber || `#${order.id}`} from ${customerName}\n💰 Total: ${order.total.toFixed(3)} OMR | 📦 ${totalQuantity} items`,
-                            icon: '/favicon.ico',
-                            data: {
-                                orderId: order.id,
-                                orderNumber: order.orderNumber,
-                                customerName: customerName,
-                                total: order.total,
-                                itemCount: order.itemCount || order.items?.length || 0
-                            },
-                            tag: `order-${order.id}`,
-                            requireInteraction: true
-                        });
-                        
-                        // Add to known orders
-                        knownOrderIds.add(order.id);
-                    });
-                    
-                    // Update order count
-                    lastOrderCount = currentOrders.length;
-                    
-                    // Refresh the orders display
-                    orders = currentOrders;
-                    displayOrders();
-                    updateStats();
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Error checking for new orders:', error);
-    }
-}
+// These variables are kept for backward compatibility but functionality moved to service worker
 
 // Logout Function
 async function logout() {
@@ -2021,4 +2404,4 @@ function observeImages() {
             imageObserver.observe(img);
         });
     }
-}
+}}
