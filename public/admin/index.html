@@ -2,882 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Qotore</title>
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- iOS PWA Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Qotore Admin">
-    <meta name="mobile-web-app-capable" content="yes">
-    
-    <!-- iOS Icons -->
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="96x96" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="128x128" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="256x256" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="384x384" href="/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/apple-touch-icon.png">
-
-    <!-- Theme Colors -->
-    <meta name="theme-color" content="#8B4513">
-    <meta name="msapplication-TileColor" content="#8B4513">
-    <meta name="msapplication-navbutton-color" content="#8B4513">
-    
-    <!-- Standard Icon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .header {
-            background: #8B4513;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .nav-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .nav-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-1px);
-        }
-
-        .nav-btn svg {
-            flex-shrink: 0;
-        }
-
-        .nav-btn.refreshing {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .nav-btn.refreshing svg {
-            animation: spin 1s linear infinite;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem 1rem;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #8B4513;
-            margin-bottom: 0.3rem;
-        }
-
-        .stat-label {
-            color: #666;
-            font-weight: 500;
-            font-size: 0.8rem;
-            line-height: 1.2;
-        }
-
-        .section {
-            background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #333;
-            min-width: 200px;
-        }
-
-        .btn-primary {
-            background: #8B4513;
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary:hover {
-            background: #A0522D;
-            transform: translateY(-1px);
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .search-container {
-            position: relative;
-            flex: 1;
-            max-width: 300px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.6rem 2.5rem 0.6rem 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #8B4513;
-        }
-
-        .search-clear {
-            position: absolute;
-            right: 0.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #666;
-            display: none;
-            padding: 0.25rem;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            font-size: 0.85rem;
-        }
-
-        .table th,
-        .table td {
-            padding: 0.8rem 0.6rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        .table th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #555;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-small {
-            padding: 0.3rem 0.6rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .btn-edit {
-            background: #007bff;
-            color: white;
-        }
-
-        .btn-edit:hover {
-            background: #0056b3;
-        }
-
-        .btn-hide {
-            background: #ffc107;
-            color: #212529;
-        }
-
-        .btn-hide:hover {
-            background: #e0a800;
-        }
-
-        .btn-show {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-show:hover {
-            background: #1e7e34;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background: #c82333;
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-visible {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-hidden {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 3rem 0;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #8B4513;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 0;
-            color: #666;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-
-        .mobile-card-view {
-            display: none;
-        }
-
-        .mobile-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-
-        .mobile-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .mobile-card-body {
-            padding: 1rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.8rem;
-        }
-
-        .mobile-card-body > div {
-            font-size: 0.85rem;
-        }
-
-        .mobile-card-body strong {
-            color: #666;
-            font-weight: 500;
-        }
-
-        .mobile-card .action-buttons {
-            padding: 1rem;
-            border-top: 1px solid #e9ecef;
-            background: #f8f9fa;
-            justify-content: center;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #eee;
-        }
-
-        .pagination-info {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        .pagination-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .pagination-btn {
-            padding: 0.4rem 0.8rem;
-            border: 1px solid #ddd;
-            background: white;
-            color: #666;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-            background: #f8f9fa;
-            border-color: #8B4513;
-        }
-
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #eee;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-            padding: 0.5rem;
-            line-height: 1;
-        }
-
-        .modal-close:hover {
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #555;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #8B4513;
-            box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.1);
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            transform: scale(1.2);
-        }
-
-        .variant-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .variant-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
-        }
-
-        .variant-item input[type="checkbox"] {
-            transform: scale(1.2);
-        }
-
-        .variant-item input[type="number"] {
-            width: 80px;
-            padding: 0.4rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .image-upload {
-            border: 2px dashed #ddd;
-            border-radius: 6px;
-            padding: 1rem;
-            text-align: center;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-        }
-
-        .image-upload:hover {
-            border-color: #8B4513;
-        }
-
-        .image-upload input[type="file"] {
-            display: none;
-        }
-
-        .image-upload-label {
-            cursor: pointer;
-            color: #666;
-        }
-
-        .image-preview {
-            margin-top: 1rem;
-            display: none;
-            text-align: center;
-        }
-
-        .form-buttons {
-            display: flex;
-            gap: 0.8rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .form-buttons button {
-            flex: 1;
-            min-width: 120px;
-            padding: 0.8rem;
-        }
-
-        .notification-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 0.8rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #8B4513;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        /* Custom Alert Styles */
-        .custom-alert-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .custom-alert-content {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .custom-alert-message {
-            margin-bottom: 1.5rem;
-            white-space: pre-line;
-            line-height: 1.5;
-            color: #333;
-        }
-
-        .custom-alert-actions {
-            display: flex;
-            gap: 0.8rem;
-            justify-content: center;
-        }
-
-        .custom-modal-btn {
-            padding: 0.6rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            min-width: 80px;
-        }
-
-        .custom-modal-btn:not(.secondary) {
-            background: #8B4513;
-            color: white;
-        }
-
-        .custom-modal-btn:not(.secondary):hover {
-            background: #A0522D;
-            transform: translateY(-1px);
-        }
-
-        .custom-modal-btn.secondary {
-            background: #f5f5f5;
-            color: #666;
-        }
-
-        .custom-modal-btn.secondary:hover {
-            background: #eee;
-            transform: translateY(-1px);
-        }
-
-        /* Responsive breakpoints */
-        @media (max-width: 768px) {
-            .header {
-                padding: 0.8rem;
-            }
-            
-            .logo {
-                font-size: 1rem;
-            }
-            
-            .nav-buttons {
-                gap: 0.3rem;
-            }
-            
-            .nav-btn {
-                padding: 0.3rem 0.6rem;
-                font-size: 0.7rem;
-                gap: 0.2rem;
-            }
-            
-            .nav-btn svg {
-                width: 14px;
-                height: 14px;
-            }
-            
-            .container {
-                padding: 0.8rem;
-            }
-            
-            .dashboard-stats {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.8rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            .stat-card {
-                padding: 1rem 0.8rem;
-            }
-            
-            .stat-number {
-                font-size: 1.5rem;
-            }
-            
-            .stat-label {
-                font-size: 0.7rem;
-            }
-            
-            .section {
-                padding: 0.8rem;
-                margin-bottom: 1rem;
-            }
-            
-            .section-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 0.8rem;
-            }
-            
-            .section-title {
-                font-size: 1.1rem;
-                min-width: auto;
-            }
-            
-            .btn-primary {
-                width: 100%;
-                padding: 0.8rem;
-            }
-            
-            /* Hide table view, show card view on mobile */
-            .table-wrapper {
-                display: none;
-            }
-            
-            .mobile-card-view {
-                display: block;
-            }
-            
-            .modal-content {
-                padding: 1rem;
-                margin: 0.5rem;
-            }
-            
-            .form-control {
-                padding: 0.8rem;
-                font-size: 16px; /* Prevent zoom on iOS */
-            }
-            
-            .custom-modal-footer {
-                flex-direction: column;
-            }
-            
-            .custom-modal-btn {
-                flex: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .dashboard-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .mobile-card-body {
-                grid-template-columns: 1fr;
-            }
-            
-            .action-buttons {
-                justify-content: center;
-            }
-            
-            .btn-small {
-                flex: 1;
-                text-align: center;
-            }
-        }
-
-        /* Large screen optimizations */
-        @media (min-width: 1200px) {
-            .dashboard-stats {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
-            .table th,
-            .table td {
-                padding: 1rem 0.8rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Header -->
@@ -896,12 +23,12 @@
                 </svg>
                 Home
             </a>
-            <a href="../login.html" class="nav-btn">
+            <button class="nav-btn" onclick="logout()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
                 </svg>
                 Logout
-            </a>
+            </button>
         </div>
     </div>
 
@@ -973,33 +100,44 @@
                 <p>Try adjusting your search terms</p>
             </div>
 
-            <!-- Desktop Table View -->
-            <div class="table-wrapper" id="fragrancesTable" style="display: none;">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Fragrance</th>
-                            <th>Description</th>
-                            <th>Variants</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fragrancesTableBody"></tbody>
-                </table>
+            <!-- Error State -->
+            <div class="error-state" id="fragrancesError" style="display: none;">
+                <h3>Error Loading Fragrances</h3>
+                <p>Please check your connection and try again</p>
+                <button class="btn-primary" onclick="loadFragrances()">Retry</button>
             </div>
 
-            <!-- Mobile Card View -->
-            <div class="mobile-card-view" id="fragrancesMobile" style="display: none;">
-                <div id="fragrancesMobileContainer"></div>
-            </div>
+            <!-- Fragrances Content -->
+            <div id="fragrancesContent" style="display: none;">
+                <!-- Desktop Table View -->
+                <div class="table-wrapper" id="fragrancesTable">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Variants</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fragrancesTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
 
-            <!-- Pagination -->
-            <div class="pagination" id="fragrancesPagination" style="display: none;">
-                <div class="pagination-info" id="fragrancesPaginationInfo"></div>
-                <div class="pagination-buttons">
-                    <button class="pagination-btn" id="fragrancesPrevBtn" onclick="previousFragrancesPage()">Previous</button>
-                    <button class="pagination-btn" id="fragrancesNextBtn" onclick="nextFragrancesPage()">Next</button>
+                <!-- Mobile Cards View -->
+                <div class="mobile-cards" id="fragranceCards">
+                    <!-- Dynamic content -->
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="fragrancesPagination">
+                    <button onclick="previousFragrancesPage()" id="fragrancesPrevBtn">Previous</button>
+                    <span id="fragrancesPageInfo">Page 1 of 1</span>
+                    <button onclick="nextFragrancesPage()" id="fragrancesNextBtn">Next</button>
                 </div>
             </div>
         </div>
@@ -1036,35 +174,45 @@
                 <p>Try adjusting your search terms</p>
             </div>
 
-            <!-- Desktop Table View -->
-            <div class="table-wrapper" id="ordersTable" style="display: none;">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Order #</th>
-                            <th>Customer</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody"></tbody>
-                </table>
+            <!-- Error State -->
+            <div class="error-state" id="ordersError" style="display: none;">
+                <h3>Error Loading Orders</h3>
+                <p>Please check your connection and try again</p>
+                <button class="btn-primary" onclick="loadOrders()">Retry</button>
             </div>
 
-            <!-- Mobile Card View -->
-            <div class="mobile-card-view" id="ordersMobile" style="display: none;">
-                <div id="ordersMobileContainer"></div>
-            </div>
+            <!-- Orders Content -->
+            <div id="ordersContent" style="display: none;">
+                <!-- Desktop Table View -->
+                <div class="table-wrapper" id="ordersTable">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
 
-            <!-- Pagination -->
-            <div class="pagination" id="ordersPagination" style="display: none;">
-                <div class="pagination-info" id="ordersPaginationInfo"></div>
-                <div class="pagination-buttons">
-                    <button class="pagination-btn" id="ordersPrevBtn" onclick="previousOrdersPage()">Previous</button>
-                    <button class="pagination-btn" id="ordersNextBtn" onclick="nextOrdersPage()">Next</button>
+                <!-- Mobile Cards View -->
+                <div class="mobile-cards" id="orderCards">
+                    <!-- Dynamic content -->
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="ordersPagination">
+                    <button onclick="previousOrdersPage()" id="ordersPrevBtn">Previous</button>
+                    <span id="ordersPageInfo">Page 1 of 1</span>
+                    <button onclick="nextOrdersPage()" id="ordersNextBtn">Next</button>
                 </div>
             </div>
         </div>
@@ -1075,10 +223,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="fragranceModalTitle">Add New Fragrance</h3>
-                <button class="modal-close" onclick="closeFragranceModal()">×</button>
+                <button class="close-btn" onclick="closeFragranceModal()">&times;</button>
             </div>
-            
-            <form id="fragranceForm">
+            <form id="fragranceForm" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="fragranceName">Name *</label>
                     <input type="text" id="fragranceName" name="name" class="form-control" required>
@@ -1086,8 +233,9 @@
                 
                 <div class="form-group">
                     <label for="fragranceSlug">URL Slug *</label>
-                    <input type="text" id="fragranceSlug" name="slug" class="form-control" placeholder="e.g., luxury-perfume-2024" required>
-                    <small style="color: #666; font-size: 0.8rem;">Used in the website URL. Use lowercase letters, numbers, and hyphens only.</small>
+                    <input type="text" id="fragranceSlug" name="slug" class="form-control" required 
+                           placeholder="lowercase-name-with-hyphens">
+                    <small class="form-help">Used in URLs. Should be lowercase with hyphens instead of spaces.</small>
                 </div>
                 
                 <div class="form-group">
@@ -1101,33 +249,29 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Image</label>
-                    <div class="image-upload">
-                        <input type="file" id="fragranceImage" name="image" accept="image/*">
-                        <label for="fragranceImage" class="image-upload-label">
-                            Click to upload image or drag and drop
-                        </label>
-                    </div>
-                    <div class="image-preview" id="imagePreview"></div>
+                    <label for="fragranceImage">Image (PNG only)</label>
+                    <input type="file" id="fragranceImage" name="image" class="form-control" accept=".png,image/png">
+                    <small class="form-help">Recommended size: 400x400px, PNG format only</small>
+                    <div id="imagePreview" style="display: none; margin-top: 10px;"></div>
                 </div>
                 
                 <div class="form-group">
                     <label>Available Variants</label>
-                    <div class="variant-grid">
+                    <div class="variants-grid">
                         <div class="variant-item">
                             <input type="checkbox" id="variant5ml" data-variant="5ml">
-                            <label for="variant5ml">5ml</label>
-                            <input type="number" data-variant-price="5ml" placeholder="Price (OMR)" step="0.001" min="0">
+                            <label for="variant5ml">5ml Sample</label>
+                            <input type="number" class="variant-price" data-variant-price="5ml" placeholder="Price (OMR)" step="0.001" min="0">
                         </div>
                         <div class="variant-item">
                             <input type="checkbox" id="variant10ml" data-variant="10ml">
-                            <label for="variant10ml">10ml</label>
-                            <input type="number" data-variant-price="10ml" placeholder="Price (OMR)" step="0.001" min="0">
+                            <label for="variant10ml">10ml Sample</label>
+                            <input type="number" class="variant-price" data-variant-price="10ml" placeholder="Price (OMR)" step="0.001" min="0">
                         </div>
                         <div class="variant-item">
                             <input type="checkbox" id="variant30ml" data-variant="30ml">
-                            <label for="variant30ml">30ml</label>
-                            <input type="number" data-variant-price="30ml" placeholder="Price (OMR)" step="0.001" min="0">
+                            <label for="variant30ml">30ml Sample</label>
+                            <input type="number" class="variant-price" data-variant-price="30ml" placeholder="Price (OMR)" step="0.001" min="0">
                         </div>
                         <div class="variant-item">
                             <input type="checkbox" id="variantWhole" data-variant="Whole Bottle">
@@ -1149,7 +293,70 @@
         </div>
     </div>
 
-    <!-- Include the fixed JavaScript -->
+    <!-- Custom Alert Modal -->
+    <div class="custom-modal" id="customAlert">
+        <div class="custom-modal-content">
+            <div class="custom-modal-body">
+                <div class="custom-modal-icon">ℹ️</div>
+                <div class="custom-modal-text" id="customAlertText"></div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="custom-modal-btn custom-modal-btn-primary" onclick="closeCustomAlert()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div class="custom-modal" id="customConfirm">
+        <div class="custom-modal-content">
+            <div class="custom-modal-body">
+                <div class="custom-modal-icon">⚠️</div>
+                <div class="custom-modal-text" id="customConfirmText"></div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="custom-modal-btn custom-modal-btn-secondary" onclick="closeCustomConfirm()">Cancel</button>
+                <button class="custom-modal-btn custom-modal-btn-primary" id="customConfirmOk">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with Contact Links -->
+    <footer style="background: #f8f9fa; padding: 2rem 0; margin-top: 3rem; text-align: center; border-top: 1px solid #e9ecef;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 1rem;">
+            <p style="margin-bottom: 1rem; color: #6c757d;">Contact us for support or questions</p>
+            <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                <a href="https://instagram.com/qotore.om" target="_blank" style="color: #E4405F; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                    Instagram
+                </a>
+                <a href="https://snapchat.com/add/qotore.om" target="_blank" style="color: #FFFC00; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.118.112.221.83.411-.09.402-.146.646-.165.742-.061.314-.194.385-.449.234-1.22-.507-1.98-2.081-1.98-3.365 0-3.761 2.734-7.229 7.877-7.229 4.141 0 7.36 2.95 7.36 6.877 0 4.097-2.588 7.4-6.177 7.4-1.204 0-2.357-.629-2.75-1.378 0 0-.599 2.295-.744 2.852-.272 1.018-.99 2.297-1.488 3.085 1.124.348 2.309.535 3.554.535 6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641.001.017.001z"/>
+                    </svg>
+                    Snapchat
+                </a>
+                <a href="https://wa.me/96812345678" target="_blank" style="color: #25D366; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                    </svg>
+                    WhatsApp
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <a href="https://wa.me/96812345678" target="_blank" 
+           style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #25D366; color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3); text-decoration: none; transition: all 0.3s ease;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+            </svg>
+        </a>
+    </div>
+
     <script src="index.js"></script>
 </body>
 </html>

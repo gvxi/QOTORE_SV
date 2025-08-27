@@ -51,6 +51,37 @@ function checkAuth() {
     }
 }
 
+// Logout function - FIXED
+async function logout() {
+    try {
+        const response = await fetch('/logout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            // Clear local session data
+            document.cookie = 'admin_session=; Path=/; Max-Age=0';
+            localStorage.removeItem('notificationsEnabled');
+            
+            showCustomAlert('Logged out successfully', () => {
+                window.location.href = '/login.html';
+            });
+        } else {
+            throw new Error(result.error || 'Logout failed');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Force logout even if server request fails
+        document.cookie = 'admin_session=; Path=/; Max-Age=0';
+        window.location.href = '/login.html';
+    }
+}
+
 // Load Dashboard Data
 async function loadDashboardData() {
     await Promise.all([
@@ -60,10 +91,12 @@ async function loadDashboardData() {
     updateStats();
 }
 
-// Load Fragrances
+// Load Fragrances - FIXED
 async function loadFragrances() {
     try {
         console.log('Loading fragrances...');
+        showFragrancesLoading();
+        
         const response = await fetch('/admin/fragrances', {
             credentials: 'include'
         });
@@ -90,10 +123,12 @@ async function loadFragrances() {
     }
 }
 
-// Load Orders
+// Load Orders - FIXED
 async function loadOrders() {
     try {
         console.log('Loading orders...');
+        showOrdersLoading();
+        
         const response = await fetch('/admin/orders', {
             credentials: 'include'
         });
@@ -127,537 +162,413 @@ async function loadOrders() {
         }
     } catch (error) {
         console.error('Error loading orders:', error);
-        orders = [];
-        displayOrders();
+        showOrdersError();
     }
 }
 
-// Filter Functions
-function filterFragrances() {
-    if (!fragrancesSearchTerm) {
-        filteredFragrances = [...fragrances];
-        return;
-    }
-    
-    const searchTerm = fragrancesSearchTerm.toLowerCase();
-    filteredFragrances = fragrances.filter(fragrance => {
-        const name = (fragrance.name || '').toLowerCase();
-        const brand = (fragrance.brand || '').toLowerCase();
-        const description = (fragrance.description || '').toLowerCase();
-        
-        return name.includes(searchTerm) ||
-               brand.includes(searchTerm) ||
-               description.includes(searchTerm);
-    });
-}
-
-function filterOrders() {
-    if (!ordersSearchTerm) {
-        filteredOrders = [...orders];
-        return;
-    }
-    
-    const searchTerm = ordersSearchTerm.toLowerCase();
-    filteredOrders = orders.filter(order => {
-        if (!order.customer) return false;
-        
-        const firstName = (order.customer.firstName || '').toLowerCase();
-        const lastName = (order.customer.lastName || '').toLowerCase();
-        const phone = (order.customer.phone || '').toLowerCase();
-        const email = (order.customer.email || '').toLowerCase();
-        const orderNumber = (order.orderNumber || '').toLowerCase();
-        
-        return firstName.includes(searchTerm) ||
-               lastName.includes(searchTerm) ||
-               phone.includes(searchTerm) ||
-               email.includes(searchTerm) ||
-               orderNumber.includes(searchTerm);
-    });
-}
-
-// Display Functions
+// Display Functions - FIXED
 function displayFragrances() {
-    const loading = document.getElementById('fragrancesLoading');
-    const table = document.getElementById('fragrancesTable');
-    const mobile = document.getElementById('fragrancesMobile');
-    const empty = document.getElementById('fragrancesEmpty');
-    const controls = document.getElementById('fragrancesControls');
-    const noResults = document.getElementById('fragrancesNoResults');
+    filterAndDisplayFragrances();
+}
+
+function filterAndDisplayFragrances() {
+    // Filter fragrances based on search term
+    filteredFragrances = fragrances.filter(fragrance => {
+        if (!fragrancesSearchTerm) return true;
+        
+        const searchLower = fragrancesSearchTerm.toLowerCase();
+        return (
+            (fragrance.name || '').toLowerCase().includes(searchLower) ||
+            (fragrance.brand || '').toLowerCase().includes(searchLower) ||
+            (fragrance.slug || '').toLowerCase().includes(searchLower)
+        );
+    });
     
-    if (loading) loading.style.display = 'none';
-    
-    // Filter fragrances first
-    filterFragrances();
-    
+    // Show appropriate state
     if (fragrances.length === 0) {
-        if (table) table.style.display = 'none';
-        if (mobile) mobile.style.display = 'none';
-        if (controls) controls.style.display = 'none';
-        if (noResults) noResults.style.display = 'none';
-        if (empty) empty.style.display = 'block';
-        return;
-    }
-    
-    if (filteredFragrances.length === 0 && fragrancesSearchTerm) {
-        if (table) table.style.display = 'none';
-        if (mobile) mobile.style.display = 'none';
-        if (empty) empty.style.display = 'none';
-        if (controls) controls.style.display = 'flex';
-        if (noResults) noResults.style.display = 'block';
-        updateFragrancesPagination();
-        return;
-    }
-    
-    if (empty) empty.style.display = 'none';
-    if (noResults) noResults.style.display = 'none';
-    if (controls) controls.style.display = 'flex';
-    
-    if (isMobile) {
-        // Show mobile card view
-        if (table) table.style.display = 'none';
-        if (mobile) mobile.style.display = 'block';
-        displayFragrancesMobile();
+        showFragrancesEmpty();
+    } else if (filteredFragrances.length === 0) {
+        showFragrancesNoResults();
     } else {
-        // Show desktop table view
-        if (mobile) mobile.style.display = 'none';
-        if (table) table.style.display = 'block';
-        displayFragrancesTable();
+        showFragrancesContent();
+        renderFragrances();
+    }
+}
+
+function renderFragrances() {
+    const startIndex = (fragrancesPage - 1) * fragrancesPerPage;
+    const endIndex = startIndex + fragrancesPerPage;
+    const pageFragrances = filteredFragrances.slice(startIndex, endIndex);
+    
+    // Desktop table view
+    const tableBody = document.getElementById('fragrancesTableBody');
+    if (tableBody) {
+        tableBody.innerHTML = pageFragrances.map(fragrance => {
+            const variants = (fragrance.variants || []).map(v => {
+                if (v.is_whole_bottle) {
+                    return 'Whole Bottle';
+                } else {
+                    return `${v.size_ml}ml (${(v.price_cents / 1000).toFixed(3)} OMR)`;
+                }
+            }).join(', ') || 'No variants';
+            
+            const imageSrc = fragrance.image_path 
+                ? (fragrance.image_path.startsWith('http') 
+                   ? fragrance.image_path 
+                   : `/api/image/${fragrance.image_path}`)
+                : '/placeholder-fragrance.png';
+            
+            return `
+                <tr>
+                    <td>
+                        <img src="${imageSrc}" 
+                             alt="${fragrance.name || 'Fragrance'}" 
+                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;"
+                             onerror="this.src='/placeholder-fragrance.png'">
+                    </td>
+                    <td>
+                        <div><strong>${fragrance.name || 'Unnamed'}</strong></div>
+                        <div><small>${fragrance.slug || ''}</small></div>
+                    </td>
+                    <td>${fragrance.brand || 'No brand'}</td>
+                    <td><small>${variants}</small></td>
+                    <td>
+                        <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
+                            ${fragrance.hidden ? 'Hidden' : 'Visible'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})" title="Edit">Edit</button>
+                            <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
+                                    onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})" 
+                                    title="${fragrance.hidden ? 'Show' : 'Hide'}">
+                                ${fragrance.hidden ? 'Show' : 'Hide'}
+                            </button>
+                            <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})" title="Delete">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    // Mobile cards view
+    const cardsContainer = document.getElementById('fragranceCards');
+    if (cardsContainer) {
+        cardsContainer.innerHTML = pageFragrances.map(fragrance => {
+            const variants = (fragrance.variants || []).map(v => {
+                if (v.is_whole_bottle) {
+                    return 'Whole Bottle';
+                } else {
+                    return `${v.size_ml}ml (${(v.price_cents / 1000).toFixed(3)} OMR)`;
+                }
+            }).join(', ') || 'No variants';
+            
+            const imageSrc = fragrance.image_path 
+                ? (fragrance.image_path.startsWith('http') 
+                   ? fragrance.image_path 
+                   : `/api/image/${fragrance.image_path}`)
+                : '/placeholder-fragrance.png';
+            
+            return `
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <img src="${imageSrc}" 
+                             alt="${fragrance.name || 'Fragrance'}" 
+                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;"
+                             onerror="this.src='/placeholder-fragrance.png'">
+                        <div class="mobile-card-info">
+                            <h4>${fragrance.name || 'Unnamed'}</h4>
+                            <p>${fragrance.brand || 'No brand'}</p>
+                            <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
+                                ${fragrance.hidden ? 'Hidden' : 'Visible'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mobile-card-body">
+                        <div><strong>Variants:</strong> ${variants}</div>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})">Edit</button>
+                        <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
+                                onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})">
+                            ${fragrance.hidden ? 'Show' : 'Hide'}
+                        </button>
+                        <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})">Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
     
     updateFragrancesPagination();
 }
 
-function displayFragrancesTable() {
-    const tbody = document.getElementById('fragrancesTableBody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    const paginatedFragrances = getFragrancesPaginatedData();
-    
-    paginatedFragrances.forEach(fragrance => {
-        const row = document.createElement('tr');
-        
-        const variantCount = fragrance.variants ? fragrance.variants.length : 0;
-        const variantsText = variantCount > 0 ? `${variantCount} variants` : 'No variants';
-        
-        row.innerHTML = `
-            <td>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 40px; height: 40px; background: #f5f5f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #ccc; flex-shrink: 0;">
-                        ${fragrance.image_path ? 
-                            `<img src="/api/image/${fragrance.image_path}" alt="${fragrance.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` : 
-                            '🌸'
-                        }
-                    </div>
-                    <div>
-                        <div style="font-weight: 600;">${fragrance.name}</div>
-                        <div style="font-size: 0.8rem; color: #666;">${fragrance.brand || 'No brand'}</div>
-                    </div>
-                </div>
-            </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${fragrance.description || 'No description'}">
-                ${fragrance.description || 'No description'}
-            </td>
-            <td>${variantsText}</td>
-            <td>
-                <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
-                    ${fragrance.hidden ? 'Hidden' : 'Visible'}
-                </span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})">Edit</button>
-                    <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
-                            onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})">
-                        ${fragrance.hidden ? 'Show' : 'Hide'}
-                    </button>
-                    <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})">Delete</button>
-                </div>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-function displayFragrancesMobile() {
-    const container = document.getElementById('fragrancesMobileContainer');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    const paginatedFragrances = getFragrancesPaginatedData();
-    
-    paginatedFragrances.forEach(fragrance => {
-        const card = document.createElement('div');
-        card.className = 'mobile-card';
-        
-        const variantCount = fragrance.variants ? fragrance.variants.length : 0;
-        const variantsText = variantCount > 0 ? `${variantCount} variants` : 'No variants';
-        
-        card.innerHTML = `
-            <div class="mobile-card-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #ccc; flex-shrink: 0;">
-                        ${fragrance.image_path ? 
-                            `<img src="/api/image/${fragrance.image_path}" alt="${fragrance.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" onerror="this.style.display='none'; this.parentNode.innerHTML='🌸';">` : 
-                            '🌸'
-                        }
-                    </div>
-                    <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">${fragrance.name}</div>
-                        <div style="font-size: 0.8rem; color: #666;">${fragrance.brand || 'No brand'}</div>
-                    </div>
-                </div>
-                <span class="status-badge ${fragrance.hidden ? 'status-hidden' : 'status-visible'}">
-                    ${fragrance.hidden ? 'Hidden' : 'Visible'}
-                </span>
-            </div>
-            <div class="mobile-card-body">
-                <div><strong>Description:</strong> ${fragrance.description || 'No description'}</div>
-                <div><strong>Variants:</strong> ${variantsText}</div>
-            </div>
-            <div class="action-buttons">
-                <button class="btn-small btn-edit" onclick="editFragrance(${fragrance.id})">Edit</button>
-                <button class="btn-small ${fragrance.hidden ? 'btn-show' : 'btn-hide'}" 
-                        onclick="toggleFragranceVisibility(${fragrance.id}, ${!fragrance.hidden})">
-                    ${fragrance.hidden ? 'Show' : 'Hide'}
-                </button>
-                <button class="btn-small btn-delete" onclick="deleteFragrance(${fragrance.id})">Delete</button>
-            </div>
-        `;
-        
-        container.appendChild(card);
-    });
-}
-
 function displayOrders() {
-    const loading = document.getElementById('ordersLoading');
-    const table = document.getElementById('ordersTable');
-    const mobile = document.getElementById('ordersMobile');
-    const empty = document.getElementById('ordersEmpty');
-    const controls = document.getElementById('ordersControls');
-    const noResults = document.getElementById('ordersNoResults');
+    filterAndDisplayOrders();
+}
 
-    if (loading) loading.style.display = 'none';
+function filterAndDisplayOrders() {
+    // Filter orders based on search term
+    filteredOrders = orders.filter(order => {
+        if (!ordersSearchTerm) return true;
+        
+        const searchLower = ordersSearchTerm.toLowerCase();
+        return (
+            (order.orderNumber || '').toLowerCase().includes(searchLower) ||
+            (order.customer?.firstName || '').toLowerCase().includes(searchLower) ||
+            (order.customer?.lastName || '').toLowerCase().includes(searchLower) ||
+            (order.customer?.phone || '').toLowerCase().includes(searchLower) ||
+            order.id.toString().includes(searchLower)
+        );
+    });
     
-    // Filter orders first
-    filterOrders();
-    
+    // Show appropriate state
     if (orders.length === 0) {
-        if (table) table.style.display = 'none';
-        if (mobile) mobile.style.display = 'none';
-        if (controls) controls.style.display = 'none';
-        if (noResults) noResults.style.display = 'none';
-        if (empty) empty.style.display = 'block';
-        return;
-    }
-    
-    if (filteredOrders.length === 0 && ordersSearchTerm) {
-        if (table) table.style.display = 'none';
-        if (mobile) mobile.style.display = 'none';
-        if (empty) empty.style.display = 'none';
-        if (controls) controls.style.display = 'flex';
-        if (noResults) noResults.style.display = 'block';
-        updateOrdersPagination();
-        return;
-    }
-    
-    if (empty) empty.style.display = 'none';
-    if (noResults) noResults.style.display = 'none';
-    if (controls) controls.style.display = 'flex';
-    
-    if (isMobile) {
-        // Show mobile card view
-        if (table) table.style.display = 'none';
-        if (mobile) mobile.style.display = 'block';
-        displayOrdersMobile();
+        showOrdersEmpty();
+    } else if (filteredOrders.length === 0) {
+        showOrdersNoResults();
     } else {
-        // Show desktop table view
-        if (mobile) mobile.style.display = 'none';
-        if (table) table.style.display = 'block';
-        displayOrdersTable();
+        showOrdersContent();
+        renderOrders();
+    }
+}
+
+function renderOrders() {
+    const startIndex = (ordersPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    const pageOrders = filteredOrders.slice(startIndex, endIndex);
+    
+    // Desktop table view
+    const tableBody = document.getElementById('ordersTableBody');
+    if (tableBody) {
+        tableBody.innerHTML = pageOrders.map(order => {
+            const customerName = `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim() || 'Unknown';
+            const itemCount = (order.items || []).length;
+            const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Unknown';
+            const orderNumber = order.orderNumber || `#${order.id}`;
+            
+            // Calculate total for sample items only
+            let total = 0;
+            const sampleItems = (order.items || []).filter(item => !item.isWholeBottle);
+            sampleItems.forEach(item => {
+                if (item.priceInCents && item.quantity) {
+                    total += (item.priceInCents / 1000) * item.quantity;
+                }
+            });
+            
+            const hasWholeBottles = (order.items || []).some(item => item.isWholeBottle);
+            const totalDisplay = hasWholeBottles 
+                ? `${total.toFixed(3)} OMR + Contact Items`
+                : `${total.toFixed(3)} OMR`;
+            
+            return `
+                <tr>
+                    <td><strong>${orderNumber}</strong></td>
+                    <td>
+                        <div><strong>${customerName}</strong></div>
+                        <div><small>${order.customer?.phone || 'No phone'}</small></div>
+                    </td>
+                    <td>${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
+                    <td>${totalDisplay}</td>
+                    <td>
+                        <span class="status-badge ${order.completed ? 'status-completed' : 'status-pending'}">
+                            ${order.completed ? 'Completed' : 'Pending'}
+                        </span>
+                    </td>
+                    <td>${orderDate}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-small btn-edit" onclick="viewOrder(${order.id})" title="View Details">View</button>
+                            <button class="btn-small ${order.completed ? 'btn-hide' : 'btn-show'}" 
+                                    onclick="toggleOrderStatus(${order.id}, ${!order.completed})" 
+                                    title="${order.completed ? 'Mark Pending' : 'Mark Complete'}">
+                                ${order.completed ? 'Pending' : 'Complete'}
+                            </button>
+                            <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})" title="Delete">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    // Mobile cards view
+    const cardsContainer = document.getElementById('orderCards');
+    if (cardsContainer) {
+        cardsContainer.innerHTML = pageOrders.map(order => {
+            const customerName = `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim() || 'Unknown';
+            const itemCount = (order.items || []).length;
+            const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Unknown';
+            const orderNumber = order.orderNumber || `#${order.id}`;
+            
+            // Calculate total for sample items only
+            let total = 0;
+            const sampleItems = (order.items || []).filter(item => !item.isWholeBottle);
+            sampleItems.forEach(item => {
+                if (item.priceInCents && item.quantity) {
+                    total += (item.priceInCents / 1000) * item.quantity;
+                }
+            });
+            
+            const hasWholeBottles = (order.items || []).some(item => item.isWholeBottle);
+            const totalDisplay = hasWholeBottles 
+                ? `${total.toFixed(3)} OMR + Contact Items`
+                : `${total.toFixed(3)} OMR`;
+            
+            return `
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-info">
+                            <h4>${orderNumber}</h4>
+                            <p><strong>${customerName}</strong></p>
+                            <p>${order.customer?.phone || 'No phone'}</p>
+                            <span class="status-badge ${order.completed ? 'status-completed' : 'status-pending'}">
+                                ${order.completed ? 'Completed' : 'Pending'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mobile-card-body">
+                        <div><strong>Items:</strong> ${itemCount}</div>
+                        <div><strong>Total:</strong> ${totalDisplay}</div>
+                        <div><strong>Date:</strong> ${orderDate}</div>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <button class="btn-small btn-edit" onclick="viewOrder(${order.id})">View</button>
+                        <button class="btn-small ${order.completed ? 'btn-hide' : 'btn-show'}" 
+                                onclick="toggleOrderStatus(${order.id}, ${!order.completed})">
+                            ${order.completed ? 'Pending' : 'Complete'}
+                        </button>
+                        <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
     
     updateOrdersPagination();
 }
 
-function displayOrdersTable() {
-    const tbody = document.getElementById('ordersTableBody');
-    if (!tbody) return;
+// Form submission handler - FIXED
+async function handleFragranceSubmit(e) {
+    e.preventDefault();
     
-    tbody.innerHTML = '';
+    const button = document.getElementById('submitFragranceBtn');
+    const originalText = button.textContent;
     
-    const paginatedOrders = getOrdersPaginatedData();
-    
-    paginatedOrders.forEach(order => {
-        const row = document.createElement('tr');
+    try {
+        button.disabled = true;
+        button.textContent = currentEditingId ? 'Updating...' : 'Adding...';
         
-        const customerName = order.customer ? 
-            `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim() : 
-            'Unknown Customer';
+        const form = e.target;
+        const fragranceData = {
+            name: form.name.value.trim(),
+            slug: form.slug.value.trim(),
+            brand: form.brand.value.trim(),
+            description: form.description.value.trim(),
+            hidden: form.hidden.checked,
+            variants: []
+        };
         
-        const itemCount = order.items ? order.items.length : 0;
-        const total = order.items ? 
-            order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(3) : 
-            '0.000';
+        // Validate required fields
+        if (!fragranceData.name) {
+            throw new Error('Fragrance name is required');
+        }
+        if (!fragranceData.slug) {
+            throw new Error('URL slug is required');
+        }
         
-        const createdDate = order.created_at ? 
-            new Date(order.created_at).toLocaleDateString() : 
-            'Unknown';
+        // Collect variants
+        const variantCheckboxes = form.querySelectorAll('input[data-variant]:checked');
+        variantCheckboxes.forEach(checkbox => {
+            const size = checkbox.getAttribute('data-variant');
+            if (size) {
+                const isWholeBottle = size === 'Whole Bottle';
+                
+                const variant = {
+                    size: size,
+                    is_whole_bottle: isWholeBottle
+                };
+                
+                if (!isWholeBottle) {
+                    const priceInput = form.querySelector(`input[data-variant-price="${size}"]`);
+                    if (priceInput && priceInput.value) {
+                        variant.price = parseFloat(priceInput.value);
+                    }
+                }
+                
+                fragranceData.variants.push(variant);
+            }
+        });
+
+        let response;
+        
+        // Handle image upload for both add and update
+        const imageFile = form.fragranceImage.files[0];
+        if (imageFile || !currentEditingId) {
+            // Use FormData for image upload
+            const formData = new FormData();
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            formData.append('data', JSON.stringify(fragranceData));
             
-        row.innerHTML = `
-            <td>${order.orderNumber || `#${order.id}`}</td>
-            <td>
-                <div>
-                    <div style="font-weight: 600;">${customerName}</div>
-                    <div style="font-size: 0.8rem; color: #666;">${order.customer?.phone || 'No phone'}</div>
-                </div>
-            </td>
-            <td>${itemCount} items</td>
-            <td>${total} OMR</td>
-            <td>${createdDate}</td>
-            <td>
-                <span class="status-badge ${order.status === 'completed' ? 'status-completed' : 'status-pending'}">
-                    ${order.status === 'completed' ? 'Completed' : 'Pending'}
-                </span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-small btn-edit" onclick="viewOrder(${order.id})">View</button>
-                    <button class="btn-small ${order.status === 'completed' ? 'btn-hide' : 'btn-show'}"
-                            onclick="toggleOrderStatus(${order.id})">
-                        ${order.status === 'completed' ? 'Mark Pending' : 'Mark Complete'}
-                    </button>
-                    <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">Delete</button>
-                </div>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-function displayOrdersMobile() {
-    const container = document.getElementById('ordersMobileContainer');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    const paginatedOrders = getOrdersPaginatedData();
-    
-    paginatedOrders.forEach(order => {
-        const card = document.createElement('div');
-        card.className = 'mobile-card';
-        
-        const customerName = order.customer ? 
-            `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim() : 
-            'Unknown Customer';
-        
-        const itemCount = order.items ? order.items.length : 0;
-        const total = order.items ? 
-            order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(3) : 
-            '0.000';
-        
-        const createdDate = order.created_at ? 
-            new Date(order.created_at).toLocaleDateString() : 
-            'Unknown';
+            if (currentEditingId) {
+                formData.append('id', currentEditingId);
+                response = await fetch('/admin/update-fragrance', {
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: formData
+                });
+            } else {
+                response = await fetch('/admin/add-fragrance', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+            }
+        } else {
+            // Update without image - use JSON
+            if (currentEditingId) {
+                fragranceData.id = currentEditingId;
+            }
             
-        card.innerHTML = `
-            <div class="mobile-card-header">
-                <div>
-                    <div style="font-weight: 600; margin-bottom: 4px;">${order.orderNumber || `#${order.id}`}</div>
-                    <div style="font-size: 0.8rem; color: #666;">${createdDate}</div>
-                </div>
-                <span class="status-badge ${order.status === 'completed' ? 'status-completed' : 'status-pending'}">
-                    ${order.status === 'completed' ? 'Completed' : 'Pending'}
-                </span>
-            </div>
-            <div class="mobile-card-body">
-                <div><strong>Customer:</strong> ${customerName}</div>
-                <div><strong>Phone:</strong> ${order.customer?.phone || 'No phone'}</div>
-                <div><strong>Items:</strong> ${itemCount} items</div>
-                <div><strong>Total:</strong> ${total} OMR</div>
-            </div>
-            <div class="action-buttons">
-                <button class="btn-small btn-edit" onclick="viewOrder(${order.id})">View</button>
-                <button class="btn-small ${order.status === 'completed' ? 'btn-hide' : 'btn-show'}"
-                        onclick="toggleOrderStatus(${order.id})">
-                    ${order.status === 'completed' ? 'Mark Pending' : 'Mark Complete'}
-                </button>
-                <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">Delete</button>
-            </div>
-        `;
+            response = await fetch(currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance', {
+                method: currentEditingId ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(fragranceData)
+            });
+        }
         
-        container.appendChild(card);
-    });
-}
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
 
-function showFragrancesError() {
-    const loading = document.getElementById('fragrancesLoading');
-    const table = document.getElementById('fragrancesTable');
-    const mobile = document.getElementById('fragrancesMobile');
-    const controls = document.getElementById('fragrancesControls');
-    const empty = document.getElementById('fragrancesEmpty');
-    
-    if (loading) loading.style.display = 'none';
-    if (table) table.style.display = 'none';
-    if (mobile) mobile.style.display = 'none';
-    if (controls) controls.style.display = 'none';
-    if (empty) {
-        empty.style.display = 'block';
-        const h3 = empty.querySelector('h3');
-        const p = empty.querySelector('p');
-        if (h3) h3.textContent = 'Error loading fragrances';
-        if (p) p.textContent = 'Please refresh the page to try again';
+        const result = await response.json();
+        if (result.success) {
+            closeFragranceModal();
+            await loadFragrances();
+            updateStats();
+            showCustomAlert(currentEditingId ? 'Fragrance updated successfully!' : 'Fragrance added successfully!');
+        } else {
+            throw new Error(result.error || 'Failed to save fragrance');
+        }
+        
+    } catch (error) {
+        console.error('Error submitting fragrance:', error);
+        showCustomAlert('Error: ' + error.message);
+    } finally {
+        button.disabled = false;
+        button.textContent = originalText;
     }
 }
 
-function updateStats() {
-    const totalFragrances = fragrances.length;
-    const visibleFragrances = fragrances.filter(f => !f.hidden).length;
-    const totalOrders = orders.length;
-    const pendingOrders = orders.filter(o => o.status !== 'completed').length;
-    
-    const totalFragrancesEl = document.getElementById('totalFragrances');
-    const visibleFragrancesEl = document.getElementById('visibleFragrances');
-    const totalOrdersEl = document.getElementById('totalOrders');
-    const pendingOrdersEl = document.getElementById('pendingOrders');
-    
-    if (totalFragrancesEl) totalFragrancesEl.textContent = totalFragrances;
-    if (visibleFragrancesEl) visibleFragrancesEl.textContent = visibleFragrances;
-    if (totalOrdersEl) totalOrdersEl.textContent = totalOrders;
-    if (pendingOrdersEl) pendingOrdersEl.textContent = pendingOrders;
-}
-
-// Pagination Functions
-function getFragrancesPaginatedData() {
-    const startIndex = (fragrancesPage - 1) * fragrancesPerPage;
-    const endIndex = startIndex + fragrancesPerPage;
-    return filteredFragrances.slice(startIndex, endIndex);
-}
-
-function getOrdersPaginatedData() {
-    const startIndex = (ordersPage - 1) * ordersPerPage;
-    const endIndex = startIndex + ordersPerPage;
-    return filteredOrders.slice(startIndex, endIndex);
-}
-
-function updateFragrancesPagination() {
-    const totalItems = filteredFragrances.length;
-    const totalPages = Math.ceil(totalItems / fragrancesPerPage);
-    const startItem = totalItems === 0 ? 0 : (fragrancesPage - 1) * fragrancesPerPage + 1;
-    const endItem = Math.min(fragrancesPage * fragrancesPerPage, totalItems);
-    
-    // Update pagination info
-    const paginationInfo = document.getElementById('fragrancesPaginationInfo');
-    if (paginationInfo) {
-        paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} fragrances`;
-    }
-    
-    // Update pagination buttons
-    const prevBtn = document.getElementById('fragrancesPrevBtn');
-    const nextBtn = document.getElementById('fragrancesNextBtn');
-    
-    if (prevBtn) prevBtn.disabled = fragrancesPage <= 1;
-    if (nextBtn) nextBtn.disabled = fragrancesPage >= totalPages;
-}
-
-function updateOrdersPagination() {
-    const totalItems = filteredOrders.length;
-    const totalPages = Math.ceil(totalItems / ordersPerPage);
-    const startItem = totalItems === 0 ? 0 : (ordersPage - 1) * ordersPerPage + 1;
-    const endItem = Math.min(ordersPage * ordersPerPage, totalItems);
-    
-    // Update pagination info
-    const paginationInfo = document.getElementById('ordersPaginationInfo');
-    if (paginationInfo) {
-        paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} orders`;
-    }
-    
-    // Update pagination buttons
-    const prevBtn = document.getElementById('ordersPrevBtn');
-    const nextBtn = document.getElementById('ordersNextBtn');
-    
-    if (prevBtn) prevBtn.disabled = ordersPage <= 1;
-    if (nextBtn) nextBtn.disabled = ordersPage >= totalPages;
-}
-
-// Search Functions
-function filterAndDisplayFragrances() {
-    fragrancesPage = 1;
-    displayFragrances();
-}
-
-function filterAndDisplayOrders() {
-    ordersPage = 1;
-    displayOrders();
-}
-
-function clearFragrancesSearch() {
-    const searchInput = document.getElementById('fragrancesSearch');
-    if (searchInput) {
-        searchInput.value = '';
-        fragrancesSearchTerm = '';
-        fragrancesPage = 1;
-        displayFragrances();
-        toggleSearchClear('fragrances');
-    }
-}
-
-function clearOrdersSearch() {
-    const searchInput = document.getElementById('ordersSearch');
-    if (searchInput) {
-        searchInput.value = '';
-        ordersSearchTerm = '';
-        ordersPage = 1;
-        displayOrders();
-        toggleSearchClear('orders');
-    }
-}
-
-function toggleSearchClear(type) {
-    const searchInput = document.getElementById(`${type}Search`);
-    const clearBtn = document.getElementById(`${type}ClearSearch`);
-    
-    if (searchInput && clearBtn) {
-        clearBtn.style.display = searchInput.value ? 'block' : 'none';
-    }
-}
-
-// Pagination Navigation
-function previousFragrancesPage() {
-    if (fragrancesPage > 1) {
-        fragrancesPage--;
-        displayFragrances();
-    }
-}
-
-function nextFragrancesPage() {
-    const totalPages = Math.ceil(filteredFragrances.length / fragrancesPerPage);
-    if (fragrancesPage < totalPages) {
-        fragrancesPage++;
-        displayFragrances();
-    }
-}
-
-function previousOrdersPage() {
-    if (ordersPage > 1) {
-        ordersPage--;
-        displayOrders();
-    }
-}
-
-function nextOrdersPage() {
-    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-    if (ordersPage < totalPages) {
-        ordersPage++;
-        displayOrders();
-    }
-}
-
-// Fragrance Management Functions
+// Fragrance Management Functions - FIXED
 function openFragranceModal() {
     currentEditingId = null;
     document.getElementById('fragranceModalTitle').textContent = 'Add New Fragrance';
@@ -688,20 +599,32 @@ function editFragrance(id) {
         const preview = document.getElementById('imagePreview');
         if (preview) {
             preview.style.display = 'block';
-            preview.innerHTML = `<img src="/api/image/${fragrance.image_path}" alt="Preview" style="max-width: 100%; max-height: 200px;">`;
+            const imageSrc = fragrance.image_path.startsWith('http') 
+                ? fragrance.image_path 
+                : `/api/image/${fragrance.image_path}`;
+            preview.innerHTML = `<img src="${imageSrc}" alt="Preview" style="max-width: 100%; max-height: 200px;" onerror="this.src='/placeholder-fragrance.png'">`;
         }
     }
+    
+    // Clear all variant checkboxes first
+    document.querySelectorAll('input[data-variant]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.querySelectorAll('input[data-variant-price]').forEach(input => {
+        input.value = '';
+    });
     
     // Populate variants
     if (fragrance.variants && fragrance.variants.length > 0) {
         fragrance.variants.forEach(variant => {
-            const checkbox = document.querySelector(`input[data-variant="${variant.size}"]`);
+            const size = variant.is_whole_bottle ? 'Whole Bottle' : `${variant.size_ml}ml`;
+            const checkbox = document.querySelector(`input[data-variant="${size}"]`);
             if (checkbox) {
                 checkbox.checked = true;
                 if (!variant.is_whole_bottle) {
-                    const priceInput = document.querySelector(`input[data-variant-price="${variant.size}"]`);
+                    const priceInput = document.querySelector(`input[data-variant-price="${size}"]`);
                     if (priceInput) {
-                        priceInput.value = variant.price || '';
+                        priceInput.value = (variant.price_cents / 1000).toFixed(3);
                     }
                 }
             }
@@ -774,7 +697,7 @@ async function deleteFragrance(id) {
     });
 }
 
-// Order Management
+// Order Management - FIXED
 function viewOrder(id) {
     const order = orders.find(o => o.id === id);
     if (!order) return;
@@ -790,28 +713,42 @@ function viewOrder(id) {
     
     order.items.forEach((item, index) => {
         const brandName = item.fragranceBrand ? `${item.fragranceBrand} ` : '';
-        orderDetails += `${index + 1}. ${brandName}${item.fragranceName}\n`;
-        orderDetails += `   Size: ${item.variant.size}\n`;
-        orderDetails += `   Price: ${item.variant.price_display}\n`;
-        orderDetails += `   Quantity: ${item.quantity}\n\n`;
+        if (item.isWholeBottle) {
+            orderDetails += `${index + 1}. ${brandName}${item.fragranceName} - Whole Bottle (Contact for pricing) x${item.quantity}\n`;
+        } else {
+            const price = (item.priceInCents / 1000).toFixed(3);
+            orderDetails += `${index + 1}. ${brandName}${item.fragranceName} - ${item.variantSize} (${price} OMR each) x${item.quantity}\n`;
+        }
     });
     
-    const total = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    orderDetails += `Total: ${total.toFixed(3)} OMR\n`;
-    
-    if (order.notes) {
-        orderDetails += `\nNotes: ${order.notes}`;
+    if (order.delivery.notes) {
+        orderDetails += `\nSpecial Instructions:\n${order.delivery.notes}`;
     }
+    
+    // Calculate total for samples only
+    let total = 0;
+    const sampleItems = order.items.filter(item => !item.isWholeBottle);
+    sampleItems.forEach(item => {
+        if (item.priceInCents && item.quantity) {
+            total += (item.priceInCents / 1000) * item.quantity;
+        }
+    });
+    
+    const hasWholeBottles = order.items.some(item => item.isWholeBottle);
+    if (hasWholeBottles) {
+        orderDetails += `\nSample Items Total: ${total.toFixed(3)} OMR`;
+        orderDetails += `\nNote: Contains whole bottle items - contact customer for pricing`;
+    } else {
+        orderDetails += `\nTotal: ${total.toFixed(3)} OMR`;
+    }
+    
+    orderDetails += `\nOrder Date: ${new Date(order.created_at).toLocaleString()}`;
+    orderDetails += `\nStatus: ${order.completed ? 'Completed' : 'Pending'}`;
     
     showCustomAlert(orderDetails);
 }
 
-async function toggleOrderStatus(id) {
-    const order = orders.find(o => o.id === id);
-    if (!order) return;
-    
-    const newStatus = order.status === 'completed' ? 'pending' : 'completed';
-    
+async function toggleOrderStatus(id, completed) {
     try {
         const response = await fetch('/admin/toggle-order', {
             method: 'POST',
@@ -819,25 +756,19 @@ async function toggleOrderStatus(id) {
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({ id, status: newStatus })
+            body: JSON.stringify({ id, completed })
         });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
         
         const result = await response.json();
         if (result.success) {
             await loadOrders();
             updateStats();
-            showCustomAlert(`Order marked as ${newStatus}!`);
         } else {
-            throw new Error(result.error || 'Failed to update order status');
+            throw new Error(result.error);
         }
     } catch (error) {
         console.error('Error toggling order status:', error);
-        showCustomAlert('Failed to update order status: ' + error.message);
+        showCustomAlert('Failed to update order status');
     }
 }
 
@@ -845,8 +776,8 @@ async function deleteOrder(id) {
     const order = orders.find(o => o.id === id);
     if (!order) return;
     
-    const orderName = order.orderNumber || `#${order.id}`;
-    showCustomConfirm(`Delete order ${orderName}? This action cannot be undone.`, async () => {
+    const orderNumber = order.orderNumber || `#${order.id}`;
+    showCustomConfirm(`Delete order ${orderNumber}? This action cannot be undone.`, async () => {
         try {
             const response = await fetch('/admin/delete-order', {
                 method: 'DELETE',
@@ -872,13 +803,239 @@ async function deleteOrder(id) {
     });
 }
 
-// Refresh Data
+// UI State Management Functions
+function showFragrancesLoading() {
+    document.getElementById('fragrancesLoading').style.display = 'block';
+    document.getElementById('fragrancesContent').style.display = 'none';
+    document.getElementById('fragrancesEmpty').style.display = 'none';
+    document.getElementById('fragrancesNoResults').style.display = 'none';
+    document.getElementById('fragrancesError').style.display = 'none';
+    document.getElementById('fragrancesControls').style.display = 'none';
+}
+
+function showFragrancesContent() {
+    document.getElementById('fragrancesLoading').style.display = 'none';
+    document.getElementById('fragrancesContent').style.display = 'block';
+    document.getElementById('fragrancesEmpty').style.display = 'none';
+    document.getElementById('fragrancesNoResults').style.display = 'none';
+    document.getElementById('fragrancesError').style.display = 'none';
+    document.getElementById('fragrancesControls').style.display = 'block';
+}
+
+function showFragrancesEmpty() {
+    document.getElementById('fragrancesLoading').style.display = 'none';
+    document.getElementById('fragrancesContent').style.display = 'none';
+    document.getElementById('fragrancesEmpty').style.display = 'block';
+    document.getElementById('fragrancesNoResults').style.display = 'none';
+    document.getElementById('fragrancesError').style.display = 'none';
+    document.getElementById('fragrancesControls').style.display = 'none';
+}
+
+function showFragrancesNoResults() {
+    document.getElementById('fragrancesLoading').style.display = 'none';
+    document.getElementById('fragrancesContent').style.display = 'none';
+    document.getElementById('fragrancesEmpty').style.display = 'none';
+    document.getElementById('fragrancesNoResults').style.display = 'block';
+    document.getElementById('fragrancesError').style.display = 'none';
+    document.getElementById('fragrancesControls').style.display = 'block';
+}
+
+function showFragrancesError() {
+    document.getElementById('fragrancesLoading').style.display = 'none';
+    document.getElementById('fragrancesContent').style.display = 'none';
+    document.getElementById('fragrancesEmpty').style.display = 'none';
+    document.getElementById('fragrancesNoResults').style.display = 'none';
+    document.getElementById('fragrancesError').style.display = 'block';
+    document.getElementById('fragrancesControls').style.display = 'none';
+}
+
+function showOrdersLoading() {
+    document.getElementById('ordersLoading').style.display = 'block';
+    document.getElementById('ordersContent').style.display = 'none';
+    document.getElementById('ordersEmpty').style.display = 'none';
+    document.getElementById('ordersNoResults').style.display = 'none';
+    document.getElementById('ordersError').style.display = 'none';
+    document.getElementById('ordersControls').style.display = 'none';
+}
+
+function showOrdersContent() {
+    document.getElementById('ordersLoading').style.display = 'none';
+    document.getElementById('ordersContent').style.display = 'block';
+    document.getElementById('ordersEmpty').style.display = 'none';
+    document.getElementById('ordersNoResults').style.display = 'none';
+    document.getElementById('ordersError').style.display = 'none';
+    document.getElementById('ordersControls').style.display = 'block';
+}
+
+function showOrdersEmpty() {
+    document.getElementById('ordersLoading').style.display = 'none';
+    document.getElementById('ordersContent').style.display = 'none';
+    document.getElementById('ordersEmpty').style.display = 'block';
+    document.getElementById('ordersNoResults').style.display = 'none';
+    document.getElementById('ordersError').style.display = 'none';
+    document.getElementById('ordersControls').style.display = 'none';
+}
+
+function showOrdersNoResults() {
+    document.getElementById('ordersLoading').style.display = 'none';
+    document.getElementById('ordersContent').style.display = 'none';
+    document.getElementById('ordersEmpty').style.display = 'none';
+    document.getElementById('ordersNoResults').style.display = 'block';
+    document.getElementById('ordersError').style.display = 'none';
+    document.getElementById('ordersControls').style.display = 'block';
+}
+
+function showOrdersError() {
+    document.getElementById('ordersLoading').style.display = 'none';
+    document.getElementById('ordersContent').style.display = 'none';
+    document.getElementById('ordersEmpty').style.display = 'none';
+    document.getElementById('ordersNoResults').style.display = 'none';
+    document.getElementById('ordersError').style.display = 'block';
+    document.getElementById('ordersControls').style.display = 'none';
+}
+
+// Search and Pagination Functions
+function clearFragrancesSearch() {
+    document.getElementById('fragrancesSearch').value = '';
+    fragrancesSearchTerm = '';
+    fragrancesPage = 1;
+    filterAndDisplayFragrances();
+    toggleSearchClear('fragrances');
+}
+
+function clearOrdersSearch() {
+    document.getElementById('ordersSearch').value = '';
+    ordersSearchTerm = '';
+    ordersPage = 1;
+    filterAndDisplayOrders();
+    toggleSearchClear('orders');
+}
+
+function toggleSearchClear(type) {
+    const searchInput = document.getElementById(`${type}Search`);
+    const clearButton = document.getElementById(`${type}ClearSearch`);
+    
+    if (searchInput && clearButton) {
+        clearButton.style.display = searchInput.value.length > 0 ? 'block' : 'none';
+    }
+}
+
+function updateFragrancesPagination() {
+    const totalPages = Math.ceil(filteredFragrances.length / fragrancesPerPage);
+    const prevBtn = document.getElementById('fragrancesPrevBtn');
+    const nextBtn = document.getElementById('fragrancesNextBtn');
+    const pageInfo = document.getElementById('fragrancesPageInfo');
+    
+    if (prevBtn) prevBtn.disabled = fragrancesPage <= 1;
+    if (nextBtn) nextBtn.disabled = fragrancesPage >= totalPages;
+    if (pageInfo) pageInfo.textContent = `Page ${fragrancesPage} of ${totalPages || 1}`;
+    
+    const pagination = document.getElementById('fragrancesPagination');
+    if (pagination) {
+        pagination.style.display = totalPages > 1 ? 'block' : 'none';
+    }
+}
+
+function updateOrdersPagination() {
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+    const prevBtn = document.getElementById('ordersPrevBtn');
+    const nextBtn = document.getElementById('ordersNextBtn');
+    const pageInfo = document.getElementById('ordersPageInfo');
+    
+    if (prevBtn) prevBtn.disabled = ordersPage <= 1;
+    if (nextBtn) nextBtn.disabled = ordersPage >= totalPages;
+    if (pageInfo) pageInfo.textContent = `Page ${ordersPage} of ${totalPages || 1}`;
+    
+    const pagination = document.getElementById('ordersPagination');
+    if (pagination) {
+        pagination.style.display = totalPages > 1 ? 'block' : 'none';
+    }
+}
+
+// Pagination Navigation
+function previousFragrancesPage() {
+    if (fragrancesPage > 1) {
+        fragrancesPage--;
+        renderFragrances();
+    }
+}
+
+function nextFragrancesPage() {
+    const totalPages = Math.ceil(filteredFragrances.length / fragrancesPerPage);
+    if (fragrancesPage < totalPages) {
+        fragrancesPage++;
+        renderFragrances();
+    }
+}
+
+function previousOrdersPage() {
+    if (ordersPage > 1) {
+        ordersPage--;
+        renderOrders();
+    }
+}
+
+function nextOrdersPage() {
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+    if (ordersPage < totalPages) {
+        ordersPage++;
+        renderOrders();
+    }
+}
+
+// Image handling functions
+function handleImageUpload(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    
+    if (file) {
+        if (!file.type.includes('png')) {
+            showCustomAlert('Only PNG images are allowed');
+            e.target.value = '';
+            clearImage();
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            showCustomAlert('Image must be smaller than 5MB');
+            e.target.value = '';
+            clearImage();
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.style.display = 'block';
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px;">`;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        clearImage();
+    }
+}
+
+function clearImage() {
+    const preview = document.getElementById('imagePreview');
+    if (preview) {
+        preview.style.display = 'none';
+        preview.innerHTML = '';
+    }
+}
+
+// Stats update function
+function updateStats() {
+    document.getElementById('totalFragrances').textContent = fragrances.length;
+    document.getElementById('visibleFragrances').textContent = fragrances.filter(f => !f.hidden).length;
+    document.getElementById('totalOrders').textContent = orders.length;
+    document.getElementById('pendingOrders').textContent = orders.filter(o => !o.completed).length;
+}
+
+// Refresh data function
 async function refreshData() {
+    const refreshBtn = document.getElementById('refreshBtn');
     if (isRefreshing) return;
     
     isRefreshing = true;
-    const refreshBtn = document.getElementById('refreshBtn');
-    
     if (refreshBtn) {
         refreshBtn.classList.add('refreshing');
         refreshBtn.title = 'Refreshing...';
@@ -886,7 +1043,6 @@ async function refreshData() {
     
     try {
         await loadDashboardData();
-        showCustomAlert('Data refreshed successfully!');
     } catch (error) {
         console.error('Error refreshing data:', error);
         showCustomAlert('Failed to refresh data. Please try again.');
@@ -907,10 +1063,10 @@ function handleResize() {
         isMobile = newIsMobile;
         // Re-render data with appropriate view
         if (fragrances.length > 0) {
-            displayFragrances();
+            renderFragrances();
         }
         if (orders.length > 0) {
-            displayOrders();
+            renderOrders();
         }
     }
 }
@@ -922,6 +1078,7 @@ function initializeSearchAndPagination() {
     if (fragrancesSearch) {
         fragrancesSearch.addEventListener('input', (e) => {
             fragrancesSearchTerm = e.target.value.toLowerCase();
+            fragrancesPage = 1;
             filterAndDisplayFragrances();
             toggleSearchClear('fragrances');
         });
@@ -932,6 +1089,7 @@ function initializeSearchAndPagination() {
     if (ordersSearch) {
         ordersSearch.addEventListener('input', (e) => {
             ordersSearchTerm = e.target.value.toLowerCase();
+            ordersPage = 1;
             filterAndDisplayOrders();
             toggleSearchClear('orders');
         });
@@ -952,191 +1110,74 @@ function initializeImageUpload() {
     }
 }
 
-function handleImageUpload(e) {
-    const file = e.target.files[0];
-    const preview = document.getElementById('imagePreview');
-    
-    if (file && preview) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.style.display = 'block';
-            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px;">`;
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function clearImage() {
-    const imageInput = document.getElementById('fragranceImage');
-    const preview = document.getElementById('imagePreview');
-    
-    if (imageInput) imageInput.value = '';
-    if (preview) {
-        preview.style.display = 'none';
-        preview.innerHTML = '';
-    }
-}
-
-async function handleFragranceSubmit(e) {
-    e.preventDefault();
-    
-    const submitBtn = document.getElementById('submitFragranceBtn');
-    const originalText = submitBtn.textContent;
-    
-    try {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Saving...';
-        
-        const form = e.target;
-        
-        // Basic fragrance data
-        const fragranceData = {
-            name: form.fragranceName.value.trim(),
-            slug: form.fragranceSlug.value.trim(),
-            brand: form.fragranceBrand.value.trim(),
-            description: form.fragranceDescription.value.trim(),
-            hidden: form.fragranceHidden.checked,
-            variants: []
-        };
-
-        // Validate required fields
-        if (!fragranceData.name || !fragranceData.slug) {
-            throw new Error('Name and slug are required');
-        }
-
-        // Collect variants
-        const variantCheckboxes = form.querySelectorAll('input[data-variant]');
-        variantCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                const size = checkbox.getAttribute('data-variant');
-                const isWholeBottle = size === 'Whole Bottle';
-                
-                const variant = {
-                    size: size,
-                    is_whole_bottle: isWholeBottle
-                };
-                
-                if (!isWholeBottle) {
-                    const priceInput = form.querySelector(`input[data-variant-price="${size}"]`);
-                    if (priceInput && priceInput.value) {
-                        variant.price = parseFloat(priceInput.value);
-                    }
-                }
-                
-                fragranceData.variants.push(variant);
-            }
-        });
-
-        let response;
-        
-        // Handle image upload for both add and update
-        const imageFile = form.fragranceImage.files[0];
-        if (imageFile || !currentEditingId) {
-            // Use FormData for image upload
-            const formData = new FormData();
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
-            formData.append('data', JSON.stringify(fragranceData));
-            
-            if (currentEditingId) {
-                formData.append('id', currentEditingId);
-                // Use PUT method for update
-                response = await fetch('/admin/update-fragrance', {
-                    method: 'PUT',
-                    credentials: 'include',
-                    body: formData
-                });
-            } else {
-                response = await fetch('/admin/add-fragrance', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: formData
-                });
-            }
-        } else {
-            // Update without image - use JSON
-            if (currentEditingId) {
-                fragranceData.id = currentEditingId;
-            }
-            
-            response = await fetch(currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance', {
-                method: currentEditingId ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(fragranceData)
-            });
-        }
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        const result = await response.json();
-        if (result.success) {
-            closeFragranceModal();
-            await loadFragrances();
-            updateStats();
-            showCustomAlert(currentEditingId ? 'Fragrance updated successfully!' : 'Fragrance added successfully!');
-        } else {
-            throw new Error(result.error || 'Failed to save fragrance');
-        }
-        
-    } catch (error) {
-        console.error('Error saving fragrance:', error);
-        showCustomAlert('Failed to save fragrance: ' + error.message);
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-    }
-}
-
-// Service Worker Functions
+// Notification functions (for service worker)
 function initializeServiceWorker() {
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {
-                console.log('Service Worker registered');
+                console.log('Service Worker registered:', registration);
                 serviceWorker = registration;
                 
                 // Listen for messages from service worker
                 navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-                
             })
             .catch(error => {
-                console.log('Service Worker registration failed:', error);
+                console.warn('Service Worker registration failed:', error);
             });
     }
 }
 
-function handleServiceWorkerMessage(event) {
-    const { type, data } = event.data;
+function loadNotificationSettings() {
+    const toggle = document.getElementById('notificationToggle');
+    const enabled = localStorage.getItem('notificationsEnabled') === 'true';
     
-    switch (type) {
-        case 'NEW_ORDER_NOTIFICATION':
-            console.log('New order notification received:', data);
-            // Refresh orders to show new order
-            loadOrders();
-            break;
-        case 'NOTIFICATION_PERMISSION_CHANGED':
-            notificationPermission = data.permission;
-            break;
+    if (toggle) {
+        toggle.checked = enabled;
+        toggle.addEventListener('change', handleNotificationToggle);
     }
 }
 
-function sendMessageToServiceWorker(type, data) {
+async function handleNotificationToggle(e) {
+    const enabled = e.target.checked;
+    
+    if (enabled) {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                e.target.checked = false;
+                showCustomAlert('Notification permission denied');
+                return;
+            }
+            
+            localStorage.setItem('notificationsEnabled', 'true');
+            
+            // Initialize known orders in service worker
+            if (serviceWorker && serviceWorker.active) {
+                const currentOrderIds = orders.map(order => order.id);
+                await sendMessageToServiceWorker('INIT_KNOWN_ORDERS', {
+                    orderIds: currentOrderIds
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error enabling notifications:', error);
+            e.target.checked = false;
+            showCustomAlert('Failed to enable notifications');
+        }
+    } else {
+        localStorage.removeItem('notificationsEnabled');
+    }
+}
+
+async function sendMessageToServiceWorker(type, data) {
     return new Promise((resolve, reject) => {
         if (!serviceWorker || !serviceWorker.active) {
-            reject(new Error('Service Worker not available'));
+            reject(new Error('Service worker not available'));
             return;
         }
         
         const messageChannel = new MessageChannel();
-        
-        messageChannel.port1.onmessage = function(event) {
+        messageChannel.port1.onmessage = (event) => {
             if (event.data.error) {
                 reject(new Error(event.data.error));
             } else {
@@ -1145,129 +1186,115 @@ function sendMessageToServiceWorker(type, data) {
         };
         
         serviceWorker.active.postMessage({
-            type,
-            data
+            type: type,
+            data: data
         }, [messageChannel.port2]);
     });
 }
 
-function loadNotificationSettings() {
-    const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
-    const toggleSwitch = document.getElementById('notificationToggle');
+function handleServiceWorkerMessage(event) {
+    const { type, data } = event.data;
     
-    if (toggleSwitch) {
-        toggleSwitch.checked = notificationsEnabled;
-        toggleSwitch.addEventListener('change', toggleNotifications);
-    }
-}
-
-async function toggleNotifications() {
-    const toggleSwitch = document.getElementById('notificationToggle');
-    const enabled = toggleSwitch.checked;
-    
-    if (enabled) {
-        // Request permission
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            localStorage.setItem('notificationsEnabled', 'true');
-            
-            // Initialize service worker with current orders
-            if (serviceWorker && serviceWorker.active) {
-                const currentOrderIds = orders.map(order => order.id);
-                try {
-                    await sendMessageToServiceWorker('ENABLE_NOTIFICATIONS', {
-                        orderIds: currentOrderIds
-                    });
-                    showCustomAlert('Order notifications enabled!');
-                } catch (error) {
-                    console.error('Failed to enable notifications:', error);
-                    showCustomAlert('Failed to enable notifications');
-                }
-            }
-        } else {
-            toggleSwitch.checked = false;
-            showCustomAlert('Please allow notifications in your browser settings');
-        }
-    } else {
-        localStorage.setItem('notificationsEnabled', 'false');
-        
-        if (serviceWorker && serviceWorker.active) {
-            try {
-                await sendMessageToServiceWorker('DISABLE_NOTIFICATIONS', {});
-                showCustomAlert('Order notifications disabled');
-            } catch (error) {
-                console.error('Failed to disable notifications:', error);
-            }
-        }
+    if (type === 'NEW_ORDER_DETECTED') {
+        // Refresh orders to show the new order
+        loadOrders().then(() => {
+            updateStats();
+        });
     }
 }
 
 function detectIOSPWA() {
     isIOSPWA = window.navigator.standalone === true;
-    if (isIOSPWA) {
-        document.body.classList.add('ios-pwa');
+}
+
+// Custom modal functions
+function showCustomAlert(message, callback) {
+    const modal = document.getElementById('customAlert');
+    const text = document.getElementById('customAlertText');
+    
+    text.textContent = message;
+    modal.style.display = 'flex';
+    
+    // Store callback for when OK is clicked
+    modal._callback = callback;
+}
+
+function closeCustomAlert() {
+    const modal = document.getElementById('customAlert');
+    modal.style.display = 'none';
+    
+    // Execute callback if provided
+    if (modal._callback && typeof modal._callback === 'function') {
+        modal._callback();
+        modal._callback = null;
     }
 }
 
-// Utility Functions
-function showCustomAlert(message, callback = null) {
-    // Create simple alert modal
-    const modal = document.createElement('div');
-    modal.className = 'custom-alert-modal';
-    modal.innerHTML = `
-        <div class="custom-alert-content">
-            <div class="custom-alert-message">${message}</div>
-            <div class="custom-alert-actions">
-                <button class="custom-modal-btn custom-alert-ok">OK</button>
-            </div>
-        </div>
-    `;
+function showCustomConfirm(message, confirmCallback) {
+    const modal = document.getElementById('customConfirm');
+    const text = document.getElementById('customConfirmText');
+    const okBtn = document.getElementById('customConfirmOk');
     
-    document.body.appendChild(modal);
-    document.body.style.overflow = 'hidden';
+    text.textContent = message;
+    modal.style.display = 'flex';
     
-    const okBtn = modal.querySelector('.custom-alert-ok');
-    okBtn.onclick = () => {
-        document.body.removeChild(modal);
-        document.body.style.overflow = 'auto';
-        if (callback) callback();
-    };
+    // Remove any existing event listeners
+    okBtn.replaceWith(okBtn.cloneNode(true));
+    const newOkBtn = document.getElementById('customConfirmOk');
     
-    // Focus the OK button
-    okBtn.focus();
+    // Add new event listener
+    newOkBtn.addEventListener('click', () => {
+        closeCustomConfirm();
+        if (confirmCallback && typeof confirmCallback === 'function') {
+            confirmCallback();
+        }
+    });
 }
 
-function showCustomConfirm(message, onConfirm) {
-    // Create simple confirm modal
-    const modal = document.createElement('div');
-    modal.className = 'custom-alert-modal';
-    modal.innerHTML = `
-        <div class="custom-alert-content">
-            <div class="custom-alert-message">${message}</div>
-            <div class="custom-alert-actions">
-                <button class="custom-modal-btn secondary custom-alert-cancel">Cancel</button>
-                <button class="custom-modal-btn custom-alert-confirm">Confirm</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    document.body.style.overflow = 'hidden';
-    
-    const cancelBtn = modal.querySelector('.custom-alert-cancel');
-    const confirmBtn = modal.querySelector('.custom-alert-confirm');
-    
-    cancelBtn.onclick = () => {
-        document.body.removeChild(modal);
-        document.body.style.overflow = 'auto';
-    };
-    
-    confirmBtn.onclick = () => {
-        document.body.removeChild(modal);
-        document.body.style.overflow = 'auto';
-        onConfirm();
-    };
-    
-    // Focus the confirm button
-    confirmBtn.focus();
+function closeCustomConfirm() {
+    const modal = document.getElementById('customConfirm');
+    modal.style.display = 'none';
 }
+
+// Close modals when clicking outside
+document.addEventListener('click', (e) => {
+    // Close fragrance modal
+    const fragranceModal = document.getElementById('fragranceModal');
+    if (e.target === fragranceModal) {
+        closeFragranceModal();
+    }
+    
+    // Close custom alert
+    const customAlert = document.getElementById('customAlert');
+    if (e.target === customAlert) {
+        closeCustomAlert();
+    }
+    
+    // Close custom confirm
+    const customConfirm = document.getElementById('customConfirm');
+    if (e.target === customConfirm) {
+        closeCustomConfirm();
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Close modals with Escape key
+    if (e.key === 'Escape') {
+        if (document.getElementById('fragranceModal').classList.contains('active')) {
+            closeFragranceModal();
+        }
+        if (document.getElementById('customAlert').style.display === 'flex') {
+            closeCustomAlert();
+        }
+        if (document.getElementById('customConfirm').style.display === 'flex') {
+            closeCustomConfirm();
+        }
+    }
+    
+    // Refresh data with F5
+    if (e.key === 'F5' && !e.ctrlKey) {
+        e.preventDefault();
+        refreshData();
+    }
+});
