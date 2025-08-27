@@ -1,4 +1,4 @@
-// functions/admin/add-fragrance.js - Simplified version without brand_id
+// Fixed add-fragrance endpoint - HANDLES BOTH JSON AND FORMDATA
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -45,31 +45,68 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Parse fragrance data
+    // FIXED: Parse fragrance data - handle both JSON and FormData
     let fragranceData;
-    try {
-      const text = await request.text();
-      if (!text || text.trim() === '') {
+    let imageFile = null;
+    
+    const contentType = request.headers.get('content-type') || '';
+    
+    if (contentType.includes('multipart/form-data')) {
+      // FormData with image
+      try {
+        const formData = await request.formData();
+        const dataString = formData.get('data');
+        imageFile = formData.get('image');
+        
+        if (!dataString) {
+          return new Response(JSON.stringify({ 
+            error: 'No fragrance data provided in FormData' 
+          }), {
+            status: 400,
+            headers: corsHeaders
+          });
+        }
+        
+        fragranceData = JSON.parse(dataString);
+        console.log('Parsed FormData successfully');
+      } catch (parseError) {
+        console.error('FormData parse error:', parseError);
         return new Response(JSON.stringify({ 
-          error: 'No fragrance data provided' 
+          error: 'Invalid FormData format' 
         }), {
           status: 400,
           headers: corsHeaders
         });
       }
-      fragranceData = JSON.parse(text);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      return new Response(JSON.stringify({ 
-        error: 'Invalid fragrance data format' 
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
+    } else {
+      // Regular JSON
+      try {
+        const text = await request.text();
+        if (!text || text.trim() === '') {
+          return new Response(JSON.stringify({ 
+            error: 'No fragrance data provided' 
+          }), {
+            status: 400,
+            headers: corsHeaders
+          });
+        }
+        fragranceData = JSON.parse(text);
+        console.log('Parsed JSON successfully');
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        return new Response(JSON.stringify({ 
+          error: 'Invalid JSON format' 
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
     }
     
+    console.log('Received fragrance data:', fragranceData);
+    
     // Validate required fields
-    const { name, slug, description, image, variants, brand } = fragranceData;
+    const { name, slug, description, variants, brand, hidden } = fragranceData;
     
     if (!name || !slug || !description || !variants || !Array.isArray(variants)) {
       return new Response(JSON.stringify({ 
@@ -78,7 +115,8 @@ export async function onRequestPost(context) {
           name: !!name,
           slug: !!slug,
           description: !!description,
-          variants: Array.isArray(variants) ? `${variants.length} variants` : 'invalid'
+          variants: Array.isArray(variants) ? `${variants.length} variants` : 'invalid',
+          actualData: fragranceData
         }
       }), {
         status: 400,
@@ -86,34 +124,92 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Validate variants
+    // FIXED: Validate variants with correct format
     const validVariants = variants.filter(v => {
+      console.log('Validating variant:', v);
       if (v.is_whole_bottle) {
-        return true; // Whole bottle is always valid (no price needed)
+        return true; // Whole bottle is always valid
       }
-      const price = parseFloat(v.price);
-      return !isNaN(price) && price > 0 && v.size_ml > 0;
+      // Check if variant has size_ml and price
+      return v.size_ml && typeof v.size_ml === 'number' && v.size_ml > 0 &&
+             v.price && typeof v.price === 'number' && v.price > 0;
     });
+    
+    console.log('Valid variants:', validVariants.length, 'of', variants.length);
     
     if (validVariants.length === 0) {
       return new Response(JSON.stringify({ 
-        error: 'At least one valid variant (size and price) is required' 
+        error: 'At least one valid variant is required',
+        receivedVariants: variants,
+        validationNote: 'Variants need size_ml (number) and price (number) for regular sizes, or is_whole_bottle: true'
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
 
-    console.log('Saving fragrance to Supabase:', { name, slug, variantCount: validVariants.length });
+    // Handle image upload if present
+    let imagePath = null;
+    if (imageFile) {
+      console.log('Uploading image:', imageFile.name, imageFile.type);
+      
+      // Validate image
+      if (!imageFile.type.includes('png')) {
+        return new Response(JSON.stringify({
+          error: 'Only PNG images are allowed',
+          received: imageFile.type
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      
+      if (imageFile.size > 5 * 1024 * 1024) {
+        return new Response(JSON.stringify({
+          error: 'Image too large. Maximum size is 5MB.',
+          received: `${(imageFile.size / 1024 / 1024).toFixed(2)}MB`
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      
+      // Generate filename
+      const filename = `${slug.toLowerCase().replace(/\s+/g, '-')}.png`;
+      const imageBuffer = await imageFile.arrayBuffer();
+      
+      // Upload to Supabase Storage
+      const uploadResponse = await fetch(
+        `${SUPABASE_URL}/storage/v1/object/fragrance-images/${filename}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type': 'image/png',
+            'Content-Length': imageBuffer.byteLength.toString()
+          },
+          body: imageBuffer
+        }
+      );
+      
+      if (uploadResponse.ok) {
+        imagePath = filename;
+        console.log('Image uploaded successfully:', imagePath);
+      } else {
+        console.warn('Image upload failed, continuing without image');
+      }
+    }
 
-    // Create fragrance (simplified - no brand_id)
+    console.log('Creating fragrance with variants:', validVariants.length);
+
+    // Create fragrance
     const fragrancePayload = {
       name: name.trim(),
       slug: slug.trim().toLowerCase(),
       description: description.trim(),
-      image_path: image?.trim() || null,
-      brand: brand?.trim() || null, // Store brand as simple text
-      hidden: false,
+      image_path: imagePath,
+      brand: brand?.trim() || null,
+      hidden: hidden || false,
       created_at: new Date().toISOString()
     };
 
@@ -134,7 +230,6 @@ export async function onRequestPost(context) {
       const errorText = await fragranceResponse.text();
       console.error('Failed to create fragrance:', errorText);
       
-      // Check if it's a duplicate slug error
       if (errorText.includes('unique') || errorText.includes('duplicate')) {
         return new Response(JSON.stringify({
           error: 'A fragrance with this slug already exists. Please use a different name/slug.',
@@ -279,12 +374,22 @@ export async function onRequestGet(context) {
   const isAuthenticated = !!sessionCookie;
   
   return new Response(JSON.stringify({
-    message: 'Add fragrance endpoint is working!',
+    message: 'Add fragrance endpoint is working! (FIXED VERSION)',
     authenticated: isAuthenticated,
     method: 'POST /admin/add-fragrance to add a fragrance',
+    accepts: ['application/json', 'multipart/form-data'],
     requiredFields: ['name', 'slug', 'description', 'variants'],
-    optionalFields: ['brand', 'image'],
-    variantFormat: { size: 'string (e.g., "50ml")', price: 'number' },
+    optionalFields: ['brand', 'image', 'hidden'],
+    variantFormat: {
+      regular: { size_ml: 'number (e.g., 5)', price: 'number (e.g., 0.025)' },
+      wholeBottle: { is_whole_bottle: true }
+    },
+    improvements: [
+      'Handles both JSON and FormData requests',
+      'Proper variant validation with size_ml and price',
+      'Image upload support with validation',
+      'Better error messages'
+    ],
     supabaseConfig: {
       hasUrl: !!context.env.SUPABASE_URL,
       hasServiceKey: !!context.env.SUPABASE_SERVICE_ROLE_KEY
