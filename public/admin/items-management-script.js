@@ -900,12 +900,11 @@ async function saveItem() {
             if (imageInput.files.length > 0) {
                 // First upload the image
                 const imageFile = imageInput.files[0];
-                const renamedFile = new File([imageFile], `${slug}.png`, { type: imageFile.type });
                 
                 try {
-                    const imageUploadResult = await uploadImage(renamedFile, slug);
+                    const imageUploadResult = await uploadImage(imageFile, slug);
                     if (imageUploadResult.success) {
-                        updateData.image = `${slug}.png`;
+                        updateData.image = imageUploadResult.data.filename; // e.g., "creed-aventus.png"
                     } else {
                         throw new Error(imageUploadResult.error || 'Failed to upload image');
                     }
@@ -944,12 +943,12 @@ async function saveItem() {
             
             if (imageInput.files.length > 0) {
                 const imageFile = imageInput.files[0];
-                const renamedFile = new File([imageFile], `${slug}.png`, { type: imageFile.type });
                 
                 try {
-                    const imageUploadResult = await uploadImage(renamedFile, slug);
+                    const imageUploadResult = await uploadImage(imageFile, slug);
                     if (imageUploadResult.success) {
-                        imagePath = `${slug}.png`;
+                        // Use just the filename, not the full path
+                        imagePath = imageUploadResult.data.filename; // e.g., "creed-aventus.png"
                     } else {
                         throw new Error(imageUploadResult.error || 'Failed to upload image');
                     }
@@ -966,7 +965,7 @@ async function saveItem() {
                 brand,
                 variants,
                 hidden,
-                image: imagePath
+                image: imagePath // This will be stored in image_path column
             };
             
             const response = await fetch('/admin/add-fragrance', {
@@ -1006,8 +1005,8 @@ async function saveItem() {
 async function uploadImage(file, slug) {
     try {
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('fileName', `${slug}.png`);
+        formData.append('image', file);  // Changed from 'file' to 'image'
+        formData.append('slug', slug);   // Changed from 'fileName' to 'slug'
         
         const response = await fetch('/admin/upload-image', {
             method: 'POST',
