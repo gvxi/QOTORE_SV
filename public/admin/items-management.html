@@ -210,6 +210,7 @@
                             <label for="itemName">Item Name *</label>
                             <input type="text" id="itemName" name="name" required 
                                    placeholder="e.g., Creed Aventus">
+                            <div class="field-info">URL will be: <span id="slugPreview">creed-aventus</span></div>
                         </div>
                         <div class="form-group">
                             <label for="itemBrand">Brand *</label>
@@ -227,7 +228,9 @@
                     <div class="form-group">
                         <label for="itemImage">Product Image (.png only) *</label>
                         <input type="file" id="itemImage" name="image" accept=".png" required>
-                        <div class="file-info">Only PNG files are accepted</div>
+                        <div class="file-info">
+                            Only PNG files are accepted. Image will be saved as: <span id="imageNamePreview">creed-aventus.png</span>
+                        </div>
                         <div id="imagePreview" class="image-preview" style="display: none;">
                             <img id="previewImg" src="" alt="Preview">
                             <button type="button" class="remove-image" onclick="removeImagePreview()">×</button>

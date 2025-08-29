@@ -800,6 +800,18 @@ body {
     margin-top: 0.25rem;
 }
 
+.field-info {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.field-info span,
+.file-info span {
+    font-weight: 600;
+    color: #8B4513;
+}
+
 /* Image Preview */
 .image-preview {
     margin-top: 1rem;
@@ -858,16 +870,27 @@ body {
 
 .variant-item.full-bottle {
     grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
 }
 
-.variant-item label {
-    display: block;
+.variant-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin-bottom: 0.5rem;
+    cursor: pointer;
     font-weight: 600;
     color: #333;
     font-size: 0.9rem;
+}
+
+.variant-toggle-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    transform: scale(1.1);
+}
+
+.variant-label {
+    flex: 1;
 }
 
 .variant-item input[type="number"] {
@@ -876,6 +899,18 @@ body {
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.variant-item input[type="number"]:disabled {
+    background: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.variant-item input[type="number"]:enabled {
+    background: white;
+    border-color: #8B4513;
 }
 
 /* Checkbox Styles */

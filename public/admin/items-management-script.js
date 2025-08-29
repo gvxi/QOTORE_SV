@@ -72,6 +72,9 @@ function setupEventListeners() {
 
     // Variant toggles
     setupVariantToggles();
+    
+    // Slug preview
+    setupSlugPreview();
 
     // Form validation
     const form = document.getElementById('itemForm');
@@ -95,6 +98,29 @@ function setupEventListeners() {
             closeDeleteModal();
         }
     });
+}
+
+function setupSlugPreview() {
+    const nameInput = document.getElementById('itemName');
+    const slugPreview = document.getElementById('slugPreview');
+    const imageNamePreview = document.getElementById('imageNamePreview');
+    
+    if (nameInput && slugPreview && imageNamePreview) {
+        nameInput.addEventListener('input', function() {
+            const slug = generateSlug(this.value);
+            slugPreview.textContent = slug || 'item-name';
+            imageNamePreview.textContent = (slug || 'item-name') + '.png';
+        });
+    }
+}
+
+function generateSlug(name) {
+    return name.toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special chars except spaces and dashes
+        .replace(/\s+/g, '-') // Replace spaces with dashes
+        .replace(/-+/g, '-') // Replace multiple dashes with single
+        .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
 }
 
 function setupVariantToggles() {
@@ -343,7 +369,10 @@ function createItemRow(item) {
     row.className = 'item-row';
     
     const variants = getVariantsDisplay(item.variants);
-    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
+    // Fix image URL construction - you'll need to replace with your actual Supabase URL
+    const imageUrl = item.image_path ? 
+        `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}` : 
+        null;
     
     row.innerHTML = `
         <td class="item-info-cell">
@@ -410,7 +439,10 @@ function createMobileCard(item) {
     card.className = 'mobile-card';
     
     const variants = getVariantsDisplay(item.variants);
-    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
+    // Fix image URL construction for mobile cards too
+    const imageUrl = item.image_path ? 
+        `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}` : 
+        null;
     
     card.innerHTML = `
         <div class="mobile-card-header">
@@ -438,7 +470,7 @@ function createMobileCard(item) {
             ${imageUrl ? `
             <div>
                 <strong>Image</strong>
-                <img src="${imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
+                <img src="${imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;" onerror="this.style.display='none'">
             </div>
             ` : ''}
         </div>
@@ -584,6 +616,13 @@ function populateForm(item) {
     document.getElementById('itemDescription').value = item.description || '';
     document.getElementById('itemHidden').checked = item.hidden || false;
     
+    // Update slug preview
+    const slug = generateSlug(item.name || '');
+    const slugPreview = document.getElementById('slugPreview');
+    const imageNamePreview = document.getElementById('imageNamePreview');
+    if (slugPreview) slugPreview.textContent = slug || 'item-name';
+    if (imageNamePreview) imageNamePreview.textContent = (slug || 'item-name') + '.png';
+    
     // Reset all variant toggles and prices
     const variantSizes = ['5ml', '10ml', '30ml'];
     variantSizes.forEach(size => {
@@ -623,7 +662,8 @@ function populateForm(item) {
         const imageInput = document.getElementById('itemImage');
         
         if (imagePreview && previewImg) {
-            previewImg.src = `/storage/fragrance-images/${item.image_path}`;
+            const imageUrl = `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}`;
+            previewImg.src = imageUrl;
             imagePreview.style.display = 'block';
             imageInput.required = false; // Don't require new image for edit
         }
@@ -636,6 +676,12 @@ function resetForm() {
     
     const imageInput = document.getElementById('itemImage');
     if (imageInput) imageInput.required = true; // Require image for new items
+    
+    // Reset slug preview
+    const slugPreview = document.getElementById('slugPreview');
+    const imageNamePreview = document.getElementById('imageNamePreview');
+    if (slugPreview) slugPreview.textContent = 'item-name';
+    if (imageNamePreview) imageNamePreview.textContent = 'item-name.png';
     
     // Reset variant toggles and disable price inputs
     const variantSizes = ['5ml', '10ml', '30ml'];
@@ -669,11 +715,14 @@ function deleteItem(itemId) {
     
     // Populate delete preview
     const preview = document.getElementById('deleteItemPreview');
-    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
+    const imageUrl = item.image_path ? 
+        `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}` : 
+        null;
     
     preview.innerHTML = `
         ${imageUrl ? 
-            `<img src="${imageUrl}" alt="${item.name}">` : 
+            `<img src="${imageUrl}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+             <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 6px; display: none; align-items: center; justify-content: center; font-size: 0.8rem; color: #999;">No Image</div>` : 
             `<div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #999;">No Image</div>`
         }
         <div class="item-preview-info">
@@ -781,21 +830,16 @@ async function saveItem() {
     saveButton.textContent = 'Saving...';
     
     try {
-        const formData = new FormData();
+        // Collect form data
+        const name = document.getElementById('itemName').value.trim();
+        const brand = document.getElementById('itemBrand').value.trim();
+        const description = document.getElementById('itemDescription').value.trim();
+        const hidden = document.getElementById('itemHidden').checked;
         
-        // Basic fields
-        formData.append('name', document.getElementById('itemName').value.trim());
-        formData.append('brand', document.getElementById('itemBrand').value.trim());
-        formData.append('description', document.getElementById('itemDescription').value.trim());
-        formData.append('hidden', document.getElementById('itemHidden').checked);
+        // Create slug from name
+        const slug = generateSlug(name);
         
-        // Image file
-        const imageInput = document.getElementById('itemImage');
-        if (imageInput.files.length > 0) {
-            formData.append('image', imageInput.files[0]);
-        }
-        
-        // Variant prices (convert OMR to fils) - only include enabled variants
+        // Collect enabled variants
         const variants = [];
         
         if (document.getElementById('enable5ml').checked) {
@@ -839,18 +883,134 @@ async function saveItem() {
             });
         }
         
-        formData.append('variants', JSON.stringify(variants));
-        
-        // Add ID for updates
         if (currentEditingId) {
-            formData.append('id', currentEditingId);
+            // UPDATE: Send as JSON
+            const updateData = {
+                id: parseInt(currentEditingId),
+                name,
+                slug,
+                description,
+                brand,
+                variants,
+                hidden
+            };
+            
+            // Handle image upload for updates
+            const imageInput = document.getElementById('itemImage');
+            if (imageInput.files.length > 0) {
+                // First upload the image
+                const imageFile = imageInput.files[0];
+                const renamedFile = new File([imageFile], `${slug}.png`, { type: imageFile.type });
+                
+                try {
+                    const imageUploadResult = await uploadImage(renamedFile, slug);
+                    if (imageUploadResult.success) {
+                        updateData.image = `${slug}.png`;
+                    } else {
+                        throw new Error(imageUploadResult.error || 'Failed to upload image');
+                    }
+                } catch (uploadError) {
+                    throw new Error('Image upload failed: ' + uploadError.message);
+                }
+            }
+            
+            const response = await fetch('/admin/update-fragrance', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || `HTTP ${response.status}`);
+            }
+            
+            if (result.success) {
+                showToast('Item updated successfully', 'success');
+                closeItemModal();
+                await refreshData();
+            } else {
+                throw new Error(result.error || 'Failed to update item');
+            }
+            
+        } else {
+            // ADD: Upload image first, then create item
+            const imageInput = document.getElementById('itemImage');
+            let imagePath = null;
+            
+            if (imageInput.files.length > 0) {
+                const imageFile = imageInput.files[0];
+                const renamedFile = new File([imageFile], `${slug}.png`, { type: imageFile.type });
+                
+                try {
+                    const imageUploadResult = await uploadImage(renamedFile, slug);
+                    if (imageUploadResult.success) {
+                        imagePath = `${slug}.png`;
+                    } else {
+                        throw new Error(imageUploadResult.error || 'Failed to upload image');
+                    }
+                } catch (uploadError) {
+                    throw new Error('Image upload failed: ' + uploadError.message);
+                }
+            }
+            
+            // Create fragrance data
+            const fragranceData = {
+                name,
+                slug,
+                description,
+                brand,
+                variants,
+                hidden,
+                image: imagePath
+            };
+            
+            const response = await fetch('/admin/add-fragrance', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(fragranceData)
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || `HTTP ${response.status}`);
+            }
+            
+            if (result.success) {
+                showToast('Item added successfully', 'success');
+                closeItemModal();
+                await refreshData();
+            } else {
+                throw new Error(result.error || 'Failed to add item');
+            }
         }
         
-        const url = currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance';
-        const method = currentEditingId ? 'PUT' : 'POST';
+    } catch (error) {
+        console.error('❌ Save item error:', error);
+        showToast('Failed to save item: ' + error.message, 'error');
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = originalText;
+    }
+}
+
+// Image Upload Function
+async function uploadImage(file, slug) {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileName', `${slug}.png`);
         
-        const response = await fetch(url, {
-            method: method,
+        const response = await fetch('/admin/upload-image', {
+            method: 'POST',
             credentials: 'include',
             body: formData
         });
@@ -861,21 +1021,13 @@ async function saveItem() {
             throw new Error(result.error || `HTTP ${response.status}`);
         }
         
-        if (result.success) {
-            const action = currentEditingId ? 'updated' : 'added';
-            showToast(`Item ${action} successfully`, 'success');
-            closeItemModal();
-            await refreshData();
-        } else {
-            throw new Error(result.error || 'Failed to save item');
-        }
-        
+        return result;
     } catch (error) {
-        console.error('❌ Save item error:', error);
-        showToast('Failed to save item: ' + error.message, 'error');
-    } finally {
-        saveButton.disabled = false;
-        saveButton.textContent = originalText;
+        console.error('❌ Image upload error:', error);
+        return {
+            success: false,
+            error: error.message
+        };
     }
 }
 
@@ -894,7 +1046,7 @@ async function confirmDelete() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id: deleteItemId })
+            body: JSON.stringify({ id: parseInt(deleteItemId) })
         });
         
         const result = await response.json();
