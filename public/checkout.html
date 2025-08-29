@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-key="checkout.title">الدفع - قطرة</title>
+    <title>Checkout - Qotore</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Complete your fragrance order at Qotore">
+    <meta name="theme-color" content="#2563eb">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
+    <!-- Styles -->
     <style>
         * {
             margin: 0;
@@ -11,413 +21,306 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #fafafa;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
+        /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 3rem;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .logo {
-            font-size: 2rem;
-            color: #8B4513;
-            font-weight: bold;
-            margin-bottom: 1rem;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
         }
 
-        .lang-btn {
-            background: none;
-            border: 2px solid #8B4513;
-            color: #8B4513;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
         }
 
-        .lang-btn.active {
-            background: #8B4513;
-            color: white;
+        .back-link:hover {
+            text-decoration: underline;
         }
 
-        .lang-btn:hover {
-            background: #A0522D;
-            color: white;
-            border-color: #A0522D;
-        }
-
-        .checkout-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .checkout-header {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
+        /* Main Content */
+        .main {
+            max-width: 1000px;
+            margin: 0 auto;
             padding: 2rem;
-            text-align: center;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
         }
 
-        .checkout-content {
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Checkout Form */
+        .checkout-form {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
             padding: 2rem;
         }
 
-        .section {
+        .form-section {
             margin-bottom: 2rem;
         }
 
-        .section h3 {
-            color: #8B4513;
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
             margin-bottom: 1rem;
-            font-size: 1.3rem;
+            color: var(--text-primary);
         }
 
-        .order-summary {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .order-item:last-child {
-            border-bottom: none;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #8B4513;
-        }
-
-        .item-info {
-            flex: 1;
-        }
-
-        .item-name {
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-        }
-
-        .item-details {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .item-price {
-            font-weight: 600;
-            color: #8B4513;
-        }
-
-        /* Enhanced Quantity Controls */
-        .checkout-qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            border: 2px solid #e9ecef;
-        }
-
-        .checkout-qty-btn {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 8px rgba(139, 69, 19, 0.3);
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .checkout-qty-btn:hover {
-            background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
-        }
-
-        .checkout-qty-btn.minus::before {
-            content: "−";
-            font-size: 18px;
-        }
-
-        .checkout-qty-btn.plus::before {
-            content: "+";
-            font-size: 16px;
-        }
-
-        .checkout-qty-input {
-            width: 60px;
-            height: 36px;
-            text-align: center;
-            border: 2px solid #8B4513;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: #8B4513;
-            background: white;
-            transition: all 0.3s ease;
-            order: 2;
-        }
-
-        .checkout-qty-input:focus {
-            outline: none;
-            border-color: #A0522D;
-            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
-            transform: scale(1.05);
-        }
-
-        .checkout-qty-btn.minus {
-            order: 3;
-        }
-
-        .checkout-qty-btn.plus {
-            order: 1;
-        }
-
-        .checkout-remove-btn {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
-        }
-
-        .checkout-remove-btn:hover {
-            background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
-        }
-
-        .checkout-remove-btn::before {
-            content: "✕";
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .checkout-item-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 12px;
-            min-width: 160px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #e9ecef;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .cart-item-price {
-            font-weight: 700;
-            color: #8B4513;
-            font-size: 1.1rem;
-            background: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 2px solid #8B4513;
-            box-shadow: 0 2px 6px rgba(139, 69, 19, 0.2);
-        }
-
-        .checkout-item-image {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-inline-end: 15px;
-            border: 3px solid #e9ecef;
-            flex-shrink: 0;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-
-        .checkout-item-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .checkout-item-image-placeholder {
-            font-size: 2rem;
-            color: #8B4513;
-        }
-
-        .checkout-cart-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 20px;
-            gap: 15px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            margin-bottom: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 2px solid #f0f0f0;
-            transition: all 0.3s ease;
-        }
-
-        .checkout-cart-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            border-color: #8B4513;
-        }
-
-        .checkout-item-info {
-            flex: 1;
-            display: flex;
-            align-items: center;
-        }
-
-        .checkout-item-details {
-            flex: 1;
-        }
-
-        .whole-bottle-qty {
-            text-align: center;
-            color: #8B4513;
-            font-size: 0.9rem;
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 2px solid #f1c40f;
-            font-weight: 600;
-            box-shadow: 0 2px 6px rgba(241, 196, 15, 0.3);
-        }
-
-        .whole-bottle-qty::before {
-            content: "🎁 ";
-            margin-inline-end: 4px;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .required {
-            color: #ff4444;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #8B4513;
-        }
-
-        .form-row {
+        .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
         }
 
+        @media (max-width: 480px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-label .required {
+            color: var(--danger);
+        }
+
+        .form-input, .form-textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            background: var(--bg-primary);
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Order Summary */
+        .order-summary {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            height: fit-content;
+            position: sticky;
+            top: 6rem;
+        }
+
+        .summary-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .cart-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .item-variant {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .item-quantity {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        /* Order Total */
+        .order-total {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .total-row:last-child {
+            margin-bottom: 0;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .total-label {
+            color: var(--text-secondary);
+        }
+
+        .total-value {
+            font-weight: 600;
+        }
+
+        /* Place Order Button */
         .place-order-btn {
             width: 100%;
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 1.2rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+            transition: all 0.2s;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .place-order-btn:hover {
-            background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
         }
 
         .place-order-btn:disabled {
-            background: #ccc;
+            opacity: 0.7;
             cursor: not-allowed;
             transform: none;
         }
 
-        .back-link {
-            text-align: center;
-            margin-top: 2rem;
-        }
-
-        .back-link a {
-            color: #8B4513;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 12px 24px;
-            border: 2px solid #8B4513;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-
-        .back-link a:hover {
-            background: #8B4513;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+        /* Loading State */
+        .loading-spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
             border-radius: 50%;
-            border-top: 2px solid white;
             animation: spin 1s linear infinite;
-            margin-inline-end: 10px;
         }
 
         @keyframes spin {
@@ -425,657 +328,392 @@
             100% { transform: rotate(360deg); }
         }
 
-        .empty-cart {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-        }
-
-        .empty-cart h3 {
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
+        /* Success Message */
         .success-message {
-            background: #d4edda;
-            color: #155724;
+            background: #dcfdf7;
+            border: 1px solid #34d399;
+            color: #065f46;
             padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border: 1px solid #c3e6cb;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
         }
 
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border: 1px solid #f5c6cb;
+        .success-message.show {
+            display: block;
         }
 
-        /* Custom Modal Styles */
-        .custom-modal {
+        /* Footer */
+        .footer {
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* WhatsApp Float */
+        .whatsapp-float {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            z-index: 3000;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: #25d366;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s;
+            z-index: 100;
+            text-decoration: none;
         }
 
-        .custom-modal.active {
-            opacity: 1;
-            visibility: visible;
+        .whatsapp-float:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
         }
 
-        .custom-modal-content {
-            background: white;
-            border-radius: 15px;
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            padding: 1rem;
             min-width: 300px;
-            max-width: 500px;
-            margin: 2rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transform: translateY(-50px) scale(0.9);
-            transition: all 0.3s ease;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s;
         }
 
-        .custom-modal.active .custom-modal-content {
-            transform: translateY(0) scale(1);
+        .toast.show {
+            transform: translateX(0);
         }
 
-        .custom-modal-header {
-            padding: 1.5rem 2rem 1rem;
-            border-bottom: 1px solid #eee;
+        .toast.error {
+            border-left: 4px solid var(--danger);
         }
 
-        .custom-modal-header h3 {
-            margin: 0;
-            color: #333;
-            font-size: 1.25rem;
-        }
-
-        .custom-modal-body {
-            padding: 1.5rem 2rem;
-        }
-
-        .custom-modal-body p {
-            margin: 0;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .custom-modal-footer {
-            padding: 1rem 2rem 1.5rem;
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-        }
-
-        .custom-modal-btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .custom-modal-btn.primary {
-            background: #8B4513;
-            color: white;
-        }
-
-        .custom-modal-btn.primary:hover {
-            background: #A0522D;
-            transform: translateY(-1px);
-        }
-
-        .custom-modal-btn.secondary {
-            background: #f5f5f5;
-            color: #666;
-        }
-
-        .custom-modal-btn.secondary:hover {
-            background: #eee;
-            transform: translateY(-1px);
-        }
-
-        /* RTL Support */
-        [dir="rtl"] .checkout-item-image {
-            margin-inline-end: 0;
-            margin-inline-start: 15px;
-        }
-
-        [dir="rtl"] .checkout-item-controls {
-            align-items: flex-start;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .checkout-cart-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-
-            .checkout-item-info {
-                width: 100%;
-            }
-
-            .checkout-item-controls {
-                width: 100%;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .custom-modal-content {
-                margin: 1rem;
-                min-width: auto;
-            }
-
-            .custom-modal-footer {
-                flex-direction: column;
-            }
-
-            .custom-modal-btn {
-                width: 100%;
-            }
+        .toast.success {
+            border-left: 4px solid var(--success);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🌸 قطرة</div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">Qotore</a>
+            <a href="/" class="back-link">
+                <span>←</span>
+                Back to Shopping
+            </a>
         </div>
+    </header>
 
-        <div class="checkout-container">
-            <div class="checkout-header">
-                <h1 data-key="checkout.title">الدفع</h1>
-                <p data-key="checkout.subtitle">أكمل طلبك</p>
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Checkout Form -->
+        <div class="checkout-form">
+            <div class="success-message" id="successMessage">
+                <strong>Order placed successfully!</strong> We'll contact you soon to confirm your order.
             </div>
 
-            <div class="checkout-content">
-                <!-- Empty Cart State -->
-                <div id="emptyCart" class="empty-cart" style="display: none;">
-                    <h3 data-key="checkout.cart_empty">سلتك فارغة</h3>
-                    <p data-key="checkout.cart_empty_subtitle">أضف بعض العطور إلى سلتك قبل الدفع</p>
-                    <div class="back-link">
-                        <a href="index.html" data-key="checkout.continue_shopping">← متابعة التسوق</a>
+            <form id="checkoutForm">
+                <!-- Customer Information -->
+                <div class="form-section">
+                    <h2 class="section-title">Contact Information</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">
+                                First Name <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="firstName" 
+                                class="form-input" 
+                                required 
+                                placeholder="Enter your first name"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input 
+                                type="text" 
+                                name="lastName" 
+                                class="form-input" 
+                                placeholder="Enter your last name"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Phone Number <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="phone" 
+                                class="form-input" 
+                                required 
+                                placeholder="+968 1234 5678"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input 
+                                type="email" 
+                                name="email" 
+                                class="form-input" 
+                                placeholder="your.email@example.com"
+                            >
+                        </div>
                     </div>
                 </div>
 
-                <!-- Checkout Form -->
-                <div id="checkoutForm" style="display: none;">
-                    <!-- Order Summary -->
-                    <div class="section">
-                        <h3 data-key="checkout.order_summary">📦 ملخص الطلب</h3>
-                        <div class="order-summary" id="orderSummary">
-                            <!-- Order items will be loaded here -->
+                <!-- Delivery Information -->
+                <div class="form-section">
+                    <h2 class="section-title">Delivery Information</h2>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">
+                                Delivery Address <span class="required">*</span>
+                            </label>
+                            <textarea 
+                                name="address" 
+                                class="form-textarea" 
+                                required 
+                                placeholder="Enter your full delivery address"
+                                rows="3"
+                            ></textarea>
                         </div>
-                    </div>
-
-                    <!-- Customer Information -->
-                    <form id="orderForm">
-                        <div class="section">
-                            <h3 data-key="checkout.contact_info">👤 معلومات الاتصال</h3>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="firstName" data-key="checkout.first_name">الاسم الأول <span class="required">*</span></label>
-                                    <input type="text" id="firstName" name="firstName" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="lastName" data-key="checkout.last_name">اسم العائلة <span class="required">*</span></label>
-                                    <input type="text" id="lastName" name="lastName" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="phone" data-key="checkout.phone">رقم الهاتف <span class="required">*</span></label>
-                                <input type="tel" id="phone" name="phone" class="form-control" required placeholder="+968 XXXX XXXX">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="email" data-key="checkout.email">البريد الإلكتروني</label>
-                                <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com">
-                            </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                City <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="city" 
+                                class="form-input" 
+                                required 
+                                placeholder="e.g., Muscat, Salalah"
+                            >
                         </div>
-
-                        <div class="section">
-                            <h3 data-key="checkout.delivery_info">📍 معلومات التوصيل</h3>
-                            
-                            <div class="form-group">
-                                <label for="address" data-key="checkout.address">عنوان التوصيل <span class="required">*</span></label>
-                                <textarea id="address" name="address" class="form-control" rows="3" required placeholder="عنوان الشارع، رقم المبنى، المنطقة..."></textarea>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="city" data-key="checkout.city">المدينة <span class="required">*</span></label>
-                                    <input type="text" id="city" name="city" class="form-control" required placeholder="مثلاً: مسقط">
-                                </div>
-                                <div class="form-group">
-                                    <label for="region" data-key="checkout.region">المنطقة/الولاية</label>
-                                    <input type="text" id="region" name="region" class="form-control" placeholder="مثلاً: السيب">
-                                </div>
-                            </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Region/Area</label>
+                            <input 
+                                type="text" 
+                                name="region" 
+                                class="form-input" 
+                                placeholder="e.g., Al Khuwair, Ruwi"
+                            >
                         </div>
-
-                        <div class="section">
-                            <h3 data-key="checkout.additional_notes">💬 ملاحظات إضافية</h3>
-                            <div class="form-group">
-                                <label for="notes" data-key="checkout.notes">تعليمات خاصة</label>
-                                <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="أي تعليمات خاصة للتوصيل أو ملاحظات..."></textarea>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="place-order-btn" id="placeOrderBtn" data-key="checkout.place_order">
-                            🛍️ تأكيد الطلب
-                        </button>
-                    </form>
-
-                    <!-- Back link only shows when checkout form is visible -->
-                    <div class="back-link">
-                        <a href="index.html" data-key="checkout.continue_shopping">← متابعة التسوق</a>
                     </div>
                 </div>
-            </div>
+
+                <!-- Special Notes -->
+                <div class="form-section">
+                    <h2 class="section-title">Special Notes</h2>
+                    <div class="form-group">
+                        <label class="form-label">Order Notes (Optional)</label>
+                        <textarea 
+                            name="notes" 
+                            class="form-textarea" 
+                            placeholder="Any special instructions for your order..."
+                            rows="3"
+                        ></textarea>
+                    </div>
+                </div>
+            </form>
         </div>
-    </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <h2 class="summary-title">Order Summary</h2>
+            
+            <div id="cartItems">
+                <!-- Cart items will be loaded here -->
+            </div>
+
+            <div class="order-total">
+                <div class="total-row">
+                    <span class="total-label">Subtotal:</span>
+                    <span class="total-value" id="subtotal">0.000 OMR</span>
+                </div>
+                <div class="total-row">
+                    <span class="total-label">Delivery:</span>
+                    <span class="total-value">Free</span>
+                </div>
+                <div class="total-row">
+                    <span class="total-label">Total:</span>
+                    <span class="total-value" id="total">0.000 OMR</span>
+                </div>
+            </div>
+
+            <button class="place-order-btn" id="placeOrderBtn" type="button" onclick="placeOrder()">
+                <span id="orderBtnText">Place Order</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="https://instagram.com/qotore" target="_blank" class="footer-link">📷</a>
+                <a href="https://snapchat.com/add/qotore" target="_blank" class="footer-link">📱</a>
+                <a href="https://wa.me/96812345678" target="_blank" class="footer-link">💬</a>
+            </div>
+            <p class="footer-text">&copy; 2024 Qotore. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/96812345678" target="_blank" class="whatsapp-float" title="Contact us on WhatsApp">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+        </svg>
+    </a>
 
     <script>
-        // Language system - automatically detect from main page
-        let currentLanguage = 'ar'; // Default to Arabic
+        // Cart management
+        let cart = JSON.parse(localStorage.getItem('qotore_cart') || '[]');
 
-        const translations = {
-            ar: {
-                "checkout.title": "الدفع - قطرة",
-                "checkout.subtitle": "أكمل طلبك",
-                "checkout.order_summary": "📦 ملخص الطلب",
-                "checkout.contact_info": "👤 معلومات الاتصال",
-                "checkout.delivery_info": "📍 معلومات التوصيل",
-                "checkout.additional_notes": "💬 ملاحظات إضافية",
-                "checkout.first_name": "الاسم الأول",
-                "checkout.last_name": "اسم العائلة",
-                "checkout.phone": "رقم الهاتف",
-                "checkout.email": "البريد الإلكتروني",
-                "checkout.address": "عنوان التوصيل",
-                "checkout.city": "المدينة",
-                "checkout.region": "المنطقة/الولاية",
-                "checkout.notes": "تعليمات خاصة",
-                "checkout.place_order": "🛍️ تأكيد الطلب",
-                "checkout.processing": "جار معالجة الطلب...",
-                "checkout.success": "تم تأكيد الطلب بنجاح! سنتواصل معك قريباً.",
-                "checkout.error": "فشل في تأكيد الطلب. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرة.",
-                "checkout.continue_shopping": "← متابعة التسوق",
-                "checkout.cart_empty": "سلتك فارغة",
-                "checkout.cart_empty_subtitle": "أضف بعض العطور إلى سلتك قبل الدفع",
-                "checkout.total_samples": "المجموع (العينات)"
-            },
-            en: {
-                "checkout.title": "Checkout - Qotore",
-                "checkout.subtitle": "Complete your order",
-                "checkout.order_summary": "📦 Order Summary",
-                "checkout.contact_info": "👤 Contact Information",
-                "checkout.delivery_info": "📍 Delivery Information",
-                "checkout.additional_notes": "💬 Additional Notes",
-                "checkout.first_name": "First Name",
-                "checkout.last_name": "Last Name",
-                "checkout.phone": "Phone Number",
-                "checkout.email": "Email",
-                "checkout.address": "Delivery Address",
-                "checkout.city": "City",
-                "checkout.region": "Region/Wilayat",
-                "checkout.notes": "Special Instructions",
-                "checkout.place_order": "🛍️ Place Order",
-                "checkout.processing": "Processing Order...",
-                "checkout.success": "Order placed successfully! We will contact you soon.",
-                "checkout.error": "Failed to place order. Please try again or contact us directly.",
-                "checkout.continue_shopping": "← Continue Shopping",
-                "checkout.cart_empty": "Your cart is empty",
-                "checkout.cart_empty_subtitle": "Add some fragrances to your cart before checkout",
-                "checkout.total_samples": "Total (Samples)"
-            }
-        };
-
-        let cart = [];
-
-        function initializeLanguage() {
-            // Get language from main page (localStorage)
-            const savedLanguage = localStorage.getItem('qotore_language') || 'ar';
-            setLanguage(savedLanguage);
-        }
-
-        function setLanguage(lang) {
-            currentLanguage = lang;
-            
-            // Update HTML attributes
-            document.documentElement.lang = lang;
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            
-            // Update page title
-            document.title = translations[lang]['checkout.title'];
-            
-            // Update logo text based on language
-            const logo = document.querySelector('.logo');
-            if (logo) {
-                logo.textContent = lang === 'ar' ? '🌸 قطرة' : '🌸 Qotore';
-            }
-            
-            // Update all text
-            updateLanguage();
-            
-            // Refresh order summary to update text
-            if (cart.length > 0) {
-                displayOrderSummary();
-            }
-        }
-
-        function updateLanguage() {
-            const elements = document.querySelectorAll('[data-key]');
-            elements.forEach(element => {
-                const key = element.getAttribute('data-key');
-                if (translations[currentLanguage] && translations[currentLanguage][key]) {
-                    if (element.tagName === 'INPUT' && element.type === 'submit') {
-                        element.value = translations[currentLanguage][key];
-                    } else {
-                        element.textContent = translations[currentLanguage][key];
-                    }
-                }
-            });
-
-            // Update placeholder texts based on language
-            updatePlaceholders();
-        }
-
-        function updatePlaceholders() {
-            const placeholders = {
-                ar: {
-                    phone: "+968 XXXX XXXX",
-                    email: "your@email.com",
-                    address: "عنوان الشارع، رقم المبنى، المنطقة...",
-                    city: "مثلاً: مسقط",
-                    region: "مثلاً: السيب",
-                    notes: "أي تعليمات خاصة للتوصيل أو ملاحظات..."
-                },
-                en: {
-                    phone: "+968 XXXX XXXX",
-                    email: "your@email.com",
-                    address: "Street address, building number, area...",
-                    city: "e.g., Muscat",
-                    region: "e.g., Seeb",
-                    notes: "Any special delivery instructions or notes..."
-                }
-            };
-
-            Object.keys(placeholders[currentLanguage]).forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.placeholder = placeholders[currentLanguage][id];
-                }
-            });
-        }
-
-        function loadLanguage() {
-            // This function is now replaced by initializeLanguage
-            initializeLanguage();
-        }
-
+        // Initialize checkout page
         document.addEventListener('DOMContentLoaded', function() {
-            loadLanguage();
-            loadCart();
+            loadCartItems();
+            updateOrderSummary();
+            
+            // Redirect if cart is empty
             if (cart.length === 0) {
-                showEmptyCart();
-            } else {
-                showCheckoutForm();
-                displayOrderSummary();
+                showToast('Your cart is empty. Redirecting to shop...', 'error');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
             }
         });
 
-        function loadCart() {
-            const savedCart = localStorage.getItem('qotore_cart');
-            if (savedCart) {
-                try {
-                    const parsedCart = JSON.parse(savedCart);
-                    cart = parsedCart.filter(item => {
-                        const isValid = (
-                            item.variant &&
-                            typeof item.variant.id === 'number' &&
-                            typeof item.fragranceId === 'number'
-                        );
-                        if (!isValid) {
-                            console.warn('Removing invalid cart item from checkout:', item);
-                        }
-                        return isValid;
-                    });
-                    
-                    if (cart.length !== parsedCart.length) {
-                        console.log('Cleaned cart, saving back to localStorage');
-                        localStorage.setItem('qotore_cart', JSON.stringify(cart));
-                    }
-                } catch (error) {
-                    console.error('Error loading cart:', error);
-                    cart = [];
-                }
-            }
-        }
-
-        function showEmptyCart() {
-            document.getElementById('emptyCart').style.display = 'block';
-            document.getElementById('checkoutForm').style.display = 'none';
-        }
-
-        function showCheckoutForm() {
-            document.getElementById('emptyCart').style.display = 'none';
-            document.getElementById('checkoutForm').style.display = 'block';
-        }
-
-        function displayOrderSummary() {
-            const orderSummary = document.getElementById('orderSummary');
-            orderSummary.innerHTML = '';
-
+        // Load cart items into the summary
+        function loadCartItems() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            
             if (cart.length === 0) {
-                orderSummary.innerHTML = `<p style="text-align: center; padding: 2rem; color: #666;">${translations[currentLanguage]['checkout.cart_empty']}</p>`;
+                cartItemsContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Your cart is empty</p>';
                 return;
             }
 
-            let total = 0;
-
-            cart.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                total += itemTotal;
-
-                const orderItem = document.createElement('div');
-                orderItem.className = 'checkout-cart-item';
-                
-                const priceDisplay = item.variant.is_whole_bottle 
-                    ? (currentLanguage === 'ar' ? 'اتصل للاستفسار عن السعر' : 'Contact for pricing')
-                    : `${item.variant.price_display}`;
-
-                const getImageUrl = (item) => {
-                    if (item.image_path) {
-                        return `/api/image/page-images/${item.slug || item.fragranceName.toLowerCase().replace(/\s+/g, '-')}.png`;
-                    }
-                    return null;
-                };
-
-                const imageUrl = getImageUrl(item);
-                
-                orderItem.innerHTML = `
-                    <div class="checkout-item-info">
-                        <div class="checkout-item-image">
-                            ${imageUrl ? 
-                                `<img src="${imageUrl}" alt="${item.fragranceName}" 
-                                      onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\\"checkout-item-image-placeholder\\">🌸</div>';">` :
-                                '<div class="checkout-item-image-placeholder">🌸</div>'
-                            }
-                        </div>
-                        <div class="checkout-item-details">
-                            <div class="item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
-                            <div class="item-details">${item.variant.size} @ ${priceDisplay}</div>
-                        </div>
+            cartItemsContainer.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <img src="${item.image || '/images/placeholder.jpg'}" alt="${item.name}" class="item-image">
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-variant">${item.variant}</div>
+                        <div class="item-quantity">Qty: ${item.quantity}</div>
                     </div>
-                    <div class="checkout-item-controls">
-                        ${!item.variant.is_whole_bottle ? `
-                            <div class="checkout-qty-controls">
-                                <button type="button" class="checkout-qty-btn plus" onclick="updateCartQuantity(${index}, 1)" title="${currentLanguage === 'ar' ? 'زيادة الكمية' : 'Increase quantity'}"></button>
-                                <input type="number" class="checkout-qty-input" value="${item.quantity}" min="1" max="10" 
-                                       onchange="setCartQuantity(${index}, this.value)" id="qty-${index}">
-                                <button type="button" class="checkout-qty-btn minus" onclick="updateCartQuantity(${index}, -1)" title="${currentLanguage === 'ar' ? 'تقليل الكمية' : 'Decrease quantity'}"></button>
-                            </div>
-                        ` : `<div class="whole-bottle-qty">${currentLanguage === 'ar' ? 'الكمية' : 'Qty'}: ${item.quantity}</div>`}
-                        <div class="cart-item-price">${item.variant.is_whole_bottle ? (currentLanguage === 'ar' ? 'اتصل بنا' : 'Contact us') : itemTotal.toFixed(3) + ' OMR'}</div>
-                        <button type="button" class="checkout-remove-btn" onclick="removeCartItem(${index})" title="${currentLanguage === 'ar' ? 'إزالة العنصر من السلة' : 'Remove item from cart'}">
-                            ${currentLanguage === 'ar' ? 'إزالة' : 'Remove'}
-                        </button>
-                    </div>
-                `;
-                orderSummary.appendChild(orderItem);
-            });
-
-            // Total (only for non-whole-bottle items)
-            const paidItems = cart.filter(item => !item.variant.is_whole_bottle);
-            const paidTotal = paidItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            
-            const totalItem = document.createElement('div');
-            totalItem.className = 'order-item';
-            totalItem.style.cssText = `
-                background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-                color: white;
-                padding: 1.5rem;
-                border-radius: 12px;
-                margin-top: 1rem;
-                box-shadow: 0 4px 16px rgba(139, 69, 19, 0.3);
-            `;
-            totalItem.innerHTML = `
-                <div class="item-info">
-                    <div class="item-name" style="color: white; font-size: 1.2rem;">
-                        🛒 ${translations[currentLanguage]['checkout.total_samples']}
-                    </div>
+                    <div class="item-price">${(item.price * item.quantity).toFixed(3)} OMR</div>
                 </div>
-                <div class="item-price" style="color: white; font-size: 1.3rem; font-weight: 700;">${paidTotal.toFixed(3)} OMR</div>
-            `;
-            orderSummary.appendChild(totalItem);
+            `).join('');
         }
 
-        // Cart management functions
-        function updateCartQuantity(index, delta) {
-            if (index < 0 || index >= cart.length) return;
+        // Update order summary totals
+        function updateOrderSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
-            const newQuantity = Math.max(1, Math.min(10, cart[index].quantity + delta));
-            cart[index].quantity = newQuantity;
-            
-            saveCart();
-            displayOrderSummary();
+            document.getElementById('subtotal').textContent = `${subtotal.toFixed(3)} OMR`;
+            document.getElementById('total').textContent = `${subtotal.toFixed(3)} OMR`;
         }
 
-        function setCartQuantity(index, value) {
-            if (index < 0 || index >= cart.length) return;
-            
-            const quantity = Math.max(1, Math.min(10, parseInt(value) || 1));
-            cart[index].quantity = quantity;
-            
-            const input = document.getElementById(`qty-${index}`);
-            if (input) input.value = quantity;
-            
-            saveCart();
-            displayOrderSummary();
-        }
+        // Place order function
+        async function placeOrder() {
+            const form = document.getElementById('checkoutForm');
+            const formData = new FormData(form);
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            const orderBtnText = document.getElementById('orderBtnText');
 
-        function removeCartItem(index) {
-            if (index < 0 || index >= cart.length) return;
-            
-            const item = cart[index];
-            const confirmMessage = currentLanguage === 'ar' 
-                ? `إزالة ${item.fragranceName} (${item.variant.size}) من السلة؟`
-                : `Remove ${item.fragranceName} (${item.variant.size}) from cart?`;
-                
-            showCustomConfirm(confirmMessage, () => {
-                cart.splice(index, 1);
-                saveCart();
-                displayOrderSummary();
-                
-                if (cart.length === 0) {
-                    showEmptyCart();
-                }
-            });
-        }
+            // Validate form
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
 
-        function saveCart() {
-            localStorage.setItem('qotore_cart', JSON.stringify(cart));
-        }
+            // Validate cart
+            if (cart.length === 0) {
+                showToast('Your cart is empty', 'error');
+                return;
+            }
 
-        document.getElementById('orderForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(e.target);
-
-            const orderItems = cart.map(item => {
-                console.log('Processing cart item:', item);
-                
-                return {
-                    fragranceId: parseInt(item.fragranceId),
-                    fragranceName: item.fragranceName || '',
-                    fragranceBrand: item.fragranceBrand || '',
-                    variantId: parseInt(item.variant.id),
-                    variantSize: item.variant.size || '',
-                    variantPrice: item.variant.is_whole_bottle ? 0 : parseFloat(item.variant.price || item.price || 0),
-                    quantity: parseInt(item.quantity),
-                    isWholeBottle: item.variant.is_whole_bottle || false
-                };
-            });
-
-            console.log('Transformed order items:', orderItems);
-
-            const total = orderItems
-                .filter(item => !item.isWholeBottle)
-                .reduce((sum, item) => sum + (item.variantPrice * item.quantity), 0);
-
-            const orderData = {
-                customer: {
-                    firstName: formData.get('firstName').trim(),
-                    lastName: formData.get('lastName').trim(),
-                    phone: formData.get('phone').trim(),
-                    email: formData.get('email')?.trim() || null
-                },
-                delivery: {
-                    address: formData.get('address').trim(),
-                    city: formData.get('city').trim(),
-                    region: formData.get('region')?.trim() || null
-                },
-                notes: formData.get('notes')?.trim() || null,
-                items: orderItems,
-                total: total,
-                orderDate: new Date().toISOString()
-            };
-
-            console.log('Final order data:', orderData);
-
-            const button = document.getElementById('placeOrderBtn');
-            button.innerHTML = `<span class="spinner"></span>${translations[currentLanguage]['checkout.processing']}`;
-            button.disabled = true;
+            // Disable button and show loading
+            placeOrderBtn.disabled = true;
+            orderBtnText.innerHTML = '<div class="loading-spinner"></div> Placing Order...';
 
             try {
-                const response = await fetch('/admin/add-order', {
+                // Prepare order data
+                const orderData = {
+                    customer: {
+                        firstName: formData.get('firstName'),
+                        lastName: formData.get('lastName'),
+                        phone: formData.get('phone'),
+                        email: formData.get('email')
+                    },
+                    delivery: {
+                        address: formData.get('address'),
+                        city: formData.get('city'),
+                        region: formData.get('region')
+                    },
+                    notes: formData.get('notes'),
+                    items: cart.map(item => ({
+                        fragranceId: item.fragranceId,
+                        variantId: item.variantId,
+                        fragranceName: item.name,
+                        fragranceBrand: item.brand,
+                        variantSize: item.variant,
+                        variantPriceCents: Math.round(item.price * 1000), // Convert OMR to fils
+                        quantity: item.quantity,
+                        unitPriceCents: Math.round(item.price * 1000),
+                        totalPriceCents: Math.round(item.price * item.quantity * 1000),
+                        isWholeBottle: item.variant === 'Whole Bottle'
+                    })),
+                    totalAmount: Math.round(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1000)
+                };
+
+                // Submit order
+                const response = await fetch('/api/orders', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1083,126 +721,124 @@
                     body: JSON.stringify(orderData)
                 });
 
-                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const result = await response.json();
-                console.log('Response data:', result);
 
                 if (result.success) {
+                    // Show success message
+                    document.getElementById('successMessage').classList.add('show');
+                    
+                    // Clear cart
                     localStorage.removeItem('qotore_cart');
                     
-                    showCustomAlert(translations[currentLanguage]['checkout.success'], () => {
-                        window.location.href = 'index.html';
-                    });
+                    // Clear saved form data
+                    clearSavedFormData();
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    // Hide form
+                    form.style.display = 'none';
+                    
+                    // Update button
+                    orderBtnText.textContent = '✅ Order Placed Successfully!';
+                    placeOrderBtn.style.background = 'linear-gradient(135deg, var(--success) 0%, #059669 100%)';
+                    
+                    // Show success toast
+                    showToast(`Order ${result.orderNumber} placed successfully!`, 'success');
+                    
+                    // Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 5000);
                 } else {
                     throw new Error(result.error || 'Failed to place order');
                 }
+
             } catch (error) {
-                console.error('Order error:', error);
-                showCustomAlert(translations[currentLanguage]['checkout.error']);
+                console.error('❌ Order placement failed:', error);
+                showToast('Failed to place order: ' + error.message, 'error');
                 
-                button.innerHTML = translations[currentLanguage]['checkout.place_order'];
-                button.disabled = false;
+                // Reset button
+                placeOrderBtn.disabled = false;
+                orderBtnText.textContent = '🛍️ Place Order';
             }
+        }
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <span class="toast-icon">
+                        ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+                    </span>
+                    <span class="toast-message">${message}</span>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    ✕
+                </button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+
+        // Phone number formatting
+        document.querySelector('input[name="phone"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.startsWith('968')) {
+                value = '+' + value;
+            } else if (!value.startsWith('+968') && value.length > 0) {
+                value = '+968' + value;
+            }
+            e.target.value = value;
         });
 
-        // Custom Modal Functions
-        function showCustomAlert(message, onClose) {
-            createCustomModal({
-                title: '🌸 Qotore',
-                message: message,
-                type: 'alert',
-                buttons: [
-                    { text: currentLanguage === 'ar' ? 'حسناً' : 'OK', action: onClose || 'close', primary: true }
-                ]
-            });
-        }
+        // Form validation enhancements
+        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            placeOrder();
+        });
 
-        function showCustomConfirm(message, onConfirm) {
-            createCustomModal({
-                title: '🌸 ' + (currentLanguage === 'ar' ? 'تأكيد' : 'Confirm'),
-                message: message,
-                type: 'confirm',
-                buttons: [
-                    { text: currentLanguage === 'ar' ? 'إلغاء' : 'Cancel', action: 'close', primary: false },
-                    { text: currentLanguage === 'ar' ? 'تأكيد' : 'Confirm', action: onConfirm, primary: true }
-                ]
-            });
-        }
-
-        function createCustomModal(config) {
-            // Remove existing custom modal if any
-            const existingModal = document.getElementById('customModal');
-            if (existingModal) {
-                existingModal.remove();
+        // Auto-save form data to localStorage (optional)
+        const formInputs = document.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            // Load saved value
+            const savedValue = localStorage.getItem(`qotore_checkout_${input.name}`);
+            if (savedValue && input.type !== 'submit') {
+                input.value = savedValue;
             }
-
-            const modal = document.createElement('div');
-            modal.id = 'customModal';
-            modal.className = 'custom-modal';
             
-            modal.innerHTML = `
-                <div class="custom-modal-content">
-                    <div class="custom-modal-header">
-                        <h3>${config.title}</h3>
-                    </div>
-                    <div class="custom-modal-body">
-                        <p>${config.message}</p>
-                    </div>
-                    <div class="custom-modal-footer">
-                        ${config.buttons.map((button, index) => `
-                            <button class="custom-modal-btn ${button.primary ? 'primary' : 'secondary'}" 
-                                    data-action-index="${index}">
-                                ${button.text}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-            
-            // Show modal with animation
-            setTimeout(() => {
-                modal.classList.add('active');
-            }, 10);
-
-            // Add event listeners
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeCustomModal();
+            // Save on input
+            input.addEventListener('input', function() {
+                if (this.name) {
+                    localStorage.setItem(`qotore_checkout_${this.name}`, this.value);
                 }
             });
+        });
 
-            modal.querySelectorAll('.custom-modal-btn').forEach((btn, index) => {
-                btn.addEventListener('click', function() {
-                    const actionIndex = parseInt(this.getAttribute('data-action-index'));
-                    const button = config.buttons[actionIndex];
-                    
-                    closeCustomModal();
-                    
-                    if (button.action !== 'close' && typeof button.action === 'function') {
-                        button.action();
-                    }
-                });
+        // Clear saved form data after successful order
+        function clearSavedFormData() {
+            formInputs.forEach(input => {
+                if (input.name) {
+                    localStorage.removeItem(`qotore_checkout_${input.name}`);
+                }
             });
         }
-
-        function closeCustomModal() {
-            const modal = document.getElementById('customModal');
-            if (modal) {
-                modal.classList.remove('active');
-                setTimeout(() => {
-                    modal.remove();
-                }, 300);
-            }
-        }
-
-        // ESC key to close modals
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeCustomModal();
-            }
-        });
     </script>
 </body>
 </html>

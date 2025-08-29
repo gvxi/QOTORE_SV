@@ -8,7 +8,6 @@ let currentPage = 1;
 let fragrancesPerPage = 10;
 let searchTerm = '';
 let currentEditingId = null;
-let variantCounter = 0;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
@@ -110,6 +109,12 @@ function setupEventListeners() {
         fragranceForm.addEventListener('submit', handleFormSubmit);
     }
     
+    // Image upload preview
+    const imageInput = document.getElementById('fragranceImage');
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImagePreview);
+    }
+    
     // Modal close on background click
     const modal = document.getElementById('fragranceModal');
     if (modal) {
@@ -119,6 +124,36 @@ function setupEventListeners() {
             }
         });
     }
+}
+
+function handleImagePreview(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const label = document.querySelector('.file-upload-label span');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+            label.textContent = file.name;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+        label.textContent = 'Choose image file';
+    }
+}
+
+function removeImage() {
+    const imageInput = document.getElementById('fragranceImage');
+    const preview = document.getElementById('imagePreview');
+    const label = document.querySelector('.file-upload-label span');
+    
+    imageInput.value = '';
+    preview.style.display = 'none';
+    label.textContent = 'Choose image file';
 }
 
 function handleSearch(event) {
@@ -253,17 +288,20 @@ function updateStats(stats) {
         document.getElementById('totalFragrances').textContent = stats.total || fragrances.length;
         document.getElementById('visibleFragrances').textContent = stats.visible || fragrances.filter(f => !f.hidden).length;
         document.getElementById('hiddenFragrances').textContent = stats.hidden || fragrances.filter(f => f.hidden).length;
-        document.getElementById('featuredFragrances').textContent = stats.featured || fragrances.filter(f => f.featured).length;
+        
+        // Calculate total variants
+        const totalVariants = fragrances.reduce((sum, f) => sum + (f.variants?.length || 0), 0);
+        document.getElementById('totalVariants').textContent = totalVariants;
     } else {
         // Calculate from fragrances data
         const visible = fragrances.filter(f => !f.hidden).length;
         const hidden = fragrances.filter(f => f.hidden).length;
-        const featured = fragrances.filter(f => f.featured).length;
+        const totalVariants = fragrances.reduce((sum, f) => sum + (f.variants?.length || 0), 0);
         
         document.getElementById('totalFragrances').textContent = fragrances.length;
         document.getElementById('visibleFragrances').textContent = visible;
         document.getElementById('hiddenFragrances').textContent = hidden;
-        document.getElementById('featuredFragrances').textContent = featured;
+        document.getElementById('totalVariants').textContent = totalVariants;
     }
 }
 
@@ -342,14 +380,25 @@ function createFragranceRow(fragrance) {
     const row = document.createElement('tr');
     row.className = 'fragrance-row';
     
-    const variants = (fragrance.variants || []).map(v => 
-        `${v.size} ($${parseFloat(v.price).toFixed(2)})`
-    ).join(', ') || 'No variants';
+    // Format variants with prices
+    const variants = (fragrance.variants || []).map(v => {
+        if (v.is_whole_bottle) {
+            return 'Whole Bottle (Contact for pricing)';
+        } else {
+            const priceOMR = (v.price_cents / 1000).toFixed(3);
+            return `${v.size_ml}ml (${priceOMR} OMR)`;
+        }
+    }).join(', ') || 'No variants';
+    
+    // Handle image display
+    const imageDisplay = fragrance.image_path 
+        ? `<img src="${fragrance.image_path}" alt="${fragrance.name}" class="item-thumbnail">` 
+        : '<div class="no-image">No Image</div>';
     
     row.innerHTML = `
         <td class="fragrance-name">
             <div class="item-info">
-                ${fragrance.image ? `<img src="${fragrance.image}" alt="${fragrance.name}" class="item-thumbnail">` : '<div class="no-image">No Image</div>'}
+                ${imageDisplay}
                 <div>
                     <div class="name">${fragrance.name}</div>
                     ${fragrance.brand ? `<div class="brand">${fragrance.brand}</div>` : ''}
@@ -492,7 +541,6 @@ function editFragrance(id) {
     document.getElementById('fragranceName').value = fragrance.name || '';
     document.getElementById('fragranceBrand').value = fragrance.brand || '';
     document.getElementById('fragranceDescription').value = fragrance.description || '';
-    document.getElementById('fragranceImage').value = fragrance.image || '';
     
     // Set visibility radio
     const visibilityRadio = document.querySelector(`input[name="visible"][value="${!fragrance.hidden}"]`);
@@ -500,8 +548,28 @@ function editFragrance(id) {
         visibilityRadio.checked = true;
     }
     
-    // Populate variants
-    populateVariants(fragrance.variants || []);
+    // Populate variant prices
+    const variants = fragrance.variants || [];
+    variants.forEach(variant => {
+        if (!variant.is_whole_bottle && variant.size_ml) {
+            const priceOMR = (variant.price_cents / 1000).toFixed(3);
+            const priceInput = document.getElementById(`price${variant.size_ml}ml`);
+            if (priceInput) {
+                priceInput.value = priceOMR;
+            }
+        }
+    });
+    
+    // Show current image if exists
+    if (fragrance.image_path) {
+        const preview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const label = document.querySelector('.file-upload-label span');
+        
+        previewImg.src = fragrance.image_path;
+        preview.style.display = 'block';
+        label.textContent = 'Current image';
+    }
     
     document.getElementById('fragranceModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -515,81 +583,7 @@ function closeFragranceModal() {
 
 function resetForm() {
     document.getElementById('fragranceForm').reset();
-    // Reset variants to single empty variant
-    const variantsSection = document.getElementById('variantsSection');
-    variantsSection.innerHTML = `
-        <div class="variant-item" data-variant-id="0">
-            <div class="variant-inputs">
-                <input type="text" class="variant-size" placeholder="Size (e.g., 5ml, 10ml)" required>
-                <input type="number" class="variant-price" placeholder="Price" step="0.01" min="0" required>
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeVariant(0)">
-                    <i class="icon-trash"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    variantCounter = 0;
-}
-
-function populateVariants(variants) {
-    const variantsSection = document.getElementById('variantsSection');
-    variantsSection.innerHTML = '';
-    
-    if (variants.length === 0) {
-        variants = [{ size: '', price: '' }]; // Add empty variant
-    }
-    
-    variants.forEach((variant, index) => {
-        const variantDiv = document.createElement('div');
-        variantDiv.className = 'variant-item';
-        variantDiv.setAttribute('data-variant-id', index);
-        variantDiv.innerHTML = `
-            <div class="variant-inputs">
-                <input type="text" class="variant-size" placeholder="Size (e.g., 5ml, 10ml)" value="${variant.size || ''}" required>
-                <input type="number" class="variant-price" placeholder="Price" step="0.01" min="0" value="${variant.price || ''}" required>
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeVariant(${index})">
-                    <i class="icon-trash"></i>
-                </button>
-            </div>
-        `;
-        variantsSection.appendChild(variantDiv);
-    });
-    
-    variantCounter = variants.length - 1;
-}
-
-function addVariant() {
-    variantCounter++;
-    const variantsSection = document.getElementById('variantsSection');
-    const variantDiv = document.createElement('div');
-    variantDiv.className = 'variant-item';
-    variantDiv.setAttribute('data-variant-id', variantCounter);
-    variantDiv.innerHTML = `
-        <div class="variant-inputs">
-            <input type="text" class="variant-size" placeholder="Size (e.g., 5ml, 10ml)" required>
-            <input type="number" class="variant-price" placeholder="Price" step="0.01" min="0" required>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeVariant(${variantCounter})">
-                <i class="icon-trash"></i>
-            </button>
-        </div>
-    `;
-    variantsSection.appendChild(variantDiv);
-}
-
-function removeVariant(variantId) {
-    const variantsSection = document.getElementById('variantsSection');
-    const variantItems = variantsSection.querySelectorAll('.variant-item');
-    
-    // Don't allow removing if only one variant remains
-    if (variantItems.length <= 1) {
-        showToast('At least one variant is required', 'warning');
-        return;
-    }
-    
-    const variantToRemove = document.querySelector(`[data-variant-id="${variantId}"]`);
-    if (variantToRemove) {
-        variantToRemove.remove();
-    }
+    removeImage();
 }
 
 // Form Handling
@@ -603,7 +597,7 @@ async function handleFormSubmit(event) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="icon-loader"></i> Saving...';
         
-        const formData = collectFormData();
+        const formData = await collectFormData();
         
         if (currentEditingId) {
             await updateFragrance(currentEditingId, formData);
@@ -623,41 +617,39 @@ async function handleFormSubmit(event) {
     }
 }
 
-function collectFormData() {
+async function collectFormData() {
     const form = document.getElementById('fragranceForm');
-    const formData = new FormData(form);
+    const formData = new FormData();
     
-    // Collect variants
-    const variants = [];
-    const variantItems = document.querySelectorAll('.variant-item');
+    // Basic info
+    formData.append('name', form.name.value.trim());
+    formData.append('brand', form.brand.value.trim() || null);
+    formData.append('description', form.description.value.trim() || null);
+    formData.append('visible', form.visible.value === 'true');
     
-    variantItems.forEach(item => {
-        const size = item.querySelector('.variant-size').value.trim();
-        const price = parseFloat(item.querySelector('.variant-price').value);
-        
-        if (size && price > 0) {
-            variants.push({ size, price });
-        }
-    });
+    // Image file
+    const imageFile = form.image.files[0];
+    if (imageFile) {
+        formData.append('image', imageFile);
+    }
     
-    return {
-        name: formData.get('name').trim(),
-        brand: formData.get('brand')?.trim() || null,
-        description: formData.get('description')?.trim() || null,
-        image: formData.get('image')?.trim() || null,
-        visible: formData.get('visible') === 'true',
-        variants: variants
+    // Variant prices (convert OMR to fils - 1 OMR = 1000 fils)
+    const prices = {
+        price_5ml: Math.round(parseFloat(form.price_5ml.value || 0) * 1000),
+        price_10ml: Math.round(parseFloat(form.price_10ml.value || 0) * 1000),
+        price_30ml: Math.round(parseFloat(form.price_30ml.value || 0) * 1000)
     };
+    
+    formData.append('prices', JSON.stringify(prices));
+    
+    return formData;
 }
 
-async function createFragrance(data) {
+async function createFragrance(formData) {
     const response = await fetch('/admin/fragrances', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
         credentials: 'include',
-        body: JSON.stringify(data)
+        body: formData
     });
     
     if (!response.ok) {
@@ -673,14 +665,11 @@ async function createFragrance(data) {
     showToast('Fragrance created successfully', 'success');
 }
 
-async function updateFragrance(id, data) {
+async function updateFragrance(id, formData) {
     const response = await fetch(`/admin/fragrances/${id}`, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
         credentials: 'include',
-        body: JSON.stringify(data)
+        body: formData
     });
     
     if (!response.ok) {
@@ -838,8 +827,7 @@ function logout() {
 window.openAddFragranceModal = openAddFragranceModal;
 window.editFragrance = editFragrance;
 window.closeFragranceModal = closeFragranceModal;
-window.addVariant = addVariant;
-window.removeVariant = removeVariant;
+window.removeImage = removeImage;
 window.toggleFragranceVisibility = toggleFragranceVisibility;
 window.deleteFragrance = deleteFragrance;
 window.clearFragrancesSearch = clearFragrancesSearch;
