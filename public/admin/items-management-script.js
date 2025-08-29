@@ -369,9 +369,9 @@ function createItemRow(item) {
     row.className = 'item-row';
     
     const variants = getVariantsDisplay(item.variants);
-    // Fix image URL construction - you'll need to replace with your actual Supabase URL
+    // Use the correct image endpoint format
     const imageUrl = item.image_path ? 
-        `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}` : 
+        `/api/image/${item.image_path}` : 
         null;
     
     row.innerHTML = `
@@ -439,9 +439,9 @@ function createMobileCard(item) {
     card.className = 'mobile-card';
     
     const variants = getVariantsDisplay(item.variants);
-    // Fix image URL construction for mobile cards too
+    // Use the correct image endpoint format for mobile cards
     const imageUrl = item.image_path ? 
-        `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}` : 
+        `/api/image/${item.image_path}` : 
         null;
     
     card.innerHTML = `
@@ -662,7 +662,7 @@ function populateForm(item) {
         const imageInput = document.getElementById('itemImage');
         
         if (imagePreview && previewImg) {
-            const imageUrl = `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}`;
+            const imageUrl = `/api/image/${item.image_path}`;
             previewImg.src = imageUrl;
             imagePreview.style.display = 'block';
             imageInput.required = false; // Don't require new image for edit
@@ -716,7 +716,7 @@ function deleteItem(itemId) {
     // Populate delete preview
     const preview = document.getElementById('deleteItemPreview');
     const imageUrl = item.image_path ? 
-        `https://your-supabase-project.supabase.co/storage/v1/object/public/fragrance-images/${item.image_path}` : 
+        `/api/image/${item.image_path}` : 
         null;
     
     preview.innerHTML = `
@@ -1158,5 +1158,5 @@ function showToast(message, type = 'info', duration = 5000) {
             toast.remove();
         }
     }, duration);
-    
+
 }
