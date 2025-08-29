@@ -5,106 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Items Management - Qotore Admin</title>
     <link rel="stylesheet" href="items-management-style.css">
+    <link rel="stylesheet" href="shared-styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-content">
-                <h1>Items Management</h1>
-                <div class="header-actions">
-                    <button class="btn btn-primary" onclick="openAddItemModal()">
-                        + Add New Item
-                    </button>
-                    <button class="btn btn-secondary" id="refreshBtn" onclick="refreshData()">
-                        🔄 Refresh
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.location.href='/admin'">
-                        ← Back to Admin
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo">
+                    <a href="/admin/dashboard.html">Qotore Admin</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <button class="btn-secondary refresh-btn" id="refreshBtn" onclick="refreshData()" title="Refresh Data">
+                    <span class="refresh-icon">↻</span>
+                    Refresh
+                </button>
+                <a href="/admin/dashboard.html" class="nav-link">Dashboard</a>
+                <button class="btn-danger logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header Section -->
+        <section class="page-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1>Items Management</h1>
+                        <p>Manage fragrances, variants, and pricing</p>
+                    </div>
+                    <button class="btn-primary" onclick="openAddItemModal()">
+                        <span>+</span>
+                        Add New Item
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Dashboard Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="totalItems">-</div>
-                <div class="stat-label">Total Items</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="visibleItems">-</div>
-                <div class="stat-label">Visible Items</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="hiddenItems">-</div>
-                <div class="stat-label">Hidden Items</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalVariants">-</div>
-                <div class="stat-label">Total Variants</div>
-            </div>
-        </div>
+        <!-- Items Section -->
+        <section class="section">
+            <div class="container">
+                <!-- Controls -->
+                <div class="controls">
+                    <!-- Search -->
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <input 
+                                type="text" 
+                                id="itemsSearch" 
+                                placeholder="Search items by name, brand, or description..."
+                                class="search-input">
+                            <button 
+                                class="search-clear-btn" 
+                                id="itemsClearSearch" 
+                                onclick="clearSearch()" 
+                                style="display: none;">
+                                ×
+                            </button>
+                        </div>
+                    </div>
 
-        <!-- Filters and Search -->
-        <div class="filters-section">
-            <div class="filters-row">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search items..." 
-                           onkeyup="applyFiltersAndPagination()">
-                    <span class="search-icon">🔍</span>
+                    <!-- Filters -->
+                    <div class="filters">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">
+                                All Items
+                            </button>
+                            <button class="filter-btn" data-filter="visible" onclick="setFilter('visible')">
+                                Visible
+                            </button>
+                            <button class="filter-btn" data-filter="hidden" onclick="setFilter('hidden')">
+                                Hidden
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <select id="statusFilter" onchange="applyFiltersAndPagination()">
-                    <option value="">All Status</option>
-                    <option value="visible">Visible Only</option>
-                    <option value="hidden">Hidden Only</option>
-                </select>
-                <select id="sortBy" onchange="applyFiltersAndPagination()">
-                    <option value="name_asc">Name (A-Z)</option>
-                    <option value="name_desc">Name (Z-A)</option>
-                    <option value="created_desc">Newest First</option>
-                    <option value="created_asc">Oldest First</option>
-                </select>
-            </div>
-        </div>
 
-        <!-- Content Area -->
-        <div class="content-area">
-            <!-- Loading State -->
-            <div id="itemsLoading" class="loading-state">
-                <div class="loading-spinner"></div>
-                <p>Loading items...</p>
-            </div>
-
-            <!-- Error State -->
-            <div id="itemsError" class="error-state" style="display: none;">
-                <div class="error-content">
-                    <h3>Failed to load items</h3>
-                    <p>There was an error loading your items. Please try again.</p>
-                    <button class="btn btn-primary" onclick="loadItems()">
-                        🔄 Retry
-                    </button>
+                <!-- Loading State -->
+                <div id="itemsLoading" class="loading-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading items...</p>
                 </div>
-            </div>
 
-            <!-- Empty State -->
-            <div id="itemsEmpty" class="empty-state" style="display: none;">
-                <div class="empty-content">
+                <!-- Error State -->
+                <div id="itemsError" class="error-state" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Failed to Load Items</h3>
+                    <p>There was an error loading the items. Please try refreshing the page.</p>
+                    <button class="btn-primary" onclick="refreshData()">Retry</button>
+                </div>
+
+                <!-- Empty State -->
+                <div id="itemsEmpty" class="empty-state" style="display: none;">
                     <div class="empty-icon">📦</div>
-                    <h3>No items found</h3>
-                    <p>You haven't added any items yet, or none match your current filters.</p>
-                    <button class="btn btn-primary" onclick="openAddItemModal()">
-                        + Add Your First Item
-                    </button>
+                    <h3>No Items Found</h3>
+                    <p>Get started by adding your first fragrance item.</p>
+                    <button class="btn-primary" onclick="openAddItemModal()">Add First Item</button>
                 </div>
-            </div>
 
-            <!-- Items Content -->
-            <div id="itemsContent" style="display: none;">
-                <!-- Desktop Table View -->
-                <div class="desktop-view">
-                    <div class="items-table-container">
-                        <table class="items-table">
+                <!-- Items Content -->
+                <div id="itemsContent" class="items-content" style="display: none;">
+                    <!-- Desktop Table View -->
+                    <div class="table-container desktop-only">
+                        <table id="itemsTable" class="items-table">
                             <thead>
                                 <tr>
                                     <th>Item</th>
@@ -115,60 +121,59 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="itemsTableBody">
-                                <!-- Items will be populated here -->
+                            <tbody>
+                                <!-- Table rows will be populated by JavaScript -->
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                <!-- Mobile Card View -->
-                <div class="mobile-view">
-                    <div id="itemCards">
-                        <!-- Mobile cards will be populated here -->
+                    <!-- Mobile Cards View -->
+                    <div id="itemCards" class="mobile-cards mobile-only">
+                        <!-- Cards will be populated by JavaScript -->
                     </div>
-                </div>
 
-                <!-- Pagination -->
-                <div class="pagination" id="pagination">
-                    <button class="pagination-btn" id="prevBtn" onclick="previousItemsPage()">
-                        ← Previous
-                    </button>
-                    <div class="pagination-info">
-                        <span id="pageInfo">Page 1 of 1</span>
-                        <span class="divider">•</span>
-                        <span id="itemsInfo">0 items</span>
+                    <!-- Pagination -->
+                    <div class="pagination" id="itemsPagination" style="display: none;">
+                        <div class="pagination-info">
+                            <span id="itemsPageInfo">Page 1 of 1</span>
+                            <span class="pagination-total">(<span id="itemsTotalCount">0</span> items)</span>
+                        </div>
+                        <div class="pagination-buttons">
+                            <button class="pagination-btn" onclick="previousItemsPage()" id="itemsPrevBtn" disabled>
+                                ← Previous
+                            </button>
+                            <button class="pagination-btn" onclick="nextItemsPage()" id="itemsNextBtn" disabled>
+                                Next →
+                            </button>
+                        </div>
                     </div>
-                    <button class="pagination-btn" id="nextBtn" onclick="nextItemsPage()">
-                        Next →
-                    </button>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <!-- Add/Edit Item Modal -->
-    <div class="modal-overlay" id="itemModalOverlay" onclick="closeItemModal()">
-        <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-overlay" id="itemModalOverlay" style="display: none;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3 id="itemModalTitle">Add New Item</h3>
                 <button class="modal-close" onclick="closeItemModal()">×</button>
             </div>
             <div class="modal-body">
-                <form id="itemForm" onsubmit="saveItem(event)">
-                    <!-- Basic Information -->
-                    <div class="form-group">
-                        <label for="itemName">Product Name *</label>
-                        <input type="text" id="itemName" name="name" required 
-                               placeholder="e.g., Creed Aventus">
+                <form id="itemForm" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemName">Item Name *</label>
+                            <input type="text" id="itemName" name="name" required 
+                                   placeholder="e.g., Creed Aventus">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemBrand">Brand *</label>
+                            <input type="text" id="itemBrand" name="brand" required 
+                                   placeholder="e.g., Creed">
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="itemBrand">Brand</label>
-                        <input type="text" id="itemBrand" name="brand" 
-                               placeholder="e.g., Creed">
-                    </div>
-
+                    
                     <div class="form-group">
                         <label for="itemDescription">Description *</label>
                         <textarea id="itemDescription" name="description" required rows="3"
@@ -177,8 +182,7 @@
 
                     <div class="form-group">
                         <label for="itemImage">Product Image (.png only) *</label>
-                        <input type="file" id="itemImage" name="image" accept=".png" required
-                               onchange="handleImagePreview(event)">
+                        <input type="file" id="itemImage" name="image" accept=".png" required onchange="handleImagePreview(event)">
                         <div class="file-info">Only PNG files are accepted</div>
                         <div id="imagePreview" class="image-preview" style="display: none;">
                             <img id="previewImg" src="" alt="Preview">
@@ -193,41 +197,38 @@
                             <div class="variant-item">
                                 <label for="price5ml">5ml Sample</label>
                                 <input type="number" id="price5ml" name="price5ml" step="0.001" min="0" 
-                                       placeholder="2.500">
+                                       placeholder="2.500" onchange="validateForm()">
                             </div>
                             <div class="variant-item">
                                 <label for="price10ml">10ml Sample</label>
                                 <input type="number" id="price10ml" name="price10ml" step="0.001" min="0" 
-                                       placeholder="4.500">
+                                       placeholder="4.500" onchange="validateForm()">
                             </div>
                             <div class="variant-item">
                                 <label for="price30ml">30ml Sample</label>
                                 <input type="number" id="price30ml" name="price30ml" step="0.001" min="0" 
-                                       placeholder="12.000">
+                                       placeholder="12.000" onchange="validateForm()">
                             </div>
                             <div class="variant-item full-bottle">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="enableFullBottle" name="enableFullBottle">
-                                    <span class="checkmark">Enable "Contact for Full Bottle" option</span>
+                                    <input type="checkbox" id="enableFullBottle" name="enableFullBottle" onchange="validateForm()">
+                                    <span class="checkmark">Enable Full Bottle (Contact for Price)</span>
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Visibility Settings -->
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="itemHidden" name="hidden">
-                            <span class="checkmark">Hide this item from customers</span>
+                            <span class="checkmark">Hide from public view</span>
                         </label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeItemModal()">
-                    Cancel
-                </button>
-                <button type="submit" form="itemForm" class="btn btn-primary">
+                <button type="button" class="btn-secondary" onclick="closeItemModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="saveItem()">
                     <span id="saveButtonText">Save Item</span>
                 </button>
             </div>
@@ -235,33 +236,27 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div class="modal-overlay" id="deleteModalOverlay" onclick="closeDeleteModal()">
-        <div class="modal modal-small" onclick="event.stopPropagation()">
+    <div class="modal-overlay" id="deleteModalOverlay" style="display: none;">
+        <div class="modal-content small">
             <div class="modal-header">
                 <h3>Delete Item</h3>
                 <button class="modal-close" onclick="closeDeleteModal()">×</button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this item? This action cannot be undone.</p>
-                <div id="deleteItemPreview" class="item-preview">
-                    <!-- Item preview will be populated here -->
+                <p>Are you sure you want to delete this item? This action cannot be undone and will remove all associated data.</p>
+                <div class="item-preview" id="deleteItemPreview">
+                    <!-- Will be populated with item details -->
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
-                    Cancel
-                </button>
-                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
-                    Delete Item
-                </button>
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn-delete" onclick="confirmDelete()">Delete Item</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <span id="toastMessage"></span>
-    </div>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <script src="items-management-script.js"></script>
 </body>

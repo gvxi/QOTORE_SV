@@ -1,78 +1,125 @@
-// Global Variables
+// Admin Items Management JavaScript
+
+// Global variables
 let items = [];
 let filteredItems = [];
+let currentFilter = 'all';
 let currentPage = 1;
 let itemsPerPage = 10;
+let searchTerm = '';
 let currentEditingId = null;
 let deleteItemId = null;
 
-// Initialize the application
+// Initialize app
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Items Management initialized');
-    loadItems();
-    
-    // Check authentication periodically
-    setInterval(checkAuth, 5 * 60 * 1000); // Every 5 minutes
+    console.log('🚀 Admin Items Management Loading...');
+    initializeApp();
 });
 
-// Authentication Functions
-function checkAuth() {
-    fetch('/admin/check-auth', {
-        method: 'GET',
-        credentials: 'include'
-    })
-    .then(response => {
-        if (!response.ok) {
-            redirectToLogin();
-        }
-    })
-    .catch(() => redirectToLogin());
-}
-
-function redirectToLogin() {
-    window.location.href = '/admin/login';
-}
-
-// Utility Functions
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function formatDate(dateString) {
+async function initializeApp() {
     try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-        });
+        // Check authentication first
+        if (!isAuthenticated()) {
+            redirectToLogin();
+            return;
+        }
+        
+        // Load initial data
+        await loadItems();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        console.log('✅ Admin Items Management Ready');
+        showToast('Items management loaded successfully', 'success');
     } catch (error) {
-        return 'Invalid Date';
+        console.error('❌ Initialization failed:', error);
+        showToast('Failed to initialize items management', 'error');
     }
 }
 
-function generateSlug(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+function isAuthenticated() {
+    const cookies = document.cookie.split(';');
+    return cookies.some(cookie => cookie.trim().startsWith('admin_session='));
 }
 
-// Toast Notification Functions
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    
-    toastMessage.textContent = message;
-    toast.className = `toast toast-${type}`;
-    toast.classList.add('show');
-    
+function redirectToLogin() {
+    showToast('Session expired. Redirecting to login...', 'warning');
     setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+        window.location.href = '/login.html';
+    }, 2000);
+}
+
+// Event Listeners
+function setupEventListeners() {
+    // Search functionality
+    const searchInput = document.getElementById('itemsSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(handleSearch, 300));
+        searchInput.addEventListener('input', function() {
+            const clearBtn = document.getElementById('itemsClearSearch');
+            if (clearBtn) {
+                clearBtn.style.display = this.value.length > 0 ? 'block' : 'none';
+            }
+        });
+    }
+
+    // Form validation on input changes
+    const formInputs = ['itemName', 'itemBrand', 'itemDescription', 'price5ml', 'price10ml', 'price30ml', 'enableFullBottle'];
+    formInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('input', validateForm);
+            input.addEventListener('change', validateForm);
+        }
+    });
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function handleSearch(event) {
+    searchTerm = event.target.value.toLowerCase().trim();
+    currentPage = 1;
+    applyFiltersAndPagination();
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('itemsSearch');
+    if (searchInput) {
+        searchInput.value = '';
+        searchTerm = '';
+    }
+    
+    const clearBtn = document.getElementById('itemsClearSearch');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
+    currentPage = 1;
+    applyFiltersAndPagination();
+}
+
+function setFilter(filter) {
+    currentFilter = filter;
+    currentPage = 1;
+    
+    // Update filter button styles
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
+    
+    applyFiltersAndPagination();
 }
 
 // Data Loading Functions
@@ -115,7 +162,7 @@ async function loadItems() {
             }));
             
             console.log(`✅ Loaded ${items.length} items`);
-            console.log('Sample item with variants:', items[0]); // Debug log
+            console.log('Items with variants:', items.filter(i => i.variants.length > 0).length);
             updateDashboardStats();
             applyFiltersAndPagination();
         } else {
@@ -147,97 +194,80 @@ async function refreshData() {
     }
 }
 
-// Dashboard Stats
 function updateDashboardStats() {
-    const totalItems = items.length;
-    const visibleItems = items.filter(item => !item.hidden).length;
-    const hiddenItems = items.filter(item => item.hidden).length;
-    const totalVariants = items.reduce((sum, item) => sum + (item.variants?.length || 0), 0);
-    
-    document.getElementById('totalItems').textContent = totalItems;
-    document.getElementById('visibleItems').textContent = visibleItems;
-    document.getElementById('hiddenItems').textContent = hiddenItems;
-    document.getElementById('totalVariants').textContent = totalVariants;
+    // This function could be used to update any dashboard statistics
+    console.log('📊 Dashboard stats updated');
 }
 
-// Filtering and Pagination Functions
+// Display Functions
 function applyFiltersAndPagination() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const statusFilter = document.getElementById('statusFilter').value;
-    const sortBy = document.getElementById('sortBy').value;
+    console.log(`🔍 Applying filters and pagination...`);
     
-    // Apply filters
-    filteredItems = items.filter(item => {
-        const matchesSearch = !searchTerm || 
-            item.name.toLowerCase().includes(searchTerm) ||
-            (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
-            item.description.toLowerCase().includes(searchTerm);
-        
-        const matchesStatus = !statusFilter ||
-            (statusFilter === 'visible' && !item.hidden) ||
-            (statusFilter === 'hidden' && item.hidden);
-        
-        return matchesSearch && matchesStatus;
-    });
+    // Start with all items
+    filteredItems = [...items];
     
-    // Apply sorting
-    filteredItems.sort((a, b) => {
-        switch (sortBy) {
-            case 'name_asc':
-                return a.name.localeCompare(b.name);
-            case 'name_desc':
-                return b.name.localeCompare(a.name);
-            case 'created_desc':
-                return new Date(b.created_at) - new Date(a.created_at);
-            case 'created_asc':
-                return new Date(a.created_at) - new Date(b.created_at);
-            default:
-                return 0;
-        }
-    });
+    // Apply search filter
+    if (searchTerm) {
+        filteredItems = filteredItems.filter(item => {
+            const searchableText = `${item.name} ${item.brand} ${item.description}`.toLowerCase();
+            return searchableText.includes(searchTerm);
+        });
+    }
     
-    // Reset to first page
-    currentPage = 1;
+    // Apply status filter
+    if (currentFilter !== 'all') {
+        filteredItems = filteredItems.filter(item => {
+            switch (currentFilter) {
+                case 'visible': return !item.hidden;
+                case 'hidden': return item.hidden;
+                default: return true;
+            }
+        });
+    }
     
-    // Render results
-    renderItems();
-    updatePagination();
-}
-
-function renderItems() {
+    console.log(`📋 Filtered to ${filteredItems.length} items`);
+    
+    // Handle empty results
     if (filteredItems.length === 0) {
-        showEmptyState();
+        if (items.length === 0) {
+            showEmptyState();
+        } else {
+            showNoResultsState();
+        }
         return;
     }
     
-    showItemsContent();
-    
     // Calculate pagination
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedItems = filteredItems.slice(startIndex, endIndex);
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredItems.length);
     
-    // Render desktop table
-    renderDesktopTable(paginatedItems);
+    // Get current page items
+    const currentPageItems = filteredItems.slice(startIndex, endIndex);
     
-    // Render mobile cards
-    renderMobileCards(paginatedItems);
+    // Update UI
+    renderItemsTable(currentPageItems);
+    renderMobileCards(currentPageItems);
+    updatePaginationInfo(startIndex + 1, endIndex, filteredItems.length, totalPages);
+    
+    showItemsContent();
 }
 
-function renderDesktopTable(items) {
-    const tbody = document.getElementById('itemsTableBody');
+function renderItemsTable(items) {
+    const tbody = document.querySelector('#itemsTable tbody');
     if (!tbody) return;
     
     tbody.innerHTML = '';
     
     items.forEach(item => {
-        const row = createDesktopRow(item);
+        const row = createItemRow(item);
         tbody.appendChild(row);
     });
 }
 
-function createDesktopRow(item) {
+function createItemRow(item) {
     const row = document.createElement('tr');
+    row.className = 'item-row';
     
     const variants = getVariantsDisplay(item.variants);
     const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
@@ -361,48 +391,34 @@ function getVariantsDisplay(variants) {
         if (variant.is_whole_bottle) {
             return 'Full Bottle (Contact)';
         }
-        
-        // Handle different ways the variant might be structured
-        let price = 'N/A';
-        let size = 'Unknown';
-        
-        // Check for price_cents (from database)
-        if (variant.price_cents && variant.price_cents > 0) {
-            price = `${(variant.price_cents / 1000).toFixed(3)} OMR`;
-        } 
-        // Check for price (already converted)
-        else if (variant.price && variant.price > 0) {
-            price = `${variant.price.toFixed(3)} OMR`;
-        }
-        
-        // Check for size_ml (from database)
-        if (variant.size_ml) {
-            size = `${variant.size_ml}ml`;
-        } 
-        // Check for size (processed)
-        else if (variant.size) {
-            size = variant.size;
-        }
-        
-        return `${size}: ${price}`;
+        const price = variant.price_cents ? (variant.price_cents / 1000).toFixed(3) : 'N/A';
+        return `${variant.size_ml}ml - ${price} OMR`;
     });
     
-    return variantTexts.join('<br>');
+    return `<div class="variants-list">${variantTexts.join('<br>')}</div>`;
 }
 
-function updatePagination() {
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    const startItem = (currentPage - 1) * itemsPerPage + 1;
-    const endItem = Math.min(currentPage * itemsPerPage, filteredItems.length);
+function updatePaginationInfo(start, end, total, totalPages) {
+    const infoEl = document.getElementById('itemsPageInfo');
+    const totalEl = document.getElementById('itemsTotalCount');
+    const prevBtn = document.getElementById('itemsPrevBtn');
+    const nextBtn = document.getElementById('itemsNextBtn');
+    const pagination = document.getElementById('itemsPagination');
     
-    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
-    document.getElementById('itemsInfo').textContent = `${startItem}-${endItem} of ${filteredItems.length} items`;
+    if (infoEl) infoEl.textContent = `Page ${currentPage} of ${totalPages}`;
+    if (totalEl) totalEl.textContent = total;
     
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) {
+        prevBtn.disabled = currentPage === 1;
+    }
     
-    prevBtn.disabled = currentPage <= 1;
-    nextBtn.disabled = currentPage >= totalPages;
+    if (nextBtn) {
+        nextBtn.disabled = currentPage === totalPages;
+    }
+    
+    if (pagination) {
+        pagination.style.display = totalPages > 1 ? 'flex' : 'none';
+    }
 }
 
 // State Management Functions
@@ -421,21 +437,18 @@ function showError() {
 }
 
 function showEmptyState() {
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsEmpty').style.display = 'block';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showNoResultsState() {
     const emptyState = document.getElementById('itemsEmpty');
-    
-    // Update empty state message based on filters
-    const searchTerm = document.getElementById('searchInput').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-    
-    if (searchTerm || statusFilter) {
-        emptyState.querySelector('h3').textContent = 'No items match your filters';
-        emptyState.querySelector('p').textContent = 'Try adjusting your filters.';
+    if (emptyState) {
+        emptyState.querySelector('h3').textContent = 'No Items Found';
+        emptyState.querySelector('p').textContent = 'No items match your search criteria. Try adjusting your filters.';
         emptyState.querySelector('button').style.display = 'none';
-        emptyState.style.display = 'block';
-    } else {
-        emptyState.querySelector('h3').textContent = 'No items found';
-        emptyState.querySelector('p').textContent = 'You haven\'t added any items yet.';
-        emptyState.querySelector('button').style.display = 'inline-block';
         emptyState.style.display = 'block';
     }
     
@@ -493,10 +506,9 @@ function editItem(itemId) {
 }
 
 function populateForm(item) {
-    console.log('🔧 Populating form with item:', item);
-    console.log('📋 Item variants:', item.variants);
+    console.log('🔄 Populating form with item:', item);
     
-    // Populate basic fields
+    // Basic fields
     document.getElementById('itemName').value = item.name || '';
     document.getElementById('itemBrand').value = item.brand || '';
     document.getElementById('itemDescription').value = item.description || '';
@@ -508,74 +520,32 @@ function populateForm(item) {
     document.getElementById('price30ml').value = '';
     document.getElementById('enableFullBottle').checked = false;
     
-    // Process variants if they exist
+    // Populate variant prices
     const variants = item.variants || [];
-    console.log(`📦 Processing ${variants.length} variants:`);
+    console.log('📋 Item variants:', variants);
     
-    variants.forEach((variant, index) => {
-        console.log(`  Variant ${index + 1}:`, {
-            id: variant.id,
-            size_ml: variant.size_ml,
-            price_cents: variant.price_cents,
-            is_whole_bottle: variant.is_whole_bottle,
-            size: variant.size,
-            price: variant.price
-        });
+    variants.forEach(variant => {
+        console.log('🔍 Processing variant:', variant);
         
         if (variant.is_whole_bottle) {
             document.getElementById('enableFullBottle').checked = true;
-            console.log('  ✓ Set full bottle checkbox to true');
-        } else {
-            // Try to get the size from either size_ml or size field
-            let sizeInMl = null;
+            console.log('✅ Enabled full bottle');
+        } else if (variant.size_ml) {
+            const priceOMR = variant.price_cents ? (variant.price_cents / 1000) : 0;
+            console.log(`💰 Setting ${variant.size_ml}ml price to ${priceOMR} OMR`);
             
-            if (variant.size_ml) {
-                sizeInMl = variant.size_ml;
-            } else if (variant.size) {
-                // Extract number from size string like "5ml", "10ml", etc.
-                const match = variant.size.match(/(\d+)ml/);
-                if (match) {
-                    sizeInMl = parseInt(match[1]);
-                }
-            }
-            
-            if (sizeInMl) {
-                // Try to get price from either price_cents or price field
-                let priceOMR = 0;
-                
-                if (variant.price_cents && variant.price_cents > 0) {
-                    priceOMR = variant.price_cents / 1000;
-                } else if (variant.price && variant.price > 0) {
-                    priceOMR = variant.price;
-                }
-                
-                console.log(`  📏 Size: ${sizeInMl}ml, Price: ${priceOMR} OMR`);
-                
-                // Set the appropriate price field
-                switch(sizeInMl) {
-                    case 5:
-                        if (priceOMR > 0) {
-                            document.getElementById('price5ml').value = priceOMR.toFixed(3);
-                            console.log('  ✓ Set 5ml price to:', priceOMR.toFixed(3));
-                        }
-                        break;
-                    case 10:
-                        if (priceOMR > 0) {
-                            document.getElementById('price10ml').value = priceOMR.toFixed(3);
-                            console.log('  ✓ Set 10ml price to:', priceOMR.toFixed(3));
-                        }
-                        break;
-                    case 30:
-                        if (priceOMR > 0) {
-                            document.getElementById('price30ml').value = priceOMR.toFixed(3);
-                            console.log('  ✓ Set 30ml price to:', priceOMR.toFixed(3));
-                        }
-                        break;
-                    default:
-                        console.log(`  ⚠️  Unknown variant size: ${sizeInMl}ml`);
-                }
-            } else {
-                console.log('  ⚠️  Could not determine size for variant:', variant);
+            switch(variant.size_ml) {
+                case 5:
+                    document.getElementById('price5ml').value = priceOMR.toFixed(3);
+                    break;
+                case 10:
+                    document.getElementById('price10ml').value = priceOMR.toFixed(3);
+                    break;
+                case 30:
+                    document.getElementById('price30ml').value = priceOMR.toFixed(3);
+                    break;
+                default:
+                    console.warn(`⚠️ Unknown variant size: ${variant.size_ml}ml`);
             }
         }
     });
@@ -587,15 +557,14 @@ function populateForm(item) {
         const imageInput = document.getElementById('itemImage');
         
         if (imagePreview && previewImg) {
-            const imageUrl = `/storage/fragrance-images/${item.image_path}`;
-            console.log('🖼️  Setting image preview:', imageUrl);
-            previewImg.src = imageUrl;
+            previewImg.src = `/storage/fragrance-images/${item.image_path}`;
             imagePreview.style.display = 'block';
             imageInput.required = false; // Don't require new image for edit
         }
     }
     
-    console.log('✅ Form population completed');
+    // Validate form after populating
+    validateForm();
 }
 
 function resetForm() {
@@ -606,6 +575,7 @@ function resetForm() {
     if (imageInput) imageInput.required = true; // Require image for new items
     
     removeImagePreview();
+    validateForm();
 }
 
 function closeItemModal() {
@@ -685,6 +655,8 @@ function handleImagePreview(event) {
             preview.style.display = 'block';
         };
         reader.readAsDataURL(file);
+    } else {
+        removeImagePreview();
     }
 }
 
@@ -696,33 +668,55 @@ function removeImagePreview() {
     if (preview) preview.style.display = 'none';
     if (previewImg) previewImg.src = '';
     if (imageInput) imageInput.value = '';
+}
+
+function validateForm() {
+    const name = document.getElementById('itemName').value.trim();
+    const brand = document.getElementById('itemBrand').value.trim();
+    const description = document.getElementById('itemDescription').value.trim();
+    const imageInput = document.getElementById('itemImage');
+    const hasImage = imageInput.files.length > 0 || (!imageInput.required);
     
-    // If editing, don't require image
-    if (currentEditingId) {
-        imageInput.required = false;
-    } else {
-        imageInput.required = true;
+    // Check if at least one variant is configured
+    const price5ml = parseFloat(document.getElementById('price5ml').value);
+    const price10ml = parseFloat(document.getElementById('price10ml').value);
+    const price30ml = parseFloat(document.getElementById('price30ml').value);
+    const enableFullBottle = document.getElementById('enableFullBottle').checked;
+    
+    const hasVariants = (!isNaN(price5ml) && price5ml > 0) || 
+                       (!isNaN(price10ml) && price10ml > 0) || 
+                       (!isNaN(price30ml) && price30ml > 0) || 
+                       enableFullBottle;
+    
+    const isValid = name && brand && description && hasImage && hasVariants;
+    
+    const saveButton = document.querySelector('#itemModalOverlay .btn-primary');
+    if (saveButton) {
+        saveButton.disabled = !isValid;
     }
+    
+    return isValid;
 }
 
 // CRUD Operations
-async function saveItem(event) {
-    event.preventDefault();
+async function saveItem() {
+    if (!validateForm()) {
+        showToast('Please fill in all required fields and at least one variant', 'error');
+        return;
+    }
     
-    const saveButton = document.querySelector('#itemForm button[type="submit"]');
-    const originalText = saveButton.innerHTML;
+    const saveButton = document.querySelector('#itemModalOverlay .btn-primary');
+    const originalText = saveButton.textContent;
+    saveButton.disabled = true;
+    saveButton.textContent = 'Saving...';
     
     try {
-        saveButton.disabled = true;
-        saveButton.innerHTML = '⏳ Saving...';
-        
         const formData = new FormData();
         
         // Basic fields
         formData.append('name', document.getElementById('itemName').value.trim());
         formData.append('brand', document.getElementById('itemBrand').value.trim());
         formData.append('description', document.getElementById('itemDescription').value.trim());
-        formData.append('slug', generateSlug(document.getElementById('itemName').value.trim()));
         formData.append('hidden', document.getElementById('itemHidden').checked);
         
         // Image file
@@ -793,33 +787,39 @@ async function saveItem(event) {
         
         if (result.success) {
             const action = currentEditingId ? 'updated' : 'added';
-            showToast(`Item ${action} successfully!`, 'success');
+            showToast(`Item ${action} successfully`, 'success');
             closeItemModal();
-            await loadItems(); // Reload to get fresh data
+            await loadItems(); // Reload items to show changes
         } else {
             throw new Error(result.error || 'Unknown error occurred');
         }
         
     } catch (error) {
-        console.error('Save error:', error);
+        console.error('❌ Failed to save item:', error);
         showToast('Failed to save item: ' + error.message, 'error');
     } finally {
         saveButton.disabled = false;
-        saveButton.innerHTML = originalText;
+        saveButton.textContent = originalText;
     }
 }
 
-async function toggleItemVisibility(itemId, makeVisible) {
+async function toggleItemVisibility(itemId, visible) {
+    const item = items.find(i => i.id == itemId);
+    if (!item) {
+        showToast('Item not found', 'error');
+        return;
+    }
+    
     try {
         const response = await fetch('/admin/toggle-fragrance-visibility', {
-            method: 'PATCH',
+            method: 'POST',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 id: itemId,
-                hidden: !makeVisible
+                hidden: !visible
             })
         });
         
@@ -830,15 +830,15 @@ async function toggleItemVisibility(itemId, makeVisible) {
         }
         
         if (result.success) {
-            const action = makeVisible ? 'shown' : 'hidden';
-            showToast(`Item ${action} successfully!`, 'success');
-            await loadItems(); // Reload to get fresh data
+            const status = visible ? 'shown' : 'hidden';
+            showToast(`Item ${status} successfully`, 'success');
+            await loadItems(); // Reload to show changes
         } else {
-            throw new Error(result.error || 'Failed to update visibility');
+            throw new Error(result.error || 'Unknown error occurred');
         }
         
     } catch (error) {
-        console.error('Toggle visibility error:', error);
+        console.error('❌ Failed to toggle item visibility:', error);
         showToast('Failed to update item visibility: ' + error.message, 'error');
     }
 }
@@ -846,22 +846,15 @@ async function toggleItemVisibility(itemId, makeVisible) {
 async function confirmDelete() {
     if (!deleteItemId) return;
     
-    const deleteButton = document.querySelector('#deleteModalOverlay .btn-danger');
+    const deleteButton = document.querySelector('#deleteModalOverlay .btn-delete');
     const originalText = deleteButton.textContent;
+    deleteButton.disabled = true;
+    deleteButton.textContent = 'Deleting...';
     
     try {
-        deleteButton.disabled = true;
-        deleteButton.textContent = '⏳ Deleting...';
-        
-        const response = await fetch('/admin/delete-fragrance', {
+        const response = await fetch(`/admin/delete-fragrance/${deleteItemId}`, {
             method: 'DELETE',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                id: deleteItemId
-            })
+            credentials: 'include'
         });
         
         const result = await response.json();
@@ -871,18 +864,134 @@ async function confirmDelete() {
         }
         
         if (result.success) {
-            showToast('Item deleted successfully!', 'success');
+            showToast('Item deleted successfully', 'success');
             closeDeleteModal();
-            await loadItems(); // Reload to get fresh data
+            await loadItems(); // Reload to show changes
         } else {
-            throw new Error(result.error || 'Failed to delete item');
+            throw new Error(result.error || 'Unknown error occurred');
         }
         
     } catch (error) {
-        console.error('Delete error:', error);
+        console.error('❌ Failed to delete item:', error);
         showToast('Failed to delete item: ' + error.message, 'error');
     } finally {
         deleteButton.disabled = false;
         deleteButton.textContent = originalText;
     }
 }
+
+// Utility Functions
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (error) {
+        return 'Invalid Date';
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) {
+        return map[m];
+    });
+}
+
+function formatPrice(priceCents) {
+    if (!priceCents) return 'N/A';
+    return `${(priceCents / 1000).toFixed(3)} OMR`;
+}
+
+// Toast Functions
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-message">${escapeHtml(message)}</span>
+        <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            removeToast(toast);
+        }
+    }, 5000);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+    return container;
+}
+
+function removeToast(toast) {
+    if (toast && toast.parentElement) {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.parentElement.removeChild(toast);
+            }
+        }, 300);
+    }
+}
+
+// Admin Authentication Functions
+async function logout() {
+    try {
+        const response = await fetch('/admin/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showToast('Logged out successfully', 'success');
+            setTimeout(() => {
+                window.location.href = '/login.html';
+            }, 1000);
+        } else {
+            throw new Error('Logout failed');
+        }
+    } catch (error) {
+        console.error('❌ Logout failed:', error);
+        // Force redirect even if logout fails
+        window.location.href = '/login.html';
+    }
+}
+
+// Global Error Handler
+window.addEventListener('error', function(event) {
+    console.error('🔥 Global error:', event.error);
+    showToast('An unexpected error occurred', 'error');
+});
+
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('🔥 Unhandled promise rejection:', event.reason);
+    showToast('An unexpected error occurred', 'error');
+    event.preventDefault();
+});
+
+// Performance Monitoring
+if (typeof performance !== 'undefined' && performance.mark) {
+    performance.mark('items-management-script-loaded');
+}
+
+console.log('✅ Items Management Script Loaded Successfully');
