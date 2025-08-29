@@ -679,11 +679,19 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    display: flex;
+    display: none; /* Start hidden */
     align-items: center;
     justify-content: center;
     padding: 1rem;
     backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
 }
 
 .modal-content {

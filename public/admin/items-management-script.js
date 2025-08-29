@@ -587,6 +587,7 @@ function nextItemsPage() {
 
 // Modal Functions
 function openAddItemModal() {
+    console.log('🔵 Opening add item modal...');
     currentEditingId = null;
     document.getElementById('itemModalTitle').textContent = 'Add New Item';
     document.getElementById('saveButtonText').textContent = 'Save Item';
@@ -595,6 +596,7 @@ function openAddItemModal() {
 }
 
 function editItem(itemId) {
+    console.log('🔵 Opening edit modal for item:', itemId);
     const item = items.find(i => i.id == itemId);
     if (!item) {
         showToast('Item not found', 'error');
@@ -742,9 +744,17 @@ function closeDeleteModal() {
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
+        // Show modal first
         modal.style.display = 'flex';
-        setTimeout(() => modal.classList.add('show'), 10);
+        modal.offsetHeight; // Force reflow
+        
+        // Add show class for animation
+        modal.classList.add('show');
         document.body.style.overflow = 'hidden';
+        
+        console.log('✅ Modal shown:', modalId);
+    } else {
+        console.error('❌ Modal not found:', modalId);
     }
 }
 
@@ -756,6 +766,8 @@ function hideModal(modalId) {
             modal.style.display = 'none';
             document.body.style.overflow = '';
         }, 300);
+        
+        console.log('✅ Modal hidden:', modalId);
     }
 }
 
@@ -819,6 +831,8 @@ function validateForm() {
 
 // CRUD Operations
 async function saveItem() {
+    console.log('🔵 Save item called, validating form...');
+    
     if (!validateForm()) {
         showToast('Please fill in all required fields', 'error');
         return;
@@ -836,10 +850,13 @@ async function saveItem() {
         const description = document.getElementById('itemDescription').value.trim();
         const hidden = document.getElementById('itemHidden').checked;
         
+        console.log('🔵 Form data collected:', { name, brand, description, hidden });
+        
         // Create slug from name
         const slug = generateSlug(name);
+        console.log('🔵 Generated slug:', slug);
         
-        // Collect enabled variants
+        // Collect enabled variants in the format your API expects
         const variants = [];
         
         if (document.getElementById('enable5ml').checked) {
@@ -847,8 +864,9 @@ async function saveItem() {
             if (!isNaN(price5ml) && price5ml > 0) {
                 variants.push({
                     size_ml: 5,
-                    price_cents: Math.round(price5ml * 1000),
-                    is_whole_bottle: false
+                    price: price5ml, // Keep as OMR decimal - API will convert to cents
+                    is_whole_bottle: false,
+                    sku: `${slug}-5ml`
                 });
             }
         }
@@ -858,8 +876,9 @@ async function saveItem() {
             if (!isNaN(price10ml) && price10ml > 0) {
                 variants.push({
                     size_ml: 10,
-                    price_cents: Math.round(price10ml * 1000),
-                    is_whole_bottle: false
+                    price: price10ml, // Keep as OMR decimal - API will convert to cents
+                    is_whole_bottle: false,
+                    sku: `${slug}-10ml`
                 });
             }
         }
@@ -869,18 +888,27 @@ async function saveItem() {
             if (!isNaN(price30ml) && price30ml > 0) {
                 variants.push({
                     size_ml: 30,
-                    price_cents: Math.round(price30ml * 1000),
-                    is_whole_bottle: false
+                    price: price30ml, // Keep as OMR decimal - API will convert to cents
+                    is_whole_bottle: false,
+                    sku: `${slug}-30ml`
                 });
             }
         }
         
         if (document.getElementById('enableFullBottle').checked) {
             variants.push({
-                size_ml: null,
-                price_cents: null,
-                is_whole_bottle: true
+                size_ml: null, // NULL for whole bottles
+                price: null,   // NULL for whole bottles
+                is_whole_bottle: true,
+                sku: `${slug}-full`
             });
+        }
+        
+        console.log('🔵 Collected variants:', variants);
+        
+        if (variants.length === 0) {
+            showToast('Please enable at least one variant', 'error');
+            return;
         }
         
         if (currentEditingId) {
@@ -922,7 +950,9 @@ async function saveItem() {
                 body: JSON.stringify(updateData)
             });
             
+            console.log('🔵 Update API Response status:', response.status);
             const result = await response.json();
+            console.log('🔵 Update API Response data:', result);
             
             if (!response.ok) {
                 throw new Error(result.error || `HTTP ${response.status}`);
@@ -930,6 +960,7 @@ async function saveItem() {
             
             if (result.success) {
                 showToast('Item updated successfully', 'success');
+                console.log('✅ Item updated successfully:', result.data);
                 closeItemModal();
                 await refreshData();
             } else {
@@ -977,7 +1008,9 @@ async function saveItem() {
                 body: JSON.stringify(fragranceData)
             });
             
+            console.log('🔵 API Response status:', response.status);
             const result = await response.json();
+            console.log('🔵 API Response data:', result);
             
             if (!response.ok) {
                 throw new Error(result.error || `HTTP ${response.status}`);
@@ -985,6 +1018,7 @@ async function saveItem() {
             
             if (result.success) {
                 showToast('Item added successfully', 'success');
+                console.log('✅ Item added successfully:', result.data);
                 closeItemModal();
                 await refreshData();
             } else {
@@ -1039,6 +1073,8 @@ async function confirmDelete() {
     deleteButton.textContent = 'Deleting...';
     
     try {
+        console.log('🔵 Deleting item with ID:', deleteItemId);
+        
         const response = await fetch('/admin/delete-fragrance', {
             method: 'DELETE',
             credentials: 'include',
@@ -1048,7 +1084,9 @@ async function confirmDelete() {
             body: JSON.stringify({ id: parseInt(deleteItemId) })
         });
         
+        console.log('🔵 Delete API Response status:', response.status);
         const result = await response.json();
+        console.log('🔵 Delete API Response data:', result);
         
         if (!response.ok) {
             throw new Error(result.error || `HTTP ${response.status}`);
@@ -1056,6 +1094,7 @@ async function confirmDelete() {
         
         if (result.success) {
             showToast('Item deleted successfully', 'success');
+            console.log('✅ Item deleted successfully:', result.data);
             closeDeleteModal();
             await refreshData();
         } else {
@@ -1158,5 +1197,4 @@ function showToast(message, type = 'info', duration = 5000) {
             toast.remove();
         }
     }, duration);
-
 }
