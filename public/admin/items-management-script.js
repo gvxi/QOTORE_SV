@@ -1,131 +1,77 @@
-// Admin Items Management JavaScript
-
-// Global variables
+// Items Management Script - FIXED VERSION
 let items = [];
 let filteredItems = [];
-let currentFilter = 'all';
 let currentPage = 1;
-let itemsPerPage = 10;
-let searchTerm = '';
+const itemsPerPage = 10;
+let currentSearchTerm = '';
+let currentFilter = 'all';
 let currentEditingId = null;
 let deleteItemId = null;
 
-// Initialize app
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Admin Items Management Loading...');
-    initializeApp();
+    console.log('🚀 Items management loaded');
+    loadItems();
+    setupEventListeners();
 });
 
-async function initializeApp() {
-    try {
-        // Check authentication first
-        if (!isAuthenticated()) {
-            redirectToLogin();
-            return;
-        }
-        
-        // Load initial data
-        await loadItems();
-        
-        // Set up event listeners
-        setupEventListeners();
-        
-        console.log('✅ Admin Items Management Ready');
-        showToast('Items management loaded successfully', 'success');
-    } catch (error) {
-        console.error('❌ Initialization failed:', error);
-        showToast('Failed to initialize items management', 'error');
-    }
-}
-
-function isAuthenticated() {
-    const cookies = document.cookie.split(';');
-    return cookies.some(cookie => cookie.trim().startsWith('admin_session='));
-}
-
-function redirectToLogin() {
-    showToast('Session expired. Redirecting to login...', 'warning');
-    setTimeout(() => {
-        window.location.href = '/login.html';
-    }, 2000);
-}
-
-// Event Listeners
 function setupEventListeners() {
     // Search functionality
-    const searchInput = document.getElementById('itemsSearch');
+    const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-        searchInput.addEventListener('input', function() {
-            const clearBtn = document.getElementById('itemsClearSearch');
-            if (clearBtn) {
-                clearBtn.style.display = this.value.length > 0 ? 'block' : 'none';
+        searchInput.addEventListener('input', debounce((e) => {
+            currentSearchTerm = e.target.value;
+            currentPage = 1;
+            applyFiltersAndPagination();
+        }, 300));
+    }
+    
+    // Filter functionality
+    const filterSelect = document.getElementById('statusFilter');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            currentPage = 1;
+            applyFiltersAndPagination();
+        });
+    }
+    
+    // Form submission
+    const itemForm = document.getElementById('itemForm');
+    if (itemForm) {
+        itemForm.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // Image preview
+    const imageInput = document.getElementById('itemImage');
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImagePreview);
+    }
+    
+    // Modal close handlers
+    const modalOverlay = document.getElementById('itemModalOverlay');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                closeItemModal();
             }
         });
     }
-
-    // Form validation on input changes
-    const formInputs = ['itemName', 'itemBrand', 'itemDescription', 'price5ml', 'price10ml', 'price30ml', 'enableFullBottle'];
-    formInputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.addEventListener('input', validateForm);
-            input.addEventListener('change', validateForm);
-        }
-    });
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function handleSearch(event) {
-    searchTerm = event.target.value.toLowerCase().trim();
-    currentPage = 1;
-    applyFiltersAndPagination();
-}
-
-function clearSearch() {
-    const searchInput = document.getElementById('itemsSearch');
-    if (searchInput) {
-        searchInput.value = '';
-        searchTerm = '';
+    
+    const deleteModalOverlay = document.getElementById('deleteModalOverlay');
+    if (deleteModalOverlay) {
+        deleteModalOverlay.addEventListener('click', function(e) {
+            if (e.target === deleteModalOverlay) {
+                hideModal('deleteModalOverlay');
+            }
+        });
     }
-    
-    const clearBtn = document.getElementById('itemsClearSearch');
-    if (clearBtn) {
-        clearBtn.style.display = 'none';
-    }
-    
-    currentPage = 1;
-    applyFiltersAndPagination();
 }
 
-function setFilter(filter) {
-    currentFilter = filter;
-    currentPage = 1;
-    
-    // Update filter button styles
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`[data-filter="${filter}"]`)?.classList.add('active');
-    
-    applyFiltersAndPagination();
-}
-
-// Data Loading Functions
+// Load items from API
 async function loadItems() {
-    console.log('📦 Loading items...');
-    showLoading();
+    console.log('📥 Loading items...');
+    showItemsLoading();
     
     try {
         const response = await fetch('/admin/fragrances', {
@@ -135,84 +81,41 @@ async function loadItems() {
                 'Content-Type': 'application/json'
             }
         });
-
+        
         if (!response.ok) {
-            const errorData = await response.json();
-            if (response.status === 401) {
-                redirectToLogin();
-                return;
-            }
-            throw new Error(errorData.error || `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        if (data.success && Array.isArray(data.data)) {
-            items = data.data.map(item => ({
-                id: item.id,
-                name: item.name,
-                slug: item.slug,
-                description: item.description,
-                image_path: item.image_path,
-                brand: item.brand,
-                hidden: item.hidden,
-                created_at: item.created_at,
-                updated_at: item.updated_at,
-                variants: item.variants || []
-            }));
-            
-            console.log(`✅ Loaded ${items.length} items`);
-            console.log('Items with variants:', items.filter(i => i.variants.length > 0).length);
-            updateDashboardStats();
-            applyFiltersAndPagination();
-        } else {
-            throw new Error('Invalid data format received');
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-    } catch (error) {
-        console.error('❌ Failed to load items:', error);
-        showError();
-        showToast('Failed to load items: ' + error.message, 'error');
-    }
-}
-
-async function refreshData() {
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.classList.add('refreshing');
-    }
-    
-    try {
-        await loadItems();
-        showToast('Items refreshed successfully', 'success');
-    } catch (error) {
-        showToast('Failed to refresh items', 'error');
-    } finally {
-        if (refreshBtn) {
-            refreshBtn.classList.remove('refreshing');
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Unknown error occurred');
         }
+        
+        items = result.data || [];
+        console.log(`✅ Loaded ${items.length} items`);
+        
+        applyFiltersAndPagination();
+        
+    } catch (error) {
+        console.error('❌ Error loading items:', error);
+        showItemsError(error.message);
     }
 }
 
-function updateDashboardStats() {
-    // This function could be used to update any dashboard statistics
-    console.log('📊 Dashboard stats updated');
-}
-
-// Display Functions
+// Apply filters and pagination
 function applyFiltersAndPagination() {
-    console.log(`🔍 Applying filters and pagination...`);
-    
-    // Start with all items
-    filteredItems = [...items];
+    console.log(`🔍 Applying filters: search="${currentSearchTerm}", filter="${currentFilter}"`);
     
     // Apply search filter
-    if (searchTerm) {
-        filteredItems = filteredItems.filter(item => {
-            const searchableText = `${item.name} ${item.brand} ${item.description}`.toLowerCase();
-            return searchableText.includes(searchTerm);
-        });
-    }
+    filteredItems = items.filter(item => {
+        if (!currentSearchTerm) return true;
+        
+        const searchTerm = currentSearchTerm.toLowerCase();
+        return item.name.toLowerCase().includes(searchTerm) ||
+               (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
+               (item.description && item.description.toLowerCase().includes(searchTerm));
+    });
     
     // Apply status filter
     if (currentFilter !== 'all') {
@@ -247,25 +150,30 @@ function applyFiltersAndPagination() {
     
     // Update UI
     renderItemsTable(currentPageItems);
-    renderMobileCards(currentPageItems);
     updatePaginationInfo(startIndex + 1, endIndex, filteredItems.length, totalPages);
+    generatePaginationControls(totalPages);
     
     showItemsContent();
 }
 
 function renderItemsTable(items) {
     const tbody = document.querySelector('#itemsTable tbody');
-    if (!tbody) return;
+    const mobileContainer = document.getElementById('itemCards');
     
-    tbody.innerHTML = '';
+    if (tbody) {
+        tbody.innerHTML = '';
+        items.forEach(item => {
+            const row = createTableRow(item);
+            tbody.appendChild(row);
+        });
+    }
     
-    items.forEach(item => {
-        const row = createItemRow(item);
-        tbody.appendChild(row);
-    });
+    if (mobileContainer) {
+        renderMobileCards(items);
+    }
 }
 
-function createItemRow(item) {
+function createTableRow(item) {
     const row = document.createElement('tr');
     row.className = 'item-row';
     
@@ -391,324 +299,24 @@ function getVariantsDisplay(variants) {
         if (variant.is_whole_bottle) {
             return 'Full Bottle (Contact)';
         }
-        const price = variant.price_cents ? (variant.price_cents / 1000).toFixed(3) : 'N/A';
-        return `${variant.size_ml}ml - ${price} OMR`;
+        const price = variant.price ? `${variant.price.toFixed(3)} OMR` : 'No price';
+        return `${variant.size} - ${price}`;
     });
     
-    return `<div class="variants-list">${variantTexts.join('<br>')}</div>`;
+    return variantTexts.join('<br>');
 }
 
-function updatePaginationInfo(start, end, total, totalPages) {
-    const infoEl = document.getElementById('itemsPageInfo');
-    const totalEl = document.getElementById('itemsTotalCount');
-    const prevBtn = document.getElementById('itemsPrevBtn');
-    const nextBtn = document.getElementById('itemsNextBtn');
-    const pagination = document.getElementById('itemsPagination');
+// Form handling functions
+async function handleFormSubmit(e) {
+    e.preventDefault();
     
-    if (infoEl) infoEl.textContent = `Page ${currentPage} of ${totalPages}`;
-    if (totalEl) totalEl.textContent = total;
+    const saveButton = document.getElementById('saveItemBtn');
+    const saveButtonText = document.getElementById('saveButtonText');
+    const originalText = saveButtonText.textContent;
     
-    if (prevBtn) {
-        prevBtn.disabled = currentPage === 1;
-    }
-    
-    if (nextBtn) {
-        nextBtn.disabled = currentPage === totalPages;
-    }
-    
-    if (pagination) {
-        pagination.style.display = totalPages > 1 ? 'flex' : 'none';
-    }
-}
-
-// State Management Functions
-function showLoading() {
-    document.getElementById('itemsLoading').style.display = 'block';
-    document.getElementById('itemsError').style.display = 'none';
-    document.getElementById('itemsEmpty').style.display = 'none';
-    document.getElementById('itemsContent').style.display = 'none';
-}
-
-function showError() {
-    document.getElementById('itemsLoading').style.display = 'none';
-    document.getElementById('itemsError').style.display = 'block';
-    document.getElementById('itemsEmpty').style.display = 'none';
-    document.getElementById('itemsContent').style.display = 'none';
-}
-
-function showEmptyState() {
-    document.getElementById('itemsLoading').style.display = 'none';
-    document.getElementById('itemsError').style.display = 'none';
-    document.getElementById('itemsEmpty').style.display = 'block';
-    document.getElementById('itemsContent').style.display = 'none';
-}
-
-function showNoResultsState() {
-    const emptyState = document.getElementById('itemsEmpty');
-    if (emptyState) {
-        emptyState.querySelector('h3').textContent = 'No Items Found';
-        emptyState.querySelector('p').textContent = 'No items match your search criteria. Try adjusting your filters.';
-        emptyState.querySelector('button').style.display = 'none';
-        emptyState.style.display = 'block';
-    }
-    
-    document.getElementById('itemsLoading').style.display = 'none';
-    document.getElementById('itemsError').style.display = 'none';
-    document.getElementById('itemsContent').style.display = 'none';
-}
-
-function showItemsContent() {
-    document.getElementById('itemsLoading').style.display = 'none';
-    document.getElementById('itemsError').style.display = 'none';
-    document.getElementById('itemsEmpty').style.display = 'none';
-    document.getElementById('itemsContent').style.display = 'block';
-}
-
-// Pagination Functions
-function previousItemsPage() {
-    if (currentPage > 1) {
-        currentPage--;
-        applyFiltersAndPagination();
-    }
-}
-
-function nextItemsPage() {
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    if (currentPage < totalPages) {
-        currentPage++;
-        applyFiltersAndPagination();
-    }
-}
-
-// Modal Functions
-function openAddItemModal() {
-    currentEditingId = null;
-    document.getElementById('itemModalTitle').textContent = 'Add New Item';
-    document.getElementById('saveButtonText').textContent = 'Save Item';
-    resetForm();
-    showModal('itemModalOverlay');
-}
-
-function editItem(itemId) {
-    const item = items.find(i => i.id == itemId);
-    if (!item) {
-        showToast('Item not found', 'error');
-        return;
-    }
-    
-    currentEditingId = itemId;
-    document.getElementById('itemModalTitle').textContent = 'Edit Item';
-    document.getElementById('saveButtonText').textContent = 'Update Item';
-    
-    // Populate form with item data
-    populateForm(item);
-    showModal('itemModalOverlay');
-}
-
-function populateForm(item) {
-    console.log('🔄 Populating form with item:', item);
-    
-    // Basic fields
-    document.getElementById('itemName').value = item.name || '';
-    document.getElementById('itemBrand').value = item.brand || '';
-    document.getElementById('itemDescription').value = item.description || '';
-    document.getElementById('itemHidden').checked = item.hidden || false;
-    
-    // Clear all variant prices first
-    document.getElementById('price5ml').value = '';
-    document.getElementById('price10ml').value = '';
-    document.getElementById('price30ml').value = '';
-    document.getElementById('enableFullBottle').checked = false;
-    
-    // Populate variant prices
-    const variants = item.variants || [];
-    console.log('📋 Item variants:', variants);
-    
-    variants.forEach(variant => {
-        console.log('🔍 Processing variant:', variant);
-        
-        if (variant.is_whole_bottle) {
-            document.getElementById('enableFullBottle').checked = true;
-            console.log('✅ Enabled full bottle');
-        } else if (variant.size_ml) {
-            const priceOMR = variant.price_cents ? (variant.price_cents / 1000) : 0;
-            console.log(`💰 Setting ${variant.size_ml}ml price to ${priceOMR} OMR`);
-            
-            switch(variant.size_ml) {
-                case 5:
-                    document.getElementById('price5ml').value = priceOMR.toFixed(3);
-                    break;
-                case 10:
-                    document.getElementById('price10ml').value = priceOMR.toFixed(3);
-                    break;
-                case 30:
-                    document.getElementById('price30ml').value = priceOMR.toFixed(3);
-                    break;
-                default:
-                    console.warn(`⚠️ Unknown variant size: ${variant.size_ml}ml`);
-            }
-        }
-    });
-    
-    // Show current image if exists
-    if (item.image_path) {
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('previewImg');
-        const imageInput = document.getElementById('itemImage');
-        
-        if (imagePreview && previewImg) {
-            previewImg.src = `/storage/fragrance-images/${item.image_path}`;
-            imagePreview.style.display = 'block';
-            imageInput.required = false; // Don't require new image for edit
-        }
-    }
-    
-    // Validate form after populating
-    validateForm();
-}
-
-function resetForm() {
-    const form = document.getElementById('itemForm');
-    if (form) form.reset();
-    
-    const imageInput = document.getElementById('itemImage');
-    if (imageInput) imageInput.required = true; // Require image for new items
-    
-    removeImagePreview();
-    validateForm();
-}
-
-function closeItemModal() {
-    hideModal('itemModalOverlay');
-    resetForm();
-    currentEditingId = null;
-}
-
-function deleteItem(itemId) {
-    const item = items.find(i => i.id == itemId);
-    if (!item) {
-        showToast('Item not found', 'error');
-        return;
-    }
-    
-    deleteItemId = itemId;
-    
-    // Populate delete preview
-    const preview = document.getElementById('deleteItemPreview');
-    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
-    
-    preview.innerHTML = `
-        ${imageUrl ? 
-            `<img src="${imageUrl}" alt="${item.name}">` : 
-            `<div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #999;">No Image</div>`
-        }
-        <div class="item-preview-info">
-            <div class="item-name">${escapeHtml(item.name)}</div>
-            <div class="item-brand">${escapeHtml(item.brand || 'No Brand')}</div>
-        </div>
-    `;
-    
-    showModal('deleteModalOverlay');
-}
-
-function closeDeleteModal() {
-    hideModal('deleteModalOverlay');
-    deleteItemId = null;
-}
-
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'flex';
-        setTimeout(() => modal.classList.add('show'), 10);
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        }, 300);
-    }
-}
-
-// Form Handling Functions
-function handleImagePreview(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-    
-    if (file) {
-        if (!file.type.match('image/png')) {
-            showToast('Please select a PNG image file', 'error');
-            event.target.value = '';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    } else {
-        removeImagePreview();
-    }
-}
-
-function removeImagePreview() {
-    const preview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-    const imageInput = document.getElementById('itemImage');
-    
-    if (preview) preview.style.display = 'none';
-    if (previewImg) previewImg.src = '';
-    if (imageInput) imageInput.value = '';
-}
-
-function validateForm() {
-    const name = document.getElementById('itemName').value.trim();
-    const brand = document.getElementById('itemBrand').value.trim();
-    const description = document.getElementById('itemDescription').value.trim();
-    const imageInput = document.getElementById('itemImage');
-    const hasImage = imageInput.files.length > 0 || (!imageInput.required);
-    
-    // Check if at least one variant is configured
-    const price5ml = parseFloat(document.getElementById('price5ml').value);
-    const price10ml = parseFloat(document.getElementById('price10ml').value);
-    const price30ml = parseFloat(document.getElementById('price30ml').value);
-    const enableFullBottle = document.getElementById('enableFullBottle').checked;
-    
-    const hasVariants = (!isNaN(price5ml) && price5ml > 0) || 
-                       (!isNaN(price10ml) && price10ml > 0) || 
-                       (!isNaN(price30ml) && price30ml > 0) || 
-                       enableFullBottle;
-    
-    const isValid = name && brand && description && hasImage && hasVariants;
-    
-    const saveButton = document.querySelector('#itemModalOverlay .btn-primary');
-    if (saveButton) {
-        saveButton.disabled = !isValid;
-    }
-    
-    return isValid;
-}
-
-// CRUD Operations
-async function saveItem() {
-    if (!validateForm()) {
-        showToast('Please fill in all required fields and at least one variant', 'error');
-        return;
-    }
-    
-    const saveButton = document.querySelector('#itemModalOverlay .btn-primary');
-    const originalText = saveButton.textContent;
+    // Disable button and show loading
     saveButton.disabled = true;
-    saveButton.textContent = 'Saving...';
+    saveButtonText.innerHTML = '<div class="loading-spinner"></div> Saving...';
     
     try {
         const formData = new FormData();
@@ -725,14 +333,14 @@ async function saveItem() {
             formData.append('image', imageInput.files[0]);
         }
         
-        // Variant prices (convert OMR to fils)
+        // Variant prices (convert OMR to fils) - FIXED LOGIC
         const variants = [];
         
         const price5ml = parseFloat(document.getElementById('price5ml').value);
         if (!isNaN(price5ml) && price5ml > 0) {
             variants.push({
                 size_ml: 5,
-                price_cents: Math.round(price5ml * 1000),
+                price_cents: Math.round(price5ml * 1000), // Convert OMR to fils
                 is_whole_bottle: false
             });
         }
@@ -741,7 +349,7 @@ async function saveItem() {
         if (!isNaN(price10ml) && price10ml > 0) {
             variants.push({
                 size_ml: 10,
-                price_cents: Math.round(price10ml * 1000),
+                price_cents: Math.round(price10ml * 1000), // Convert OMR to fils
                 is_whole_bottle: false
             });
         }
@@ -750,7 +358,7 @@ async function saveItem() {
         if (!isNaN(price30ml) && price30ml > 0) {
             variants.push({
                 size_ml: 30,
-                price_cents: Math.round(price30ml * 1000),
+                price_cents: Math.round(price30ml * 1000), // Convert OMR to fils
                 is_whole_bottle: false
             });
         }
@@ -787,74 +395,193 @@ async function saveItem() {
         
         if (result.success) {
             const action = currentEditingId ? 'updated' : 'added';
-            showToast(`Item ${action} successfully`, 'success');
+            showToast(`Item ${action} successfully!`, 'success');
             closeItemModal();
-            await loadItems(); // Reload items to show changes
+            loadItems(); // Reload the items list
         } else {
-            throw new Error(result.error || 'Unknown error occurred');
+            throw new Error(result.error || 'Operation failed');
         }
         
     } catch (error) {
-        console.error('❌ Failed to save item:', error);
-        showToast('Failed to save item: ' + error.message, 'error');
+        console.error('Form submission error:', error);
+        showToast(`Error: ${error.message}`, 'error');
     } finally {
         saveButton.disabled = false;
-        saveButton.textContent = originalText;
+        saveButtonText.textContent = originalText;
     }
 }
 
-async function toggleItemVisibility(itemId, visible) {
+function handleImagePreview(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            img.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeImagePreview() {
+    const preview = document.getElementById('imagePreview');
+    const img = document.getElementById('previewImg');
+    const input = document.getElementById('itemImage');
+    
+    preview.style.display = 'none';
+    img.src = '';
+    input.value = '';
+    input.required = currentEditingId ? false : true;
+}
+
+// Modal Functions
+function openAddItemModal() {
+    currentEditingId = null;
+    document.getElementById('itemModalTitle').textContent = 'Add New Item';
+    document.getElementById('saveButtonText').textContent = 'Save Item';
+    resetForm();
+    showModal('itemModalOverlay');
+}
+
+function editItem(itemId) {
     const item = items.find(i => i.id == itemId);
     if (!item) {
         showToast('Item not found', 'error');
         return;
     }
     
-    try {
-        const response = await fetch('/admin/toggle-fragrance-visibility', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                id: itemId,
-                hidden: !visible
-            })
-        });
+    currentEditingId = itemId;
+    document.getElementById('itemModalTitle').textContent = 'Edit Item';
+    document.getElementById('saveButtonText').textContent = 'Update Item';
+    
+    // Populate form with item data
+    populateForm(item);
+    showModal('itemModalOverlay');
+}
+
+function populateForm(item) {
+    console.log('Populating form with item:', item);
+    
+    document.getElementById('itemName').value = item.name || '';
+    document.getElementById('itemBrand').value = item.brand || '';
+    document.getElementById('itemDescription').value = item.description || '';
+    document.getElementById('itemHidden').checked = item.hidden || false;
+    
+    // Reset all variant price fields first
+    document.getElementById('price5ml').value = '';
+    document.getElementById('price10ml').value = '';
+    document.getElementById('price30ml').value = '';
+    document.getElementById('enableFullBottle').checked = false;
+    
+    // Populate variant prices - FIXED LOGIC
+    const variants = item.variants || [];
+    console.log('Processing variants:', variants);
+    
+    variants.forEach(variant => {
+        console.log('Processing variant:', variant);
         
-        const result = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(result.error || `HTTP ${response.status}`);
+        if (variant.is_whole_bottle) {
+            document.getElementById('enableFullBottle').checked = true;
+        } else if (variant.size) {
+            // Extract size_ml from size string (e.g., "5ml" -> 5)
+            const sizeMatch = variant.size.match(/(\d+)ml/);
+            const size_ml = sizeMatch ? parseInt(sizeMatch[1]) : null;
+            
+            if (size_ml && variant.price) {
+                const priceOMR = variant.price; // Already in OMR from backend
+                console.log(`Setting ${size_ml}ml price to ${priceOMR} OMR`);
+                
+                switch(size_ml) {
+                    case 5:
+                        document.getElementById('price5ml').value = priceOMR.toFixed(3);
+                        break;
+                    case 10:
+                        document.getElementById('price10ml').value = priceOMR.toFixed(3);
+                        break;
+                    case 30:
+                        document.getElementById('price30ml').value = priceOMR.toFixed(3);
+                        break;
+                }
+            }
         }
+    });
+    
+    // Show current image if exists
+    if (item.image_path) {
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const imageInput = document.getElementById('itemImage');
         
-        if (result.success) {
-            const status = visible ? 'shown' : 'hidden';
-            showToast(`Item ${status} successfully`, 'success');
-            await loadItems(); // Reload to show changes
-        } else {
-            throw new Error(result.error || 'Unknown error occurred');
+        if (imagePreview && previewImg) {
+            previewImg.src = `/storage/fragrance-images/${item.image_path}`;
+            imagePreview.style.display = 'block';
+            imageInput.required = false; // Don't require new image for edit
         }
-        
-    } catch (error) {
-        console.error('❌ Failed to toggle item visibility:', error);
-        showToast('Failed to update item visibility: ' + error.message, 'error');
     }
 }
 
-async function confirmDelete() {
+function resetForm() {
+    const form = document.getElementById('itemForm');
+    if (form) form.reset();
+    
+    const imageInput = document.getElementById('itemImage');
+    if (imageInput) imageInput.required = true; // Require image for new items
+    
+    removeImagePreview();
+}
+
+function closeItemModal() {
+    hideModal('itemModalOverlay');
+    resetForm();
+    currentEditingId = null;
+}
+
+function deleteItem(itemId) {
+    const item = items.find(i => i.id == itemId);
+    if (!item) {
+        showToast('Item not found', 'error');
+        return;
+    }
+    
+    deleteItemId = itemId;
+    
+    // Populate delete preview
+    const preview = document.getElementById('deleteItemPreview');
+    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
+    
+    preview.innerHTML = `
+        ${imageUrl ? 
+            `<img src="${imageUrl}" alt="${item.name}">` : 
+            '<div class="no-image-placeholder">No Image</div>'
+        }
+        <div class="item-preview-info">
+            <div class="item-name">${escapeHtml(item.name)}</div>
+            <div class="item-brand">${escapeHtml(item.brand || 'No Brand')}</div>
+            <div class="item-variants">${getVariantsDisplay(item.variants)}</div>
+        </div>
+    `;
+    
+    showModal('deleteModalOverlay');
+}
+
+async function confirmDeleteItem() {
     if (!deleteItemId) return;
     
-    const deleteButton = document.querySelector('#deleteModalOverlay .btn-delete');
+    const deleteButton = document.getElementById('confirmDeleteBtn');
     const originalText = deleteButton.textContent;
+    
     deleteButton.disabled = true;
-    deleteButton.textContent = 'Deleting...';
+    deleteButton.innerHTML = '<div class="loading-spinner"></div> Deleting...';
     
     try {
         const response = await fetch(`/admin/delete-fragrance/${deleteItemId}`, {
             method: 'DELETE',
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
         const result = await response.json();
@@ -864,134 +591,237 @@ async function confirmDelete() {
         }
         
         if (result.success) {
-            showToast('Item deleted successfully', 'success');
-            closeDeleteModal();
-            await loadItems(); // Reload to show changes
+            showToast('Item deleted successfully!', 'success');
+            hideModal('deleteModalOverlay');
+            loadItems(); // Reload items
         } else {
-            throw new Error(result.error || 'Unknown error occurred');
+            throw new Error(result.error || 'Delete failed');
         }
         
     } catch (error) {
-        console.error('❌ Failed to delete item:', error);
-        showToast('Failed to delete item: ' + error.message, 'error');
+        console.error('Delete error:', error);
+        showToast(`Error: ${error.message}`, 'error');
     } finally {
         deleteButton.disabled = false;
         deleteButton.textContent = originalText;
+        deleteItemId = null;
     }
 }
 
-// Utility Functions
+async function toggleItemVisibility(itemId, makeVisible) {
+    const item = items.find(i => i.id == itemId);
+    if (!item) {
+        showToast('Item not found', 'error');
+        return;
+    }
+    
+    const action = makeVisible ? 'show' : 'hide';
+    
+    try {
+        const response = await fetch(`/admin/toggle-fragrance-visibility/${itemId}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ hidden: !makeVisible })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP ${response.status}`);
+        }
+        
+        if (result.success) {
+            showToast(`Item ${action === 'show' ? 'shown' : 'hidden'} successfully!`, 'success');
+            loadItems(); // Reload items
+        } else {
+            throw new Error(result.error || 'Visibility toggle failed');
+        }
+        
+    } catch (error) {
+        console.error('Toggle visibility error:', error);
+        showToast(`Error: ${error.message}`, 'error');
+    }
+}
+
+// Utility functions
+function updatePaginationInfo(start, end, total, totalPages) {
+    const info = document.getElementById('paginationInfo');
+    if (info) {
+        if (total === 0) {
+            info.textContent = 'No items to display';
+        } else {
+            info.textContent = `Showing ${start} to ${end} of ${total} items (Page ${currentPage} of ${totalPages})`;
+        }
+    }
+}
+
+function generatePaginationControls(totalPages) {
+    const controls = document.getElementById('paginationControls');
+    if (!controls) return;
+    
+    const prevBtn = controls.querySelector('.pagination-prev');
+    const nextBtn = controls.querySelector('.pagination-next');
+    
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+}
+
+function previousItemsPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        applyFiltersAndPagination();
+    }
+}
+
+function nextItemsPage() {
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        applyFiltersAndPagination();
+    }
+}
+
+// State display functions
+function showItemsLoading() {
+    document.getElementById('itemsLoading').style.display = 'block';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsEmpty').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showItemsError(message) {
+    const errorDiv = document.getElementById('itemsError');
+    const messageDiv = errorDiv.querySelector('.error-message');
+    
+    if (messageDiv) messageDiv.textContent = message;
+    
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'block';
+    document.getElementById('itemsEmpty').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showEmptyState() {
+    const emptyState = document.getElementById('itemsEmpty');
+    emptyState.querySelector('h3').textContent = 'No items yet';
+    emptyState.querySelector('p').textContent = 'Start by adding your first fragrance item.';
+    emptyState.querySelector('button').style.display = 'inline-block';
+    emptyState.style.display = 'block';
+    
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showNoResultsState() {
+    const emptyState = document.getElementById('itemsEmpty');
+    emptyState.querySelector('h3').textContent = 'No items found';
+    emptyState.querySelector('p').textContent = 'Try adjusting your filters.';
+    emptyState.querySelector('button').style.display = 'none';
+    emptyState.style.display = 'block';
+    
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showItemsContent() {
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsEmpty').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'block';
+}
+
+// Helper functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (error) {
-        return 'Invalid Date';
-    }
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.toString().replace(/[&<>"']/g, function(m) {
-        return map[m];
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
     });
 }
 
-function formatPrice(priceCents) {
-    if (!priceCents) return 'N/A';
-    return `${(priceCents / 1000).toFixed(3)} OMR`;
+// Modal utility functions
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
 }
 
-// Toast Functions
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Toast notification function
 function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer') || createToastContainer();
-    
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span class="toast-message">${escapeHtml(message)}</span>
-        <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
-    `;
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
     
-    container.appendChild(toast);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (toast.parentElement) {
-            removeToast(toast);
-        }
-    }, 5000);
-}
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-    return container;
-}
-
-function removeToast(toast) {
-    if (toast && toast.parentElement) {
-        toast.style.animation = 'slideOut 0.3s ease forwards';
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.parentElement.removeChild(toast);
+    const style = document.createElement('style');
+    if (!document.querySelector('#toast-styles')) {
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
             }
-        }, 300);
+            .toast-success { background-color: #28a745; }
+            .toast-error { background-color: #dc3545; }
+            .toast-info { background-color: #17a2b8; }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
     }
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
-
-// Admin Authentication Functions
-async function logout() {
-    try {
-        const response = await fetch('/admin/logout', {
-            method: 'POST',
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            showToast('Logged out successfully', 'success');
-            setTimeout(() => {
-                window.location.href = '/login.html';
-            }, 1000);
-        } else {
-            throw new Error('Logout failed');
-        }
-    } catch (error) {
-        console.error('❌ Logout failed:', error);
-        // Force redirect even if logout fails
-        window.location.href = '/login.html';
-    }
-}
-
-// Global Error Handler
-window.addEventListener('error', function(event) {
-    console.error('🔥 Global error:', event.error);
-    showToast('An unexpected error occurred', 'error');
-});
-
-window.addEventListener('unhandledrejection', function(event) {
-    console.error('🔥 Unhandled promise rejection:', event.reason);
-    showToast('An unexpected error occurred', 'error');
-    event.preventDefault();
-});
-
-// Performance Monitoring
-if (typeof performance !== 'undefined' && performance.mark) {
-    performance.mark('items-management-script-loaded');
-}
-
-console.log('✅ Items Management Script Loaded Successfully');
