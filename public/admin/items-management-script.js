@@ -1,422 +1,121 @@
-// ==========================================
-// QOTORE - Item Management JavaScript
-// Fixed variant handling and form population
-// ==========================================
-
+// Items Management Script - FIXED VERSION
 let items = [];
 let filteredItems = [];
 let currentPage = 1;
-let itemsPerPage = 10;
+const itemsPerPage = 10;
+let currentSearchTerm = '';
 let currentFilter = 'all';
-let currentSearch = '';
 let currentEditingId = null;
 let deleteItemId = null;
 
-// Supabase configuration
-const SUPABASE_URL = 'https://nufrrxqhxcwxnvjncfgg.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51ZnJyeHFoeGN3eG52am5jZmdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU1NjUyMzUsImV4cCI6MjA1MTE0MTIzNX0.YeKRKnkcEhOK5PGkOxzMEsOFSNZsWGKr-MsXzAz5Bb8';
-
-// DOM Elements and Initialization
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Item Management initialized');
-    initializeEventListeners();
+    console.log('🚀 Items management loaded');
     loadItems();
+    setupEventListeners();
 });
 
-function initializeEventListeners() {
+function setupEventListeners() {
     // Search functionality
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+        searchInput.addEventListener('input', debounce((e) => {
+            currentSearchTerm = e.target.value;
+            currentPage = 1;
+            applyFiltersAndPagination();
+        }, 300));
     }
-
+    
     // Filter functionality
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', handleFilterChange);
-    });
-
-    // Item form submission
+    const filterSelect = document.getElementById('statusFilter');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            currentPage = 1;
+            applyFiltersAndPagination();
+        });
+    }
+    
+    // Form submission
     const itemForm = document.getElementById('itemForm');
     if (itemForm) {
-        itemForm.addEventListener('submit', handleItemSubmit);
+        itemForm.addEventListener('submit', handleFormSubmit);
     }
-
-    // Image preview functionality
+    
+    // Image preview
     const imageInput = document.getElementById('itemImage');
     if (imageInput) {
         imageInput.addEventListener('change', handleImagePreview);
     }
-
-    // Name input for slug preview
-    const nameInput = document.getElementById('itemName');
-    if (nameInput) {
-        nameInput.addEventListener('input', updateSlugPreview);
-    }
-
-    // Variant toggles
-    setupVariantToggleListeners();
-
-    // Modal close on outside click
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                overlay.style.display = 'none';
+    
+    // Modal close handlers
+    const modalOverlay = document.getElementById('itemModalOverlay');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                closeItemModal();
             }
         });
-    });
+    }
+    
+    const deleteModalOverlay = document.getElementById('deleteModalOverlay');
+    if (deleteModalOverlay) {
+        deleteModalOverlay.addEventListener('click', function(e) {
+            if (e.target === deleteModalOverlay) {
+                hideModal('deleteModalOverlay');
+            }
+        });
+    }
 }
 
-function setupVariantToggleListeners() {
-    // Enable/disable price inputs based on checkboxes
-    const variantPairs = [
-        { checkbox: 'enable5ml', input: 'price5ml' },
-        { checkbox: 'enable10ml', input: 'price10ml' },
-        { checkbox: 'enable30ml', input: 'price30ml' }
-    ];
-
-    variantPairs.forEach(pair => {
-        const checkbox = document.getElementById(pair.checkbox);
-        const input = document.getElementById(pair.input);
-        
-        if (checkbox && input) {
-            checkbox.addEventListener('change', function() {
-                input.disabled = !checkbox.checked;
-                if (checkbox.checked) {
-                    input.focus();
-                } else {
-                    input.value = '';
-                }
-            });
-        }
-    });
-}
-
-// ==========================================
-// API Functions
-// ==========================================
-
+// Load items from API
 async function loadItems() {
-    console.log('📦 Loading items...');
-    showLoadingState();
-
+    console.log('📥 Loading items...');
+    showItemsLoading();
+    
     try {
-        const response = await fetch('/api/admin/fragrances');
+        const response = await fetch('/admin/fragrances', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
-        console.log('API Response:', result);
         
-        if (result.success && Array.isArray(result.data)) {
-            items = result.data;
-            console.log(`✅ Loaded ${items.length} items successfully`);
-            updateStats();
-            renderItems();
-        } else {
-            throw new Error(result.error || 'Invalid response format');
+        if (!result.success) {
+            throw new Error(result.error || 'Unknown error occurred');
         }
+        
+        items = result.data || [];
+        console.log(`✅ Loaded ${items.length} items`);
+        
+        applyFiltersAndPagination();
+        
     } catch (error) {
         console.error('❌ Error loading items:', error);
-        showErrorState(error.message);
+        showItemsError(error.message);
     }
 }
 
-async function saveItem(formData) {
-    try {
-        const url = currentEditingId ? `/api/admin/fragrances/${currentEditingId}` : '/api/admin/fragrances';
-        const method = currentEditingId ? 'PUT' : 'POST';
-
-        console.log(`💾 Saving item via ${method} to ${url}`);
-        
-        const response = await fetch(url, {
-            method: method,
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || `HTTP ${response.status}`);
-        }
-
-        if (result.success) {
-            const action = currentEditingId ? 'updated' : 'created';
-            showToast(`Item ${action} successfully!`, 'success');
-            closeItemModal();
-            loadItems(); // Refresh the items list
-        } else {
-            throw new Error(result.error || 'Save failed');
-        }
-    } catch (error) {
-        console.error('❌ Error saving item:', error);
-        showToast(error.message || 'Failed to save item', 'error');
-    }
-}
-
-async function deleteItemConfirm() {
-    if (!deleteItemId) return;
-
-    try {
-        console.log(`🗑️ Deleting item ${deleteItemId}`);
-        
-        const response = await fetch(`/api/admin/fragrances/${deleteItemId}`, {
-            method: 'DELETE'
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || `HTTP ${response.status}`);
-        }
-
-        if (result.success) {
-            showToast('Item deleted successfully!', 'success');
-            hideModal('deleteModalOverlay');
-            loadItems(); // Refresh the items list
-        } else {
-            throw new Error(result.error || 'Delete failed');
-        }
-    } catch (error) {
-        console.error('❌ Error deleting item:', error);
-        showToast(error.message || 'Failed to delete item', 'error');
-    }
-    
-    deleteItemId = null;
-}
-
-// ==========================================
-// Form Handling
-// ==========================================
-
-function handleItemSubmit(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const formData = new FormData(form);
-    
-    // Process variant data - FIXED LOGIC
-    const variantData = {
-        enable5ml: document.getElementById('enable5ml')?.checked || false,
-        price5ml: parseFloat(document.getElementById('price5ml')?.value) || null,
-        enable10ml: document.getElementById('enable10ml')?.checked || false,
-        price10ml: parseFloat(document.getElementById('price10ml')?.value) || null,
-        enable30ml: document.getElementById('enable30ml')?.checked || false,
-        price30ml: parseFloat(document.getElementById('price30ml')?.value) || null,
-        enableFullBottle: document.getElementById('enableFullBottle')?.checked || false
-    };
-    
-    // Add variant data to form
-    formData.append('variantData', JSON.stringify(variantData));
-    
-    console.log('📤 Submitting form with variant data:', variantData);
-    saveItem(formData);
-}
-
-function handleImagePreview(e) {
-    const file = e.target.files[0];
-    if (file) {
-        if (file.type !== 'image/png') {
-            showToast('Only PNG files are allowed', 'error');
-            e.target.value = '';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('imagePreview');
-            const img = document.getElementById('previewImg');
-            
-            if (preview && img) {
-                img.src = e.target.result;
-                preview.style.display = 'block';
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function removeImagePreview() {
-    const preview = document.getElementById('imagePreview');
-    const input = document.getElementById('itemImage');
-    const img = document.getElementById('previewImg');
-    
-    if (preview) preview.style.display = 'none';
-    if (input) {
-        input.value = '';
-        input.required = currentEditingId ? false : true;
-    }
-    if (img) img.src = '';
-}
-
-function updateSlugPreview() {
-    const nameInput = document.getElementById('itemName');
-    const slugPreview = document.getElementById('slugPreview');
-    const imageNamePreview = document.getElementById('imageNamePreview');
-    
-    if (nameInput && slugPreview) {
-        const slug = generateSlug(nameInput.value);
-        slugPreview.textContent = slug || 'item-name';
-    }
-    
-    if (nameInput && imageNamePreview) {
-        const slug = generateSlug(nameInput.value);
-        imageNamePreview.textContent = (slug || 'item-name') + '.png';
-    }
-}
-
-function generateSlug(text) {
-    return text
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-// ==========================================
-// Search and Filter Functions
-// ==========================================
-
-function handleSearch(e) {
-    currentSearch = e.target.value.toLowerCase().trim();
-    currentPage = 1;
-    renderItems();
-}
-
-function handleFilterChange(e) {
-    // Remove active class from all filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Add active class to clicked button
-    e.target.classList.add('active');
-    
-    currentFilter = e.target.dataset.filter;
-    currentPage = 1;
-    renderItems();
-}
-
-// ==========================================
-// UI State Management
-// ==========================================
-
-function showLoadingState() {
-    hideAllStates();
-    const loadingEl = document.getElementById('itemsLoading');
-    if (loadingEl) loadingEl.style.display = 'block';
-}
-
-function showErrorState(message = 'An error occurred') {
-    hideAllStates();
-    const errorEl = document.getElementById('itemsError');
-    if (errorEl) {
-        const messageEl = errorEl.querySelector('p');
-        if (messageEl) {
-            messageEl.textContent = message;
-        }
-        errorEl.style.display = 'block';
-    }
-}
-
-function showEmptyState() {
-    hideAllStates();
-    const emptyEl = document.getElementById('itemsEmpty');
-    if (emptyEl) emptyEl.style.display = 'block';
-}
-
-function showNoResultsState() {
-    hideAllStates();
-    const emptyEl = document.getElementById('itemsEmpty');
-    if (emptyEl) {
-        const title = emptyEl.querySelector('h3');
-        const description = emptyEl.querySelector('p');
-        const button = emptyEl.querySelector('button');
-        
-        if (title) title.textContent = 'No Results Found';
-        if (description) description.textContent = 'No items match your search or filter criteria.';
-        if (button) button.textContent = 'Clear Filters';
-        if (button) button.onclick = clearFilters;
-        
-        emptyEl.style.display = 'block';
-    }
-}
-
-function showItemsContent() {
-    hideAllStates();
-    const contentEl = document.getElementById('itemsContent');
-    if (contentEl) contentEl.style.display = 'block';
-}
-
-function hideAllStates() {
-    const states = ['itemsLoading', 'itemsError', 'itemsEmpty', 'itemsContent'];
-    states.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
-}
-
-function clearFilters() {
-    // Reset search
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) searchInput.value = '';
-    currentSearch = '';
-    
-    // Reset filter
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.filter === 'all') {
-            btn.classList.add('active');
-        }
-    });
-    currentFilter = 'all';
-    
-    // Reset page
-    currentPage = 1;
-    
-    // Re-render
-    renderItems();
-}
-
-// ==========================================
-// Rendering Functions
-// ==========================================
-
-function updateStats() {
-    const totalItems = items.length;
-    const visibleItems = items.filter(item => !item.hidden).length;
-    const hiddenItems = items.filter(item => item.hidden).length;
-    const brands = new Set(items.map(item => item.brand?.toLowerCase()).filter(Boolean)).size;
-    
-    updateStatElement('totalItemsCount', totalItems);
-    updateStatElement('visibleItemsCount', visibleItems);
-    updateStatElement('hiddenItemsCount', hiddenItems);
-    updateStatElement('totalBrandsCount', brands);
-}
-
-function updateStatElement(id, value) {
-    const element = document.getElementById(id);
-    if (element) {
-        element.textContent = value.toLocaleString();
-    }
-}
-
-function renderItems() {
-    console.log(`🔄 Rendering items. Search: "${currentSearch}", Filter: "${currentFilter}"`);
-    
-    // Apply search and filters
-    filteredItems = [...items];
+// Apply filters and pagination
+function applyFiltersAndPagination() {
+    console.log(`🔍 Applying filters: search="${currentSearchTerm}", filter="${currentFilter}"`);
     
     // Apply search filter
-    if (currentSearch) {
-        filteredItems = filteredItems.filter(item => 
-            item.name?.toLowerCase().includes(currentSearch) ||
-            item.brand?.toLowerCase().includes(currentSearch) ||
-            item.description?.toLowerCase().includes(currentSearch)
-        );
-    }
+    filteredItems = items.filter(item => {
+        if (!currentSearchTerm) return true;
+        
+        const searchTerm = currentSearchTerm.toLowerCase();
+        return item.name.toLowerCase().includes(searchTerm) ||
+               (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
+               (item.description && item.description.toLowerCase().includes(searchTerm));
+    });
     
     // Apply status filter
     if (currentFilter !== 'all') {
@@ -503,7 +202,7 @@ function createTableRow(item) {
         </td>
         <td class="status-cell">
             <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
-                ${item.hidden ? '🚫 Hidden' : '👁️ Visible'}
+                ${item.hidden ? 'Hidden' : 'Visible'}
             </span>
         </td>
         <td class="date-cell">
@@ -511,51 +210,22 @@ function createTableRow(item) {
         </td>
         <td class="actions-cell">
             <div class="action-buttons">
-                <button class="btn-icon btn-edit" onclick="editItem(${item.id})" title="Edit Item">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4z"></path>
-                    </svg>
+                <button class="btn-small btn-edit" onclick="editItem('${item.id}')" title="Edit Item">
+                    Edit
                 </button>
-                <button class="btn-icon btn-delete" onclick="deleteItem(${item.id})" title="Delete Item">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m3 6 3 0 0-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2l3 0"></path>
-                        <line x1="8" y1="11" x2="8" y2="21"></line>
-                        <line x1="12" y1="11" x2="12" y2="21"></line>
-                        <line x1="16" y1="11" x2="16" y2="21"></line>
-                        <path d="m7 6 0 14c0 1.1.9 2 2 2h6c0 1.1.9 2 2 2v-16"></path>
-                    </svg>
+                <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
+                        onclick="toggleItemVisibility('${item.id}', ${!item.hidden})" 
+                        title="${item.hidden ? 'Show Item' : 'Hide Item'}">
+                    ${item.hidden ? 'Show' : 'Hide'}
+                </button>
+                <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')" title="Delete Item">
+                    Delete
                 </button>
             </div>
         </td>
     `;
     
     return row;
-}
-
-function getVariantsDisplay(variants) {
-    if (!variants || variants.length === 0) {
-        return '<div class="variant-badge no-variants">No variants</div>';
-    }
-    
-    // FIXED: Proper variant display logic
-    const variantBadges = variants.map(variant => {
-        let display, priceText;
-        
-        if (variant.is_whole_bottle) {
-            display = 'Whole Bottle';
-            priceText = 'Contact';
-        } else {
-            // Use size_ml directly from database
-            display = `${variant.size_ml}ml`;
-            const priceOMR = variant.price_cents ? (variant.price_cents / 1000).toFixed(3) : '0.000';
-            priceText = `${priceOMR} OMR`;
-        }
-        
-        return `<div class="variant-badge" title="${display} - ${priceText}">${display}<br><small>${priceText}</small></div>`;
-    }).join('');
-    
-    return `<div class="variants-list">${variantBadges}</div>`;
 }
 
 function renderMobileCards(items) {
@@ -579,120 +249,194 @@ function createMobileCard(item) {
     
     card.innerHTML = `
         <div class="mobile-card-header">
-            <div class="item-info">
-                ${imageUrl ? 
-                    `<img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                     <div class="no-image" style="display: none;">No Image</div>` : 
-                    `<div class="no-image">No Image</div>`
-                }
-                <div class="item-details">
-                    <div class="item-name">${escapeHtml(item.name)}</div>
-                    <div class="item-brand">${escapeHtml(item.brand || 'No Brand')}</div>
-                </div>
+            <div class="mobile-card-info">
+                <h4 class="item-name">${escapeHtml(item.name)}</h4>
+                <p class="item-brand">${escapeHtml(item.brand || 'No Brand')}</p>
             </div>
-            <div class="action-buttons">
-                <button class="btn-icon btn-edit" onclick="editItem(${item.id})">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4z"></path>
-                    </svg>
-                </button>
-                <button class="btn-icon btn-delete" onclick="deleteItem(${item.id})">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m3 6 3 0 0-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2l3 0"></path>
-                        <line x1="8" y1="11" x2="8" y2="21"></line>
-                        <line x1="12" y1="11" x2="12" y2="21"></line>
-                        <line x1="16" y1="11" x2="16" y2="21"></line>
-                        <path d="m7 6 0 14c0 1.1.9 2 2 2h6c0 1.1.9 2 2 2v-16"></path>
-                    </svg>
-                </button>
-            </div>
+            <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
+                ${item.hidden ? 'Hidden' : 'Visible'}
+            </span>
         </div>
-        
-        <div class="mobile-card-content">
-            <div class="card-section">
-                <div class="section-label">Description</div>
-                <div class="section-content">${escapeHtml(item.description)}</div>
+        <div class="mobile-card-body">
+            <div>
+                <strong>Description</strong>
+                ${escapeHtml(item.description)}
             </div>
-            
-            <div class="card-section">
-                <div class="section-label">Variants</div>
-                <div class="section-content">${variants}</div>
+            <div>
+                <strong>Variants</strong>
+                ${variants}
             </div>
-            
-            <div class="card-section">
-                <div class="section-label">Status</div>
-                <div class="section-content">
-                    <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
-                        ${item.hidden ? '🚫 Hidden' : '👁️ Visible'}
-                    </span>
-                </div>
+            <div>
+                <strong>Created</strong>
+                ${formatDate(item.created_at)}
             </div>
-            
-            <div class="card-section">
-                <div class="section-label">Created</div>
-                <div class="section-content">${formatDate(item.created_at)}</div>
+            ${imageUrl ? `
+            <div>
+                <strong>Image</strong>
+                <img src="${imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
             </div>
+            ` : ''}
+        </div>
+        <div class="mobile-card-actions">
+            <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
+            <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
+                    onclick="toggleItemVisibility('${item.id}', ${!item.hidden})">
+                ${item.hidden ? 'Show' : 'Hide'}
+            </button>
+            <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
         </div>
     `;
     
     return card;
 }
 
-// ==========================================
-// Pagination Functions
-// ==========================================
-
-function updatePaginationInfo(start, end, total, totalPages) {
-    const pageInfo = document.getElementById('itemsPageInfo');
-    const totalCount = document.getElementById('itemsTotalCount');
-    
-    if (pageInfo) {
-        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+function getVariantsDisplay(variants) {
+    if (!variants || variants.length === 0) {
+        return '<span style="color: #999;">No variants</span>';
     }
     
-    if (totalCount) {
-        totalCount.textContent = total;
+    const variantTexts = variants.map(variant => {
+        if (variant.is_whole_bottle) {
+            return 'Full Bottle (Contact)';
+        }
+        const price = variant.price ? `${variant.price.toFixed(3)} OMR` : 'No price';
+        return `${variant.size} - ${price}`;
+    });
+    
+    return variantTexts.join('<br>');
+}
+
+// Form handling functions
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const saveButton = document.getElementById('saveItemBtn');
+    const saveButtonText = document.getElementById('saveButtonText');
+    const originalText = saveButtonText.textContent;
+    
+    // Disable button and show loading
+    saveButton.disabled = true;
+    saveButtonText.innerHTML = '<div class="loading-spinner"></div> Saving...';
+    
+    try {
+        const formData = new FormData();
+        
+        // Basic fields
+        formData.append('name', document.getElementById('itemName').value.trim());
+        formData.append('brand', document.getElementById('itemBrand').value.trim());
+        formData.append('description', document.getElementById('itemDescription').value.trim());
+        formData.append('hidden', document.getElementById('itemHidden').checked);
+        
+        // Image file
+        const imageInput = document.getElementById('itemImage');
+        if (imageInput.files.length > 0) {
+            formData.append('image', imageInput.files[0]);
+        }
+        
+        // Variant prices (convert OMR to fils) - FIXED LOGIC
+        const variants = [];
+        
+        const price5ml = parseFloat(document.getElementById('price5ml').value);
+        if (!isNaN(price5ml) && price5ml > 0) {
+            variants.push({
+                size_ml: 5,
+                price_cents: Math.round(price5ml * 1000), // Convert OMR to fils
+                is_whole_bottle: false
+            });
+        }
+        
+        const price10ml = parseFloat(document.getElementById('price10ml').value);
+        if (!isNaN(price10ml) && price10ml > 0) {
+            variants.push({
+                size_ml: 10,
+                price_cents: Math.round(price10ml * 1000), // Convert OMR to fils
+                is_whole_bottle: false
+            });
+        }
+        
+        const price30ml = parseFloat(document.getElementById('price30ml').value);
+        if (!isNaN(price30ml) && price30ml > 0) {
+            variants.push({
+                size_ml: 30,
+                price_cents: Math.round(price30ml * 1000), // Convert OMR to fils
+                is_whole_bottle: false
+            });
+        }
+        
+        if (document.getElementById('enableFullBottle').checked) {
+            variants.push({
+                size_ml: null,
+                price_cents: null,
+                is_whole_bottle: true
+            });
+        }
+        
+        formData.append('variants', JSON.stringify(variants));
+        
+        // Add ID for updates
+        if (currentEditingId) {
+            formData.append('id', currentEditingId);
+        }
+        
+        const url = currentEditingId ? '/admin/update-fragrance' : '/admin/add-fragrance';
+        const method = currentEditingId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            credentials: 'include',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP ${response.status}`);
+        }
+        
+        if (result.success) {
+            const action = currentEditingId ? 'updated' : 'added';
+            showToast(`Item ${action} successfully!`, 'success');
+            closeItemModal();
+            loadItems(); // Reload the items list
+        } else {
+            throw new Error(result.error || 'Operation failed');
+        }
+        
+    } catch (error) {
+        console.error('Form submission error:', error);
+        showToast(`Error: ${error.message}`, 'error');
+    } finally {
+        saveButton.disabled = false;
+        saveButtonText.textContent = originalText;
     }
 }
 
-function generatePaginationControls(totalPages) {
-    const prevBtn = document.getElementById('itemsPrevBtn');
-    const nextBtn = document.getElementById('itemsNextBtn');
-    const pagination = document.getElementById('itemsPagination');
-    
-    if (pagination) {
-        pagination.style.display = totalPages > 1 ? 'flex' : 'none';
-    }
-    
-    if (prevBtn) {
-        prevBtn.disabled = currentPage <= 1;
-    }
-    
-    if (nextBtn) {
-        nextBtn.disabled = currentPage >= totalPages;
+function handleImagePreview(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            img.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
     }
 }
 
-function previousItemsPage() {
-    if (currentPage > 1) {
-        currentPage--;
-        renderItems();
-    }
+function removeImagePreview() {
+    const preview = document.getElementById('imagePreview');
+    const img = document.getElementById('previewImg');
+    const input = document.getElementById('itemImage');
+    
+    preview.style.display = 'none';
+    img.src = '';
+    input.value = '';
+    input.required = currentEditingId ? false : true;
 }
 
-function nextItemsPage() {
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    if (currentPage < totalPages) {
-        currentPage++;
-        renderItems();
-    }
-}
-
-// ==========================================
 // Modal Functions
-// ==========================================
-
 function openAddItemModal() {
     currentEditingId = null;
     document.getElementById('itemModalTitle').textContent = 'Add New Item';
@@ -725,21 +469,13 @@ function populateForm(item) {
     document.getElementById('itemDescription').value = item.description || '';
     document.getElementById('itemHidden').checked = item.hidden || false;
     
-    // Reset all variant fields first
-    document.getElementById('enable5ml').checked = false;
-    document.getElementById('enable10ml').checked = false;
-    document.getElementById('enable30ml').checked = false;
-    document.getElementById('enableFullBottle').checked = false;
-    
+    // Reset all variant price fields first
     document.getElementById('price5ml').value = '';
     document.getElementById('price10ml').value = '';
     document.getElementById('price30ml').value = '';
+    document.getElementById('enableFullBottle').checked = false;
     
-    document.getElementById('price5ml').disabled = true;
-    document.getElementById('price10ml').disabled = true;
-    document.getElementById('price30ml').disabled = true;
-    
-    // FIXED: Populate variant prices using size_ml directly
+    // Populate variant prices - FIXED LOGIC
     const variants = item.variants || [];
     console.log('Processing variants:', variants);
     
@@ -748,35 +484,29 @@ function populateForm(item) {
         
         if (variant.is_whole_bottle) {
             document.getElementById('enableFullBottle').checked = true;
-        } else if (variant.size_ml && variant.price_cents) {
-            // Use size_ml directly from database
-            const size_ml = variant.size_ml;
-            const priceOMR = variant.price_cents / 1000; // Convert fils to OMR
+        } else if (variant.size) {
+            // Extract size_ml from size string (e.g., "5ml" -> 5)
+            const sizeMatch = variant.size.match(/(\d+)ml/);
+            const size_ml = sizeMatch ? parseInt(sizeMatch[1]) : null;
             
-            console.log(`Setting ${size_ml}ml price to ${priceOMR} OMR`);
-            
-            switch(size_ml) {
-                case 5:
-                    document.getElementById('enable5ml').checked = true;
-                    document.getElementById('price5ml').disabled = false;
-                    document.getElementById('price5ml').value = priceOMR.toFixed(3);
-                    break;
-                case 10:
-                    document.getElementById('enable10ml').checked = true;
-                    document.getElementById('price10ml').disabled = false;
-                    document.getElementById('price10ml').value = priceOMR.toFixed(3);
-                    break;
-                case 30:
-                    document.getElementById('enable30ml').checked = true;
-                    document.getElementById('price30ml').disabled = false;
-                    document.getElementById('price30ml').value = priceOMR.toFixed(3);
-                    break;
+            if (size_ml && variant.price) {
+                const priceOMR = variant.price; // Already in OMR from backend
+                console.log(`Setting ${size_ml}ml price to ${priceOMR} OMR`);
+                
+                switch(size_ml) {
+                    case 5:
+                        document.getElementById('price5ml').value = priceOMR.toFixed(3);
+                        break;
+                    case 10:
+                        document.getElementById('price10ml').value = priceOMR.toFixed(3);
+                        break;
+                    case 30:
+                        document.getElementById('price30ml').value = priceOMR.toFixed(3);
+                        break;
+                }
             }
         }
     });
-    
-    // Update slug and image name previews
-    updateSlugPreview();
     
     // Show current image if exists
     if (item.image_path) {
@@ -798,20 +528,6 @@ function resetForm() {
     
     const imageInput = document.getElementById('itemImage');
     if (imageInput) imageInput.required = true; // Require image for new items
-    
-    // Reset variant checkboxes and inputs
-    document.getElementById('enable5ml').checked = false;
-    document.getElementById('enable10ml').checked = false;
-    document.getElementById('enable30ml').checked = false;
-    document.getElementById('enableFullBottle').checked = false;
-    
-    document.getElementById('price5ml').value = '';
-    document.getElementById('price10ml').value = '';
-    document.getElementById('price30ml').value = '';
-    
-    document.getElementById('price5ml').disabled = true;
-    document.getElementById('price10ml').disabled = true;
-    document.getElementById('price30ml').disabled = true;
     
     removeImagePreview();
 }
@@ -837,37 +553,228 @@ function deleteItem(itemId) {
     
     preview.innerHTML = `
         ${imageUrl ? 
-            `<img src="${imageUrl}" alt="${item.name}" class="item-image">` : 
-            `<div class="no-image">No Image</div>`
+            `<img src="${imageUrl}" alt="${item.name}">` : 
+            '<div class="no-image-placeholder">No Image</div>'
         }
-        <div class="item-details">
+        <div class="item-preview-info">
             <div class="item-name">${escapeHtml(item.name)}</div>
             <div class="item-brand">${escapeHtml(item.brand || 'No Brand')}</div>
-            <div class="item-description">${escapeHtml(item.description)}</div>
+            <div class="item-variants">${getVariantsDisplay(item.variants)}</div>
         </div>
     `;
     
     showModal('deleteModalOverlay');
 }
 
-function cancelDelete() {
-    hideModal('deleteModalOverlay');
-    deleteItemId = null;
+async function confirmDeleteItem() {
+    if (!deleteItemId) return;
+    
+    const deleteButton = document.getElementById('confirmDeleteBtn');
+    const originalText = deleteButton.textContent;
+    
+    deleteButton.disabled = true;
+    deleteButton.innerHTML = '<div class="loading-spinner"></div> Deleting...';
+    
+    try {
+        const response = await fetch(`/admin/delete-fragrance/${deleteItemId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP ${response.status}`);
+        }
+        
+        if (result.success) {
+            showToast('Item deleted successfully!', 'success');
+            hideModal('deleteModalOverlay');
+            loadItems(); // Reload items
+        } else {
+            throw new Error(result.error || 'Delete failed');
+        }
+        
+    } catch (error) {
+        console.error('Delete error:', error);
+        showToast(`Error: ${error.message}`, 'error');
+    } finally {
+        deleteButton.disabled = false;
+        deleteButton.textContent = originalText;
+        deleteItemId = null;
+    }
 }
 
-// ==========================================
-// Utility Functions
-// ==========================================
+async function toggleItemVisibility(itemId, makeVisible) {
+    const item = items.find(i => i.id == itemId);
+    if (!item) {
+        showToast('Item not found', 'error');
+        return;
+    }
+    
+    const action = makeVisible ? 'show' : 'hide';
+    
+    try {
+        const response = await fetch(`/admin/toggle-fragrance-visibility/${itemId}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ hidden: !makeVisible })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP ${response.status}`);
+        }
+        
+        if (result.success) {
+            showToast(`Item ${action === 'show' ? 'shown' : 'hidden'} successfully!`, 'success');
+            loadItems(); // Reload items
+        } else {
+            throw new Error(result.error || 'Visibility toggle failed');
+        }
+        
+    } catch (error) {
+        console.error('Toggle visibility error:', error);
+        showToast(`Error: ${error.message}`, 'error');
+    }
+}
 
+// Utility functions
+function updatePaginationInfo(start, end, total, totalPages) {
+    const info = document.getElementById('paginationInfo');
+    if (info) {
+        if (total === 0) {
+            info.textContent = 'No items to display';
+        } else {
+            info.textContent = `Showing ${start} to ${end} of ${total} items (Page ${currentPage} of ${totalPages})`;
+        }
+    }
+}
+
+function generatePaginationControls(totalPages) {
+    const controls = document.getElementById('paginationControls');
+    if (!controls) return;
+    
+    const prevBtn = controls.querySelector('.pagination-prev');
+    const nextBtn = controls.querySelector('.pagination-next');
+    
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+}
+
+function previousItemsPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        applyFiltersAndPagination();
+    }
+}
+
+function nextItemsPage() {
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        applyFiltersAndPagination();
+    }
+}
+
+// State display functions
+function showItemsLoading() {
+    document.getElementById('itemsLoading').style.display = 'block';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsEmpty').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showItemsError(message) {
+    const errorDiv = document.getElementById('itemsError');
+    const messageDiv = errorDiv.querySelector('.error-message');
+    
+    if (messageDiv) messageDiv.textContent = message;
+    
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'block';
+    document.getElementById('itemsEmpty').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showEmptyState() {
+    const emptyState = document.getElementById('itemsEmpty');
+    emptyState.querySelector('h3').textContent = 'No items yet';
+    emptyState.querySelector('p').textContent = 'Start by adding your first fragrance item.';
+    emptyState.querySelector('button').style.display = 'inline-block';
+    emptyState.style.display = 'block';
+    
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showNoResultsState() {
+    const emptyState = document.getElementById('itemsEmpty');
+    emptyState.querySelector('h3').textContent = 'No items found';
+    emptyState.querySelector('p').textContent = 'Try adjusting your filters.';
+    emptyState.querySelector('button').style.display = 'none';
+    emptyState.style.display = 'block';
+    
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'none';
+}
+
+function showItemsContent() {
+    document.getElementById('itemsLoading').style.display = 'none';
+    document.getElementById('itemsError').style.display = 'none';
+    document.getElementById('itemsEmpty').style.display = 'none';
+    document.getElementById('itemsContent').style.display = 'block';
+}
+
+// Helper functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+// Modal utility functions
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'flex';
-        // Focus first input if available
-        const firstInput = modal.querySelector('input, textarea, button');
-        if (firstInput) {
-            setTimeout(() => firstInput.focus(), 100);
-        }
+        document.body.style.overflow = 'hidden';
     }
 }
 
@@ -875,90 +782,46 @@ function hideModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
     }
 }
 
-function showToast(message, type = 'info', duration = 3000) {
-    // Remove existing toast
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-
-    // Create toast element
+// Toast notification function
+function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <div class="toast-content">
-            <span class="toast-icon">
-                ${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
-            </span>
-            <span class="toast-message">${escapeHtml(message)}</span>
-            <button class="toast-close" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-    `;
-
-    // Add to document
-    document.body.appendChild(toast);
-
-    // Auto-remove after duration
-    setTimeout(() => {
-        if (toast && toast.parentNode) {
-            toast.remove();
-        }
-    }, duration);
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'Unknown';
+    toast.textContent = message;
     
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (error) {
-        console.warn('Invalid date:', dateString);
-        return 'Invalid Date';
+    const style = document.createElement('style');
+    if (!document.querySelector('#toast-styles')) {
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            }
+            .toast-success { background-color: #28a745; }
+            .toast-error { background-color: #dc3545; }
+            .toast-info { background-color: #17a2b8; }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
     }
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
-
-function isValidPrice(value) {
-    const price = parseFloat(value);
-    return !isNaN(price) && price > 0 && price <= 1000; // Max 1000 OMR seems reasonable
-}
-
-function formatPrice(priceInFils) {
-    if (!priceInFils || priceInFils === 0) return '0.000';
-    return (priceInFils / 1000).toFixed(3);
-}
-
-// ==========================================
-// Export functions for global access
-// ==========================================
-
-// Make functions available globally for onclick handlers
-window.editItem = editItem;
-window.deleteItem = deleteItem;
-window.deleteItemConfirm = deleteItemConfirm;
-window.cancelDelete = cancelDelete;
-window.openAddItemModal = openAddItemModal;
-window.closeItemModal = closeItemModal;
-window.removeImagePreview = removeImagePreview;
-window.previousItemsPage = previousItemsPage;
-window.nextItemsPage = nextItemsPage;
-window.loadItems = loadItems;
