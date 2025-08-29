@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders Dashboard - Qotore Admin</title>
+    <title>Fragrances Management - Qotore Admin</title>
     
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -21,14 +21,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Qotore Admin">
     
-    <!-- Meta Tags -->
-    <meta property="og:title" content="Qotore Admin - Orders Dashboard">
-    <meta property="og:description" content="Manage your fragrance store orders">
-    <meta property="og:image" content="/icons/icon-512x512.png">
-    <meta property="og:url" content="/admin/">
-    <meta property="og:type" content="website">
-    
-    <link rel="stylesheet" href="orders-style.css">
+    <link rel="stylesheet" href="fragrances-style.css">
 </head>
 <body>
     <!-- Header -->
@@ -36,7 +29,7 @@
         <div class="header-content">
             <div class="logo">
                 <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>Qotore Orders</span>
+                <span>Fragrances Management</span>
             </div>
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="refreshData()" id="refreshBtn" title="Refresh Data">
@@ -45,11 +38,11 @@
                     </svg>
                     <span>Refresh</span>
                 </button>
-                <a href="fragrances.html" class="nav-btn">
+                <a href="index.html" class="nav-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                        <path d="M17,18C17.56,18 18,18.44 18,19A1,1 0 0,1 17,20H7A1,1 0 0,1 6,19C6,18.44 6.44,18 7,18H17M18.5,8A2.5,2.5 0 0,1 21,10.5C21,11.88 20.38,13.11 19.5,14C19.13,14.5 18,16 18,16H6C6,16 4.87,14.5 4.5,14C3.62,13.11 3,11.88 3,10.5A2.5,2.5 0 0,1 5.5,8H18.5M12,2A4,4 0 0,1 16,6H8A4,4 0 0,1 12,2Z"/>
                     </svg>
-                    <span>Manage Items</span>
+                    <span>Orders</span>
                 </a>
                 <a href="../" class="nav-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -71,149 +64,131 @@
         <!-- Dashboard Stats -->
         <section class="dashboard-stats">
             <div class="stat-card">
-                <div class="stat-icon">🛍️</div>
+                <div class="stat-icon">📦</div>
                 <div class="stat-content">
-                    <div class="stat-number" id="totalOrders">0</div>
-                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-number" id="totalFragrances">0</div>
+                    <div class="stat-label">Total Fragrances</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">⏳</div>
+                <div class="stat-icon">👁️</div>
                 <div class="stat-content">
-                    <div class="stat-number" id="pendingOrders">0</div>
-                    <div class="stat-label">Pending Orders</div>
+                    <div class="stat-number" id="visibleFragrances">0</div>
+                    <div class="stat-label">Visible Fragrances</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">✅</div>
+                <div class="stat-icon">🙈</div>
                 <div class="stat-content">
-                    <div class="stat-number" id="completedOrders">0</div>
-                    <div class="stat-label">Completed Orders</div>
+                    <div class="stat-number" id="hiddenFragrances">0</div>
+                    <div class="stat-label">Hidden Fragrances</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">💰</div>
+                <div class="stat-icon">🏷️</div>
                 <div class="stat-content">
-                    <div class="stat-number" id="totalRevenue">0.000</div>
-                    <div class="stat-label">Revenue (OMR)</div>
+                    <div class="stat-number" id="totalVariants">0</div>
+                    <div class="stat-label">Total Variants</div>
                 </div>
             </div>
         </section>
 
-        <!-- Notification Settings -->
-        <section class="notification-section">
-            <div class="notification-toggle">
-                <div class="toggle-content">
-                    <div class="toggle-icon">🔔</div>
-                    <div class="toggle-text">
-                        <strong>Order Notifications</strong>
-                        <small>Get real-time notifications for new orders</small>
-                    </div>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="notificationToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="notification-status" id="notificationStatus" style="display: none;">
-                <div class="status-icon">✅</div>
-                <div class="status-text">Notifications are active</div>
-            </div>
-        </section>
-
-        <!-- Orders Section -->
-        <section class="orders-section">
+        <!-- Fragrances Section -->
+        <section class="fragrances-section">
             <div class="section-header">
                 <h2 class="section-title">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17,18C17.56,18 18,18.44 18,19A1,1 0 0,1 17,20H7A1,1 0 0,1 6,19C6,18.44 6.44,18 7,18H17M18.5,8A2.5,2.5 0 0,1 21,10.5C21,11.88 20.38,13.11 19.5,14C19.13,14.5 18,16 18,16H6C6,16 4.87,14.5 4.5,14C3.62,13.11 3,11.88 3,10.5A2.5,2.5 0 0,1 5.5,8H18.5M12,2A4,4 0 0,1 16,6H8A4,4 0 0,1 12,2Z"/>
+                        <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
                     </svg>
-                    Orders Management
+                    Fragrances Management
                 </h2>
-                <div class="new-order-badge" id="newOrderBadge" style="display: none;">
-                    <span id="newOrderCount">0</span> New
-                </div>
+                <button class="btn-primary" onclick="openFragranceModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Add New Fragrance
+                </button>
             </div>
 
             <!-- Controls -->
-            <div class="controls" id="ordersControls" style="display: none;">
+            <div class="controls" id="fragrancesControls" style="display: none;">
                 <div class="search-container">
-                    <input type="text" class="search-input" id="ordersSearch" placeholder="Search orders by customer name, phone, or order number...">
-                    <button class="search-clear" id="ordersClearSearch" onclick="clearOrdersSearch()">×</button>
+                    <input type="text" class="search-input" id="fragrancesSearch" placeholder="Search fragrances by name, brand, or slug...">
+                    <button class="search-clear" id="fragrancesClearSearch" onclick="clearFragrancesSearch()">×</button>
                 </div>
                 <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterOrders('all')" data-filter="all">All Orders</button>
-                    <button class="filter-btn" onclick="filterOrders('pending')" data-filter="pending">Pending</button>
-                    <button class="filter-btn" onclick="filterOrders('completed')" data-filter="completed">Completed</button>
+                    <button class="filter-btn active" onclick="filterFragrances('all')" data-filter="all">All</button>
+                    <button class="filter-btn" onclick="filterFragrances('visible')" data-filter="visible">Visible</button>
+                    <button class="filter-btn" onclick="filterFragrances('hidden')" data-filter="hidden">Hidden</button>
                 </div>
             </div>
 
             <!-- Loading State -->
-            <div class="loading" id="ordersLoading">
+            <div class="loading" id="fragrancesLoading">
                 <div class="spinner"></div>
-                <p>Loading orders...</p>
+                <p>Loading fragrances...</p>
             </div>
 
             <!-- Empty State -->
-            <div class="empty-state" id="ordersEmpty" style="display: none;">
-                <div class="empty-icon">🛍️</div>
-                <h3>No Orders Found</h3>
-                <p>Orders will appear here when customers place them</p>
+            <div class="empty-state" id="fragrancesEmpty" style="display: none;">
+                <div class="empty-icon">📦</div>
+                <h3>No Fragrances Found</h3>
+                <p>Add your first fragrance to get started</p>
+                <button class="btn-primary" onclick="openFragranceModal()">Add Fragrance</button>
             </div>
 
             <!-- No Results -->
-            <div class="empty-state" id="ordersNoResults" style="display: none;">
+            <div class="empty-state" id="fragrancesNoResults" style="display: none;">
                 <div class="empty-icon">🔍</div>
                 <h3>No Results Found</h3>
                 <p>Try adjusting your search terms or filters</p>
             </div>
 
             <!-- Error State -->
-            <div class="error-state" id="ordersError" style="display: none;">
+            <div class="error-state" id="fragrancesError" style="display: none;">
                 <div class="error-icon">⚠️</div>
-                <h3>Error Loading Orders</h3>
+                <h3>Error Loading Fragrances</h3>
                 <p>Please check your connection and try again</p>
-                <button class="btn-primary" onclick="loadOrders()">Retry</button>
+                <button class="btn-primary" onclick="loadFragrances()">Retry</button>
             </div>
 
-            <!-- Orders Content -->
-            <div id="ordersContent" style="display: none;">
+            <!-- Fragrances Content -->
+            <div id="fragrancesContent" style="display: none;">
                 <!-- Desktop Table View -->
-                <div class="table-wrapper" id="ordersTable">
+                <div class="table-wrapper" id="fragrancesTable">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Order #</th>
-                                <th>Customer</th>
-                                <th>Items</th>
-                                <th>Total</th>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Variants</th>
                                 <th>Status</th>
-                                <th>Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="ordersTableBody">
+                        <tbody id="fragrancesTableBody">
                             <!-- Dynamic content -->
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Mobile Cards View -->
-                <div class="mobile-cards" id="orderCards">
+                <div class="mobile-cards" id="fragranceCards">
                     <!-- Dynamic content -->
                 </div>
 
                 <!-- Pagination -->
-                <div class="pagination" id="ordersPagination" style="display: none;">
+                <div class="pagination" id="fragrancesPagination" style="display: none;">
                     <div class="pagination-info">
-                        <span id="ordersPageInfo">Page 1 of 1</span>
-                        <span class="pagination-total">(<span id="ordersTotalCount">0</span> orders)</span>
+                        <span id="fragrancesPageInfo">Page 1 of 1</span>
+                        <span class="pagination-total">(<span id="fragrancesTotalCount">0</span> fragrances)</span>
                     </div>
                     <div class="pagination-buttons">
-                        <button class="pagination-btn" onclick="previousOrdersPage()" id="ordersPrevBtn" disabled>
+                        <button class="pagination-btn" onclick="previousFragrancesPage()" id="fragrancesPrevBtn" disabled>
                             ← Previous
                         </button>
-                        <button class="pagination-btn" onclick="nextOrdersPage()" id="ordersNextBtn" disabled>
+                        <button class="pagination-btn" onclick="nextFragrancesPage()" id="fragrancesNextBtn" disabled>
                             Next →
                         </button>
                     </div>
@@ -221,6 +196,95 @@
             </div>
         </section>
     </main>
+
+    <!-- Fragrance Modal -->
+    <div class="modal" id="fragranceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="fragranceModalTitle">Add New Fragrance</h3>
+                <button class="modal-close" onclick="closeFragranceModal()">×</button>
+            </div>
+            <form id="fragranceForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="fragranceName">Name *</label>
+                    <input type="text" id="fragranceName" name="name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fragranceSlug">URL Slug *</label>
+                    <input type="text" id="fragranceSlug" name="slug" class="form-control" required 
+                           placeholder="lowercase-name-with-hyphens">
+                    <small class="form-help">Used in URLs. Should be lowercase with hyphens instead of spaces.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fragranceBrand">Brand</label>
+                    <input type="text" id="fragranceBrand" name="brand" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="fragranceDescription">Description *</label>
+                    <textarea id="fragranceDescription" name="description" class="form-control" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fragranceImage">Image (PNG only)</label>
+                    <div class="image-upload" onclick="document.getElementById('fragranceImage').click()">
+                        <input type="file" id="fragranceImage" name="image" accept=".png,image/png" style="display: none;">
+                        <div class="image-upload-label">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/>
+                            </svg>
+                            <span>Click to select PNG image</span>
+                            <small>Recommended: 400x400px, max 5MB</small>
+                        </div>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Available Variants *</label>
+                    <div class="variants-grid">
+                        <div class="variant-item">
+                            <input type="checkbox" id="variant5ml" data-variant="5ml">
+                            <label for="variant5ml">5ml Sample</label>
+                            <input type="number" class="variant-price" data-variant-price="5ml" placeholder="Price (OMR)" step="0.001" min="0">
+                        </div>
+                        <div class="variant-item">
+                            <input type="checkbox" id="variant10ml" data-variant="10ml">
+                            <label for="variant10ml">10ml Sample</label>
+                            <input type="number" class="variant-price" data-variant-price="10ml" placeholder="Price (OMR)" step="0.001" min="0">
+                        </div>
+                        <div class="variant-item">
+                            <input type="checkbox" id="variant30ml" data-variant="30ml">
+                            <label for="variant30ml">30ml Sample</label>
+                            <input type="number" class="variant-price" data-variant-price="30ml" placeholder="Price (OMR)" step="0.001" min="0">
+                        </div>
+                        <div class="variant-item whole-bottle">
+                            <input type="checkbox" id="variantWhole" data-variant="Whole Bottle">
+                            <label for="variantWhole">Whole Bottle (Contact for pricing)</label>
+                        </div>
+                    </div>
+                    <small class="form-help">Select at least one variant. Price is required for sample sizes.</small>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="fragranceHidden" name="hidden">
+                    <label for="fragranceHidden">Hide from public view</label>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeFragranceModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitFragranceBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        Save Fragrance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
@@ -253,7 +317,7 @@
             </div>
             <div class="footer-section">
                 <p>&copy; 2024 Qotore. All rights reserved.</p>
-                <p>Admin Dashboard v1.0</p>
+                <p>Fragrances Management v1.0</p>
             </div>
         </div>
     </footer>
@@ -265,6 +329,6 @@
         </svg>
     </a>
 
-    <script src="orders-script.js"></script>
+    <script src="fragrances-script.js"></script>
 </body>
 </html>
