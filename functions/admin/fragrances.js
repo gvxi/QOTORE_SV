@@ -1,4 +1,4 @@
-// functions/admin/fragrances.js - Admin endpoint that shows ALL fragrances (including hidden)
+// functions/admin/fragrances.js - Admin API that returns ALL fragrances including hidden ones
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -10,29 +10,29 @@ export async function onRequestGet(context) {
 
   try {
     console.log('Admin fragrances API called');
+    const { env, request } = context;
     
     // Check authentication
-    const request = context.request;
     const cookies = request.headers.get('Cookie') || '';
     const sessionCookie = cookies
       .split(';')
       .find(c => c.trim().startsWith('admin_session='));
     
     if (!sessionCookie) {
-      return new Response(JSON.stringify({ 
+      console.log('No admin session found');
+      return new Response(JSON.stringify({
+        success: false,
         error: 'Authentication required',
-        redirectUrl: '/login.html'
+        redirect: '/admin/login'
       }), {
         status: 401,
         headers: corsHeaders
       });
     }
-
-    const { env } = context;
     
     // Check if Supabase environment variables are set
     const SUPABASE_URL = env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY; // Use service role for admin
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
     
     console.log('Environment check:', {
       hasUrl: !!SUPABASE_URL,
@@ -44,10 +44,10 @@ export async function onRequestGet(context) {
       console.error('Missing Supabase environment variables');
       return new Response(JSON.stringify({
         success: false,
-        error: 'Database not configured for admin operations',
+        error: 'Database not configured',
         debug: {
           hasUrl: !!SUPABASE_URL,
-          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
+          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'NOT SET'
         }
       }), {
         status: 500,
@@ -57,7 +57,7 @@ export async function onRequestGet(context) {
 
     console.log('Fetching ALL fragrances from Supabase for admin...');
 
-    // Fetch ALL fragrances (including hidden ones) - NO FILTER on hidden field
+    // Fetch ALL fragrances (including hidden ones) - this is the key difference from public API
     const fragrancesResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?select=*&order=created_at.desc`, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -119,6 +119,7 @@ export async function onRequestGet(context) {
     }
 
     // Combine fragrances with their variants (including hidden fragrances)
+    // FIXED: Return raw database structure to maintain compatibility with admin forms
     const fragrances = fragrancesData.map(fragrance => {
       const fragranceVariants = variantsData.filter(v => v.fragrance_id === fragrance.id);
       
@@ -130,13 +131,20 @@ export async function onRequestGet(context) {
         image_path: fragrance.image_path || '',
         brand: fragrance.brand || '', // Simple text field
         hidden: fragrance.hidden || false, // Include hidden status for admin
+        // FIXED: Keep raw database structure for admin compatibility
         variants: fragranceVariants.map(variant => ({
           id: variant.id,
+          size_ml: variant.size_ml, // Keep original database field
+          price_cents: variant.price_cents, // Keep original database field
+          sku: variant.sku || '',
+          is_whole_bottle: variant.is_whole_bottle || false,
+          max_quantity: variant.max_quantity || 50,
+          in_stock: variant.in_stock !== false,
+          created_at: variant.created_at,
+          // Also provide processed versions for display
           size: variant.is_whole_bottle ? 'Whole Bottle' : `${variant.size_ml}ml`,
           price: variant.is_whole_bottle ? null : variant.price_cents / 1000, // Convert fils to OMR
           price_display: variant.is_whole_bottle ? 'Contact for pricing' : `${(variant.price_cents / 1000).toFixed(3)} OMR`,
-          sku: variant.sku || '',
-          is_whole_bottle: variant.is_whole_bottle || false,
           available: true
         })),
         created_at: fragrance.created_at,
@@ -207,15 +215,20 @@ export async function onRequestPost(context) {
   const isAuthenticated = !!sessionCookie;
   
   return new Response(JSON.stringify({
-    message: 'Admin fragrances API is working!',
+    message: 'Admin fragrances API is working! (FIXED VERSION)',
     authenticated: isAuthenticated,
     endpoints: {
       get: 'GET /admin/fragrances - Fetch ALL fragrances (including hidden) for admin',
       test: 'POST /admin/fragrances - This test endpoint'
     },
     differences: {
-      'Public API (/api/fragrances)': 'Shows only visible fragrances',
-      'Admin API (/admin/fragrances)': 'Shows ALL fragrances including hidden ones'
+      'Public API (/api/fragrances)': 'Shows only visible fragrances with processed data',
+      'Admin API (/admin/fragrances)': 'Shows ALL fragrances including hidden ones with raw + processed data'
+    },
+    fixes: {
+      'Data Structure': 'Now returns both raw database fields (size_ml, price_cents) and processed versions (size, price, price_display)',
+      'Form Compatibility': 'populateForm function can now handle the data correctly',
+      'Display Compatibility': 'getVariantsDisplay function works with both data structures'
     },
     supabaseConfig: {
       hasUrl: !!context.env.SUPABASE_URL,
