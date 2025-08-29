@@ -70,6 +70,9 @@ function setupEventListeners() {
         imageInput.addEventListener('change', handleImagePreview);
     }
 
+    // Variant toggles
+    setupVariantToggles();
+
     // Form validation
     const form = document.getElementById('itemForm');
     if (form) {
@@ -90,6 +93,26 @@ function setupEventListeners() {
         if (e.key === 'Escape') {
             closeItemModal();
             closeDeleteModal();
+        }
+    });
+}
+
+function setupVariantToggles() {
+    // Setup variant toggle functionality
+    const variantSizes = ['5ml', '10ml', '30ml'];
+    
+    variantSizes.forEach(size => {
+        const checkbox = document.getElementById(`enable${size}`);
+        const priceInput = document.getElementById(`price${size}`);
+        
+        if (checkbox && priceInput) {
+            checkbox.addEventListener('change', function() {
+                priceInput.disabled = !this.checked;
+                if (!this.checked) {
+                    priceInput.value = '';
+                }
+                validateForm();
+            });
         }
     });
 }
@@ -561,23 +584,34 @@ function populateForm(item) {
     document.getElementById('itemDescription').value = item.description || '';
     document.getElementById('itemHidden').checked = item.hidden || false;
     
-    // Populate variant prices
+    // Reset all variant toggles and prices
+    const variantSizes = ['5ml', '10ml', '30ml'];
+    variantSizes.forEach(size => {
+        const checkbox = document.getElementById(`enable${size}`);
+        const priceInput = document.getElementById(`price${size}`);
+        if (checkbox) checkbox.checked = false;
+        if (priceInput) {
+            priceInput.value = '';
+            priceInput.disabled = true;
+        }
+    });
+    document.getElementById('enableFullBottle').checked = false;
+    
+    // Populate variant prices and enable toggles
     const variants = item.variants || [];
     variants.forEach(variant => {
         if (variant.is_whole_bottle) {
             document.getElementById('enableFullBottle').checked = true;
         } else if (variant.size_ml) {
             const priceOMR = variant.price_cents ? (variant.price_cents / 1000) : 0;
-            switch(variant.size_ml) {
-                case 5:
-                    document.getElementById('price5ml').value = priceOMR;
-                    break;
-                case 10:
-                    document.getElementById('price10ml').value = priceOMR;
-                    break;
-                case 30:
-                    document.getElementById('price30ml').value = priceOMR;
-                    break;
+            const size = variant.size_ml + 'ml';
+            const checkbox = document.getElementById(`enable${size}`);
+            const priceInput = document.getElementById(`price${size}`);
+            
+            if (checkbox && priceInput) {
+                checkbox.checked = true;
+                priceInput.disabled = false;
+                priceInput.value = priceOMR;
             }
         }
     });
@@ -602,6 +636,18 @@ function resetForm() {
     
     const imageInput = document.getElementById('itemImage');
     if (imageInput) imageInput.required = true; // Require image for new items
+    
+    // Reset variant toggles and disable price inputs
+    const variantSizes = ['5ml', '10ml', '30ml'];
+    variantSizes.forEach(size => {
+        const checkbox = document.getElementById(`enable${size}`);
+        const priceInput = document.getElementById(`price${size}`);
+        if (checkbox) checkbox.checked = false;
+        if (priceInput) {
+            priceInput.value = '';
+            priceInput.disabled = true;
+        }
+    });
     
     removeImagePreview();
 }
@@ -705,7 +751,14 @@ function validateForm() {
     const imageInput = document.getElementById('itemImage');
     const hasImage = imageInput.files.length > 0 || (!imageInput.required);
     
-    const isValid = name && brand && description && hasImage;
+    // Check if at least one variant is enabled
+    const hasVariants = 
+        (document.getElementById('enable5ml').checked && document.getElementById('price5ml').value) ||
+        (document.getElementById('enable10ml').checked && document.getElementById('price10ml').value) ||
+        (document.getElementById('enable30ml').checked && document.getElementById('price30ml').value) ||
+        document.getElementById('enableFullBottle').checked;
+    
+    const isValid = name && brand && description && hasImage && hasVariants;
     
     const saveButton = document.querySelector('#itemModalOverlay .btn-primary');
     if (saveButton) {
@@ -742,34 +795,40 @@ async function saveItem() {
             formData.append('image', imageInput.files[0]);
         }
         
-        // Variant prices (convert OMR to fils)
+        // Variant prices (convert OMR to fils) - only include enabled variants
         const variants = [];
         
-        const price5ml = parseFloat(document.getElementById('price5ml').value);
-        if (!isNaN(price5ml) && price5ml > 0) {
-            variants.push({
-                size_ml: 5,
-                price_cents: Math.round(price5ml * 1000),
-                is_whole_bottle: false
-            });
+        if (document.getElementById('enable5ml').checked) {
+            const price5ml = parseFloat(document.getElementById('price5ml').value);
+            if (!isNaN(price5ml) && price5ml > 0) {
+                variants.push({
+                    size_ml: 5,
+                    price_cents: Math.round(price5ml * 1000),
+                    is_whole_bottle: false
+                });
+            }
         }
         
-        const price10ml = parseFloat(document.getElementById('price10ml').value);
-        if (!isNaN(price10ml) && price10ml > 0) {
-            variants.push({
-                size_ml: 10,
-                price_cents: Math.round(price10ml * 1000),
-                is_whole_bottle: false
-            });
+        if (document.getElementById('enable10ml').checked) {
+            const price10ml = parseFloat(document.getElementById('price10ml').value);
+            if (!isNaN(price10ml) && price10ml > 0) {
+                variants.push({
+                    size_ml: 10,
+                    price_cents: Math.round(price10ml * 1000),
+                    is_whole_bottle: false
+                });
+            }
         }
         
-        const price30ml = parseFloat(document.getElementById('price30ml').value);
-        if (!isNaN(price30ml) && price30ml > 0) {
-            variants.push({
-                size_ml: 30,
-                price_cents: Math.round(price30ml * 1000),
-                is_whole_bottle: false
-            });
+        if (document.getElementById('enable30ml').checked) {
+            const price30ml = parseFloat(document.getElementById('price30ml').value);
+            if (!isNaN(price30ml) && price30ml > 0) {
+                variants.push({
+                    size_ml: 30,
+                    price_cents: Math.round(price30ml * 1000),
+                    is_whole_bottle: false
+                });
+            }
         }
         
         if (document.getElementById('enableFullBottle').checked) {
@@ -863,14 +922,14 @@ async function confirmDelete() {
 
 async function toggleItemVisibility(itemId, hidden) {
     try {
-        const response = await fetch('/admin/toggle-fragrance-visibility', {
-            method: 'PATCH',
+        const response = await fetch('/admin/toggle-fragrance', {
+            method: 'POST',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ 
-                id: itemId, 
+                id: parseInt(itemId), 
                 hidden: hidden 
             })
         });
@@ -949,6 +1008,4 @@ function showToast(message, type = 'info', duration = 5000) {
         }
     }, duration);
     
-    // Remove on click
-    toast.addEventListener('click', () => toast.remove());
 }

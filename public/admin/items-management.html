@@ -236,27 +236,36 @@
 
                     <!-- Fixed Variants Section -->
                     <div class="variants-section">
-                        <h4>Pricing (OMR)</h4>
+                        <h4>Available Variants & Pricing (OMR)</h4>
                         <div class="variants-grid">
                             <div class="variant-item">
-                                <label for="price5ml">5ml Sample</label>
+                                <label class="variant-toggle-label">
+                                    <input type="checkbox" id="enable5ml" name="enable5ml">
+                                    <span class="variant-label">5ml Sample</span>
+                                </label>
                                 <input type="number" id="price5ml" name="price5ml" step="0.001" min="0" 
-                                       placeholder="2.500">
+                                       placeholder="2.500" disabled>
                             </div>
                             <div class="variant-item">
-                                <label for="price10ml">10ml Sample</label>
+                                <label class="variant-toggle-label">
+                                    <input type="checkbox" id="enable10ml" name="enable10ml">
+                                    <span class="variant-label">10ml Sample</span>
+                                </label>
                                 <input type="number" id="price10ml" name="price10ml" step="0.001" min="0" 
-                                       placeholder="4.500">
+                                       placeholder="4.500" disabled>
                             </div>
                             <div class="variant-item">
-                                <label for="price30ml">30ml Sample</label>
+                                <label class="variant-toggle-label">
+                                    <input type="checkbox" id="enable30ml" name="enable30ml">
+                                    <span class="variant-label">30ml Sample</span>
+                                </label>
                                 <input type="number" id="price30ml" name="price30ml" step="0.001" min="0" 
-                                       placeholder="12.000">
+                                       placeholder="12.000" disabled>
                             </div>
                             <div class="variant-item full-bottle">
-                                <label>
+                                <label class="variant-toggle-label">
                                     <input type="checkbox" id="enableFullBottle" name="enableFullBottle">
-                                    Enable Full Bottle (Contact for Price)
+                                    <span class="variant-label">Full Bottle (Contact for Price)</span>
                                 </label>
                             </div>
                         </div>
