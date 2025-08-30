@@ -974,6 +974,7 @@ function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'flex';
+        modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
 }
@@ -981,8 +982,110 @@ function showModal(modalId) {
 function hideModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.style.display = 'none';
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
         document.body.style.overflow = 'auto';
+    }
+}
+
+// Search and filter functions
+function setFilter(filter) {
+    currentFilter = filter;
+    currentPage = 1;
+    
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+    
+    displayItems();
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('itemsSearch');
+    if (searchInput) {
+        searchInput.value = '';
+        currentSearch = '';
+        currentPage = 1;
+        displayItems();
+        updateSearchClearButton();
+    }
+}
+
+function updateSearchClearButton() {
+    const searchInput = document.getElementById('itemsSearch');
+    const clearButton = document.querySelector('.search-clear');
+    
+    if (searchInput && clearButton) {
+        if (searchInput.value.trim()) {
+            clearButton.style.display = 'block';
+        } else {
+            clearButton.style.display = 'none';
+        }
+    }
+}
+
+// Enhanced event listeners setup
+function setupEventListeners() {
+    // Search functionality with clear button
+    const searchInput = document.getElementById('itemsSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            currentPage = 1;
+            displayItems();
+            updateSearchClearButton();
+        });
+    }
+    
+    // Form submission
+    const itemForm = document.getElementById('itemForm');
+    if (itemForm) {
+        itemForm.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // Image preview
+    const imageInput = document.getElementById('itemImage');
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImagePreview);
+    }
+    
+    // Name to slug preview
+    const nameInput = document.getElementById('itemName');
+    if (nameInput) {
+        nameInput.addEventListener('input', updateSlugPreview);
+    }
+    
+    // Modal close on overlay click
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            if (e.target.id === 'itemModalOverlay') {
+                closeItemModal();
+            } else if (e.target.id === 'deleteModalOverlay') {
+                closeDeleteModal();
+            }
+        }
+    });
+    
+    // Escape key to close modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeItemModal();
+            closeDeleteModal();
+        }
+    });
+}
+
+// Logout function
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Clear session cookie
+        document.cookie = 'admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        // Redirect to login
+        window.location.href = '/admin/login.html';
     }
 }
 
@@ -993,15 +1096,54 @@ function showToast(message, type = 'info') {
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
     
+    // Apply styles
+    Object.assign(toast.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        padding: '12px 20px',
+        borderRadius: '8px',
+        color: 'white',
+        fontWeight: '600',
+        fontSize: '0.9rem',
+        zIndex: '10000',
+        transform: 'translateX(100%)',
+        transition: 'transform 0.3s ease',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        maxWidth: '300px'
+    });
+    
+    // Set background color based on type
+    switch(type) {
+        case 'success':
+            toast.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            break;
+        case 'error':
+            toast.style.background = 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)';
+            break;
+        case 'warning':
+            toast.style.background = 'linear-gradient(135deg, #ffc107 0%, #f39c12 100%)';
+            toast.style.color = '#212529';
+            break;
+        default:
+            toast.style.background = 'linear-gradient(135deg, #17a2b8 0%, #3498db 100%)';
+    }
+    
     // Add to document
     document.body.appendChild(toast);
     
     // Trigger animation
-    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
     
     // Remove after delay
     setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => document.body.removeChild(toast), 300);
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
     }, 3000);
 }
