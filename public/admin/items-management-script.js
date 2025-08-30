@@ -668,8 +668,29 @@ function closeDeleteModal() {
 async function handleFormSubmit(e) {
     e.preventDefault();
     
-    const saveButton = document.getElementById('saveItemBtn') || e.target.querySelector('button[type="submit"]');
-    const saveButtonText = document.getElementById('saveButtonText') || saveButton.querySelector('span') || saveButton;
+    // Find the save button more reliably
+    let saveButton = document.getElementById('saveItemBtn');
+    if (!saveButton) {
+        saveButton = document.querySelector('[onclick="saveItem()"]');
+    }
+    if (!saveButton) {
+        saveButton = e.target.querySelector('button[type="submit"]');
+    }
+    if (!saveButton) {
+        saveButton = document.querySelector('.btn-primary');
+    }
+    
+    let saveButtonText = document.getElementById('saveButtonText');
+    if (!saveButtonText && saveButton) {
+        saveButtonText = saveButton.querySelector('span') || saveButton;
+    }
+    
+    if (!saveButton || !saveButtonText) {
+        console.error('Could not find save button or save button text element');
+        showToast('Internal error: Could not find save button', 'error');
+        return;
+    }
+    
     const originalText = saveButtonText.textContent;
     
     // Disable button and show loading
@@ -794,16 +815,25 @@ async function handleFormSubmit(e) {
         console.error('Form submission error:', error);
         showToast(error.message || 'Failed to save item', 'error');
     } finally {
-        saveButton.disabled = false;
-        saveButtonText.textContent = originalText;
+        if (saveButton) saveButton.disabled = false;
+        if (saveButtonText) saveButtonText.textContent = originalText;
     }
 }
 
 async function saveItem() {
     const form = document.getElementById('itemForm');
     if (form) {
-        const event = new Event('submit');
-        form.dispatchEvent(event);
+        // Create a mock event object
+        const mockEvent = {
+            preventDefault: () => {},
+            target: form
+        };
+        
+        // Call handleFormSubmit directly
+        await handleFormSubmit(mockEvent);
+    } else {
+        console.error('Form not found');
+        showToast('Internal error: Form not found', 'error');
     }
 }
 
