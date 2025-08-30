@@ -143,7 +143,7 @@ async function loadItems() {
     try {
         console.log('Loading items from admin API...');
         
-        const response = await fetch('/functions/admin/fragrances', {
+        const response = await fetch('/admin/fragrances', {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -421,7 +421,7 @@ function changePage(page) {
 
 async function toggleItemVisibility(itemId, newVisibility) {
     try {
-        const response = await fetch('/functions/admin/toggle-visibility', {
+        const response = await fetch('/admin/toggle-fragrance', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -624,7 +624,7 @@ async function confirmDelete() {
     deleteButton.innerHTML = '<div class="loading-spinner"></div> Deleting...';
     
     try {
-        const response = await fetch('/functions/admin/delete-fragrance', {
+        const response = await fetch('/admin/delete-fragrance', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -765,8 +765,8 @@ async function handleFormSubmit(e) {
         console.log('Submitting form data:', formData);
         
         const url = currentEditingId ? 
-            '/functions/admin/update-fragrance' : 
-            '/functions/admin/add-fragrance';
+            '/admin/update-fragrance' : 
+            '/admin/add-fragrance';
             
         const response = await fetch(url, {
             method: 'POST',
