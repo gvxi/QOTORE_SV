@@ -1,15 +1,93 @@
 // Modal Functions
 function openAddItemModal() {
-    currentEditingId = null;
-    const titleEl = document.getElementById('itemModalTitle');
-    const buttonTextEl = document.getElementById('saveButtonText');
+    try {
+        console.log('🔧 Opening add item modal...');
+        
+        currentEditingId = null;
+        
+        const titleEl = document.getElementById('itemModalTitle');
+        const buttonTextEl = document.getElementById('saveButtonText');
+        
+        if (titleEl) {
+            titleEl.textContent = 'Add New Item';
+            console.log('✓ Modal title set');
+        } else {
+            console.warn('⚠️ Modal title element not found');
+        }
+        
+        if (buttonTextEl) {
+            buttonTextEl.textContent = 'Save Item';
+            console.log('✓ Button text set');
+        } else {
+            console.warn('⚠️ Button text element not found');
+        }
+        
+        resetForm();
+        showModal('itemModalOverlay');
+        
+        console.log('✅ Add item modal opened');
+        
+    } catch (error) {
+        console.error('❌ Error opening add item modal:', error);
+        showToast('Error opening form', 'error');
+    }
+}
+
+// Test function to verify modal functionality
+window.testModal = function() {
+    console.log('🧪 Testing modal...');
+    
+    const modal = document.getElementById('itemModalOverlay');
+    if (modal) {
+        console.log('✓ Modal element found');
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        console.log('✓ Modal should be visible now');
+    } else {
+        console.error('❌ Modal element not found');
+    }
+}
+
+// Also make openAddItemModal globally available for testing
+window.openAddItemModal = openAddItemModal;
+
+function editItem(itemId) {
+    try {
+        console.log('✏️ Editing item:', itemId);
+        
+        const item = fragranceItems.find(i => i.id == itemId);
+        if (!item) {
+            console.error('❌ Item not found:', itemId);
+            showToast('Item not found', 'error');
+            return;
+        }
+        
+        console.log('✓ Item found:', item.name);
+        
+        currentEditingId = itemId;
+        const titleEl = document.getElementById('itemModalTitle');
+        const buttonTextEl = document.getElementById('saveButtonText');
+        
+        if (titleEl) titleEl.textContent = 'Edit Item';
+        if (buttonTextEl) buttonTextEl.textContent = 'Update Item';
+        
+        // Populate form with item data
+        populateForm(item);
+        showModal('itemModalOverlay');
+        
+        console.log('✅ Edit modal opened for:', item.name);
+        
+    } catch (error) {
+        console.error('❌ Error editing item:', error);
+        showToast('Error opening edit form', 'error');
+    }
+}TextEl = document.getElementById('saveButtonText');
     
     if (titleEl) titleEl.textContent = 'Add New Item';
     if (buttonTextEl) buttonTextEl.textContent = 'Save Item';
     
     resetForm();
     showModal('itemModalOverlay');
-}
 
 function editItem(itemId) {
     const item = fragranceItems.find(i => i.id == itemId);
@@ -142,7 +220,7 @@ function populateForm(item) {
     }
 }
 
-function resetForm() {// Items Management Script - FIXED VERSION
+function resetForm() {// Items Management Script - FIXED VERSION with Enhanced Error Handling
 let fragranceItems = []; // Changed from 'items' to avoid conflicts
 let currentEditingId = null;
 let deleteItemId = null;
@@ -154,139 +232,194 @@ let currentSearch = '';
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Items management initialized');
-    checkAuth();
-    loadItems();
-    initializeVariantToggles();
-    setupEventListeners();
+    
+    // Add small delay to ensure DOM is fully ready
+    setTimeout(() => {
+        checkAuth();
+        loadItems();
+        initializeVariantToggles();
+        setupEventListeners();
+    }, 100);
 });
 
-// Enhanced event listeners setup
+// Enhanced event listeners setup with error handling
 function setupEventListeners() {
-    // Search functionality with clear button
-    const searchInput = document.getElementById('itemsSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            currentSearch = e.target.value;
-            currentPage = 1;
-            displayItems();
-            updateSearchClearButton();
+    try {
+        console.log('🔧 Setting up event listeners...');
+        
+        // Search functionality with clear button
+        const searchInput = document.getElementById('itemsSearch');
+        if (searchInput) {
+            console.log('✓ Search input found');
+            searchInput.addEventListener('input', (e) => {
+                currentSearch = e.target.value;
+                currentPage = 1;
+                displayItems();
+                updateSearchClearButton();
+            });
+        } else {
+            console.warn('⚠️ Search input not found');
+        }
+        
+        // Form submission
+        const itemForm = document.getElementById('itemForm');
+        if (itemForm) {
+            console.log('✓ Item form found');
+            itemForm.addEventListener('submit', handleFormSubmit);
+        } else {
+            console.warn('⚠️ Item form not found');
+        }
+        
+        // Image preview
+        const imageInput = document.getElementById('itemImage');
+        if (imageInput) {
+            console.log('✓ Image input found');
+            imageInput.addEventListener('change', handleImagePreview);
+        } else {
+            console.warn('⚠️ Image input not found');
+        }
+        
+        // Name to slug preview
+        const nameInput = document.getElementById('itemName');
+        if (nameInput) {
+            console.log('✓ Name input found');
+            nameInput.addEventListener('input', updateSlugPreview);
+        } else {
+            console.warn('⚠️ Name input not found');
+        }
+        
+        // Modal close on overlay click
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                if (e.target.id === 'itemModalOverlay') {
+                    closeItemModal();
+                } else if (e.target.id === 'deleteModalOverlay') {
+                    closeDeleteModal();
+                }
+            }
         });
-    }
-    
-    // Form submission
-    const itemForm = document.getElementById('itemForm');
-    if (itemForm) {
-        itemForm.addEventListener('submit', handleFormSubmit);
-    }
-    
-    // Image preview
-    const imageInput = document.getElementById('itemImage');
-    if (imageInput) {
-        imageInput.addEventListener('change', handleImagePreview);
-    }
-    
-    // Name to slug preview
-    const nameInput = document.getElementById('itemName');
-    if (nameInput) {
-        nameInput.addEventListener('input', updateSlugPreview);
-    }
-    
-    // Modal close on overlay click
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay')) {
-            if (e.target.id === 'itemModalOverlay') {
+        
+        // Escape key to close modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
                 closeItemModal();
-            } else if (e.target.id === 'deleteModalOverlay') {
                 closeDeleteModal();
             }
-        }
-    });
-    
-    // Escape key to close modals
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeItemModal();
-            closeDeleteModal();
-        }
-    });
+        });
+        
+        console.log('✅ Event listeners setup complete');
+        
+    } catch (error) {
+        console.error('❌ Error setting up event listeners:', error);
+    }
 }
 
 function updateSlugPreview() {
-    const name = document.getElementById('itemName').value;
-    const slug = name.toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim()
-        .replace(/^-|-$/g, '');
-    
-    const preview = document.getElementById('slugPreview');
-    const imageNamePreview = document.getElementById('imageNamePreview');
-    
-    if (preview) preview.textContent = slug || 'product-name';
-    if (imageNamePreview) imageNamePreview.textContent = (slug || 'product-name') + '.png';
+    try {
+        const nameInput = document.getElementById('itemName');
+        const name = nameInput ? nameInput.value : '';
+        
+        const slug = name.toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim()
+            .replace(/^-|-$/g, '');
+        
+        const preview = document.getElementById('slugPreview');
+        const imageNamePreview = document.getElementById('imageNamePreview');
+        
+        if (preview) preview.textContent = slug || 'product-name';
+        if (imageNamePreview) imageNamePreview.textContent = (slug || 'product-name') + '.png';
+    } catch (error) {
+        console.error('Error updating slug preview:', error);
+    }
 }
 
 function initializeVariantToggles() {
-    // Initialize checkbox change handlers for enabling/disabling price inputs
-    const enable5ml = document.getElementById('enable5ml');
-    if (enable5ml) {
-        enable5ml.addEventListener('change', function() {
-            const priceInput = document.getElementById('price5ml');
-            priceInput.disabled = !this.checked;
-            if (!this.checked) {
-                priceInput.value = '';
-            } else {
-                priceInput.focus();
-            }
-        });
-    }
-    
-    const enable10ml = document.getElementById('enable10ml');
-    if (enable10ml) {
-        enable10ml.addEventListener('change', function() {
-            const priceInput = document.getElementById('price10ml');
-            priceInput.disabled = !this.checked;
-            if (!this.checked) {
-                priceInput.value = '';
-            } else {
-                priceInput.focus();
-            }
-        });
-    }
-    
-    const enable30ml = document.getElementById('enable30ml');
-    if (enable30ml) {
-        enable30ml.addEventListener('change', function() {
-            const priceInput = document.getElementById('price30ml');
-            priceInput.disabled = !this.checked;
-            if (!this.checked) {
-                priceInput.value = '';
-            } else {
-                priceInput.focus();
-            }
-        });
+    try {
+        console.log('🔧 Initializing variant toggles...');
+        
+        // Initialize checkbox change handlers for enabling/disabling price inputs
+        const enable5ml = document.getElementById('enable5ml');
+        if (enable5ml) {
+            enable5ml.addEventListener('change', function() {
+                const priceInput = document.getElementById('price5ml');
+                if (priceInput) {
+                    priceInput.disabled = !this.checked;
+                    if (!this.checked) {
+                        priceInput.value = '';
+                    } else {
+                        priceInput.focus();
+                    }
+                }
+            });
+            console.log('✓ 5ml toggle initialized');
+        }
+        
+        const enable10ml = document.getElementById('enable10ml');
+        if (enable10ml) {
+            enable10ml.addEventListener('change', function() {
+                const priceInput = document.getElementById('price10ml');
+                if (priceInput) {
+                    priceInput.disabled = !this.checked;
+                    if (!this.checked) {
+                        priceInput.value = '';
+                    } else {
+                        priceInput.focus();
+                    }
+                }
+            });
+            console.log('✓ 10ml toggle initialized');
+        }
+        
+        const enable30ml = document.getElementById('enable30ml');
+        if (enable30ml) {
+            enable30ml.addEventListener('change', function() {
+                const priceInput = document.getElementById('price30ml');
+                if (priceInput) {
+                    priceInput.disabled = !this.checked;
+                    if (!this.checked) {
+                        priceInput.value = '';
+                    } else {
+                        priceInput.focus();
+                    }
+                }
+            });
+            console.log('✓ 30ml toggle initialized');
+        }
+        
+        console.log('✅ Variant toggles initialized');
+        
+    } catch (error) {
+        console.error('❌ Error initializing variant toggles:', error);
     }
 }
 
 async function checkAuth() {
     try {
+        console.log('🔐 Checking authentication...');
+        
         const response = await fetch('/admin/check-auth', {
             credentials: 'include'
         });
         
         if (!response.ok) {
+            console.warn('❌ Auth check failed, redirecting to login');
             window.location.href = '/admin/login.html';
             return;
         }
         
+        console.log('✅ Authentication verified');
+        
     } catch (error) {
-        console.error('Auth check failed:', error);
+        console.error('❌ Auth check error:', error);
         window.location.href = '/admin/login.html';
     }
 }
 
 async function loadItems() {
+    console.log('📦 Loading items...');
     showLoadingState();
     
     try {
@@ -294,15 +427,20 @@ async function loadItems() {
             credentials: 'include'
         });
         
+        console.log('📡 API Response status:', response.status);
+        
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
+        console.log('📊 API Response data:', result);
         
         if (result.success && result.data) {
             fragranceItems = result.data;
-            console.log(`📦 Loaded ${fragranceItems.length} items for admin`);
+            console.log(`✅ Loaded ${fragranceItems.length} items for admin`);
+            console.log('📋 Items data:', fragranceItems);
+            
             updateStats();
             displayItems();
         } else {
@@ -316,159 +454,216 @@ async function loadItems() {
 }
 
 function updateStats() {
-    const totalItems = fragranceItems.length;
-    const visibleItems = fragranceItems.filter(item => !item.hidden).length;
-    const hiddenItems = fragranceItems.filter(item => item.hidden).length;
-    const uniqueBrands = [...new Set(fragranceItems.map(item => item.brand).filter(Boolean))].length;
-    
-    const totalEl = document.getElementById('totalItemsCount');
-    const visibleEl = document.getElementById('visibleItemsCount');
-    const hiddenEl = document.getElementById('hiddenItemsCount');
-    const brandsEl = document.getElementById('totalBrandsCount');
-    
-    if (totalEl) totalEl.textContent = totalItems;
-    if (visibleEl) visibleEl.textContent = visibleItems;
-    if (hiddenEl) hiddenEl.textContent = hiddenItems;
-    if (brandsEl) brandsEl.textContent = uniqueBrands;
+    try {
+        console.log('📊 Updating stats...');
+        
+        const totalItems = fragranceItems.length;
+        const visibleItems = fragranceItems.filter(item => !item.hidden).length;
+        const hiddenItems = fragranceItems.filter(item => item.hidden).length;
+        const uniqueBrands = [...new Set(fragranceItems.map(item => item.brand).filter(Boolean))].length;
+        
+        console.log(`📈 Stats: Total: ${totalItems}, Visible: ${visibleItems}, Hidden: ${hiddenItems}, Brands: ${uniqueBrands}`);
+        
+        const totalEl = document.getElementById('totalItemsCount');
+        const visibleEl = document.getElementById('visibleItemsCount');
+        const hiddenEl = document.getElementById('hiddenItemsCount');
+        const brandsEl = document.getElementById('totalBrandsCount');
+        
+        if (totalEl) {
+            totalEl.textContent = totalItems;
+            console.log('✓ Total count updated');
+        }
+        if (visibleEl) {
+            visibleEl.textContent = visibleItems;
+            console.log('✓ Visible count updated');
+        }
+        if (hiddenEl) {
+            hiddenEl.textContent = hiddenItems;
+            console.log('✓ Hidden count updated');
+        }
+        if (brandsEl) {
+            brandsEl.textContent = uniqueBrands;
+            console.log('✓ Brands count updated');
+        }
+        
+        console.log('✅ Stats updated successfully');
+        
+    } catch (error) {
+        console.error('❌ Error updating stats:', error);
+    }
 }
 
 function displayItems() {
-    let filteredItems = [...fragranceItems];
-    
-    console.log(`📋 Starting with ${filteredItems.length} items`);
-    
-    // Apply search filter
-    if (currentSearch.trim()) {
-        const searchLower = currentSearch.toLowerCase();
-        filteredItems = filteredItems.filter(item => 
-            item.name.toLowerCase().includes(searchLower) ||
-            (item.brand && item.brand.toLowerCase().includes(searchLower)) ||
-            item.description.toLowerCase().includes(searchLower)
-        );
-        console.log(`📋 After search: ${filteredItems.length} items`);
-    }
-    
-    // Apply status filter
-    if (currentFilter !== 'all') {
-        filteredItems = filteredItems.filter(item => {
-            switch (currentFilter) {
-                case 'visible': return !item.hidden;
-                case 'hidden': return item.hidden;
-                default: return true;
-            }
-        });
-        console.log(`📋 After filter: ${filteredItems.length} items`);
-    }
-    
-    console.log(`📋 Final filtered count: ${filteredItems.length} items`);
-    
-    // Handle empty results
-    if (filteredItems.length === 0) {
-        if (fragranceItems.length === 0) {
-            showEmptyState();
-        } else {
-            showNoResultsState();
+    try {
+        console.log('📋 Displaying items...');
+        
+        let filteredItems = [...fragranceItems];
+        
+        console.log(`📋 Starting with ${filteredItems.length} items`);
+        
+        // Apply search filter
+        if (currentSearch.trim()) {
+            const searchLower = currentSearch.toLowerCase();
+            filteredItems = filteredItems.filter(item => 
+                item.name.toLowerCase().includes(searchLower) ||
+                (item.brand && item.brand.toLowerCase().includes(searchLower)) ||
+                item.description.toLowerCase().includes(searchLower)
+            );
+            console.log(`📋 After search: ${filteredItems.length} items`);
         }
-        return;
+        
+        // Apply status filter
+        if (currentFilter !== 'all') {
+            filteredItems = filteredItems.filter(item => {
+                switch (currentFilter) {
+                    case 'visible': return !item.hidden;
+                    case 'hidden': return item.hidden;
+                    default: return true;
+                }
+            });
+            console.log(`📋 After filter: ${filteredItems.length} items`);
+        }
+        
+        console.log(`📋 Final filtered count: ${filteredItems.length} items`);
+        
+        // Handle empty results
+        if (filteredItems.length === 0) {
+            if (fragranceItems.length === 0) {
+                console.log('📋 Showing empty state');
+                showEmptyState();
+            } else {
+                console.log('📋 Showing no results state');
+                showNoResultsState();
+            }
+            return;
+        }
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredItems.length);
+        
+        // Get current page items
+        const currentPageItems = filteredItems.slice(startIndex, endIndex);
+        console.log(`📋 Displaying items ${startIndex + 1}-${endIndex} of ${filteredItems.length}`);
+        
+        // Update UI
+        renderItemsTable(currentPageItems);
+        updatePaginationInfo(startIndex + 1, endIndex, filteredItems.length, totalPages);
+        
+        showItemsContent();
+        
+        console.log('✅ Items display complete');
+        
+    } catch (error) {
+        console.error('❌ Error displaying items:', error);
+        showErrorState('Error displaying items: ' + error.message);
     }
-    
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, filteredItems.length);
-    
-    // Get current page items
-    const currentPageItems = filteredItems.slice(startIndex, endIndex);
-    console.log(`📋 Displaying items ${startIndex + 1}-${endIndex} of ${filteredItems.length}`);
-    
-    // Update UI
-    renderItemsTable(currentPageItems);
-    updatePaginationInfo(startIndex + 1, endIndex, filteredItems.length, totalPages);
-    
-    showItemsContent();
 }
 
 function renderItemsTable(items) {
-    const tbody = document.getElementById('itemsTableBody');
-    
-    if (!tbody) {
-        console.error('Table body not found');
-        return;
+    try {
+        console.log(`📋 Rendering ${items.length} items in table`);
+        
+        const tbody = document.getElementById('itemsTableBody');
+        
+        if (!tbody) {
+            console.error('❌ Table body not found');
+            return;
+        }
+        
+        console.log('✓ Table body found, clearing and populating');
+        
+        tbody.innerHTML = '';
+        
+        items.forEach((item, index) => {
+            console.log(`📋 Rendering item ${index + 1}:`, item.name);
+            const row = createTableRow(item);
+            tbody.appendChild(row);
+        });
+        
+        console.log('✅ Table rendered successfully');
+        
+    } catch (error) {
+        console.error('❌ Error rendering table:', error);
     }
-    
-    console.log(`📋 Rendering ${items.length} items in table`);
-    
-    tbody.innerHTML = '';
-    items.forEach(item => {
-        const row = createTableRow(item);
-        tbody.appendChild(row);
-    });
 }
 
 function createTableRow(item) {
-    const row = document.createElement('tr');
-    row.className = 'item-row';
-    
-    const variants = getVariantsDisplay(item.variants);
-    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
-    
-    row.innerHTML = `
-        <td class="item-info-cell">
-            <div class="item-info">
-                ${imageUrl ? 
-                    `<img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                     <div class="no-image" style="display: none;">No Image</div>` : 
-                    `<div class="no-image">No Image</div>`
-                }
-                <div class="item-details">
-                    <div class="item-name">${escapeHtml(item.name)}</div>
-                    <div class="item-brand">${escapeHtml(item.brand || 'No Brand')}</div>
+    try {
+        const row = document.createElement('tr');
+        row.className = 'item-row';
+        
+        const variants = getVariantsDisplay(item.variants);
+        const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
+        
+        row.innerHTML = `
+            <td class="item-info-cell">
+                <div class="item-info">
+                    ${imageUrl ? 
+                        `<img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                         <div class="no-image" style="display: none;">No Image</div>` : 
+                        `<div class="no-image">No Image</div>`
+                    }
+                    <div class="item-details">
+                        <div class="item-name">${escapeHtml(item.name)}</div>
+                        <div class="item-brand">${escapeHtml(item.brand || 'No Brand')}</div>
+                    </div>
                 </div>
-            </div>
-        </td>
-        <td class="description-cell" title="${escapeHtml(item.description)}">
-            ${escapeHtml(item.description)}
-        </td>
-        <td class="variants-cell">
-            ${variants}
-        </td>
-        <td class="status-cell">
-            <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
-                ${item.hidden ? 'Hidden' : 'Visible'}
-            </span>
-        </td>
-        <td class="date-cell">
-            ${formatDate(item.created_at)}
-        </td>
-        <td class="actions-cell">
-            <div class="action-buttons">
-                <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
-                <button class="btn-small ${item.hidden ? 'btn-success' : 'btn-warning'}" 
-                        onclick="toggleItemVisibility('${item.id}')">
-                    ${item.hidden ? 'Show' : 'Hide'}
-                </button>
-                <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
-            </div>
-        </td>
-    `;
-    
-    return row;
+            </td>
+            <td class="description-cell" title="${escapeHtml(item.description)}">
+                ${escapeHtml(item.description)}
+            </td>
+            <td class="variants-cell">
+                ${variants}
+            </td>
+            <td class="status-cell">
+                <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
+                    ${item.hidden ? 'Hidden' : 'Visible'}
+                </span>
+            </td>
+            <td class="date-cell">
+                ${formatDate(item.created_at)}
+            </td>
+            <td class="actions-cell">
+                <div class="action-buttons">
+                    <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
+                    <button class="btn-small ${item.hidden ? 'btn-success' : 'btn-warning'}" 
+                            onclick="toggleItemVisibility('${item.id}')">
+                        ${item.hidden ? 'Show' : 'Hide'}
+                    </button>
+                    <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
+                </div>
+            </td>
+        `;
+        
+        return row;
+        
+    } catch (error) {
+        console.error('❌ Error creating table row for item:', item, error);
+        return document.createElement('tr'); // Return empty row to prevent breaking
+    }
 }
 
 function getVariantsDisplay(variants) {
-    if (!variants || variants.length === 0) {
-        return '<span style="color: #999;">No variants</span>';
-    }
-    
-    const variantTexts = variants.map(variant => {
-        if (variant.is_whole_bottle) {
-            return 'Full Bottle (Contact)';
+    try {
+        if (!variants || variants.length === 0) {
+            return '<span style="color: #999;">No variants</span>';
         }
-        const price = variant.price ? `${variant.price.toFixed(3)} OMR` : 'No price';
-        return `${variant.size} - ${price}`;
-    });
-    
-    return variantTexts.join('<br>');
+        
+        const variantTexts = variants.map(variant => {
+            if (variant.is_whole_bottle) {
+                return 'Full Bottle (Contact)';
+            }
+            const price = variant.price ? `${variant.price.toFixed(3)} OMR` : 'No price';
+            return `${variant.size} - ${price}`;
+        });
+        
+        return variantTexts.join('<br>');
+    } catch (error) {
+        console.error('❌ Error displaying variants:', error);
+        return '<span style="color: #999;">Error displaying variants</span>';
+    }
 }
 
 // Form handling functions
