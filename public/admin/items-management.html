@@ -4,192 +4,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Items Management - Qotore Admin</title>
-    
-    <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-    
-    <!-- PWA Theme -->
-    <meta name="theme-color" content="#8B4513">
-    <meta name="msapplication-TileColor" content="#8B4513">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Qotore Admin">
-    
-    <!-- Meta Tags -->
-    <meta property="og:title" content="Qotore Admin - Items Management">
-    <meta property="og:description" content="Manage your fragrance store items">
-    <meta property="og:image" content="/icons/icon-512x512.png">
-    <meta property="og:url" content="/admin/items-management.html">
-    <meta property="og:type" content="website">
-    
+    <link rel="stylesheet" href="admin-style.css">
     <link rel="stylesheet" href="items-management-style.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="/admin/dashboard.html" class="nav-logo">
+                    🌸 <span>Qotore Admin</span>
+                </a>
+            </div>
+            <div class="nav-right">
+                <div class="nav-buttons">
+                    <a href="/admin/dashboard.html" class="nav-btn">
+                        📊 Dashboard
+                    </a>
+                    <a href="/admin/items-management.html" class="nav-btn active">
+                        📦 Items
+                    </a>
+                    <a href="/admin/orders-management.html" class="nav-btn">
+                        📋 Orders
+                    </a>
+                    <a href="#" onclick="logout()" class="nav-btn logout">
+                        🚪 Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <!-- Header -->
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>Qotore Items</span>
-            </div>
-            <div class="nav-buttons">
-                <button class="nav-btn" onclick="refreshData()" id="refreshBtn" title="Refresh Data">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                    </svg>
-                    <span>Refresh</span>
-                </button>
-                <a class="nav-btn" href="index.html" title="View Orders">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                    </svg>
-                    <span>Orders</span>
-                </a>
-                <button class="nav-btn" onclick="logout()" title="Logout">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-                    </svg>
-                    <span>Logout</span>
-                </button>
+                <div class="logo-icon">🌸</div>
+                <span>Items Management</span>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Dashboard Stats -->
-        <section class="dashboard-stats">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">📦</div>
-                <div class="stat-info">
-                    <div class="stat-number" id="totalItemsCount">0</div>
-                    <div class="stat-label">Total Items</div>
-                </div>
+                <div class="stat-number" id="totalItems">-</div>
+                <div class="stat-label">Total Items</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">👁️</div>
-                <div class="stat-info">
-                    <div class="stat-number" id="visibleItemsCount">0</div>
-                    <div class="stat-label">Visible Items</div>
-                </div>
+                <div class="stat-number" id="visibleItems">-</div>
+                <div class="stat-label">Visible Items</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🚫</div>
-                <div class="stat-info">
-                    <div class="stat-number" id="hiddenItemsCount">0</div>
-                    <div class="stat-label">Hidden Items</div>
-                </div>
+                <div class="stat-icon">🔍</div>
+                <div class="stat-number" id="hiddenItems">-</div>
+                <div class="stat-label">Hidden Items</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🏷️</div>
-                <div class="stat-info">
-                    <div class="stat-number" id="totalBrandsCount">0</div>
-                    <div class="stat-label">Brands</div>
-                </div>
+                <div class="stat-icon">📊</div>
+                <div class="stat-number" id="totalVariants">-</div>
+                <div class="stat-label">Total Variants</div>
             </div>
-        </section>
+        </div>
 
-        <!-- Items Management Section -->
+        <!-- Items Section -->
         <section class="items-section">
             <div class="section-header">
-                <div class="section-title">
-                    <span>📦</span>
-                    Fragrance Items Management
-                </div>
-                <button class="btn-primary" onclick="openAddItemModal()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                    Add New Item
-                </button>
-            </div>
-
-            <!-- Controls -->
-            <div class="controls">
-                <div class="search-container">
-                    <input 
-                        type="text" 
-                        class="search-input" 
-                        placeholder="Search items by name, brand..." 
-                        id="itemsSearch"
-                        autocomplete="off"
-                    >
-                    <button class="search-clear" id="itemsClearSearch" onclick="clearSearch()" style="display: none;">×</button>
-                </div>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All Items</button>
-                    <button class="filter-btn" data-filter="visible" onclick="setFilter('visible')">Visible</button>
-                    <button class="filter-btn" data-filter="hidden" onclick="setFilter('hidden')">Hidden</button>
+                <h2>Fragrance Items</h2>
+                <div class="controls">
+                    <div class="search-container">
+                        <input type="text" id="searchItems" placeholder="Search items..." class="search-input">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="visible">Visible</button>
+                        <button class="filter-btn" data-filter="hidden">Hidden</button>
+                    </div>
+                    <button class="btn-add" onclick="openAddItemModal()">
+                        + Add New Item
+                    </button>
                 </div>
             </div>
 
             <!-- Loading State -->
-            <div class="loading" id="itemsLoading">
-                <div class="spinner"></div>
+            <div id="itemsLoading" class="loading-section">
+                <div class="loading-spinner"></div>
                 <p>Loading items...</p>
             </div>
 
             <!-- Error State -->
-            <div class="error-state" id="itemsError" style="display: none;">
+            <div id="itemsError" class="error-section" style="display: none;">
                 <div class="error-icon">⚠️</div>
-                <h3>Failed to Load Items</h3>
-                <p>Unable to connect to the database. Please check your connection and try again.</p>
-                <button class="btn-primary" onclick="loadItems()">Retry</button>
+                <h3>Error Loading Items</h3>
+                <p class="error-message">Something went wrong while loading items.</p>
+                <button onclick="loadItems()" class="btn-retry">🔄 Retry</button>
             </div>
 
             <!-- Empty State -->
-            <div class="empty-state" id="itemsEmpty" style="display: none;">
+            <div id="itemsEmpty" class="empty-section" style="display: none;">
                 <div class="empty-icon">📦</div>
-                <h3>No Items Found</h3>
-                <p>No fragrance items match your search criteria.</p>
-                <button class="btn-primary" onclick="openAddItemModal()">Add Your First Item</button>
+                <h3>No items yet</h3>
+                <p>Start by adding your first fragrance item.</p>
+                <button onclick="openAddItemModal()" class="btn-add">+ Add New Item</button>
             </div>
 
             <!-- Items Content -->
             <div id="itemsContent" style="display: none;">
-                <!-- Desktop Table View -->
-                <div class="table-wrapper" id="itemsTable">
-                    <table class="table">
+                <!-- Desktop Table -->
+                <div class="table-wrapper">
+                    <table class="items-table">
                         <thead>
                             <tr>
-                                <th>Item</th>
-                                <th>Description</th>
+                                <th>Image</th>
+                                <th>Name & Brand</th>
                                 <th>Variants</th>
                                 <th>Status</th>
-                                <th>Created</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="itemsTableBody">
-                            <!-- Dynamic content -->
+                        <tbody>
+                            <!-- Rows will be populated by JavaScript -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Mobile Cards View -->
-                <div class="mobile-cards" id="itemCards">
-                    <!-- Dynamic content -->
+                <!-- Mobile Cards -->
+                <div class="mobile-cards" style="display: none;">
+                    <div id="mobileItemCards">
+                        <!-- Cards will be populated by JavaScript -->
+                    </div>
                 </div>
 
                 <!-- Pagination -->
-                <div class="pagination" id="itemsPagination" style="display: none;">
-                    <div class="pagination-info">
-                        <span id="itemsPageInfo">Page 1 of 1</span>
-                        <span class="pagination-total">(<span id="itemsTotalCount">0</span> items)</span>
+                <div class="pagination">
+                    <div class="pagination-info" id="paginationInfo">
+                        Showing 1 to 10 of 50 items (Page 1 of 5)
                     </div>
-                    <div class="pagination-buttons">
-                        <button class="pagination-btn" onclick="previousItemsPage()" id="itemsPrevBtn" disabled>
-                            ← Previous
-                        </button>
-                        <button class="pagination-btn" onclick="nextItemsPage()" id="itemsNextBtn" disabled>
-                            Next →
-                        </button>
+                    <div class="pagination-controls" id="paginationControls">
+                        <button class="pagination-prev" onclick="previousItemsPage()">← Previous</button>
+                        <div class="pagination-select">
+                            <label for="itemsPerPageSelect">Items per page:</label>
+                            <select id="itemsPerPageSelect">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <button class="pagination-next" onclick="nextItemsPage()">Next →</button>
                     </div>
                 </div>
             </div>
@@ -204,7 +172,7 @@
                 <button class="modal-close" onclick="closeItemModal()">×</button>
             </div>
             <div class="modal-body">
-                <form id="itemForm" enctype="multipart/form-data">
+                <form id="itemForm">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="itemName">Item Name *</label>
@@ -285,7 +253,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeItemModal()">Cancel</button>
-                <button type="button" class="btn-primary" onclick="saveItem()">
+                <button type="submit" class="btn-primary" id="saveItemBtn" form="itemForm">
                     <span id="saveButtonText">Save Item</span>
                 </button>
             </div>
@@ -297,17 +265,18 @@
         <div class="modal-content small">
             <div class="modal-header">
                 <h3>Delete Item</h3>
-                <button class="modal-close" onclick="closeDeleteModal()">×</button>
+                <button class="modal-close" onclick="hideModal('deleteModalOverlay')">×</button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this item? This action cannot be undone and will remove all associated data.</p>
+                <p>Are you sure you want to delete this item?
+                This action cannot be undone and will remove all associated data.</p>
                 <div class="item-preview" id="deleteItemPreview">
                     <!-- Will be populated with item details -->
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                <button type="button" class="btn-delete" onclick="confirmDelete()">Delete Item</button>
+                <button type="button" class="btn-secondary" onclick="hideModal('deleteModalOverlay')">Cancel</button>
+                <button type="button" class="btn-delete" id="confirmDeleteBtn" onclick="confirmDeleteItem()">Delete Item</button>
             </div>
         </div>
     </div>
