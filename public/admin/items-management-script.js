@@ -286,7 +286,7 @@ function renderDesktopItems(pageItems) {
                         <td>
                             <div class="item-image">
                                 ${item.image_path ? 
-                                    `<img src="/storage/fragrance-images/${item.image_path}" alt="${item.name}" loading="lazy">` :
+                                    `<img src="/api/image/${item.image_path}" alt="${item.name}" loading="lazy">` :
                                     '<div class="no-image">No Image</div>'
                                 }
                             </div>
@@ -337,7 +337,7 @@ function createItemCard(item) {
         <div class="item-card ${item.hidden ? 'hidden-item' : ''}">
             <div class="item-image">
                 ${item.image_path ? 
-                    `<img src="/storage/fragrance-images/${item.image_path}" alt="${item.name}" loading="lazy">` :
+                    `<img src="/api/image/${item.image_path}" alt="${item.name}" loading="lazy">` :
                     '<div class="no-image">No Image</div>'
                 }
             </div>
@@ -421,6 +421,8 @@ function changePage(page) {
 
 async function toggleItemVisibility(itemId, newVisibility) {
     try {
+        console.log('Toggle item visibility:', { itemId, newVisibility, shouldHide: !newVisibility });
+        
         const response = await fetch('/admin/toggle-fragrance', {
             method: 'POST',
             headers: {
@@ -429,21 +431,27 @@ async function toggleItemVisibility(itemId, newVisibility) {
             credentials: 'include',
             body: JSON.stringify({
                 id: parseInt(itemId),
-                hidden: !newVisibility
+                hidden: !newVisibility // if newVisibility is true (show), hidden should be false
             })
         });
         
+        console.log('Toggle response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const errorText = await response.text();
+            console.error('Toggle response error:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
+        console.log('Toggle response data:', result);
         
         if (result.success) {
             // Update local data
             const itemIndex = items.findIndex(item => item.id == itemId);
             if (itemIndex !== -1) {
                 items[itemIndex].hidden = !newVisibility;
+                console.log('Updated local item hidden status to:', items[itemIndex].hidden);
             }
             
             showToast(`Item ${newVisibility ? 'shown' : 'hidden'} successfully`, 'success');
@@ -454,7 +462,7 @@ async function toggleItemVisibility(itemId, newVisibility) {
         
     } catch (error) {
         console.error('Toggle visibility error:', error);
-        showToast('Failed to update item visibility', 'error');
+        showToast('Failed to update item visibility: ' + error.message, 'error');
     }
 }
 
@@ -547,7 +555,7 @@ function populateForm(item) {
         const imageInput = document.getElementById('itemImage');
         
         if (imagePreview && previewImg) {
-            previewImg.src = `/storage/fragrance-images/${item.image_path}`;
+            previewImg.src = `/api/image/${item.image_path}`;
             imagePreview.style.display = 'block';
             if (imageInput) imageInput.required = false; // Don't require new image for edit
         }
@@ -596,7 +604,7 @@ function deleteItem(itemId) {
     
     // Populate delete preview
     const preview = document.getElementById('deleteItemPreview');
-    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
+    const imageUrl = item.image_path ? `/api/image/${item.image_path}` : null;
     
     preview.innerHTML = `
         <div class="item-info">
@@ -769,12 +777,39 @@ async function handleFormSubmit(e) {
         const imageInput = document.getElementById('itemImage');
         
         if (imageInput.files.length > 0) {
-            // Upload image first using your dedicated endpoint
+            // For updates: Delete old image first if it exists
+            if (currentEditingId) {
+                const item = items.find(i => i.id == currentEditingId);
+                if (item && item.image_path) {
+                    try {
+                        console.log('Deleting old image:', item.image_path);
+                        const deleteResponse = await fetch('/admin/delete-image', {
+                            method: 'DELETE',
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ imagePath: item.image_path })
+                        });
+                        
+                        const deleteResult = await deleteResponse.json();
+                        if (deleteResult.success) {
+                            console.log('Old image deleted successfully');
+                        } else {
+                            console.warn('Failed to delete old image (non-critical):', deleteResult.error);
+                        }
+                    } catch (deleteError) {
+                        console.warn('Error deleting old image (non-critical):', deleteError);
+                    }
+                }
+            }
+            
+            // Upload new image using your dedicated endpoint
             const imageFormData = new FormData();
             imageFormData.append('image', imageInput.files[0]);
             imageFormData.append('slug', generateSlug(formData.name));
             
-            console.log('Uploading image first...');
+            console.log('Uploading new image...');
             
             const imageResponse = await fetch('/admin/upload-image', {
                 method: 'POST',
@@ -791,7 +826,7 @@ async function handleFormSubmit(e) {
             if (imageResult.success) {
                 // Use the filename (slug.png) as the image path
                 imagePath = imageResult.data.filename;
-                console.log('Image uploaded successfully:', imagePath);
+                console.log('New image uploaded successfully:', imagePath);
             } else {
                 throw new Error(imageResult.error || 'Image upload failed');
             }
