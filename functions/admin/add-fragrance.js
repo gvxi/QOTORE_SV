@@ -45,38 +45,35 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Parse request data - Handle both FormData and JSON
+    // Parse request data - Expect JSON only (images handled separately)
     let fragranceData;
-    let imageFile = null;
     
-    const contentType = request.headers.get('Content-Type') || '';
+    const text = await request.text();
+    if (!text || text.trim() === '') {
+      return new Response(JSON.stringify({ 
+        error: 'No data provided' 
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
     
-    if (contentType.includes('multipart/form-data')) {
-      // Handle FormData (with image)
-      const formData = await request.formData();
-      const dataString = formData.get('data');
-      if (dataString) {
-        fragranceData = JSON.parse(dataString);
-      }
-      imageFile = formData.get('image');
-    } else {
-      // Handle JSON (without image)
-      const text = await request.text();
-      if (!text || text.trim() === '') {
-        return new Response(JSON.stringify({ 
-          error: 'No data provided' 
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
+    try {
       fragranceData = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid JSON data provided' 
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
     }
     
     console.log('Received fragrance data:', fragranceData);
     
     // Validate required fields
-    const { name, brand, description, variants, hidden } = fragranceData;
+    const { name, brand, description, variants, hidden, image_path } = fragranceData;
     
     if (!name || !name.trim()) {
       return new Response(JSON.stringify({ 
@@ -126,50 +123,9 @@ export async function onRequestPost(context) {
       }
     }
     
-    // Handle image upload if provided
-    let imagePath = null;
-    if (imageFile && imageFile.size > 0) {
-      try {
-        const imageBuffer = await imageFile.arrayBuffer();
-        const fileName = `${slug}.png`;
-        
-        console.log('Uploading image:', fileName);
-        
-        const uploadResponse = await fetch(`${SUPABASE_URL}/storage/v1/object/fragrance-images/${fileName}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-            'Content-Type': imageFile.type || 'image/png'
-          },
-          body: imageBuffer
-        });
-        
-        if (uploadResponse.ok) {
-          imagePath = fileName;
-          console.log('Image uploaded successfully:', fileName);
-        } else {
-          const uploadError = await uploadResponse.text();
-          console.error('Image upload failed:', uploadError);
-          
-          return new Response(JSON.stringify({
-            error: 'Failed to upload image',
-            details: uploadError
-          }), {
-            status: 500,
-            headers: corsHeaders
-          });
-        }
-      } catch (imageError) {
-        console.error('Image processing error:', imageError);
-        return new Response(JSON.stringify({
-          error: 'Failed to process image',
-          details: imageError.message
-        }), {
-          status: 500,
-          headers: corsHeaders
-        });
-      }
-    }
+    // Image path is now provided from separate upload endpoint
+    let imagePath = image_path || null;
+    console.log('Using image path:', imagePath);
     
     // Create fragrance record
     const fragrancePayload = {
@@ -199,20 +155,6 @@ export async function onRequestPost(context) {
     if (!createFragranceResponse.ok) {
       const errorText = await createFragranceResponse.text();
       console.error('Failed to create fragrance:', errorText);
-      
-      // Clean up uploaded image if fragrance creation failed
-      if (imagePath) {
-        try {
-          await fetch(`${SUPABASE_URL}/storage/v1/object/fragrance-images/${imagePath}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-            }
-          });
-        } catch (cleanupError) {
-          console.warn('Failed to cleanup image after fragrance creation failure');
-        }
-      }
       
       return new Response(JSON.stringify({
         error: 'Failed to create fragrance',
@@ -257,7 +199,7 @@ export async function onRequestPost(context) {
       const errorText = await createVariantsResponse.text();
       console.error('Failed to create variants:', errorText);
       
-      // Clean up fragrance and image if variant creation failed
+      // Clean up fragrance if variant creation failed
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/fragrances?id=eq.${fragranceId}`, {
           method: 'DELETE',
@@ -266,15 +208,6 @@ export async function onRequestPost(context) {
             'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
           }
         });
-        
-        if (imagePath) {
-          await fetch(`${SUPABASE_URL}/storage/v1/object/fragrance-images/${imagePath}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-            }
-          });
-        }
       } catch (cleanupError) {
         console.warn('Failed to cleanup after variant creation failure');
       }

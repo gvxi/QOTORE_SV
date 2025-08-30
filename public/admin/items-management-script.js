@@ -764,23 +764,42 @@ async function handleFormSubmit(e) {
             throw new Error('At least one variant must be selected');
         }
         
-        // Handle image - if uploading, we need FormData
+        // Handle image upload separately if provided
+        let imagePath = null;
         const imageInput = document.getElementById('itemImage');
-        let requestBody;
-        let headers = {
-            'Content-Type': 'application/json'
-        };
         
         if (imageInput.files.length > 0) {
-            // Use FormData for image upload
-            const formDataWithImage = new FormData();
-            formDataWithImage.append('data', JSON.stringify(formData));
-            formDataWithImage.append('image', imageInput.files[0]);
-            requestBody = formDataWithImage;
-            headers = {}; // Let browser set Content-Type for FormData
-        } else {
-            // Use JSON for data-only updates
-            requestBody = JSON.stringify(formData);
+            // Upload image first using your dedicated endpoint
+            const imageFormData = new FormData();
+            imageFormData.append('image', imageInput.files[0]);
+            imageFormData.append('slug', generateSlug(formData.name));
+            
+            console.log('Uploading image first...');
+            
+            const imageResponse = await fetch('/admin/upload-image', {
+                method: 'POST',
+                credentials: 'include',
+                body: imageFormData
+            });
+            
+            if (!imageResponse.ok) {
+                const imageError = await imageResponse.json().catch(() => null);
+                throw new Error(imageError?.error || 'Failed to upload image');
+            }
+            
+            const imageResult = await imageResponse.json();
+            if (imageResult.success) {
+                // Use the filename (slug.png) as the image path
+                imagePath = imageResult.data.filename;
+                console.log('Image uploaded successfully:', imagePath);
+            } else {
+                throw new Error(imageResult.error || 'Image upload failed');
+            }
+        }
+        
+        // Add image path to form data if we have one
+        if (imagePath) {
+            formData.image_path = imagePath;
         }
         
         console.log('Submitting form data:', formData);
@@ -792,8 +811,10 @@ async function handleFormSubmit(e) {
         const response = await fetch(url, {
             method: 'POST',
             credentials: 'include',
-            headers: headers,
-            body: requestBody
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
         });
         
         if (!response.ok) {

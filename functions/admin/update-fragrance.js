@@ -45,38 +45,35 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Parse request data - Handle both FormData and JSON
+    // Parse request data - Expect JSON only (images handled separately)
     let fragranceData;
-    let imageFile = null;
     
-    const contentType = request.headers.get('Content-Type') || '';
+    const text = await request.text();
+    if (!text || text.trim() === '') {
+      return new Response(JSON.stringify({ 
+        error: 'No data provided' 
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
     
-    if (contentType.includes('multipart/form-data')) {
-      // Handle FormData (with image)
-      const formData = await request.formData();
-      const dataString = formData.get('data');
-      if (dataString) {
-        fragranceData = JSON.parse(dataString);
-      }
-      imageFile = formData.get('image');
-    } else {
-      // Handle JSON (without image)
-      const text = await request.text();
-      if (!text || text.trim() === '') {
-        return new Response(JSON.stringify({ 
-          error: 'No data provided' 
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
+    try {
       fragranceData = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid JSON data provided' 
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
     }
     
     console.log('Received fragrance update data:', fragranceData);
     
     // Validate required fields
-    const { id, name, brand, description, variants, hidden, slug } = fragranceData;
+    const { id, name, brand, description, variants, hidden, slug, image_path } = fragranceData;
     
     if (!id || !name || !name.trim()) {
       return new Response(JSON.stringify({ 
