@@ -328,43 +328,37 @@ function renderDesktopItems(pageItems) {
 function renderMobileItems(pageItems) {
     const itemsList = document.getElementById('itemsList');
     
-    itemsList.innerHTML = pageItems.map(item => createMobileCard(item)).join('');
+    const cards = pageItems.map(item => createItemCard(item)).join('');
+    itemsList.innerHTML = `<div class="items-grid mobile">${cards}</div>`;
 }
 
-function createMobileCard(item) {
-    const card = document.createElement('div');
-    card.className = `mobile-item-card ${item.hidden ? 'hidden-item' : ''}`;
-    
-    const imageUrl = item.image_path ? `/storage/fragrance-images/${item.image_path}` : null;
-    
-    card.innerHTML = `
-        <div class="mobile-card-header">
-            <div class="mobile-card-main">
-                <h4>${item.name || 'Unnamed Item'}</h4>
-                <p class="brand">${item.brand || 'No brand'}</p>
-                <p class="description">${(item.description || 'No description').substring(0, 80)}${(item.description && item.description.length > 80) ? '...' : ''}</p>
+function createItemCard(item) {
+    const card = `
+        <div class="item-card ${item.hidden ? 'hidden-item' : ''}">
+            <div class="item-image">
+                ${item.image_path ? 
+                    `<img src="/storage/fragrance-images/${item.image_path}" alt="${item.name}" loading="lazy">` :
+                    '<div class="no-image">No Image</div>'
+                }
+            </div>
+            <div class="item-details">
+                <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
+                <p class="item-brand">${item.brand || 'No brand'}</p>
+                <div class="variants-info">
+                    ${getVariantsDisplay(item.variants)}
+                </div>
                 <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
                     ${item.hidden ? 'Hidden' : 'Visible'}
                 </span>
             </div>
-            ${imageUrl ? `
-            <div>
-                <strong>Image</strong>
-                <img src="${imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
+            <div class="card-actions">
+                <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
+                <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
+                        onclick="toggleItemVisibility('${item.id}', ${!item.hidden})">
+                    ${item.hidden ? 'Show' : 'Hide'}
+                </button>
+                <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
             </div>
-            ` : ''}
-        </div>
-        <div class="mobile-card-variants">
-            <strong>Variants:</strong>
-            ${getVariantsDisplay(item.variants)}
-        </div>
-        <div class="mobile-card-actions">
-            <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
-            <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                    onclick="toggleItemVisibility('${item.id}', ${!item.hidden})">
-                ${item.hidden ? 'Show' : 'Hide'}
-            </button>
-            <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
         </div>
     `;
     
@@ -434,7 +428,7 @@ async function toggleItemVisibility(itemId, newVisibility) {
             },
             credentials: 'include',
             body: JSON.stringify({
-                id: itemId,
+                id: parseInt(itemId),
                 hidden: !newVisibility
             })
         });
@@ -514,32 +508,14 @@ function populateForm(item) {
     document.getElementById('price10ml').disabled = true;
     document.getElementById('price30ml').disabled = true;
     
-    // FIXED: Process variants correctly
-    const variants = item.variants || [];
-    console.log('Processing variants:', variants);
-    
-    variants.forEach(variant => {
-        console.log('Processing variant:', variant);
-        
-        if (variant.is_whole_bottle) {
-            document.getElementById('enableFullBottle').checked = true;
-        } else {
-            // FIXED: Handle both size_ml (from database) and size (processed) fields
-            let size_ml = null;
-            
-            if (variant.size_ml && typeof variant.size_ml === 'number') {
-                // Direct from database
-                size_ml = variant.size_ml;
-            } else if (variant.size && typeof variant.size === 'string') {
-                // From processed data (e.g., "5ml" -> 5)
-                const sizeMatch = variant.size.match(/(\d+)ml/);
-                size_ml = sizeMatch ? parseInt(sizeMatch[1]) : null;
-            }
-            
-            if (size_ml && variant.price && typeof variant.price === 'number') {
-                console.log(`Found ${size_ml}ml variant with price ${variant.price} OMR`);
-                
-                switch(size_ml) {
+    // FIXED: Populate variants from database
+    if (item.variants && item.variants.length > 0) {
+        item.variants.forEach(variant => {
+            if (variant.is_whole_bottle) {
+                document.getElementById('enableFullBottle').checked = true;
+            } else if (variant.size_ml) {
+                const size_ml = parseInt(variant.size_ml);
+                switch (size_ml) {
                     case 5:
                         document.getElementById('enable5ml').checked = true;
                         document.getElementById('price5ml').disabled = false;
@@ -561,8 +537,8 @@ function populateForm(item) {
             } else {
                 console.warn('Variant missing size_ml or price:', variant);
             }
-        }
-    });
+        });
+    }
     
     // Show current image if exists
     if (item.image_path) {
@@ -573,7 +549,7 @@ function populateForm(item) {
         if (imagePreview && previewImg) {
             previewImg.src = `/storage/fragrance-images/${item.image_path}`;
             imagePreview.style.display = 'block';
-            imageInput.required = false; // Don't require new image for edit
+            if (imageInput) imageInput.required = false; // Don't require new image for edit
         }
     }
     
@@ -649,12 +625,12 @@ async function confirmDelete() {
     
     try {
         const response = await fetch('/functions/admin/delete-fragrance', {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ id: deleteItemId })
+            body: JSON.stringify({ id: parseInt(deleteItemId) })
         });
         
         if (!response.ok) {
@@ -688,7 +664,7 @@ function closeDeleteModal() {
     deleteItemId = null;
 }
 
-// Form handling functions
+// FIXED: Form handling functions
 async function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -701,28 +677,26 @@ async function handleFormSubmit(e) {
     saveButtonText.innerHTML = '<div class="loading-spinner"></div> Saving...';
     
     try {
-        const formData = new FormData();
+        // FIXED: Create JSON payload instead of FormData
+        const formData = {
+            name: document.getElementById('itemName').value.trim(),
+            brand: document.getElementById('itemBrand').value.trim(),
+            description: document.getElementById('itemDescription').value.trim(),
+            hidden: document.getElementById('itemHidden').checked,
+            variants: []
+        };
         
-        // Basic fields
-        formData.append('name', document.getElementById('itemName').value.trim());
-        formData.append('brand', document.getElementById('itemBrand').value.trim());
-        formData.append('description', document.getElementById('itemDescription').value.trim());
-        formData.append('hidden', document.getElementById('itemHidden').checked);
-        
-        // Image file
-        const imageInput = document.getElementById('itemImage');
-        if (imageInput.files.length > 0) {
-            formData.append('image', imageInput.files[0]);
+        // Add current editing ID if updating
+        if (currentEditingId) {
+            formData.id = parseInt(currentEditingId);
+            formData.slug = generateSlug(formData.name);
         }
         
-        // FIXED: Variant handling based on checkboxes
-        const variants = [];
-        
-        // Check each variant checkbox and add if enabled with valid price
+        // FIXED: Handle variants based on checkboxes
         if (document.getElementById('enable5ml').checked) {
             const price5ml = parseFloat(document.getElementById('price5ml').value);
             if (!isNaN(price5ml) && price5ml > 0) {
-                variants.push({
+                formData.variants.push({
                     size_ml: 5,
                     price_cents: Math.round(price5ml * 1000), // Convert OMR to fils
                     is_whole_bottle: false
@@ -733,9 +707,9 @@ async function handleFormSubmit(e) {
         if (document.getElementById('enable10ml').checked) {
             const price10ml = parseFloat(document.getElementById('price10ml').value);
             if (!isNaN(price10ml) && price10ml > 0) {
-                variants.push({
+                formData.variants.push({
                     size_ml: 10,
-                    price_cents: Math.round(price10ml * 1000), // Convert OMR to fils
+                    price_cents: Math.round(price10ml * 1000),
                     is_whole_bottle: false
                 });
             }
@@ -744,32 +718,51 @@ async function handleFormSubmit(e) {
         if (document.getElementById('enable30ml').checked) {
             const price30ml = parseFloat(document.getElementById('price30ml').value);
             if (!isNaN(price30ml) && price30ml > 0) {
-                variants.push({
+                formData.variants.push({
                     size_ml: 30,
-                    price_cents: Math.round(price30ml * 1000), // Convert OMR to fils
+                    price_cents: Math.round(price30ml * 1000),
                     is_whole_bottle: false
                 });
             }
         }
         
         if (document.getElementById('enableFullBottle').checked) {
-            variants.push({
+            formData.variants.push({
                 size_ml: null,
                 price_cents: null,
                 is_whole_bottle: true
             });
         }
         
-        if (variants.length === 0) {
-            throw new Error('At least one variant must be enabled');
+        // Validation
+        if (!formData.name) {
+            throw new Error('Item name is required');
         }
         
-        formData.append('variants', JSON.stringify(variants));
-        
-        // Add ID for updates
-        if (currentEditingId) {
-            formData.append('id', currentEditingId);
+        if (formData.variants.length === 0) {
+            throw new Error('At least one variant must be selected');
         }
+        
+        // Handle image - if uploading, we need FormData
+        const imageInput = document.getElementById('itemImage');
+        let requestBody;
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (imageInput.files.length > 0) {
+            // Use FormData for image upload
+            const formDataWithImage = new FormData();
+            formDataWithImage.append('data', JSON.stringify(formData));
+            formDataWithImage.append('image', imageInput.files[0]);
+            requestBody = formDataWithImage;
+            headers = {}; // Let browser set Content-Type for FormData
+        } else {
+            // Use JSON for data-only updates
+            requestBody = JSON.stringify(formData);
+        }
+        
+        console.log('Submitting form data:', formData);
         
         const url = currentEditingId ? 
             '/functions/admin/update-fragrance' : 
@@ -778,7 +771,8 @@ async function handleFormSubmit(e) {
         const response = await fetch(url, {
             method: 'POST',
             credentials: 'include',
-            body: formData
+            headers: headers,
+            body: requestBody
         });
         
         if (!response.ok) {
@@ -865,10 +859,10 @@ function showModal(modalId) {
         document.body.style.overflow = 'hidden';
         
         // Focus on first input in modal
-        const firstInput = modal.querySelector('input, textarea, select');
-        if (firstInput) {
-            setTimeout(() => firstInput.focus(), 100);
-        }
+        setTimeout(() => {
+            const firstInput = modal.querySelector('input[type="text"], textarea');
+            if (firstInput) firstInput.focus();
+        }, 100);
     }
 }
 
@@ -880,103 +874,30 @@ function hideModal(modalId) {
     }
 }
 
-// Toast notification system
+// Toast notifications
 function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
-    
+    const toastContainer = document.getElementById('toastContainer') || document.body;
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
-        <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <div class="toast-content">
+            <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+            <span class="toast-message">${message}</span>
+        </div>
     `;
     
     toastContainer.appendChild(toast);
     
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
     // Auto remove after 5 seconds
     setTimeout(() => {
-        if (toast.parentElement) {
-            toast.remove();
-        }
-    }, 5000);
-    
-    // Animate in
-    setTimeout(() => toast.classList.add('show'), 10);
-}
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container';
-    container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    `;
-    document.body.appendChild(container);
-    return container;
-}
-
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    // ESC to close modals
-    if (e.key === 'Escape') {
-        const visibleModal = document.querySelector('.modal-overlay[style*="flex"]');
-        if (visibleModal) {
-            if (visibleModal.id === 'itemModalOverlay') {
-                closeItemModal();
-            } else if (visibleModal.id === 'deleteModalOverlay') {
-                closeDeleteModal();
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
             }
-        }
-    }
-    
-    // Ctrl/Cmd + N for new item
-    if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !e.target.matches('input, textarea')) {
-        e.preventDefault();
-        openAddItemModal();
-    }
-});
-
-// Window resize handler for responsive layout
-let resizeTimeout;
-window.addEventListener('resize', function() {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-        applyFiltersAndPagination();
-    }, 250);
-});
-
-// Online/offline status handling
-window.addEventListener('online', function() {
-    showToast('Connection restored', 'success');
-    loadItems();
-});
-
-window.addEventListener('offline', function() {
-    showToast('You are offline. Some features may not work.', 'warning');
-});
-
-// Visibility change handling (for PWA)
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && items.length === 0) {
-        loadItems();
-    }
-});
-
-// Export for debugging
-window.itemsManagement = {
-    loadItems,
-    items,
-    filteredItems,
-    currentPage,
-    toggleItemVisibility,
-    populateForm,
-    resetForm
-};
-
-console.log('✅ Items Management Script loaded successfully');
+        }, 300);
+    }, 5000);
+}
