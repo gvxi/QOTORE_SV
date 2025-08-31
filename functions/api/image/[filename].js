@@ -1,7 +1,7 @@
-// functions/api/image/[filename].js - Serve images from Supabase Storage
+// functions/api/image/[filename].js - FIXED with shorter cache for admin updates
 export async function onRequestGet(context) {
   try {
-    const { env, params } = context;
+    const { env, params, request } = context;
     const filename = params.filename;
     
     // Get Supabase credentials
@@ -40,11 +40,22 @@ export async function onRequestGet(context) {
     // Return the image with proper headers
     const imageBuffer = await imageResponse.arrayBuffer();
     
+    // FIXED: Check if request has cache-busting parameter (from admin)
+    const url = new URL(request.url);
+    const hasCacheBuster = url.searchParams.has('v');
+    
+    // Use shorter cache for admin requests with cache busters
+    const cacheControl = hasCacheBuster ? 
+      'public, max-age=300' :        // 5 minutes for admin updates
+      'public, max-age=86400';       // 24 hours for normal requests
+    
     return new Response(imageBuffer, {
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
-        'Access-Control-Allow-Origin': '*'
+        'Cache-Control': cacheControl,
+        'Access-Control-Allow-Origin': '*',
+        'ETag': `"${filename}-${Date.now()}"`, // Add ETag for better cache control
+        'Last-Modified': new Date().toUTCString()
       }
     });
 

@@ -269,6 +269,9 @@ function renderItems(pageItems) {
 function renderDesktopItems(pageItems) {
     const itemsList = document.getElementById('itemsList');
     
+    // Add cache buster timestamp for images
+    const cacheBuster = Date.now();
+    
     itemsList.innerHTML = `
         <table class="items-table">
             <thead>
@@ -286,7 +289,7 @@ function renderDesktopItems(pageItems) {
                         <td>
                             <div class="item-image">
                                 ${item.image_path ? 
-                                    `<img src="/api/image/${item.image_path}" alt="${item.name}" loading="lazy">` :
+                                    `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
                                     '<div class="no-image">No Image</div>'
                                 }
                             </div>
@@ -328,16 +331,19 @@ function renderDesktopItems(pageItems) {
 function renderMobileItems(pageItems) {
     const itemsList = document.getElementById('itemsList');
     
-    const cards = pageItems.map(item => createItemCard(item)).join('');
+    // Add cache buster timestamp for images
+    const cacheBuster = Date.now();
+    
+    const cards = pageItems.map(item => createItemCard(item, cacheBuster)).join('');
     itemsList.innerHTML = `<div class="items-grid mobile">${cards}</div>`;
 }
 
-function createItemCard(item) {
+function createItemCard(item, cacheBuster = Date.now()) {
     const card = `
         <div class="item-card ${item.hidden ? 'hidden-item' : ''}">
             <div class="item-image">
                 ${item.image_path ? 
-                    `<img src="/api/image/${item.image_path}" alt="${item.name}" loading="lazy">` :
+                    `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
                     '<div class="no-image">No Image</div>'
                 }
             </div>
@@ -584,7 +590,8 @@ function populateForm(item) {
         const imageInput = document.getElementById('itemImage');
         
         if (imagePreview && previewImg) {
-            previewImg.src = `/api/image/${item.image_path}`;
+            // Add cache buster for edit form images too
+            previewImg.src = `/api/image/${item.image_path}?v=${Date.now()}`;
             imagePreview.style.display = 'block';
             if (imageInput) imageInput.required = false; // Don't require new image for edit
         }
@@ -633,7 +640,7 @@ function deleteItem(itemId) {
     
     // Populate delete preview
     const preview = document.getElementById('deleteItemPreview');
-    const imageUrl = item.image_path ? `/api/image/${item.image_path}` : null;
+    const imageUrl = item.image_path ? `/api/image/${item.image_path}?v=${Date.now()}` : null;
     
     preview.innerHTML = `
         <div class="item-info">
@@ -900,7 +907,21 @@ async function handleFormSubmit(e) {
         if (result.success) {
             showToast(`Item ${currentEditingId ? 'updated' : 'created'} successfully`, 'success');
             closeItemModal();
-            loadItems(); // Reload items to reflect changes
+            
+            // Force reload items to get fresh data and bust image cache
+            await loadItems();
+            
+            // If this was an update with new image, force refresh all images
+            if (currentEditingId && imagePath) {
+                console.log('🖼️ Forcing image cache refresh after update');
+                setTimeout(() => {
+                    // Force reload all images by updating their src with cache buster
+                    document.querySelectorAll('img[src*="/api/image/"]').forEach(img => {
+                        const originalSrc = img.src.split('?')[0]; // Remove existing cache buster
+                        img.src = `${originalSrc}?v=${Date.now()}`;
+                    });
+                }, 500);
+            }
         } else {
             throw new Error(result.error || 'Failed to save item');
         }
