@@ -312,7 +312,7 @@ function renderDesktopItems(pageItems) {
                             <div class="table-actions">
                                 <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
                                 <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                                        onclick="toggleItemVisibility('${item.id}', ${!item.hidden})">
+                                        onclick="toggleItemVisibility('${item.id}', ${item.hidden})">
                                     ${item.hidden ? 'Show' : 'Hide'}
                                 </button>
                                 <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
@@ -354,7 +354,7 @@ function createItemCard(item) {
             <div class="card-actions">
                 <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
                 <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                        onclick="toggleItemVisibility('${item.id}', ${!item.hidden})">
+                        onclick="toggleItemVisibility('${item.id}', ${item.hidden})">
                     ${item.hidden ? 'Show' : 'Hide'}
                 </button>
                 <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
@@ -421,7 +421,26 @@ function changePage(page) {
 
 async function toggleItemVisibility(itemId, newVisibility) {
     try {
-        console.log('Toggle item visibility:', { itemId, newVisibility, shouldHide: !newVisibility });
+        console.log('🔄 Toggle item visibility called:', { 
+            itemId, 
+            newVisibility, 
+            willBeHidden: !newVisibility,
+            action: newVisibility ? 'SHOW item' : 'HIDE item'
+        });
+        
+        // Find current item to check its current state
+        const currentItem = items.find(item => item.id == itemId);
+        if (!currentItem) {
+            throw new Error('Item not found in local data');
+        }
+        
+        console.log('📋 Current item state:', {
+            id: currentItem.id,
+            name: currentItem.name,
+            currentlyHidden: currentItem.hidden,
+            newVisibility: newVisibility,
+            shouldSetHiddenTo: !newVisibility
+        });
         
         const response = await fetch('/admin/toggle-fragrance', {
             method: 'POST',
@@ -431,37 +450,47 @@ async function toggleItemVisibility(itemId, newVisibility) {
             credentials: 'include',
             body: JSON.stringify({
                 id: parseInt(itemId),
-                hidden: !newVisibility // if newVisibility is true (show), hidden should be false
+                hidden: !newVisibility // if newVisibility=true (show), hidden=false
             })
         });
         
-        console.log('Toggle response status:', response.status);
+        console.log('🌐 Toggle response status:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Toggle response error:', errorText);
+            console.error('❌ Toggle response error:', errorText);
             throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
-        console.log('Toggle response data:', result);
+        console.log('📨 Toggle response data:', result);
         
         if (result.success) {
-            // Update local data
+            // Update local data with the actual returned state
             const itemIndex = items.findIndex(item => item.id == itemId);
             if (itemIndex !== -1) {
-                items[itemIndex].hidden = !newVisibility;
-                console.log('Updated local item hidden status to:', items[itemIndex].hidden);
+                const oldHidden = items[itemIndex].hidden;
+                items[itemIndex].hidden = result.data.hidden; // Use server response
+                console.log('💾 Updated local item:', {
+                    id: itemId,
+                    oldHidden: oldHidden,
+                    newHidden: items[itemIndex].hidden,
+                    serverConfirmedHidden: result.data.hidden
+                });
             }
             
-            showToast(`Item ${newVisibility ? 'shown' : 'hidden'} successfully`, 'success');
+            // Show success message based on actual result
+            const actionPerformed = result.data.hidden ? 'hidden' : 'shown';
+            showToast(`Item ${actionPerformed} successfully`, 'success');
+            
+            // Force re-render to update button states and styling
             applyFiltersAndPagination();
         } else {
             throw new Error(result.error || 'Failed to update visibility');
         }
         
     } catch (error) {
-        console.error('Toggle visibility error:', error);
+        console.error('💥 Toggle visibility error:', error);
         showToast('Failed to update item visibility: ' + error.message, 'error');
     }
 }
