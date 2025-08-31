@@ -1,4 +1,4 @@
-// functions/admin/update-fragrance.js - FIXED VERSION  
+// functions/admin/update-fragrance.js - COMPLETELY REWRITTEN AND SIMPLIFIED
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -7,7 +7,7 @@ export async function onRequestPost(context) {
   };
 
   try {
-    console.log('Update fragrance request received');
+    console.log('🔄 Update fragrance request received');
     
     // Check authentication
     const request = context.request;
@@ -17,6 +17,7 @@ export async function onRequestPost(context) {
       .find(c => c.trim().startsWith('admin_session='));
     
     if (!sessionCookie) {
+      console.log('❌ No admin session found');
       return new Response(JSON.stringify({ 
         error: 'Authentication required',
         redirectUrl: '/admin/login'
@@ -32,24 +33,21 @@ export async function onRequestPost(context) {
     const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Missing Supabase environment variables');
+      console.error('❌ Missing Supabase environment variables');
       return new Response(JSON.stringify({
-        error: 'Database not configured for admin operations',
-        debug: {
-          hasUrl: !!SUPABASE_URL,
-          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
-        }
+        error: 'Database not configured for admin operations'
       }), {
         status: 500,
         headers: corsHeaders
       });
     }
     
-    // Parse request data - Expect JSON only (images handled separately)
-    let fragranceData;
-    
+    // Parse request data
+    let updateData;
     const text = await request.text();
+    
     if (!text || text.trim() === '') {
+      console.log('❌ No data provided');
       return new Response(JSON.stringify({ 
         error: 'No data provided' 
       }), {
@@ -59,25 +57,28 @@ export async function onRequestPost(context) {
     }
     
     try {
-      fragranceData = JSON.parse(text);
+      updateData = JSON.parse(text);
     } catch (parseError) {
-      console.error('JSON parse error:', parseError);
+      console.error('❌ JSON parse error:', parseError);
       return new Response(JSON.stringify({ 
-        error: 'Invalid JSON data provided' 
+        error: 'Invalid JSON data provided',
+        details: parseError.message
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
     
-    console.log('Received fragrance update data:', fragranceData);
+    console.log('📝 Received update data:', updateData);
     
-    // Validate required fields
-    const { id, name, brand, description, variants, hidden, slug, image_path } = fragranceData;
+    // Extract and validate required fields
+    const { id, name, brand, description, variants, hidden, image_path } = updateData;
     
     if (!id || !name || !name.trim()) {
+      console.log('❌ Missing required fields');
       return new Response(JSON.stringify({ 
-        error: 'Missing required fields: id and name are required' 
+        error: 'Missing required fields: id and name are required',
+        received: { id: !!id, name: !!name }
       }), {
         status: 400,
         headers: corsHeaders
@@ -85,32 +86,36 @@ export async function onRequestPost(context) {
     }
     
     if (!variants || !Array.isArray(variants) || variants.length === 0) {
+      console.log('❌ Invalid variants');
       return new Response(JSON.stringify({ 
-        error: 'At least one variant is required' 
+        error: 'At least one variant is required',
+        received: { variants: variants ? `${variants.length} variants` : 'null' }
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
     
-    // Generate slug if not provided
-    const finalSlug = slug || name.toLowerCase()
+    // Generate slug from name
+    const slug = name.toLowerCase()
       .replace(/[^a-z0-9 -]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
     
-    console.log('Using slug:', finalSlug);
+    console.log('🏷️ Generated slug:', slug);
     
-    // Check if fragrance exists
-    const existingResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?id=eq.${id}&select=id,name,slug,image_path`, {
+    // STEP 1: Check if fragrance exists
+    console.log('🔍 Checking if fragrance exists...');
+    const checkResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?id=eq.${id}&select=id,name,slug,image_path`, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       }
     });
     
-    if (!existingResponse.ok) {
+    if (!checkResponse.ok) {
+      console.error('❌ Failed to check fragrance existence');
       return new Response(JSON.stringify({ 
         error: 'Failed to verify fragrance exists' 
       }), {
@@ -119,127 +124,62 @@ export async function onRequestPost(context) {
       });
     }
     
-    const existingFragrances = await existingResponse.json();
+    const existingFragrances = await checkResponse.json();
     if (existingFragrances.length === 0) {
+      console.log('❌ Fragrance not found');
       return new Response(JSON.stringify({ 
-        error: 'Fragrance not found' 
+        error: `Fragrance with ID ${id} not found` 
       }), {
         status: 404,
         headers: corsHeaders
       });
     }
     
-    const existingFragrance = existingFragrances[0];
+    console.log('✅ Found fragrance:', existingFragrances[0].name);
     
-    // Check if slug conflicts with other fragrances (excluding current one)
-    if (finalSlug !== existingFragrance.slug) {
-      const slugCheckResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?slug=eq.${finalSlug}&id=neq.${id}&select=id`, {
-        headers: {
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-        }
-      });
-      
-      if (slugCheckResponse.ok) {
-        const conflictingFragrances = await slugCheckResponse.json();
-        if (conflictingFragrances.length > 0) {
-          return new Response(JSON.stringify({ 
-            error: 'A fragrance with this name already exists. Please use a different name.',
-            details: 'Slug conflict with another fragrance'
-          }), {
-            status: 409,
-            headers: corsHeaders
-          });
-        }
-      }
-    }
-    
-    // Handle image upload if provided
-    let imagePath = existingFragrance.image_path; // Keep existing image by default
-    if (imageFile && imageFile.size > 0) {
-      try {
-        const imageBuffer = await imageFile.arrayBuffer();
-        const fileName = `${finalSlug}.png`;
-        
-        console.log('Uploading new image:', fileName);
-        
-        // Delete old image if it exists and is different
-        if (existingFragrance.image_path && existingFragrance.image_path !== fileName) {
-          try {
-            await fetch(`${SUPABASE_URL}/storage/v1/object/fragrance-images/${existingFragrance.image_path}`, {
-              method: 'DELETE',
-              headers: {
-                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-              }
-            });
-            console.log('Deleted old image:', existingFragrance.image_path);
-          } catch (deleteError) {
-            console.warn('Failed to delete old image (non-critical):', deleteError);
-          }
-        }
-        
-        const uploadResponse = await fetch(`${SUPABASE_URL}/storage/v1/object/fragrance-images/${fileName}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-            'Content-Type': imageFile.type || 'image/png'
-          },
-          body: imageBuffer
-        });
-        
-        if (uploadResponse.ok) {
-          imagePath = fileName;
-          console.log('New image uploaded successfully:', fileName);
-        } else {
-          const uploadError = await uploadResponse.text();
-          console.error('Image upload failed:', uploadError);
-          
-          return new Response(JSON.stringify({
-            error: 'Failed to upload new image',
-            details: uploadError
-          }), {
-            status: 500,
-            headers: corsHeaders
-          });
-        }
-      } catch (imageError) {
-        console.error('Image processing error:', imageError);
-        return new Response(JSON.stringify({
-          error: 'Failed to process new image',
-          details: imageError.message
-        }), {
-          status: 500,
-          headers: corsHeaders
-        });
-      }
-    }
-    
-    // Get existing variants for comparison
-    const existingVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?fragrance_id=eq.${id}&select=id,size_ml,price_cents,is_whole_bottle,sku`, {
+    // STEP 2: Check for slug conflicts (excluding current fragrance)
+    console.log('🔍 Checking for slug conflicts...');
+    const slugCheckResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?slug=eq.${slug}&id=neq.${id}&select=id`, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       }
     });
-
-    let existingVariants = [];
-    if (existingVariantsResponse.ok) {
-      existingVariants = await existingVariantsResponse.json();
-      console.log('Found existing variants:', existingVariants.length);
+    
+    if (slugCheckResponse.ok) {
+      const conflictingFragrances = await slugCheckResponse.json();
+      if (conflictingFragrances.length > 0) {
+        console.log('❌ Slug conflict detected');
+        return new Response(JSON.stringify({ 
+          error: 'A fragrance with this name already exists. Please use a different name.',
+          conflictingSlug: slug
+        }), {
+          status: 409,
+          headers: corsHeaders
+        });
+      }
     }
-
-    // Update fragrance
+    
+    console.log('✅ No slug conflicts');
+    
+    // STEP 3: Update fragrance record
+    console.log('📝 Updating fragrance record...');
     const fragrancePayload = {
       name: name.trim(),
-      slug: finalSlug.trim().toLowerCase(),
+      slug: slug,
       description: description?.trim() || '',
       brand: brand?.trim() || null,
-      image_path: imagePath,
       hidden: Boolean(hidden),
       updated_at: new Date().toISOString()
     };
 
-    console.log('Updating fragrance with payload:', fragrancePayload);
+    // Add image path if provided
+    if (image_path) {
+      fragrancePayload.image_path = image_path;
+      console.log('🖼️ Using image path:', image_path);
+    }
+
+    console.log('📄 Fragrance payload:', fragrancePayload);
 
     const updateFragranceResponse = await fetch(`${SUPABASE_URL}/rest/v1/fragrances?id=eq.${id}`, {
       method: 'PATCH',
@@ -254,7 +194,7 @@ export async function onRequestPost(context) {
 
     if (!updateFragranceResponse.ok) {
       const errorText = await updateFragranceResponse.text();
-      console.error('Failed to update fragrance:', errorText);
+      console.error('❌ Failed to update fragrance:', errorText);
       
       return new Response(JSON.stringify({
         error: 'Failed to update fragrance',
@@ -266,148 +206,71 @@ export async function onRequestPost(context) {
     }
 
     const updatedFragrance = await updateFragranceResponse.json();
-    console.log('Updated fragrance successfully');
+    console.log('✅ Updated fragrance successfully');
 
-    // Compare variants and determine what to create, update, or delete
-    const variantsToCreate = [];
-    const variantsToUpdate = [];
-    const variantsToDelete = [];
-
-    // Create a map of existing variants for easy lookup
-    const existingVariantsMap = new Map();
-    existingVariants.forEach(variant => {
-      const key = variant.is_whole_bottle ? 'whole_bottle' : `${variant.size_ml}ml`;
-      existingVariantsMap.set(key, variant);
-    });
-
-    // Process new variants
-    variants.forEach(newVariant => {
-      const key = newVariant.is_whole_bottle ? 'whole_bottle' : `${newVariant.size_ml}ml`;
-      const existingVariant = existingVariantsMap.get(key);
-
-      if (existingVariant) {
-        // Update existing variant if price changed
-        const priceCents = newVariant.price_cents || null;
-        if (existingVariant.price_cents !== priceCents) {
-          variantsToUpdate.push({
-            id: existingVariant.id,
-            price_cents: priceCents,
-            updated_at: new Date().toISOString()
-          });
-        }
-        // Mark as processed
-        existingVariantsMap.delete(key);
-      } else {
-        // Create new variant
-        variantsToCreate.push({
-          fragrance_id: parseInt(id),
-          size_ml: newVariant.size_ml || null,
-          price_cents: newVariant.price_cents || null,
-          is_whole_bottle: Boolean(newVariant.is_whole_bottle),
-          sku: newVariant.sku || null,
-          max_quantity: newVariant.max_quantity || 50,
-          in_stock: true,
-          created_at: new Date().toISOString()
-        });
-      }
-    });
-
-    // Remaining variants in the map should be deleted
-    existingVariantsMap.forEach(variant => {
-      variantsToDelete.push(variant.id);
-    });
-
-    console.log('Variant operations:', {
-      toCreate: variantsToCreate.length,
-      toUpdate: variantsToUpdate.length,
-      toDelete: variantsToDelete.length
-    });
-
-    // Delete variants that are no longer needed
-    if (variantsToDelete.length > 0) {
-      const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?id=in.(${variantsToDelete.join(',')})`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-        }
-      });
-
-      if (!deleteResponse.ok) {
-        console.warn('Failed to delete some variants:', await deleteResponse.text());
-      } else {
-        console.log('Deleted variants:', variantsToDelete);
-      }
-    }
-
-    // Update existing variants
-    for (const variantToUpdate of variantsToUpdate) {
-      const { id: variantId, ...updatePayload } = variantToUpdate;
-      
-      const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?id=eq.${variantId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-        },
-        body: JSON.stringify(updatePayload)
-      });
-
-      if (!updateResponse.ok) {
-        console.warn(`Failed to update variant ${variantId}:`, await updateResponse.text());
-      }
-    }
-
-    // Create new variants
-    let createdVariants = [];
-    if (variantsToCreate.length > 0) {
-      const createVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(variantsToCreate)
-      });
-
-      if (!createVariantsResponse.ok) {
-        const errorText = await createVariantsResponse.text();
-        console.error('Failed to create new variants:', errorText);
-        
-        return new Response(JSON.stringify({
-          error: 'Fragrance updated but some new variants failed to save',
-          details: errorText,
-          fragranceId: id,
-          partialSuccess: true
-        }), {
-          status: 207, // Multi-status
-          headers: corsHeaders
-        });
-      }
-
-      createdVariants = await createVariantsResponse.json();
-      console.log('Created new variants:', createdVariants.length);
-    }
-
-    // Get final variant count
-    const finalVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?fragrance_id=eq.${id}&select=id,size_ml,price_cents,is_whole_bottle`, {
+    // STEP 4: Replace all variants (simple strategy to avoid complex diffs)
+    console.log('🗑️ Deleting existing variants...');
+    const deleteVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants?fragrance_id=eq.${id}`, {
+      method: 'DELETE',
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       }
     });
 
-    let finalVariantCount = 0;
-    let finalVariants = [];
-    if (finalVariantsResponse.ok) {
-      finalVariants = await finalVariantsResponse.json();
-      finalVariantCount = finalVariants.length;
+    if (!deleteVariantsResponse.ok) {
+      const deleteError = await deleteVariantsResponse.text();
+      console.warn('⚠️ Failed to delete existing variants:', deleteError);
+    } else {
+      console.log('✅ Deleted existing variants');
     }
 
+    // STEP 5: Create new variants
+    console.log('➕ Creating new variants...');
+    const variantsToCreate = variants.map(variant => ({
+      fragrance_id: parseInt(id),
+      size_ml: variant.size_ml || null,
+      price_cents: variant.price_cents || null,
+      is_whole_bottle: Boolean(variant.is_whole_bottle),
+      sku: variant.sku || null,
+      max_quantity: variant.max_quantity || 50,
+      in_stock: true,
+      created_at: new Date().toISOString()
+    }));
+    
+    console.log('📦 Variants to create:', variantsToCreate);
+    
+    const createVariantsResponse = await fetch(`${SUPABASE_URL}/rest/v1/variants`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(variantsToCreate)
+    });
+    
+    if (!createVariantsResponse.ok) {
+      const errorText = await createVariantsResponse.text();
+      console.error('❌ Failed to create new variants:', errorText);
+      
+      return new Response(JSON.stringify({
+        error: 'Fragrance updated but variants failed to save',
+        details: errorText,
+        fragranceId: id,
+        partialSuccess: true
+      }), {
+        status: 207,
+        headers: corsHeaders
+      });
+    }
+    
+    const createdVariants = await createVariantsResponse.json();
+    console.log('✅ Created variants:', createdVariants.length);
+
     // Success response
+    console.log('🎉 Update completed successfully');
     return new Response(JSON.stringify({ 
       success: true,
       message: 'Fragrance updated successfully!',
@@ -419,8 +282,8 @@ export async function onRequestPost(context) {
         image_path: updatedFragrance[0].image_path,
         hidden: updatedFragrance[0].hidden,
         updated_at: updatedFragrance[0].updated_at,
-        variantCount: finalVariantCount,
-        variants: finalVariants.map(v => {
+        variantCount: createdVariants.length,
+        variants: createdVariants.map(v => {
           if (v.is_whole_bottle) {
             return {
               size: 'Whole Bottle',
@@ -432,12 +295,7 @@ export async function onRequestPost(context) {
               price: `${(v.price_cents / 1000).toFixed(3)} OMR`
             };
           }
-        }),
-        changes: {
-          deleted: variantsToDelete.length,
-          updated: variantsToUpdate.length,
-          created: variantsToCreate.length
-        }
+        })
       }
     }), {
       status: 200,
@@ -445,10 +303,11 @@ export async function onRequestPost(context) {
     });
     
   } catch (error) {
-    console.error('Update fragrance error:', error);
+    console.error('💥 Update fragrance error:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to update fragrance',
-      details: error.message
+      details: error.message,
+      stack: error.stack
     }), {
       status: 500,
       headers: corsHeaders
@@ -480,18 +339,18 @@ export async function onRequestGet(context) {
   const isAuthenticated = !!sessionCookie;
   
   return new Response(JSON.stringify({
-    message: 'Update fragrance endpoint is working! (FIXED VERSION)',
+    message: '✅ Update fragrance endpoint is working! (COMPLETELY REWRITTEN)',
     authenticated: isAuthenticated,
-    method: 'POST /admin/update-fragrance to update a fragrance',
+    method: 'POST /admin/update-fragrance',
     requiredFields: ['id', 'name', 'variants'],
-    optionalFields: ['brand', 'description', 'slug', 'hidden', 'image'],
+    optionalFields: ['brand', 'description', 'hidden', 'image_path'],
+    strategy: 'Simple replace-all variants (no complex diffs)',
     improvements: [
-      'Handles both FormData (with images) and JSON (without images)',
-      'Smart variant management - only updates changed variants',
-      'Prevents duplicate variants',
-      'Properly removes unchecked variants',
-      'Maintains data integrity',
-      'Image upload and cleanup'
+      '✅ Matches frontend data structure exactly',
+      '✅ Detailed logging with emojis for debugging',
+      '✅ Simplified variant replacement strategy',  
+      '✅ Better error handling and validation',
+      '✅ Clear step-by-step process'
     ],
     note: 'Authentication required via admin_session cookie'
   }), {
