@@ -130,11 +130,11 @@
                     </svg>
                     Items Management
                 </h2>
-                <button class="nav-btn" onclick="openAddItemModal()" title="Add New Item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <button class="btn-primary add-item-btn" onclick="openAddItemModal()" title="Add New Item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                     </svg>
-                    <span>Add Item</span>
+                    <span>Add New Item</span>
                 </button>
             </div>
 
@@ -234,86 +234,180 @@
             
             <form id="itemForm" enctype="multipart/form-data">
                 <div class="modal-body">
-                    <div class="form-row">
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">Basic Information</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="itemName">Item Name <span class="required">*</span></label>
+                                <input type="text" id="itemName" name="name" required oninput="updatePreviews()" placeholder="Enter item name">
+                                <div class="form-help">This will be the display name for your fragrance</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="itemBrand">Brand</label>
+                                <input type="text" id="itemBrand" name="brand" placeholder="Enter brand name">
+                                <div class="form-help">Optional brand information</div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
-                            <label for="itemName">Item Name *</label>
-                            <input type="text" id="itemName" name="name" required oninput="updatePreviews()">
+                            <label for="itemDescription">Description</label>
+                            <textarea id="itemDescription" name="description" rows="4" placeholder="Describe the fragrance notes, characteristics, or any special information..."></textarea>
+                            <div class="form-help">Detailed description to help customers understand the fragrance</div>
                         </div>
+                    </div>
+
+                    <!-- Image Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">Product Image</h4>
                         <div class="form-group">
-                            <label for="itemBrand">Brand</label>
-                            <input type="text" id="itemBrand" name="brand">
+                            <label for="itemImage">Item Image <span class="required">*</span></label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="itemImage" name="image" accept=".png" required>
+                                <div class="file-input-overlay">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                                    </svg>
+                                    <span>Choose PNG Image</span>
+                                </div>
+                            </div>
+                            <div class="form-help">Only PNG images are accepted. Recommended size: 500x500px</div>
+                            <div class="image-preview" id="imagePreview" style="display: none;">
+                                <div class="preview-container">
+                                    <img id="previewImg" alt="Preview">
+                                    <button type="button" class="remove-image-btn" onclick="removeImagePreview()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="itemDescription">Description</label>
-                        <textarea id="itemDescription" name="description" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="itemImage">Item Image (PNG only) *</label>
-                        <input type="file" id="itemImage" name="image" accept=".png" required>
-                        <div class="image-preview" id="imagePreview" style="display: none;">
-                            <img id="previewImg" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-                            <button type="button" onclick="removeImagePreview()">Remove</button>
-                        </div>
-                    </div>
-
-                    <div class="variants-section">
-                        <h4>Available Variants</h4>
+                    <!-- Variants Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">Available Variants</h4>
+                        <div class="form-help section-help">Select which sizes you want to offer and set their prices</div>
                         <div class="variants-grid">
-                            <div class="variant-option">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="enable5ml">
-                                    <span class="checkmark"></span>
-                                    5ml Sample
-                                </label>
-                                <input type="number" id="price5ml" placeholder="Price in OMR" step="0.001" min="0" disabled>
+                            <div class="variant-card">
+                                <div class="variant-header">
+                                    <label class="variant-toggle">
+                                        <input type="checkbox" id="enable5ml">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <div class="variant-info">
+                                        <h5>5ml Sample</h5>
+                                        <p>Small testing size</p>
+                                    </div>
+                                </div>
+                                <div class="variant-price">
+                                    <input type="number" id="price5ml" placeholder="0.000" step="0.001" min="0" disabled>
+                                    <span class="currency">OMR</span>
+                                </div>
                             </div>
-                            <div class="variant-option">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="enable10ml">
-                                    <span class="checkmark"></span>
-                                    10ml Sample
-                                </label>
-                                <input type="number" id="price10ml" placeholder="Price in OMR" step="0.001" min="0" disabled>
+
+                            <div class="variant-card">
+                                <div class="variant-header">
+                                    <label class="variant-toggle">
+                                        <input type="checkbox" id="enable10ml">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <div class="variant-info">
+                                        <h5>10ml Sample</h5>
+                                        <p>Medium testing size</p>
+                                    </div>
+                                </div>
+                                <div class="variant-price">
+                                    <input type="number" id="price10ml" placeholder="0.000" step="0.001" min="0" disabled>
+                                    <span class="currency">OMR</span>
+                                </div>
                             </div>
-                            <div class="variant-option">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="enable30ml">
-                                    <span class="checkmark"></span>
-                                    30ml Sample
-                                </label>
-                                <input type="number" id="price30ml" placeholder="Price in OMR" step="0.001" min="0" disabled>
+
+                            <div class="variant-card">
+                                <div class="variant-header">
+                                    <label class="variant-toggle">
+                                        <input type="checkbox" id="enable30ml">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <div class="variant-info">
+                                        <h5>30ml Sample</h5>
+                                        <p>Large testing size</p>
+                                    </div>
+                                </div>
+                                <div class="variant-price">
+                                    <input type="number" id="price30ml" placeholder="0.000" step="0.001" min="0" disabled>
+                                    <span class="currency">OMR</span>
+                                </div>
                             </div>
-                            <div class="variant-option">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="enableFullBottle">
-                                    <span class="checkmark"></span>
-                                    Full Bottle (Contact for pricing)
-                                </label>
+
+                            <div class="variant-card full-bottle">
+                                <div class="variant-header">
+                                    <label class="variant-toggle">
+                                        <input type="checkbox" id="enableFullBottle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <div class="variant-info">
+                                        <h5>Full Bottle</h5>
+                                        <p>Contact for pricing</p>
+                                    </div>
+                                </div>
+                                <div class="variant-price">
+                                    <div class="contact-pricing">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                                        </svg>
+                                        Call for Price
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="itemHidden">
-                            <span class="checkmark"></span>
-                            Hide from store (item will not be visible to customers)
-                        </label>
+                    <!-- Settings Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">Item Settings</h4>
+                        <div class="settings-group">
+                            <label class="setting-toggle">
+                                <input type="checkbox" id="itemHidden">
+                                <div class="toggle-container">
+                                    <span class="toggle-slider"></span>
+                                </div>
+                                <div class="setting-info">
+                                    <h5>Hide from Store</h5>
+                                    <p>Item will not be visible to customers when enabled</p>
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
-                    <div class="preview-section">
-                        <h4>Preview Information</h4>
-                        <p><strong>URL Slug:</strong> <span id="slugPreview">creed-aventus</span></p>
-                        <p><strong>Image Name:</strong> <span id="imageNamePreview">creed-aventus.png</span></p>
+                    <!-- Preview Section -->
+                    <div class="form-section preview-section">
+                        <h4 class="section-title">Preview Information</h4>
+                        <div class="preview-grid">
+                            <div class="preview-item">
+                                <label>URL Slug:</label>
+                                <span id="slugPreview">creed-aventus</span>
+                            </div>
+                            <div class="preview-item">
+                                <label>Image Name:</label>
+                                <span id="imageNamePreview">creed-aventus.png</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" onclick="closeItemModal()" class="btn-secondary">Cancel</button>
+                    <button type="button" onclick="closeItemModal()" class="btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                        Cancel
+                    </button>
                     <button type="submit" id="saveItemBtn" class="btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                        </svg>
                         <span id="saveButtonText">Save Item</span>
                     </button>
                 </div>
