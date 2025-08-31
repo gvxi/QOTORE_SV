@@ -3,302 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Items Management - Qotore Admin</title>
-    
-    <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-    
-    <!-- PWA Theme -->
-    <meta name="theme-color" content="#8B4513">
-    <meta name="msapplication-TileColor" content="#8B4513">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Qotore Admin">
-    
-    <!-- Meta Tags -->
-    <meta property="og:title" content="Qotore Admin - Items Management">
-    <meta property="og:description" content="Manage your fragrance store items">
-    <meta property="og:image" content="/icons/icon-512x512.png">
-    <meta property="og:url" content="/admin/items-management">
-    <meta property="og:type" content="website">
-    
+    <title>Items Management - QOTORE Admin</title>
     <link rel="stylesheet" href="items-management-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>Qotore Items</span>
-            </div>
-            <div class="nav-buttons">
-                <button class="nav-btn" onclick="refreshData()" id="refreshBtn" title="Refresh Data">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                    </svg>
-                    <span>Refresh</span>
-                </button>
-                <a href="index.html" class="nav-btn" title="View Orders">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
-                    </svg>
-                    <span>Orders</span>
-                </a>
-                <a href="../index.html" target="_blank" class="nav-btn" title="View Store">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                    <span>Store</span>
-                </a>
-                <a href="../login.html" class="nav-btn" title="Logout">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M16 13v-2H7V8l-5 4 5 4v-3z"/>
-                        <path d="M20 3h-9c-1.103 0-2 .897-2 2v4h2V5h9v14h-9v-4H9v4c0 1.103.897 2 2 2h9c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2z"/>
-                    </svg>
-                    <span>Logout</span>
-                </a>
-            </div>
+    <!-- Navigation -->
+    <nav class="admin-nav">
+        <div class="nav-brand">
+            <h2>QOTORE Admin</h2>
         </div>
-    </header>
+        <div class="nav-links">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="items-management.html" class="active">Items</a>
+            <a href="index.html">Orders</a>
+            <a href="../index.html" target="_blank">View Store</a>
+            <a href="../login.html" class="logout-btn">Logout</a>
+        </div>
+    </nav>
 
     <!-- Main Content -->
-    <main class="main-content">
-        <!-- Dashboard Stats -->
-        <div class="dashboard-stats">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-boxes"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalItems">0</div>
-                    <div class="stat-label">Total Items</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-eye"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="visibleItems">0</div>
-                    <div class="stat-label">Visible Items</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-eye-slash"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="hiddenItems">0</div>
-                    <div class="stat-label">Hidden Items</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Items Section -->
-        <div class="items-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-spray-can"></i>
-                    Items Management
-                </h2>
+    <main class="admin-main">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="header-content">
+                <h1>Items Management</h1>
                 <button class="btn-primary" onclick="openAddItemModal()">
-                    <i class="fas fa-plus"></i>
-                    Add New Item
+                    <i class="fas fa-plus"></i> Add New Item
                 </button>
             </div>
+        </div>
 
-            <!-- Controls -->
-            <div class="controls">
-                <div class="search-container">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Search items by name, brand, or description...">
-                    <i class="fas fa-search search-icon"></i>
-                </div>
-                <select id="statusFilter" class="filter-select">
-                    <option value="all">All Items</option>
-                    <option value="visible">Visible Only</option>
-                    <option value="hidden">Hidden Only</option>
-                </select>
+        <!-- Stats Cards -->
+        <div class="stats-container" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Total Items</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Visible</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Hidden</div>
+            </div>
+        </div>
 
-            <!-- Loading Spinner -->
-            <div class="loading-spinner" id="loadingSpinner" style="display: none;">
-                <div class="spinner"></div>
-                <p>Loading items...</p>
+        <!-- Filters and Search -->
+        <div class="filters-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search items..." class="search-input">
+                <i class="fas fa-search search-icon"></i>
             </div>
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Items</option>
+                <option value="visible">Visible Only</option>
+                <option value="hidden">Hidden Only</option>
+            </select>
+        </div>
 
-            <!-- Items List -->
-            <div class="items-container">
-                <div id="itemsList">
-                    <!-- Items will be populated by JavaScript -->
-                </div>
-            </div>
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading items...</p>
+        </div>
 
-            <!-- Pagination -->
-            <div class="pagination-container" id="paginationContainer">
-                <!-- Pagination will be populated by JavaScript -->
+        <!-- Items List -->
+        <div class="items-container">
+            <div id="itemsList">
+                <!-- Items will be populated by JavaScript -->
             </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container" id="paginationContainer">
+            <!-- Pagination will be populated by JavaScript -->
         </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Contact Us</h3>
-                <div class="social-links">
-                    <a href="https://instagram.com/qotore" target="_blank" class="social-link instagram">
-                        <i class="fab fa-instagram"></i>
-                        Instagram
-                    </a>
-                    <a href="https://snapchat.com/add/qotore" target="_blank" class="social-link snapchat">
-                        <i class="fab fa-snapchat-ghost"></i>
-                        Snapchat
-                    </a>
-                    <a href="https://wa.me/96812345678" target="_blank" class="social-link whatsapp">
-                        <i class="fab fa-whatsapp"></i>
-                        WhatsApp
-                    </a>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h3>Admin Portal</h3>
-                <div class="footer-links">
-                    <a href="index.html">Orders Dashboard</a>
-                    <a href="items-management.html">Items Management</a>
-                    <a href="../index.html" target="_blank">View Store</a>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h3>Qotore</h3>
-                <p>Premium Fragrances</p>
-                <p>© 2025 Qotore. All rights reserved.</p>
-                <p>Admin Dashboard v1.0</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/96812345678" target="_blank" class="whatsapp-float" title="Contact Support on WhatsApp">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
-        </svg>
-    </a>
 
     <!-- Add/Edit Item Modal -->
     <div class="modal-overlay" id="itemModalOverlay" style="display: none;">
         <div class="modal-content large">
             <div class="modal-header">
                 <h3 id="itemModalTitle">Add New Item</h3>
-                <button class="modal-close" onclick="closeItemModal()">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="modal-close" onclick="closeItemModal()">×</button>
             </div>
             <div class="modal-body">
-                <form id="itemForm">
-                    <div class="form-grid">
+                <form id="itemForm" enctype="multipart/form-data">
+                    <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label" for="itemName">Item Name *</label>
-                            <input type="text" id="itemName" class="form-input" required placeholder="e.g. Creed Aventus">
+                            <label for="itemName">Item Name *</label>
+                            <input type="text" id="itemName" name="name" required 
+                                   placeholder="e.g., Creed Aventus">
+                            <div class="field-info">URL will be: <span id="slugPreview">creed-aventus</span></div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="itemBrand">Brand</label>
-                            <input type="text" id="itemBrand" class="form-input" placeholder="e.g. Creed">
+                            <label for="itemBrand">Brand *</label>
+                            <input type="text" id="itemBrand" name="brand" required 
+                                   placeholder="e.g., Creed">
                         </div>
-                        <div class="form-group full-width">
-                            <label class="form-label" for="itemDescription">Description</label>
-                            <textarea id="itemDescription" class="form-textarea" placeholder="Describe the fragrance..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="itemDescription">Description *</label>
+                        <textarea id="itemDescription" name="description" required rows="3"
+                                  placeholder="Describe the fragrance notes, character, and appeal..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="itemImage">Product Image (.png only) *</label>
+                        <input type="file" id="itemImage" name="image" accept=".png" required>
+                        <div class="file-info">
+                            Only PNG files are accepted. Image will be saved as: <span id="imageNamePreview">creed-aventus.png</span>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label" for="itemImage">Product Image</label>
-                            <input type="file" id="itemImage" class="form-input" accept="image/*">
-                            <div class="image-preview" id="imagePreview"></div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Generated Slug</label>
-                            <div class="form-input" style="background: #f8f9fa; color: #6c757d;">
-                                <span id="slugPreview">will-be-generated</span>
-                            </div>
+                        <div id="imagePreview" class="image-preview" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview">
+                            <button type="button" class="remove-image" onclick="removeImagePreview()">×</button>
                         </div>
                     </div>
 
-                    <!-- Variants Section -->
+                    <!-- FIXED: Improved Variants Section with Checkboxes -->
                     <div class="variants-section">
-                        <h4 class="variants-title">
-                            <i class="fas fa-layer-group"></i>
-                            Available Variants
-                        </h4>
+                        <h4>Available Variants & Pricing</h4>
+                        <p class="section-help">Select which variants to offer and set their prices in OMR (Omani Rial)</p>
+                        
                         <div class="variants-grid">
-                            <div class="variant-option" id="variant5ml">
-                                <div class="variant-checkbox">
-                                    <input type="checkbox" id="enable5ml" name="variants" value="5">
-                                    <label class="variant-label" for="enable5ml">5ml Sample</label>
+                            <div class="variant-item">
+                                <div class="variant-header">
+                                    <label class="variant-toggle-label">
+                                        <input type="checkbox" id="enable5ml" name="enable5ml">
+                                        <span class="checkmark"></span>
+                                        <span class="variant-label">5ml Sample</span>
+                                    </label>
                                 </div>
-                                <input type="number" id="price5ml" class="price-input" placeholder="Price in OMR" step="0.001" disabled>
-                            </div>
-                            <div class="variant-option" id="variant10ml">
-                                <div class="variant-checkbox">
-                                    <input type="checkbox" id="enable10ml" name="variants" value="10">
-                                    <label class="variant-label" for="enable10ml">10ml Sample</label>
+                                <div class="variant-price">
+                                    <label for="price5ml">Price (OMR)</label>
+                                    <input type="number" id="price5ml" name="price5ml" step="0.001" min="0" 
+                                           placeholder="2.500" disabled>
                                 </div>
-                                <input type="number" id="price10ml" class="price-input" placeholder="Price in OMR" step="0.001" disabled>
                             </div>
-                            <div class="variant-option" id="variant30ml">
-                                <div class="variant-checkbox">
-                                    <input type="checkbox" id="enable30ml" name="variants" value="30">
-                                    <label class="variant-label" for="enable30ml">30ml Sample</label>
+                            
+                            <div class="variant-item">
+                                <div class="variant-header">
+                                    <label class="variant-toggle-label">
+                                        <input type="checkbox" id="enable10ml" name="enable10ml">
+                                        <span class="checkmark"></span>
+                                        <span class="variant-label">10ml Sample</span>
+                                    </label>
                                 </div>
-                                <input type="number" id="price30ml" class="price-input" placeholder="Price in OMR" step="0.001" disabled>
+                                <div class="variant-price">
+                                    <label for="price10ml">Price (OMR)</label>
+                                    <input type="number" id="price10ml" name="price10ml" step="0.001" min="0" 
+                                           placeholder="4.500" disabled>
+                                </div>
                             </div>
-                            <div class="variant-option" id="variantFull">
-                                <div class="variant-checkbox">
-                                    <input type="checkbox" id="enableFull" name="variants" value="full">
-                                    <label class="variant-label" for="enableFull">Full Bottle (Contact for Price)</label>
+                            
+                            <div class="variant-item">
+                                <div class="variant-header">
+                                    <label class="variant-toggle-label">
+                                        <input type="checkbox" id="enable30ml" name="enable30ml">
+                                        <span class="checkmark"></span>
+                                        <span class="variant-label">30ml Sample</span>
+                                    </label>
+                                </div>
+                                <div class="variant-price">
+                                    <label for="price30ml">Price (OMR)</label>
+                                    <input type="number" id="price30ml" name="price30ml" step="0.001" min="0" 
+                                           placeholder="12.000" disabled>
+                                </div>
+                            </div>
+                            
+                            <div class="variant-item full-bottle">
+                                <div class="variant-header">
+                                    <label class="variant-toggle-label">
+                                        <input type="checkbox" id="enableFullBottle" name="enableFullBottle">
+                                        <span class="checkmark"></span>
+                                        <span class="variant-label">
+                                            <span class="variant-name">Full Bottle</span>
+                                            <span class="variant-note">Contact for pricing</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="variant-price">
+                                    <span class="contact-note">Customers will contact you directly for pricing</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="closeItemModal()">Cancel</button>
-                        <button type="submit" class="btn-primary" id="submitBtn">
-                            <i class="fas fa-save"></i>
-                            <span id="submitText">Add Item</span>
-                        </button>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="itemHidden" name="hidden">
+                            <span class="checkmark"></span>
+                            Hide from public view
+                        </label>
+                        <div class="field-help">Hidden items won't appear in the store but can be managed here</div>
                     </div>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeItemModal()">Cancel</button>
+                <button type="button" class="btn-primary" id="saveItemBtn" onclick="saveItem()">
+                    <span id="saveButtonText">Save Item</span>
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
     <div class="modal-overlay" id="deleteModalOverlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content small">
             <div class="modal-header">
-                <h3>Confirm Delete</h3>
-                <button class="modal-close" onclick="closeDeleteModal()">
-                    <i class="fas fa-times"></i>
-                </button>
+                <h3>Delete Item</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">×</button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this item? This action cannot be undone.</p>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                    <button type="button" class="btn-delete" onclick="confirmDelete()">
-                        <i class="fas fa-trash"></i>
-                        Delete Item
-                    </button>
+                <p>Are you sure you want to delete this item? This action cannot be undone and will remove all associated data.</p>
+                <div class="item-preview" id="deleteItemPreview">
+                    <!-- Will be populated with item details -->
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn-delete" onclick="confirmDelete()">Delete Item</button>
             </div>
         </div>
     </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Contact Footer -->
+    <footer class="contact-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <div class="contact-links">
+                    <a href="https://instagram.com/qotore_oman" target="_blank" class="contact-link">
+                        <i class="fab fa-instagram"></i> Instagram
+                    </a>
+                    <a href="https://snapchat.com/add/qotore_oman" target="_blank" class="contact-link">
+                        <i class="fab fa-snapchat"></i> Snapchat
+                    </a>
+                    <a href="https://wa.me/96812345678" target="_blank" class="contact-link">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/96812345678" class="whatsapp-float" target="_blank" aria-label="Contact us on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
     <script src="items-management-script.js"></script>
 </body>
