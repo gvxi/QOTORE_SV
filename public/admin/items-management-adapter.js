@@ -1,317 +1,418 @@
-// Items Management Script Adapter - Updates existing functions for new design
-// This script works alongside the existing items-management-script.js
+// Items Management Adapter - Routes new design functions to existing script
+// This adapter bridges the new orders-style design with the existing items-management-script.js functionality
 
-// Update the existing functions to work with new HTML structure
+// Global variables for adapter state management
+let refreshTimeout = null;
+
+// Initialize adapter when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Override the renderItems function to work with new structure
-    const originalRenderItems = window.renderItems;
-    if (originalRenderItems) {
-        window.renderItems = function(pageItems) {
-            const itemsContent = document.getElementById('itemsContent');
-            const emptyState = document.getElementById('emptyState');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            
-            // Hide loading
-            if (loadingSpinner) loadingSpinner.style.display = 'none';
-            
-            if (!pageItems || pageItems.length === 0) {
-                if (itemsContent) itemsContent.style.display = 'none';
-                if (emptyState) emptyState.style.display = 'block';
-                return;
-            }
-            
-            if (emptyState) emptyState.style.display = 'none';
-            if (itemsContent) itemsContent.style.display = 'block';
-            
-            const isMobile = window.innerWidth <= 768;
-            
-            if (isMobile) {
-                renderMobileItems(pageItems);
-            } else {
-                renderDesktopItems(pageItems);
-            }
-            
-            updatePagination();
-        };
-    }
-    
-    // Update stats display to work with new structure
-    const originalUpdateStats = window.updateStats;
-    if (originalUpdateStats) {
-        window.updateStats = function() {
-            if (!items || items.length === 0) return;
-            
-            const totalItems = items.length;
-            const visibleItems = items.filter(item => !item.hidden).length;
-            const hiddenItems = items.filter(item => item.hidden).length;
-            
-            // Update stats using new class structure
-            const statCards = document.querySelectorAll('.stat-card');
-            if (statCards.length >= 3) {
-                const totalStat = statCards[0].querySelector('.stat-number');
-                const visibleStat = statCards[1].querySelector('.stat-number');
-                const hiddenStat = statCards[2].querySelector('.stat-number');
-                
-                if (totalStat) totalStat.textContent = totalItems;
-                if (visibleStat) visibleStat.textContent = visibleItems;
-                if (hiddenStat) hiddenStat.textContent = hiddenItems;
-            }
-        };
-    }
-    
-    // Add refresh functionality
-    window.refreshData = async function() {
-        const refreshBtn = document.getElementById('refreshBtn');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        
-        if (refreshBtn) {
-            refreshBtn.classList.add('refreshing');
-            refreshBtn.disabled = true;
+    console.log('🔄 Items Management Adapter loaded');
+    initializeAdapter();
+    setupNewDesignElements();
+});
+
+function initializeAdapter() {
+    // Wait for the original script to initialize
+    setTimeout(() => {
+        // Update stats display when items are loaded
+        if (typeof items !== 'undefined') {
+            updateStatsDisplay();
         }
+    }, 500);
+}
+
+function setupNewDesignElements() {
+    // Setup refresh button functionality
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', handleRefresh);
+    }
+    
+    // Setup search input if not already handled by original script
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && !searchInput._listenerAdded) {
+        searchInput.addEventListener('input', debounce((e) => {
+            if (typeof currentSearchTerm !== 'undefined') {
+                currentSearchTerm = e.target.value;
+                currentPage = 1;
+                if (typeof applyFiltersAndPagination === 'function') {
+                    applyFiltersAndPagination();
+                }
+            }
+        }, 300));
+        searchInput._listenerAdded = true;
+    }
+}
+
+// Refresh functionality for new design
+async function refreshData() {
+    const refreshBtn = document.getElementById('refreshBtn');
+    const refreshIcon = refreshBtn ? refreshBtn.querySelector('svg') : null;
+    
+    if (refreshBtn) {
+        refreshBtn.classList.add('refreshing');
+        refreshBtn.disabled = true;
+    }
+    
+    try {
+        console.log('🔄 Refreshing items data...');
         
-        if (loadingSpinner) loadingSpinner.style.display = 'flex';
-        
-        try {
+        // Call the original loadItems function
+        if (typeof loadItems === 'function') {
             await loadItems();
-            showToast('Data refreshed successfully', 'success');
-        } catch (error) {
-            showToast('Failed to refresh data', 'error');
-        } finally {
-            if (refreshBtn) {
-                refreshBtn.classList.remove('refreshing');
-                refreshBtn.disabled = false;
-            }
+            updateStatsDisplay();
+            showToast('Items refreshed successfully!', 'success');
+        } else {
+            console.error('loadItems function not found');
+            showToast('Failed to refresh items', 'error');
         }
-    };
-    
-    // Add pagination functions for new structure
-    window.previousItemsPage = function() {
-        if (currentPage > 1) {
-            currentPage--;
-            applyFiltersAndPagination();
-        }
-    };
-    
-    window.nextItemsPage = function() {
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-        if (currentPage < totalPages) {
-            currentPage++;
-            applyFiltersAndPagination();
-        }
-    };
-    
-    function updatePagination() {
-        const pagination = document.getElementById('itemsPagination');
-        const pageInfo = document.getElementById('itemsPageInfo');
-        const totalCount = document.getElementById('itemsTotalCount');
-        const prevBtn = document.getElementById('itemsPrevBtn');
-        const nextBtn = document.getElementById('itemsNextBtn');
-        
-        if (!filteredItems || filteredItems.length === 0) {
-            if (pagination) pagination.style.display = 'none';
-            return;
-        }
-        
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-        
-        if (totalPages <= 1) {
-            if (pagination) pagination.style.display = 'none';
-            return;
-        }
-        
-        if (pagination) pagination.style.display = 'flex';
-        if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-        if (totalCount) totalCount.textContent = filteredItems.length;
-        
-        if (prevBtn) {
-            prevBtn.disabled = currentPage === 1;
-        }
-        
-        if (nextBtn) {
-            nextBtn.disabled = currentPage === totalPages;
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        showToast('Failed to refresh items: ' + error.message, 'error');
+    } finally {
+        if (refreshBtn) {
+            refreshBtn.classList.remove('refreshing');
+            refreshBtn.disabled = false;
         }
     }
-    
-    function renderDesktopItems(pageItems) {
-        const itemsTableBody = document.getElementById('itemsTableBody');
-        if (!itemsTableBody) return;
-        
-        const cacheBuster = Date.now();
-        
-        itemsTableBody.innerHTML = pageItems.map(item => `
-            <tr class="item-row ${item.hidden ? 'hidden-item' : ''}">
-                <td>
-                    <div class="item-image">
-                        ${item.image_path ? 
-                            `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
-                            '<div class="no-image">No Image</div>'
-                        }
-                    </div>
-                </td>
-                <td>
-                    <div class="item-details">
-                        <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
-                        <p class="item-brand">${item.brand || 'No brand'}</p>
-                        <p class="item-description">${(item.description || 'No description').substring(0, 100)}${(item.description && item.description.length > 100) ? '...' : ''}</p>
-                    </div>
-                </td>
-                <td>
-                    <div class="variants-info">
-                        ${getVariantsDisplay(item.variants)}
-                    </div>
-                </td>
-                <td>
-                    <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
-                        ${item.hidden ? 'Hidden' : 'Visible'}
-                    </span>
-                </td>
-                <td>
-                    <div class="table-actions">
-                        <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
-                        <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                                onclick="toggleItemVisibility('${item.id}', ${!item.hidden})">
-                            ${item.hidden ? 'Show' : 'Hide'}
-                        </button>
-                        <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+}
+
+// Handle refresh button click with debouncing
+function handleRefresh() {
+    if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
     }
     
-    function renderMobileItems(pageItems) {
-        const itemCards = document.getElementById('itemCards');
-        if (!itemCards) return;
-        
-        const cacheBuster = Date.now();
-        
-        itemCards.innerHTML = pageItems.map(item => `
-            <div class="item-card ${item.hidden ? 'hidden-item' : ''}">
-                <div class="item-image">
-                    ${item.image_path ? 
-                        `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
-                        '<div class="no-image">No Image</div>'
-                    }
-                </div>
-                <div class="item-details">
-                    <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
-                    <p class="item-brand">${item.brand || 'No brand'}</p>
-                    <div class="variants-info">
-                        ${getVariantsDisplay(item.variants)}
-                    </div>
-                    <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
-                        ${item.hidden ? 'Hidden' : 'Visible'}
-                    </span>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
-                    <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                            onclick="toggleItemVisibility('${item.id}', ${!item.hidden})">
-                        ${item.hidden ? 'Show' : 'Hide'}
-                    </button>
-                    <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
-                </div>
-            </div>
-        `).join('');
+    refreshTimeout = setTimeout(() => {
+        refreshData();
+        refreshTimeout = null;
+    }, 300);
+}
+
+// Update the stats display in the new design
+function updateStatsDisplay() {
+    if (typeof items === 'undefined' || !Array.isArray(items)) {
+        console.warn('Items array not available for stats update');
+        return;
     }
     
-    function getVariantsDisplay(variants) {
-        if (!variants || variants.length === 0) {
-            return '<span class="variant-badge">No variants</span>';
+    const totalItems = items.length;
+    const visibleItems = items.filter(item => !item.hidden).length;
+    const hiddenItems = items.filter(item => item.hidden).length;
+    
+    // Calculate total variants
+    const totalVariants = items.reduce((total, item) => {
+        if (item.variants && Array.isArray(item.variants)) {
+            return total + item.variants.length;
+        }
+        return total;
+    }, 0);
+    
+    // Update DOM elements
+    const totalItemsEl = document.getElementById('totalItems');
+    const visibleItemsEl = document.getElementById('visibleItems');
+    const hiddenItemsEl = document.getElementById('hiddenItems');
+    const totalVariantsEl = document.getElementById('totalVariants');
+    
+    if (totalItemsEl) {
+        animateNumber(totalItemsEl, totalItems);
+    }
+    if (visibleItemsEl) {
+        animateNumber(visibleItemsEl, visibleItems);
+    }
+    if (hiddenItemsEl) {
+        animateNumber(hiddenItemsEl, hiddenItems);
+    }
+    if (totalVariantsEl) {
+        animateNumber(totalVariantsEl, totalVariants);
+    }
+    
+    console.log('📊 Stats updated:', { totalItems, visibleItems, hiddenItems, totalVariants });
+}
+
+// Animate number changes in stats
+function animateNumber(element, targetNumber) {
+    if (!element) return;
+    
+    const currentNumber = parseInt(element.textContent) || 0;
+    const difference = targetNumber - currentNumber;
+    const duration = 300;
+    const steps = 20;
+    const increment = difference / steps;
+    let current = currentNumber;
+    let step = 0;
+    
+    const timer = setInterval(() => {
+        step++;
+        current += increment;
+        
+        if (step >= steps) {
+            current = targetNumber;
+            clearInterval(timer);
         }
         
-        return variants.map(variant => {
-            if (variant.is_whole_bottle) {
-                return '<span class="variant-badge">Full Bottle</span>';
-            } else {
-                const price = variant.price_cents ? (variant.price_cents / 1000).toFixed(3) : '0.000';
-                return `<span class="variant-badge">${variant.size_ml}ml - ${price} OMR</span>`;
-            }
-        }).join('');
+        element.textContent = Math.round(current);
+    }, duration / steps);
+}
+
+// Enhanced toast notification system for new design
+function showToast(message, type = 'success') {
+    // Remove any existing toast
+    const existingToast = document.getElementById('toast');
+    if (existingToast) {
+        existingToast.remove();
     }
     
-    // Enhanced toast function
-    window.showToast = function(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : '⚠';
-        toast.innerHTML = `
-            <span style="font-size: 1.2rem; font-weight: bold;">${icon}</span>
-            <span>${message}</span>
-        `;
-        
-        container.appendChild(toast);
-        
+    // Create new toast
+    const toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+    
+    const toastContent = document.createElement('div');
+    toastContent.className = 'toast-content';
+    
+    const toastMessage = document.createElement('span');
+    toastMessage.id = 'toastMessage';
+    toastMessage.textContent = message;
+    
+    toastContent.appendChild(toastMessage);
+    toast.appendChild(toastContent);
+    document.body.appendChild(toast);
+    
+    // Show toast with animation
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
         setTimeout(() => {
-            toast.style.animation = 'toastSlideOut 0.3s ease forwards';
-            setTimeout(() => {
-                if (container.contains(toast)) {
-                    container.removeChild(toast);
-                }
-            }, 300);
-        }, 3000);
-    };
-    
-    // Add CSS for toast slide out animation
-    if (!document.querySelector('style[data-toast-styles]')) {
-        const style = document.createElement('style');
-        style.setAttribute('data-toast-styles', 'true');
-        style.textContent = `
-            @keyframes toastSlideOut {
-                from {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-                to {
-                    opacity: 0;
-                    transform: translateX(100px);
-                }
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
             }
-        `;
-        document.head.appendChild(style);
+        }, 300);
+    }, 3000);
+}
+
+// Override the original renderItems function to work with new design
+function renderItemsAdapter(pageItems) {
+    const itemsList = document.getElementById('itemsList');
+    if (!itemsList) {
+        console.error('Items list container not found');
+        return;
     }
     
-    // Handle window resize for responsive table/cards
-    let resizeTimeout;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function() {
-            if (filteredItems && filteredItems.length > 0) {
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                const pageItems = filteredItems.slice(startIndex, endIndex);
-                
-                const isMobile = window.innerWidth <= 768;
-                
-                if (isMobile) {
-                    renderMobileItems(pageItems);
-                } else {
-                    renderDesktopItems(pageItems);
-                }
-            }
-        }, 250);
-    });
+    // Check if we have items to render
+    if (!pageItems || pageItems.length === 0) {
+        const currentSearchTerm = document.getElementById('searchInput')?.value || '';
+        itemsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-message">No items found</div>
+                <div class="empty-description">
+                    ${currentSearchTerm ? 'Try different search terms' : 'Add your first fragrance to get started'}
+                </div>
+                ${!currentSearchTerm ? '<button class="btn-primary" onclick="openAddItemModal()">Add First Item</button>' : ''}
+            </div>
+        `;
+        return;
+    }
     
-    // Initialize with existing data if available
-    if (window.items && window.items.length > 0) {
-        window.updateStats();
-        window.applyFiltersAndPagination();
+    // Check if mobile view
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        renderMobileItemsAdapter(pageItems);
+    } else {
+        renderDesktopItemsAdapter(pageItems);
+    }
+}
+
+function renderDesktopItemsAdapter(pageItems) {
+    const itemsList = document.getElementById('itemsList');
+    const cacheBuster = Date.now();
+    
+    itemsList.innerHTML = `
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Item Details</th>
+                    <th>Variants</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${pageItems.map(item => `
+                    <tr class="item-row ${item.hidden ? 'hidden-item' : ''}">
+                        <td>
+                            <div class="item-image">
+                                ${item.image_path ? 
+                                    `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
+                                    '<div class="no-image">No Image</div>'
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <div class="item-details">
+                                <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
+                                <p class="item-brand">${item.brand || 'No brand'}</p>
+                                <p class="item-description">${(item.description || 'No description').substring(0, 100)}${(item.description && item.description.length > 100) ? '...' : ''}</p>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="variants-info">
+                                ${getVariantsDisplayAdapter(item.variants)}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
+                                ${item.hidden ? 'Hidden' : 'Visible'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
+                                <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
+                                        onclick="toggleItemVisibility('${item.id}', ${item.hidden})">
+                                    ${item.hidden ? 'Show' : 'Hide'}
+                                </button>
+                                <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function renderMobileItemsAdapter(pageItems) {
+    const itemsList = document.getElementById('itemsList');
+    const cacheBuster = Date.now();
+    
+    const cards = pageItems.map(item => createItemCardAdapter(item, cacheBuster)).join('');
+    itemsList.innerHTML = `<div class="items-grid mobile">${cards}</div>`;
+}
+
+function createItemCardAdapter(item, cacheBuster = Date.now()) {
+    return `
+        <div class="item-card ${item.hidden ? 'hidden-item' : ''}">
+            <div class="item-image">
+                ${item.image_path ? 
+                    `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
+                    '<div class="no-image">No Image</div>'
+                }
+            </div>
+            <div class="item-details">
+                <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
+                <p class="item-brand">${item.brand || 'No brand'}</p>
+                <div class="variants-info">
+                    ${getVariantsDisplayAdapter(item.variants)}
+                </div>
+                <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
+                    ${item.hidden ? 'Hidden' : 'Visible'}
+                </span>
+            </div>
+            <div class="card-actions">
+                <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
+                <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
+                        onclick="toggleItemVisibility('${item.id}', ${item.hidden})">
+                    ${item.hidden ? 'Show' : 'Hide'}
+                </button>
+                <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
+            </div>
+        </div>
+    `;
+}
+
+// Adapter for variants display to ensure compatibility
+function getVariantsDisplayAdapter(variants) {
+    if (!variants || !Array.isArray(variants) || variants.length === 0) {
+        return '<span class="variant-badge">No variants</span>';
+    }
+    
+    return variants.map(variant => {
+        if (variant.is_whole_bottle) {
+            return '<span class="variant-badge whole-bottle">Full Bottle</span>';
+        } else {
+            const size = variant.size_ml || variant.size || 'Unknown';
+            const price = variant.price_display || 
+                         (variant.price_cents ? `${(variant.price_cents / 1000).toFixed(3)} OMR` : '') ||
+                         (variant.price ? `${variant.price} OMR` : '');
+            return `<span class="variant-badge">${size}ml${price ? ` - ${price}` : ''}</span>`;
+        }
+    }).join('');
+}
+
+// Override the original renderItems function if it exists
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for original script to load
+    setTimeout(() => {
+        if (typeof window.renderItems === 'function') {
+            window.originalRenderItems = window.renderItems;
+        }
+        window.renderItems = renderItemsAdapter;
+        
+        // Also update stats when items change
+        const originalApplyFiltersAndPagination = window.applyFiltersAndPagination;
+        if (typeof originalApplyFiltersAndPagination === 'function') {
+            window.applyFiltersAndPagination = function() {
+                originalApplyFiltersAndPagination.apply(this, arguments);
+                updateStatsDisplay();
+            };
+        }
+        
+        console.log('✅ Adapter functions installed successfully');
+    }, 1000);
+});
+
+// Utility function for debouncing (if not available in original script)
+if (typeof window.debounce !== 'function') {
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    window.debounce = debounce;
+}
+
+// Monitor for items array changes and update stats
+let itemsWatcher = null;
+
+function startItemsWatcher() {
+    if (itemsWatcher) {
+        clearInterval(itemsWatcher);
+    }
+    
+    itemsWatcher = setInterval(() => {
+        if (typeof items !== 'undefined' && Array.isArray(items)) {
+            updateStatsDisplay();
+        }
+    }, 2000);
+}
+
+// Start watching for items changes
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(startItemsWatcher, 1500);
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (itemsWatcher) {
+        clearInterval(itemsWatcher);
+    }
+    if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
     }
 });
 
-// Global variables that might be referenced by existing script
-if (typeof window.currentPage === 'undefined') {
-    window.currentPage = 1;
-}
-
-if (typeof window.itemsPerPage === 'undefined') {
-    window.itemsPerPage = 10;
-}
-
-if (typeof window.filteredItems === 'undefined') {
-    window.filteredItems = [];
-}
+console.log('🚀 Items Management Adapter initialized');
