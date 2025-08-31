@@ -1,11 +1,9 @@
-setTimeout(() => {
-    if (typeof filteredItems !== 'undefined' && Array.isArray(filteredItems)) {
-        const currentPageItems = getCurrentPageItems();
-        if (currentPageItems) {
-            renderItemsAdapter(currentPageItems);
-        }
+if (typeof filteredItems !== 'undefined' && Array.isArray(filteredItems)) {
+    const currentPageItems = getCurrentPageItems();
+    if (currentPageItems) {
+        renderItemsAdapter(currentPageItems);
     }
-}, 300);
+}
 
 
 // Helper function to get current page items
