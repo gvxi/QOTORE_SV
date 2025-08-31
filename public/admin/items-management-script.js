@@ -661,8 +661,10 @@ async function confirmDelete() {
     deleteButton.innerHTML = '<div class="loading-spinner"></div> Deleting...';
     
     try {
+        console.log('🗑️ Deleting item with ID:', deleteItemId);
+        
         const response = await fetch('/admin/delete-fragrance', {
-            method: 'DELETE',
+            method: 'POST', // Changed to POST to match the endpoint 
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -670,11 +672,16 @@ async function confirmDelete() {
             body: JSON.stringify({ id: parseInt(deleteItemId) })
         });
         
+        console.log('🌐 Delete response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ Delete response error:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
+        console.log('📨 Delete response data:', result);
         
         if (result.success) {
             // Remove from local data
@@ -683,13 +690,15 @@ async function confirmDelete() {
             showToast('Item deleted successfully', 'success');
             closeDeleteModal();
             applyFiltersAndPagination();
+            
+            console.log('✅ Item removed from local data and UI updated');
         } else {
             throw new Error(result.error || 'Failed to delete item');
         }
         
     } catch (error) {
-        console.error('Delete error:', error);
-        showToast('Failed to delete item', 'error');
+        console.error('💥 Delete error:', error);
+        showToast('Failed to delete item: ' + error.message, 'error');
     } finally {
         deleteButton.disabled = false;
         deleteButton.textContent = originalText;
