@@ -1,4 +1,4 @@
-// Items Management Script - Updated for New Design
+// Items Management Script - FIXED VERSION
 let items = [];
 let filteredItems = [];
 let currentPage = 1;
@@ -48,7 +48,7 @@ function setupEventListeners() {
         imageInput.addEventListener('change', handleImagePreview);
     }
     
-    // Setup variant checkbox event listeners
+    // FIXED: Add variant checkbox event listeners
     setupVariantCheckboxListeners();
     
     // Modal close handlers
@@ -70,7 +70,7 @@ function setupEventListeners() {
         });
     }
     
-    // Real-time slug preview
+    // Real-time slug and filename preview
     const itemNameInput = document.getElementById('itemName');
     if (itemNameInput) {
         itemNameInput.addEventListener('input', updatePreviews);
@@ -79,7 +79,7 @@ function setupEventListeners() {
     updatePreviews(); // Initial preview
 }
 
-// Setup variant checkbox listeners
+// FIXED: Setup variant checkbox listeners
 function setupVariantCheckboxListeners() {
     const variantCheckboxes = [
         { checkbox: 'enable5ml', priceField: 'price5ml' },
@@ -97,25 +97,45 @@ function setupVariantCheckboxListeners() {
                 if (!this.checked) {
                     priceFieldEl.value = '';
                 }
-                
-                // Update variant option styling
-                const variantOption = priceFieldEl.closest('.variant-option');
-                if (variantOption) {
-                    if (this.checked) {
-                        variantOption.classList.add('selected');
-                    } else {
-                        variantOption.classList.remove('selected');
-                    }
-                }
-                
                 console.log(`${checkbox} ${this.checked ? 'enabled' : 'disabled'} ${priceField}`);
             });
         }
     });
 }
 
+// Utility functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function updatePreviews() {
+    const itemName = document.getElementById('itemName').value || 'creed-aventus';
+    const slug = generateSlug(itemName);
+    
+    document.getElementById('slugPreview').textContent = slug;
+    document.getElementById('imageNamePreview').textContent = `${slug}.png`;
+}
+
+function generateSlug(text) {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+}
+
 // Data loading functions
 async function loadItems() {
+    const itemsList = document.getElementById('itemsList');
     const loadingSpinner = document.getElementById('loadingSpinner');
     
     if (loadingSpinner) loadingSpinner.style.display = 'flex';
@@ -145,7 +165,6 @@ async function loadItems() {
         if (data.success && Array.isArray(data.data)) {
             items = data.data;
             console.log(`Loaded ${items.length} items for admin management`);
-            updateStats();
             applyFiltersAndPagination();
         } else {
             console.warn('Invalid response structure:', data);
@@ -156,70 +175,81 @@ async function loadItems() {
     } catch (error) {
         console.error('Failed to load items:', error);
         showToast('Failed to load items. Please check your connection and try again.', 'error');
+        items = [];
         renderItems([]);
     } finally {
         if (loadingSpinner) loadingSpinner.style.display = 'none';
     }
 }
 
-// Update dashboard stats
-function updateStats() {
-    const totalItems = items.length;
-    const visibleItems = items.filter(item => !item.hidden).length;
-    const hiddenItems = items.filter(item => item.hidden).length;
-    
-    document.getElementById('totalItems').textContent = totalItems;
-    document.getElementById('visibleItems').textContent = visibleItems;
-    document.getElementById('hiddenItems').textContent = hiddenItems;
-}
-
-// Apply filters and pagination
 function applyFiltersAndPagination() {
-    // Filter items
-    filteredItems = items.filter(item => {
-        // Search filter
-        if (currentSearchTerm) {
-            const searchLower = currentSearchTerm.toLowerCase();
-            const matchesSearch = (item.name || '').toLowerCase().includes(searchLower) ||
-                                 (item.brand || '').toLowerCase().includes(searchLower) ||
-                                 (item.description || '').toLowerCase().includes(searchLower);
-            if (!matchesSearch) return false;
-        }
-        
-        // Status filter
-        if (currentFilter === 'visible') return !item.hidden;
-        if (currentFilter === 'hidden') return item.hidden;
-        
-        return true; // 'all' filter
-    });
+    let filtered = [...items];
     
-    // Calculate pagination
+    // Apply search filter
+    if (currentSearchTerm) {
+        const searchLower = currentSearchTerm.toLowerCase();
+        filtered = filtered.filter(item => 
+            (item.name && item.name.toLowerCase().includes(searchLower)) ||
+            (item.brand && item.brand.toLowerCase().includes(searchLower)) ||
+            (item.description && item.description.toLowerCase().includes(searchLower))
+        );
+    }
+    
+    // Apply status filter
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(item => {
+            if (currentFilter === 'visible') return !item.hidden;
+            if (currentFilter === 'hidden') return item.hidden;
+            return true;
+        });
+    }
+    
+    filteredItems = filtered;
+    
+    // Update pagination info
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageItems = filteredItems.slice(startIndex, endIndex);
+    const startItem = (currentPage - 1) * itemsPerPage;
+    const endItem = startItem + itemsPerPage;
+    const pageItems = filteredItems.slice(startItem, endItem);
     
-    // Render
     renderItems(pageItems);
     renderPagination(totalPages);
 }
 
-// Render items
 function renderItems(pageItems) {
     const itemsList = document.getElementById('itemsList');
+    const statsContainer = document.getElementById('statsContainer');
     
-    if (!pageItems || pageItems.length === 0) {
+    if (!itemsList) return;
+    
+    // Update stats
+    if (statsContainer) {
+        const visibleCount = items.filter(item => !item.hidden).length;
+        const hiddenCount = items.filter(item => item.hidden).length;
+        
+        statsContainer.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-number">${items.length}</div>
+                <div class="stat-label">Total Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${visibleCount}</div>
+                <div class="stat-label">Visible</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${hiddenCount}</div>
+                <div class="stat-label">Hidden</div>
+            </div>
+        `;
+    }
+    
+    if (pageItems.length === 0) {
         itemsList.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-spray-can"></i>
-                </div>
-                <div class="empty-title">
-                    ${currentSearchTerm ? 'No items found' : 'No items yet'}
-                </div>
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">No items found</div>
                 <div class="empty-subtitle">
-                    ${currentSearchTerm ? 
-                        'Try different search terms' : 'Add your first fragrance to get started'}
+                    ${currentSearchTerm ? 'Try different search terms' : 'Add your first fragrance to get started'}
                 </div>
                 ${!currentSearchTerm ? '<button class="btn-primary" onclick="openAddItemModal()">Add First Item</button>' : ''}
             </div>
@@ -300,37 +330,29 @@ function renderDesktopItems(pageItems) {
 
 function renderMobileItems(pageItems) {
     const itemsList = document.getElementById('itemsList');
+    
+    // Add cache buster timestamp for images
     const cacheBuster = Date.now();
     
-    itemsList.innerHTML = `
-        <div class="items-cards">
-            ${pageItems.map(item => createMobileCard(item, cacheBuster)).join('')}
-        </div>
-    `;
+    const cards = pageItems.map(item => createItemCard(item, cacheBuster)).join('');
+    itemsList.innerHTML = `<div class="items-grid mobile">${cards}</div>`;
 }
 
-function createMobileCard(item, cacheBuster) {
-    return `
+function createItemCard(item, cacheBuster = Date.now()) {
+    const card = `
         <div class="item-card ${item.hidden ? 'hidden-item' : ''}">
-            <div class="card-header">
-                <div class="card-image">
-                    ${item.image_path ? 
-                        `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
-                        '<div class="no-image">No Image</div>'
-                    }
+            <div class="item-image">
+                ${item.image_path ? 
+                    `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
+                    '<div class="no-image">No Image</div>'
+                }
+            </div>
+            <div class="item-details">
+                <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
+                <p class="item-brand">${item.brand || 'No brand'}</p>
+                <div class="variants-info">
+                    ${getVariantsDisplay(item.variants)}
                 </div>
-                <div class="card-content">
-                    <h4 class="card-title">${item.name || 'Unnamed Item'}</h4>
-                    <p class="card-brand">${item.brand || 'No brand'}</p>
-                </div>
-            </div>
-            <div class="card-description">
-                ${(item.description || 'No description').substring(0, 150)}${(item.description && item.description.length > 150) ? '...' : ''}
-            </div>
-            <div class="card-variants">
-                ${getVariantsDisplay(item.variants)}
-            </div>
-            <div class="card-status">
                 <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
                     ${item.hidden ? 'Hidden' : 'Visible'}
                 </span>
@@ -345,6 +367,8 @@ function createMobileCard(item, cacheBuster) {
             </div>
         </div>
     `;
+    
+    return card;
 }
 
 function getVariantsDisplay(variants) {
@@ -357,7 +381,7 @@ function getVariantsDisplay(variants) {
             return 'Full Bottle (Contact)';
         }
         const price = variant.price ? `${variant.price.toFixed(3)} OMR` : 'No price';
-        return `${variant.size}ml - ${price}`;
+        return `${variant.size} - ${price}`;
     });
     
     return variantTexts.join('<br>');
@@ -401,69 +425,71 @@ function changePage(page) {
     window.scrollTo(0, 0);
 }
 
-// Refresh data function
-async function refreshData() {
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.classList.add('refreshing');
-    }
-    
-    try {
-        await loadItems();
-        showToast('Data refreshed successfully', 'success');
-    } catch (error) {
-        console.error('Failed to refresh data:', error);
-        showToast('Failed to refresh data', 'error');
-    } finally {
-        if (refreshBtn) {
-            refreshBtn.classList.remove('refreshing');
-        }
-    }
-}
-
-// Toggle item visibility
-async function toggleItemVisibility(itemId, currentlyHidden) {
+async function toggleItemVisibility(itemId, newVisibility) {
     try {
         console.log('🔄 Toggle item visibility called:', { 
             itemId, 
-            currentlyHidden, 
-            willBeHidden: !currentlyHidden,
-            action: currentlyHidden ? 'show' : 'hide'
+            newVisibility, 
+            willBeHidden: !newVisibility,
+            action: newVisibility ? 'SHOW item' : 'HIDE item'
         });
         
-        const response = await fetch(`/admin/fragrances/${itemId}/toggle-visibility`, {
-            method: 'PATCH',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ hidden: !currentlyHidden })
+        // Find current item to check its current state
+        const currentItem = items.find(item => item.id == itemId);
+        if (!currentItem) {
+            throw new Error('Item not found in local data');
+        }
+        
+        console.log('📋 Current item state:', {
+            id: currentItem.id,
+            name: currentItem.name,
+            currentlyHidden: currentItem.hidden,
+            newVisibility: newVisibility,
+            shouldSetHiddenTo: !newVisibility
         });
+        
+        const response = await fetch('/admin/toggle-fragrance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                id: parseInt(itemId),
+                hidden: !newVisibility // if newVisibility=true (show), hidden=false
+            })
+        });
+        
+        console.log('🌐 Toggle response status:', response.status);
         
         if (!response.ok) {
-            if (response.status === 401) {
-                window.location.href = '/admin/login';
-                return;
-            }
-            throw new Error(`HTTP ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ Toggle response error:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
-        console.log('✅ Visibility toggle result:', result);
+        console.log('📨 Toggle response data:', result);
         
         if (result.success) {
-            // Update local data
+            // Update local data with the actual returned state
             const itemIndex = items.findIndex(item => item.id == itemId);
             if (itemIndex !== -1) {
-                items[itemIndex].hidden = !currentlyHidden;
-                console.log(`Item ${itemId} updated locally: hidden = ${items[itemIndex].hidden}`);
+                const oldHidden = items[itemIndex].hidden;
+                items[itemIndex].hidden = result.data.hidden; // Use server response
+                console.log('💾 Updated local item:', {
+                    id: itemId,
+                    oldHidden: oldHidden,
+                    newHidden: items[itemIndex].hidden,
+                    serverConfirmedHidden: result.data.hidden
+                });
             }
             
-            const actionPerformed = currentlyHidden ? 'shown' : 'hidden';
+            // Show success message based on actual result
+            const actionPerformed = result.data.hidden ? 'hidden' : 'shown';
             showToast(`Item ${actionPerformed} successfully`, 'success');
             
-            // Update stats and re-render
-            updateStats();
+            // Force re-render to update button states and styling
             applyFiltersAndPagination();
         } else {
             throw new Error(result.error || 'Failed to update visibility');
@@ -479,7 +505,7 @@ async function toggleItemVisibility(itemId, currentlyHidden) {
 function openAddItemModal() {
     currentEditingId = null;
     document.getElementById('itemModalTitle').textContent = 'Add New Item';
-    document.getElementById('submitText').textContent = 'Add Item';
+    document.getElementById('saveButtonText').textContent = 'Save Item';
     resetForm();
     showModal('itemModalOverlay');
 }
@@ -493,13 +519,14 @@ function editItem(itemId) {
     
     currentEditingId = itemId;
     document.getElementById('itemModalTitle').textContent = 'Edit Item';
-    document.getElementById('submitText').textContent = 'Update Item';
+    document.getElementById('saveButtonText').textContent = 'Update Item';
     
     // Populate form with item data
     populateForm(item);
     showModal('itemModalOverlay');
 }
 
+// FIXED: Completely rewritten populateForm function
 function populateForm(item) {
     console.log('Populating form with item:', item);
     
@@ -507,103 +534,229 @@ function populateForm(item) {
     document.getElementById('itemName').value = item.name || '';
     document.getElementById('itemBrand').value = item.brand || '';
     document.getElementById('itemDescription').value = item.description || '';
+    document.getElementById('itemHidden').checked = item.hidden || false;
     
-    // Reset all variant checkboxes and price fields first
+    // FIXED: Reset all variant checkboxes and price fields first
     document.getElementById('enable5ml').checked = false;
     document.getElementById('enable10ml').checked = false;
     document.getElementById('enable30ml').checked = false;
-    document.getElementById('enableFull').checked = false;
+    document.getElementById('enableFullBottle').checked = false;
     
     document.getElementById('price5ml').value = '';
     document.getElementById('price10ml').value = '';
     document.getElementById('price30ml').value = '';
     
+    // FIXED: Disable all price fields initially
     document.getElementById('price5ml').disabled = true;
     document.getElementById('price10ml').disabled = true;
     document.getElementById('price30ml').disabled = true;
     
-    // Reset variant option styling
-    document.querySelectorAll('.variant-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    
-    // Populate variants if they exist
-    if (item.variants && Array.isArray(item.variants)) {
+    // FIXED: Populate variants from database
+    if (item.variants && item.variants.length > 0) {
         item.variants.forEach(variant => {
             if (variant.is_whole_bottle) {
-                const fullCheckbox = document.getElementById('enableFull');
-                if (fullCheckbox) {
-                    fullCheckbox.checked = true;
-                    const variantOption = fullCheckbox.closest('.variant-option');
-                    if (variantOption) variantOption.classList.add('selected');
+                document.getElementById('enableFullBottle').checked = true;
+            } else if (variant.size_ml) {
+                const size_ml = parseInt(variant.size_ml);
+                switch (size_ml) {
+                    case 5:
+                        document.getElementById('enable5ml').checked = true;
+                        document.getElementById('price5ml').disabled = false;
+                        document.getElementById('price5ml').value = variant.price.toFixed(3);
+                        break;
+                    case 10:
+                        document.getElementById('enable10ml').checked = true;
+                        document.getElementById('price10ml').disabled = false;
+                        document.getElementById('price10ml').value = variant.price.toFixed(3);
+                        break;
+                    case 30:
+                        document.getElementById('enable30ml').checked = true;
+                        document.getElementById('price30ml').disabled = false;
+                        document.getElementById('price30ml').value = variant.price.toFixed(3);
+                        break;
+                    default:
+                        console.warn(`Unknown variant size: ${size_ml}ml`);
                 }
             } else {
-                const size = variant.size_ml || variant.size;
-                const price = variant.price || (variant.price_cents ? variant.price_cents / 1000 : 0);
-                
-                if (size == 5) {
-                    const checkbox = document.getElementById('enable5ml');
-                    const priceInput = document.getElementById('price5ml');
-                    if (checkbox && priceInput) {
-                        checkbox.checked = true;
-                        priceInput.disabled = false;
-                        priceInput.value = price.toFixed(3);
-                        const variantOption = checkbox.closest('.variant-option');
-                        if (variantOption) variantOption.classList.add('selected');
-                    }
-                } else if (size == 10) {
-                    const checkbox = document.getElementById('enable10ml');
-                    const priceInput = document.getElementById('price10ml');
-                    if (checkbox && priceInput) {
-                        checkbox.checked = true;
-                        priceInput.disabled = false;
-                        priceInput.value = price.toFixed(3);
-                        const variantOption = checkbox.closest('.variant-option');
-                        if (variantOption) variantOption.classList.add('selected');
-                    }
-                } else if (size == 30) {
-                    const checkbox = document.getElementById('enable30ml');
-                    const priceInput = document.getElementById('price30ml');
-                    if (checkbox && priceInput) {
-                        checkbox.checked = true;
-                        priceInput.disabled = false;
-                        priceInput.value = price.toFixed(3);
-                        const variantOption = checkbox.closest('.variant-option');
-                        if (variantOption) variantOption.classList.add('selected');
-                    }
-                }
+                console.warn('Variant missing size_ml or price:', variant);
             }
         });
     }
     
+    // Show current image if exists
+    if (item.image_path) {
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const imageInput = document.getElementById('itemImage');
+        
+        if (imagePreview && previewImg) {
+            // Add cache buster for edit form images too
+            previewImg.src = `/api/image/${item.image_path}?v=${Date.now()}`;
+            imagePreview.style.display = 'block';
+            if (imageInput) imageInput.required = false; // Don't require new image for edit
+        }
+    }
+    
+    // Update previews
     updatePreviews();
+    
+    console.log('Form populated successfully');
 }
 
-// Form handling functions
-async function handleFormSubmit(e) {
-    e.preventDefault();
+function resetForm() {
+    const form = document.getElementById('itemForm');
+    if (form) form.reset();
     
-    const submitBtn = document.getElementById('submitBtn') || e.target.querySelector('button[type="submit"]');
-    const submitText = document.getElementById('submitText') || submitBtn?.querySelector('span') || submitBtn;
+    // FIXED: Reset all checkboxes and disable price fields
+    document.getElementById('enable5ml').checked = false;
+    document.getElementById('enable10ml').checked = false;
+    document.getElementById('enable30ml').checked = false;
+    document.getElementById('enableFullBottle').checked = false;
     
-    if (!submitBtn || !submitText) {
-        console.error('Could not find submit button or text element');
-        showToast('Internal error: Could not find submit button', 'error');
+    document.getElementById('price5ml').disabled = true;
+    document.getElementById('price10ml').disabled = true;
+    document.getElementById('price30ml').disabled = true;
+    
+    const imageInput = document.getElementById('itemImage');
+    if (imageInput) imageInput.required = true; // Require image for new items
+    
+    removeImagePreview();
+}
+
+function closeItemModal() {
+    hideModal('itemModalOverlay');
+    resetForm();
+    currentEditingId = null;
+}
+
+function deleteItem(itemId) {
+    const item = items.find(i => i.id == itemId);
+    if (!item) {
+        showToast('Item not found', 'error');
         return;
     }
     
-    const originalText = submitText.textContent;
+    deleteItemId = itemId;
     
-    // Disable button and show loading
-    submitBtn.disabled = true;
-    submitText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    // Populate delete preview
+    const preview = document.getElementById('deleteItemPreview');
+    const imageUrl = item.image_path ? `/api/image/${item.image_path}?v=${Date.now()}` : null;
+    
+    preview.innerHTML = `
+        <div class="item-info">
+            <strong>${item.name || 'Unnamed Item'}</strong>
+            <p>${item.brand || 'No brand'}</p>
+            <p>${getVariantsDisplay(item.variants)}</p>
+        </div>
+        ${imageUrl ? `
+        <div class="item-image-preview">
+            <img src="${imageUrl}" alt="${item.name}">
+        </div>
+        ` : ''}
+    `;
+    
+    showModal('deleteModalOverlay');
+}
+
+async function confirmDelete() {
+    if (!deleteItemId) return;
+    
+    const deleteButton = document.querySelector('#deleteModalOverlay .btn-delete');
+    const originalText = deleteButton.textContent;
+    
+    deleteButton.disabled = true;
+    deleteButton.innerHTML = '<div class="loading-spinner"></div> Deleting...';
     
     try {
-        // Create JSON payload
+        console.log('🗑️ Deleting item with ID:', deleteItemId);
+        
+        const response = await fetch('/admin/delete-fragrance', {
+            method: 'POST', // Changed to POST to match the endpoint 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ id: parseInt(deleteItemId) })
+        });
+        
+        console.log('🌐 Delete response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Delete response error:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('📨 Delete response data:', result);
+        
+        if (result.success) {
+            // Remove from local data
+            items = items.filter(item => item.id != deleteItemId);
+            
+            showToast('Item deleted successfully', 'success');
+            closeDeleteModal();
+            applyFiltersAndPagination();
+            
+            console.log('✅ Item removed from local data and UI updated');
+        } else {
+            throw new Error(result.error || 'Failed to delete item');
+        }
+        
+    } catch (error) {
+        console.error('💥 Delete error:', error);
+        showToast('Failed to delete item: ' + error.message, 'error');
+    } finally {
+        deleteButton.disabled = false;
+        deleteButton.textContent = originalText;
+    }
+}
+
+function closeDeleteModal() {
+    hideModal('deleteModalOverlay');
+    deleteItemId = null;
+}
+
+// FIXED: Form handling functions
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    // Find the save button more reliably
+    let saveButton = document.getElementById('saveItemBtn');
+    if (!saveButton) {
+        saveButton = document.querySelector('[onclick="saveItem()"]');
+    }
+    if (!saveButton) {
+        saveButton = e.target.querySelector('button[type="submit"]');
+    }
+    if (!saveButton) {
+        saveButton = document.querySelector('.btn-primary');
+    }
+    
+    let saveButtonText = document.getElementById('saveButtonText');
+    if (!saveButtonText && saveButton) {
+        saveButtonText = saveButton.querySelector('span') || saveButton;
+    }
+    
+    if (!saveButton || !saveButtonText) {
+        console.error('Could not find save button or save button text element');
+        showToast('Internal error: Could not find save button', 'error');
+        return;
+    }
+    
+    const originalText = saveButtonText.textContent;
+    
+    // Disable button and show loading
+    saveButton.disabled = true;
+    saveButtonText.innerHTML = '<div class="loading-spinner"></div> Saving...';
+    
+    try {
+        // FIXED: Create JSON payload instead of FormData
         const formData = {
             name: document.getElementById('itemName').value.trim(),
             brand: document.getElementById('itemBrand').value.trim(),
             description: document.getElementById('itemDescription').value.trim(),
+            hidden: document.getElementById('itemHidden').checked,
             variants: []
         };
         
@@ -613,7 +766,7 @@ async function handleFormSubmit(e) {
             formData.slug = generateSlug(formData.name);
         }
         
-        // Handle variants based on checkboxes
+        // FIXED: Handle variants based on checkboxes
         if (document.getElementById('enable5ml').checked) {
             const price5ml = parseFloat(document.getElementById('price5ml').value);
             if (!isNaN(price5ml) && price5ml > 0) {
@@ -647,7 +800,7 @@ async function handleFormSubmit(e) {
             }
         }
         
-        if (document.getElementById('enableFull').checked) {
+        if (document.getElementById('enableFullBottle').checked) {
             formData.variants.push({
                 size_ml: null,
                 price_cents: null,
@@ -655,7 +808,7 @@ async function handleFormSubmit(e) {
             });
         }
         
-        // Validate form
+        // Validation
         if (!formData.name) {
             throw new Error('Item name is required');
         }
@@ -664,17 +817,44 @@ async function handleFormSubmit(e) {
             throw new Error('At least one variant must be selected');
         }
         
-        console.log('Submitting form data:', formData);
+        // Handle image upload separately if provided
+        let imagePath = null;
+        const imageInput = document.getElementById('itemImage');
         
-        // Handle image upload if present
-        const imageFile = document.getElementById('itemImage').files[0];
-        let imageUploadResult = null;
-        
-        if (imageFile) {
-            console.log('Uploading image:', imageFile.name);
+        if (imageInput.files.length > 0) {
+            // For updates: Delete old image first if it exists
+            if (currentEditingId) {
+                const item = items.find(i => i.id == currentEditingId);
+                if (item && item.image_path) {
+                    try {
+                        console.log('Deleting old image:', item.image_path);
+                        const deleteResponse = await fetch('/admin/delete-image', {
+                            method: 'DELETE',
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ imagePath: item.image_path })
+                        });
+                        
+                        const deleteResult = await deleteResponse.json();
+                        if (deleteResult.success) {
+                            console.log('Old image deleted successfully');
+                        } else {
+                            console.warn('Failed to delete old image (non-critical):', deleteResult.error);
+                        }
+                    } catch (deleteError) {
+                        console.warn('Error deleting old image (non-critical):', deleteError);
+                    }
+                }
+            }
+            
+            // Upload new image using your dedicated endpoint
             const imageFormData = new FormData();
-            imageFormData.append('image', imageFile);
+            imageFormData.append('image', imageInput.files[0]);
             imageFormData.append('slug', generateSlug(formData.name));
+            
+            console.log('Uploading new image...');
             
             const imageResponse = await fetch('/admin/upload-image', {
                 method: 'POST',
@@ -683,27 +863,33 @@ async function handleFormSubmit(e) {
             });
             
             if (!imageResponse.ok) {
-                throw new Error('Failed to upload image');
+                const imageError = await imageResponse.json().catch(() => null);
+                throw new Error(imageError?.error || 'Failed to upload image');
             }
             
-            imageUploadResult = await imageResponse.json();
-            console.log('Image upload result:', imageUploadResult);
-            
-            if (imageUploadResult.success) {
-                formData.image_path = imageUploadResult.filename;
+            const imageResult = await imageResponse.json();
+            if (imageResult.success) {
+                // Use the filename (slug.png) as the image path
+                imagePath = imageResult.data.filename;
+                console.log('New image uploaded successfully:', imagePath);
+            } else {
+                throw new Error(imageResult.error || 'Image upload failed');
             }
         }
         
-        // Submit form data
-        const url = currentEditingId 
-            ? `/admin/fragrances/${currentEditingId}` 
-            : '/admin/fragrances';
-        const method = currentEditingId ? 'PUT' : 'POST';
+        // Add image path to form data if we have one
+        if (imagePath) {
+            formData.image_path = imagePath;
+        }
         
-        console.log(`Submitting to ${method} ${url}`);
+        console.log('Submitting form data:', formData);
         
+        const url = currentEditingId ? 
+            '/admin/update-fragrance' : 
+            '/admin/add-fragrance';
+            
         const response = await fetch(url, {
-            method: method,
+            method: 'POST',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
@@ -712,96 +898,101 @@ async function handleFormSubmit(e) {
         });
         
         if (!response.ok) {
-            if (response.status === 401) {
-                window.location.href = '/admin/login';
-                return;
-            }
             const errorData = await response.json().catch(() => null);
             throw new Error(errorData?.error || `HTTP ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('Form submission result:', result);
         
         if (result.success) {
-            const action = currentEditingId ? 'updated' : 'added';
-            showToast(`Item ${action} successfully`, 'success');
+            showToast(`Item ${currentEditingId ? 'updated' : 'created'} successfully`, 'success');
             closeItemModal();
-            await loadItems(); // Reload items to get updated data
+            
+            // Force reload items to get fresh data and bust image cache
+            await loadItems();
+            
+            // If this was an update with new image, force refresh all images
+            if (currentEditingId && imagePath) {
+                console.log('🖼️ Forcing image cache refresh after update');
+                setTimeout(() => {
+                    // Force reload all images by updating their src with cache buster
+                    document.querySelectorAll('img[src*="/api/image/"]').forEach(img => {
+                        const originalSrc = img.src.split('?')[0]; // Remove existing cache buster
+                        img.src = `${originalSrc}?v=${Date.now()}`;
+                    });
+                }, 500);
+            }
         } else {
-            throw new Error(result.error || 'Unknown error occurred');
+            throw new Error(result.error || 'Failed to save item');
         }
         
     } catch (error) {
         console.error('Form submission error:', error);
-        showToast('Error: ' + error.message, 'error');
+        showToast(error.message || 'Failed to save item', 'error');
     } finally {
-        // Re-enable button and restore text
-        submitBtn.disabled = false;
-        submitText.textContent = originalText;
+        if (saveButton) saveButton.disabled = false;
+        if (saveButtonText) saveButtonText.textContent = originalText;
     }
 }
 
-// Image preview handling
-function handleImagePreview(event) {
-    const file = event.target.files[0];
-    const previewDiv = document.getElementById('imagePreview');
-    
-    if (!previewDiv) return;
-    
-    if (file && file.type.startsWith('image/')) {
+async function saveItem() {
+    const form = document.getElementById('itemForm');
+    if (form) {
+        // Create a mock event object
+        const mockEvent = {
+            preventDefault: () => {},
+            target: form
+        };
+        
+        // Call handleFormSubmit directly
+        await handleFormSubmit(mockEvent);
+    } else {
+        console.error('Form not found');
+        showToast('Internal error: Form not found', 'error');
+    }
+}
+
+// Image handling functions
+function handleImagePreview(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (!file.type.includes('png')) {
+            showToast('Only PNG images are allowed', 'error');
+            e.target.value = '';
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Image too large. Maximum size is 5MB', 'error');
+            e.target.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
-            previewDiv.innerHTML = `
-                <img src="${e.target.result}" alt="Preview" class="preview-image">
-                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #6c757d;">Preview: ${file.name}</p>
-            `;
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imagePreview && previewImg) {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+            }
         };
         reader.readAsDataURL(file);
     } else {
-        previewDiv.innerHTML = '';
+        removeImagePreview();
     }
 }
 
-// Delete item functions
-function deleteItem(itemId) {
-    deleteItemId = itemId;
-    showModal('deleteModalOverlay');
-}
-
-async function confirmDelete() {
-    if (!deleteItemId) return;
+function removeImagePreview() {
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const imageInput = document.getElementById('itemImage');
     
-    try {
-        const response = await fetch(`/admin/fragrances/${deleteItemId}`, {
-            method: 'DELETE',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                window.location.href = '/admin/login';
-                return;
-            }
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast('Item deleted successfully', 'success');
-            closeDeleteModal();
-            await loadItems(); // Reload items
-        } else {
-            throw new Error(result.error || 'Failed to delete item');
-        }
-        
-    } catch (error) {
-        console.error('Delete error:', error);
-        showToast('Failed to delete item: ' + error.message, 'error');
+    if (imagePreview) imagePreview.style.display = 'none';
+    if (previewImg) previewImg.src = '';
+    if (imageInput && currentEditingId === null) {
+        imageInput.required = true; // Require image for new items
     }
 }
 
@@ -811,117 +1002,47 @@ function showModal(modalId) {
     if (modal) {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+        
+        // Focus on first input in modal
+        setTimeout(() => {
+            const firstInput = modal.querySelector('input[type="text"], textarea');
+            if (firstInput) firstInput.focus();
+        }, 100);
     }
 }
 
-function closeItemModal() {
-    const modal = document.getElementById('itemModalOverlay');
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = '';
-    }
-    resetForm();
-}
-
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteModalOverlay');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-    }
-    deleteItemId = null;
-}
-
-function resetForm() {
-    const form = document.getElementById('itemForm');
-    if (form) {
-        form.reset();
-    }
-    
-    // Reset checkboxes and disable price fields
-    ['enable5ml', 'enable10ml', 'enable30ml', 'enableFull'].forEach(id => {
-        const checkbox = document.getElementById(id);
-        if (checkbox) checkbox.checked = false;
-    });
-    
-    ['price5ml', 'price10ml', 'price30ml'].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.disabled = true;
-            input.value = '';
-        }
-    });
-    
-    // Reset variant option styling
-    document.querySelectorAll('.variant-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    
-    // Clear image preview
-    const previewDiv = document.getElementById('imagePreview');
-    if (previewDiv) {
-        previewDiv.innerHTML = '';
-    }
-    
-    updatePreviews();
-}
-
-// Utility functions
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function updatePreviews() {
-    const itemName = document.getElementById('itemName').value || 'new-item';
-    const slug = generateSlug(itemName);
-    
-    const slugPreview = document.getElementById('slugPreview');
-    if (slugPreview) {
-        slugPreview.textContent = slug;
+        document.body.style.overflow = 'auto';
     }
 }
 
-function generateSlug(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-}
-
-// Toast notification function
-function showToast(message, type = 'success') {
-    // Remove existing toasts
-    const existingToasts = document.querySelectorAll('.toast');
-    existingToasts.forEach(toast => toast.remove());
-    
+// Toast notifications
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer') || document.body;
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const icon = type === 'success' ? 'check-circle' : 
-                 type === 'error' ? 'exclamation-triangle' : 
-                 'info-circle';
-    
+    toast.className = `toast toast-${type}`;
     toast.innerHTML = `
-        <i class="fas fa-${icon}"></i>
-        <span>${message}</span>
+        <div class="toast-content">
+            <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+            <span class="toast-message">${message}</span>
+        </div>
     `;
     
-    document.body.appendChild(toast);
+    toastContainer.appendChild(toast);
     
-    // Auto remove after 3 seconds
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Auto remove after 5 seconds
     setTimeout(() => {
-        if (toast.parentNode) {
-            toast.remove();
-        }
-    }, 3000);
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 5000);
 }
