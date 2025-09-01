@@ -967,7 +967,178 @@ function getToastIcon(type) {
     return icons[type] || 'info';
 }
 
-// Export functions for global access
+// logout function
+async function logout() {
+    try {
+        console.log('🚪 Logging out from orders dashboard...');
+        
+        // Show loading state on logout button
+        const logoutBtn = document.querySelector('button[onclick="logout()"]');
+        if (logoutBtn) {
+            const originalContent = logoutBtn.innerHTML;
+            logoutBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <span>Logging out...</span>
+            `;
+            logoutBtn.style.pointerEvents = 'none';
+            logoutBtn.style.opacity = '0.7';
+        }
+        
+        // Call logout endpoint to clear server-side session
+        const response = await fetch('/logout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Logout request failed: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Logout response:', result);
+        
+        // Clear client-side cookies as backup
+        clearAllAdminCookies();
+        
+        // Clear any stored admin data
+        clearAdminStorage();
+        
+        // Show success message using existing toast function
+        if (typeof showToast === 'function') {
+            showToast('Logged out successfully', 'success');
+        }
+        
+        // Redirect after short delay
+        setTimeout(() => {
+            window.location.href = '/login.html';
+        }, 1000);
+        
+    } catch (error) {
+        console.error('❌ Logout error:', error);
+        
+        // Even if server logout fails, clear client-side data
+        clearAllAdminCookies();
+        clearAdminStorage();
+        
+        // Show warning message
+        if (typeof showToast === 'function') {
+            showToast('Logout completed (with errors)', 'warning');
+        }
+        
+        // Redirect anyway
+        setTimeout(() => {
+            window.location.href = '/login.html';
+        }, 1500);
+    }
+}
+
+function clearAllAdminCookies() {
+    // Clear admin session cookie with multiple approaches to ensure it's removed
+    const cookieOptions = [
+        'admin_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
+        'admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
+        'admin_session=; Path=/; Max-Age=0; Secure; SameSite=Lax',
+        'admin_session=; Path=/; Max-Age=0; SameSite=Lax',
+        'admin_session=; Path=/; Max-Age=0',
+        'admin_session=; Max-Age=0'
+    ];
+    
+    cookieOptions.forEach(cookieString => {
+        document.cookie = cookieString;
+    });
+    
+    // Also clear any other potential admin cookies
+    const adminCookies = ['admin_token', 'admin_auth', 'qotore_admin'];
+    adminCookies.forEach(cookieName => {
+        document.cookie = `${cookieName}=; Path=/; Max-Age=0`;
+    });
+    
+    console.log('🧹 Client-side admin cookies cleared');
+}
+
+function clearAdminStorage() {
+    // Clear localStorage items that might contain admin data
+    const adminKeys = [
+        'admin_session',
+        'admin_data',
+        'qotore_admin',
+        'items_cache',
+        'orders_cache',
+        'notifications_cache'
+    ];
+    
+    adminKeys.forEach(key => {
+        localStorage.removeItem(key);
+    });
+    
+    // Clear sessionStorage
+    try {
+        sessionStorage.clear();
+    } catch (error) {
+        console.warn('Could not clear sessionStorage:', error);
+    }
+    
+    console.log('🧹 Admin storage cleared');
+}
+
+// Authentication monitoring for orders page
+function checkOrdersAuthentication() {
+    const cookies = document.cookie.split(';');
+    const hasAdminSession = cookies.some(cookie => 
+        cookie.trim().startsWith('admin_session=') && 
+        cookie.trim().split('=')[1] !== ''
+    );
+    
+    if (!hasAdminSession) {
+        console.warn('⚠️ No valid admin session found on orders page');
+        if (typeof showToast === 'function') {
+            showToast('Session expired. Please login again.', 'warning');
+        }
+        
+        setTimeout(() => {
+            window.location.href = '/login.html';
+        }, 2000);
+        
+        return false;
+    }
+    
+    return true;
+}
+
+// Add CSS for spin animation if not already present
+if (!document.querySelector('#logout-spin-styles')) {
+    const style = document.createElement('style');
+    style.id = 'logout-spin-styles';
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Initialize logout monitoring when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication on page load
+    checkOrdersAuthentication();
+    
+    // Set up periodic authentication monitoring (every 5 minutes)
+    setInterval(() => {
+        console.log('🔍 Orders page - checking authentication status...');
+        checkOrdersAuthentication();
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    console.log('🔐 Orders page logout functionality initialized');
+});
+
+// Make logout function globally available
+window.logout = logout;
 window.updateOrderStatus = updateOrderStatus;
 window.deleteOrder = deleteOrder;
 window.viewOrder = viewOrder;
