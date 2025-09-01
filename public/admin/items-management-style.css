@@ -952,15 +952,46 @@ body {
     gap: 1rem;
 }
 
-/* Toast Notifications */
+/* Toast Notifications - Configurable Position */
 .toast-container {
     position: fixed;
-    top: 2rem;
-    right: 2rem;
     z-index: 2000;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    
+    /* DEFAULT: Top Right Corner */
+    top: 2rem;
+    right: 2rem;
+    
+    /* ALTERNATIVE POSITIONS - Uncomment the one you want to use:
+    
+    /* Top Left Corner 
+    top: 2rem;
+    left: 2rem;
+    */
+    
+    /* Bottom Right Corner 
+    bottom: 2rem;
+    right: 2rem;
+    */
+    
+    /* Bottom Left Corner 
+    bottom: 2rem;
+    left: 2rem;
+    */
+    
+    /* Top Center 
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    */
+    
+    /* Bottom Center 
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    */
 }
 
 .toast {
@@ -970,7 +1001,70 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border-left: 4px solid;
     max-width: 400px;
-    animation: slideIn 0.3s ease;
+    animation: slideInFromRight 0.3s ease;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Toast animations based on position */
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.toast:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 .toast.success {
@@ -987,17 +1081,6 @@ body {
 
 .toast.warning {
     border-left-color: #ffc107;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
 }
 
 /* Footer Styles */

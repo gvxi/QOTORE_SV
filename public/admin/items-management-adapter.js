@@ -170,6 +170,14 @@ function overrideFunctionsForNewDesign() {
         if (modal) {
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            
+            // Add focus trap
+            setTimeout(() => {
+                const firstInput = modal.querySelector('input[type="text"], textarea, select');
+                if (firstInput) firstInput.focus();
+            }, 100);
+        } else {
+            console.error('Modal not found:', modalId);
         }
     };
     
@@ -178,7 +186,95 @@ function overrideFunctionsForNewDesign() {
         if (modal) {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
+        } else {
+            console.error('Modal not found:', modalId);
         }
+    };
+    
+// Debug function to check modal elements
+function debugModalElements() {
+    const modalOverlay = document.getElementById('itemModalOverlay');
+    const modalTitle = document.getElementById('itemModalTitle');
+    const saveButtonText = document.getElementById('saveButtonText');
+    const itemForm = document.getElementById('itemForm');
+    
+    console.log('🔍 Modal Debug:', {
+        modalOverlay: modalOverlay ? 'Found' : 'NOT FOUND',
+        modalTitle: modalTitle ? 'Found' : 'NOT FOUND',
+        saveButtonText: saveButtonText ? 'Found' : 'NOT FOUND',
+        itemForm: itemForm ? 'Found' : 'NOT FOUND',
+        modalOverlayDisplay: modalOverlay ? modalOverlay.style.display : 'N/A'
+    });
+    
+    return {
+        modalOverlay,
+        modalTitle,
+        saveButtonText,
+        itemForm
+    };
+}
+
+// Enhanced openAddItemModal with debugging
+window.openAddItemModal = function() {
+    console.log('🔧 Opening add item modal...');
+    
+    // Debug modal elements
+    const elements = debugModalElements();
+    
+    if (!elements.modalOverlay) {
+        console.error('❌ Modal overlay not found! Make sure the HTML has id="itemModalOverlay"');
+        showToast('Modal error: Overlay not found', 'error');
+        return;
+    }
+    
+    currentEditingId = null;
+    
+    // Update modal title and button text
+    if (elements.modalTitle) elements.modalTitle.textContent = 'Add New Item';
+    if (elements.saveButtonText) elements.saveButtonText.textContent = 'Save Item';
+    
+    // Reset form
+    if (typeof resetForm === 'function') {
+        resetForm();
+    } else {
+        console.warn('⚠️ resetForm function not found');
+    }
+    
+    // Show modal with extra debugging
+    console.log('📱 Showing modal...');
+    elements.modalOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Verify modal is visible
+    setTimeout(() => {
+        const isVisible = elements.modalOverlay.style.display === 'flex';
+        console.log('👁️ Modal visibility check:', isVisible ? 'VISIBLE' : 'HIDDEN');
+        
+        if (!isVisible) {
+            console.error('❌ Modal failed to show!');
+            showToast('Modal failed to open', 'error');
+        } else {
+            // Focus first input
+            const firstInput = elements.modalOverlay.querySelector('input[type="text"], textarea, select');
+            if (firstInput) {
+                firstInput.focus();
+                console.log('🎯 Focused first input');
+            }
+        }
+    }, 100);
+};
+    
+    // Override closeItemModal function
+    window.closeItemModal = function() {
+        hideModal('itemModalOverlay');
+        resetForm();
+        currentEditingId = null;
+    };
+    
+    // Override closeDeleteModal function  
+    window.closeDeleteModal = function() {
+        hideModal('deleteModalOverlay');
+        window.deleteItemId = null;
     };
 }
 
@@ -561,6 +657,7 @@ function removeImagePreview() {
     if (imagePreview) imagePreview.style.display = 'none';
     if (imageInput) imageInput.value = '';
 }
+
 // Enhanced search functionality with highlighting
 function highlightSearchTerms(text, searchTerm) {
     if (!searchTerm) return text;
