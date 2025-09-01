@@ -40,9 +40,45 @@ function initializeNewDesignFeatures() {
             }, 300);
         });
     }
-}
+// Override the problematic updatePreviews function
+window.originalUpdatePreviews = window.updatePreviews;
+window.updatePreviews = function() {
+    const itemNameInput = document.getElementById('itemName');
+    if (!itemNameInput) return;
+    
+    const itemName = itemNameInput.value || 'creed-aventus';
+    const slug = generateSlug(itemName);
+    
+    // Check if preview elements exist (from old HTML structure)
+    const slugPreview = document.getElementById('slugPreview');
+    const imageNamePreview = document.getElementById('imageNamePreview');
+    
+    if (slugPreview) {
+        slugPreview.textContent = slug;
+    } else {
+        console.log('📝 Slug preview element not found (this is normal with new design)');
+    }
+    
+    if (imageNamePreview) {
+        imageNamePreview.textContent = `${slug}.png`;
+    } else {
+        console.log('🖼️ Image name preview element not found (this is normal with new design)');
+    }
+    
+    // For the new design, we could show the slug in the form title or elsewhere
+    // but it's not critical functionality
+    console.log('Generated slug:', slug);
+};
 
-function overrideFunctionsForNewDesign() {
+// Override generateSlug to make sure it exists
+window.generateSlug = function(text) {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+};
     // Override updateStats function to work with new design
     window.originalUpdateStats = window.updateStats;
     window.updateStats = function() {
