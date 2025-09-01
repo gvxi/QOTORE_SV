@@ -29,7 +29,6 @@
     <meta property="og:type" content="website">
     
     <link rel="stylesheet" href="items-management-style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <!-- Header -->
@@ -42,25 +41,31 @@
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="refreshData()" id="refreshBtn" title="Refresh Data">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6 0-3.31 2.69-6 6-6 1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                     </svg>
                     <span>Refresh</span>
                 </button>
-                <a class="nav-btn" href="index.html">
+                <button class="nav-btn" onclick="openAddItemModal()" title="Add New Item">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    <span>Add Item</span>
+                </button>
+                <a href="index.html" class="nav-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
                     </svg>
                     <span>Orders</span>
                 </a>
-                <a class="nav-btn" href="../index.html" target="_blank">
+                <a href="../index.html" target="_blank" class="nav-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
                     <span>View Store</span>
                 </a>
-                <a class="nav-btn" href="../login.html">
+                <a href="../login.html" class="nav-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.1 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
                     </svg>
                     <span>Logout</span>
                 </a>
@@ -71,108 +76,133 @@
     <!-- Main Content -->
     <main class="main-content">
         <!-- Dashboard Stats -->
-        <div class="dashboard-stats">
+        <div class="dashboard-stats" id="statsContainer">
             <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1z"/>
-                    </svg>
-                </div>
                 <div class="stat-content">
-                    <div class="stat-number" id="totalItems">0</div>
-                    <div class="stat-label">Total Items</div>
+                    <div class="stat-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-details">
+                        <div class="stat-number" id="totalItems">0</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
                 </div>
             </div>
-
             <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                </div>
                 <div class="stat-content">
-                    <div class="stat-number" id="visibleItems">0</div>
-                    <div class="stat-label">Visible Items</div>
+                    <div class="stat-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-details">
+                        <div class="stat-number" id="visibleItems">0</div>
+                        <div class="stat-label">Visible</div>
+                    </div>
                 </div>
             </div>
-
             <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                </div>
                 <div class="stat-content">
-                    <div class="stat-number" id="hiddenItems">0</div>
-                    <div class="stat-label">Hidden Items</div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm6 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v11z"/>
-                    </svg>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalVariants">0</div>
-                    <div class="stat-label">Total Variants</div>
+                    <div class="stat-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-details">
+                        <div class="stat-number" id="hiddenItems">0</div>
+                        <div class="stat-label">Hidden</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Items Management Section -->
-        <div class="orders-section">
+        <!-- Items Section -->
+        <div class="items-section">
             <div class="section-header">
                 <h2 class="section-title">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1z"/>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
                     Items Management
                 </h2>
-                <button class="btn-primary add-item-btn" onclick="openAddItemModal()" title="Add New Item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                    <span>Add New Item</span>
-                </button>
+                <div id="newItemsBadge" class="new-item-badge" style="display: none;">
+                    New Items Available!
+                </div>
             </div>
 
             <!-- Controls -->
             <div class="controls">
                 <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Search items by name, brand, or description..." class="search-input">
-                    <div class="search-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                        </svg>
-                    </div>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search items by name, brand...">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
                 </div>
-
-                <div class="filter-controls">
+                <div class="filter-container">
                     <select id="statusFilter" class="filter-select">
                         <option value="all">All Items</option>
                         <option value="visible">Visible Only</option>
                         <option value="hidden">Hidden Only</option>
                     </select>
                 </div>
+                <div class="items-per-page">
+                    <label for="itemsPerPageSelect">Show:</label>
+                    <select id="itemsPerPageSelect" class="page-size-select">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- Loading State -->
-            <div class="loading-state" id="loadingSpinner" style="display: none;">
-                <div class="loading-spinner"></div>
+            <!-- Loading Spinner -->
+            <div class="loading-spinner" id="loadingSpinner" style="display: none;">
+                <div class="spinner"></div>
                 <p>Loading items...</p>
             </div>
 
             <!-- Items Table -->
             <div class="table-container">
-                <div id="itemsList">
-                    <!-- Items will be populated by JavaScript -->
+                <table class="table" id="itemsTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Item Details</th>
+                            <th>Variants & Pricing</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsList">
+                        <!-- Items will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-title">No Items Found</h3>
+                    <p class="empty-subtitle">Start by adding your first fragrance item</p>
+                    <button class="btn btn-primary" onclick="openAddItemModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                        Add First Item
+                    </button>
                 </div>
             </div>
 
             <!-- Pagination -->
-            <div class="pagination" id="paginationContainer">
+            <div class="pagination-info" id="paginationInfo">
+                <span>Showing <span id="startIndex">0</span> to <span id="endIndex">0</span> of <span id="totalCount">0</span> items</span>
+            </div>
+            <div class="pagination-container" id="paginationContainer">
                 <!-- Pagination will be populated by JavaScript -->
             </div>
         </div>
@@ -182,47 +212,46 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
-                <h4>Contact Us</h4>
+                <h4>Qotore Admin</h4>
+                <p>Manage your fragrance collection</p>
+                <p>&copy; 2025 Qotore. All rights reserved.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Connect with us</h4>
                 <div class="social-links">
                     <a href="https://instagram.com/qotore" target="_blank" class="social-link instagram">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                         </svg>
                         Instagram
                     </a>
                     <a href="https://snapchat.com/add/qotore" target="_blank" class="social-link snapchat">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M5.829 4.533c-.6 1.344-.363 3.752-.267 5.436-.648.359-1.48-.271-1.951-.271-.49 0-1.075.322-1.167.802-.066.346.089.85 1.201 1.289.43.17 1.453.37 1.479.37.025.431.619 4.109.619 4.109 1.181 0 1.922-.379 2.78-.676.28-.097.578-.199.856-.199.284 0 .588.102.872.199.858.297 1.599.676 2.78.676 0 0 .594-3.678.619-4.109.026 0 1.049-.2 1.479-.37 1.112-.439 1.267-.943 1.201-1.289-.092-.48-.677-.802-1.167-.802-.471 0-1.303.63-1.951.271.096-1.684.333-4.092-.267-5.436C11.395 3.462 8.5 3.462 5.829 4.533z"/>
+                            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.118.112.223.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.741-1.378 0 0-.599 2.282-.744 2.840-.282 1.084-1.064 2.456-1.549 3.235C9.584 23.815 10.77 24.001 12.017 24.001c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z"/>
                         </svg>
                         Snapchat
                     </a>
                     <a href="https://wa.me/96812345678" target="_blank" class="social-link whatsapp">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.525 3.488"/>
                         </svg>
                         WhatsApp
                     </a>
                 </div>
-                <p>📍 Muscat, Oman</p>
-                <p>✉️ info@qotore.com</p>
-            </div>
-            <div class="footer-section">
-                <p>&copy; 2025 Qotore. All rights reserved.</p>
-                <p>Admin Dashboard v1.0</p>
             </div>
         </div>
     </footer>
 
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/96812345678" target="_blank" class="whatsapp-float" title="Contact Support on WhatsApp">
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/96812345678" target="_blank" class="whatsapp-float" title="Contact us on WhatsApp">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.525 3.488"/>
         </svg>
     </a>
 
     <!-- Add/Edit Item Modal -->
     <div class="modal-overlay" id="itemModalOverlay" style="display: none;">
-        <div class="modal-content large">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3 id="itemModalTitle">Add New Item</h3>
                 <button class="modal-close" onclick="closeItemModal()">
@@ -231,183 +260,102 @@
                     </svg>
                 </button>
             </div>
-            
-            <form id="itemForm" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <!-- Basic Information Section -->
+            <form id="itemForm" class="modal-form">
+                <div class="form-grid">
+                    <!-- Basic Information -->
                     <div class="form-section">
-                        <h4 class="section-title">Basic Information</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="itemName">Item Name <span class="required">*</span></label>
-                                <input type="text" id="itemName" name="name" required oninput="updatePreviews()" placeholder="Enter item name">
-                                <div class="form-help">This will be the display name for your fragrance</div>
-                            </div>
-                            <div class="form-group">
-                                <label for="itemBrand">Brand</label>
-                                <input type="text" id="itemBrand" name="brand" placeholder="Enter brand name">
-                                <div class="form-help">Optional brand information</div>
-                            </div>
+                        <h4>Basic Information</h4>
+                        <div class="form-group">
+                            <label for="itemName">Item Name *</label>
+                            <input type="text" id="itemName" name="name" required oninput="updatePreviews()">
                         </div>
-
+                        <div class="form-group">
+                            <label for="itemBrand">Brand</label>
+                            <input type="text" id="itemBrand" name="brand">
+                        </div>
                         <div class="form-group">
                             <label for="itemDescription">Description</label>
-                            <textarea id="itemDescription" name="description" rows="4" placeholder="Describe the fragrance notes, characteristics, or any special information..."></textarea>
-                            <div class="form-help">Detailed description to help customers understand the fragrance</div>
+                            <textarea id="itemDescription" name="description" rows="3"></textarea>
                         </div>
-                    </div>
-
-                    <!-- Image Section -->
-                    <div class="form-section">
-                        <h4 class="section-title">Product Image</h4>
-                        <div class="form-group">
-                            <label for="itemImage">Item Image <span class="required">*</span></label>
-                            <div class="file-input-wrapper">
-                                <input type="file" id="itemImage" name="image" accept=".png" required>
-                                <div class="file-input-overlay">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
-                                    </svg>
-                                    <span>Choose PNG Image</span>
-                                </div>
-                            </div>
-                            <div class="form-help">Only PNG images are accepted. Recommended size: 500x500px</div>
-                            <div class="image-preview" id="imagePreview" style="display: none;">
-                                <div class="preview-container">
-                                    <img id="previewImg" alt="Preview">
-                                    <button type="button" class="remove-image-btn" onclick="removeImagePreview()">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Variants Section -->
-                    <div class="form-section">
-                        <h4 class="section-title">Available Variants</h4>
-                        <div class="form-help section-help">Select which sizes you want to offer and set their prices</div>
-                        <div class="variants-grid">
-                            <div class="variant-card">
-                                <div class="variant-header">
-                                    <label class="variant-toggle">
-                                        <input type="checkbox" id="enable5ml">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                    <div class="variant-info">
-                                        <h5>5ml Sample</h5>
-                                        <p>Small testing size</p>
-                                    </div>
-                                </div>
-                                <div class="variant-price">
-                                    <input type="number" id="price5ml" placeholder="0.000" step="0.001" min="0" disabled>
-                                    <span class="currency">OMR</span>
-                                </div>
-                            </div>
-
-                            <div class="variant-card">
-                                <div class="variant-header">
-                                    <label class="variant-toggle">
-                                        <input type="checkbox" id="enable10ml">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                    <div class="variant-info">
-                                        <h5>10ml Sample</h5>
-                                        <p>Medium testing size</p>
-                                    </div>
-                                </div>
-                                <div class="variant-price">
-                                    <input type="number" id="price10ml" placeholder="0.000" step="0.001" min="0" disabled>
-                                    <span class="currency">OMR</span>
-                                </div>
-                            </div>
-
-                            <div class="variant-card">
-                                <div class="variant-header">
-                                    <label class="variant-toggle">
-                                        <input type="checkbox" id="enable30ml">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                    <div class="variant-info">
-                                        <h5>30ml Sample</h5>
-                                        <p>Large testing size</p>
-                                    </div>
-                                </div>
-                                <div class="variant-price">
-                                    <input type="number" id="price30ml" placeholder="0.000" step="0.001" min="0" disabled>
-                                    <span class="currency">OMR</span>
-                                </div>
-                            </div>
-
-                            <div class="variant-card full-bottle">
-                                <div class="variant-header">
-                                    <label class="variant-toggle">
-                                        <input type="checkbox" id="enableFullBottle">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                    <div class="variant-info">
-                                        <h5>Full Bottle</h5>
-                                        <p>Contact for pricing</p>
-                                    </div>
-                                </div>
-                                <div class="variant-price">
-                                    <div class="contact-pricing">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                                        </svg>
-                                        Call for Price
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Settings Section -->
-                    <div class="form-section">
-                        <h4 class="section-title">Item Settings</h4>
-                        <div class="settings-group">
-                            <label class="setting-toggle">
-                                <input type="checkbox" id="itemHidden">
-                                <div class="toggle-container">
-                                    <span class="toggle-slider"></span>
-                                </div>
-                                <div class="setting-info">
-                                    <h5>Hide from Store</h5>
-                                    <p>Item will not be visible to customers when enabled</p>
-                                </div>
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="itemHidden" name="hidden">
+                                <span class="checkmark"></span>
+                                Hide from customers
                             </label>
                         </div>
                     </div>
 
-                    <!-- Preview Section -->
-                    <div class="form-section preview-section">
-                        <h4 class="section-title">Preview Information</h4>
-                        <div class="preview-grid">
-                            <div class="preview-item">
-                                <label>URL Slug:</label>
-                                <span id="slugPreview">creed-aventus</span>
+                    <!-- Image Upload -->
+                    <div class="form-section">
+                        <h4>Item Image</h4>
+                        <div class="form-group">
+                            <label for="itemImage">Image (PNG only) *</label>
+                            <input type="file" id="itemImage" name="image" accept=".png" required>
+                            <small>File will be saved as: <span id="imageNamePreview">item-name.png</span></small>
+                        </div>
+                        <div id="imagePreview" class="image-preview" style="display: none;">
+                            <img id="previewImg" alt="Preview">
+                            <button type="button" onclick="removeImagePreview()">Remove</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Variants Section -->
+                <div class="form-section variants-section">
+                    <h4>Available Variants & Pricing</h4>
+                    <p class="variants-note">Select the variants you want to offer and set their prices:</p>
+                    
+                    <div class="variants-grid">
+                        <div class="variant-card">
+                            <label class="variant-header">
+                                <input type="checkbox" id="enable5ml" onchange="toggleVariantPrice('5ml')">
+                                <span class="variant-title">5ml Sample</span>
+                            </label>
+                            <div class="variant-price">
+                                <label for="price5ml">Price (OMR)</label>
+                                <input type="number" id="price5ml" step="0.001" min="0" disabled placeholder="0.000">
                             </div>
-                            <div class="preview-item">
-                                <label>Image Name:</label>
-                                <span id="imageNamePreview">creed-aventus.png</span>
+                        </div>
+                        
+                        <div class="variant-card">
+                            <label class="variant-header">
+                                <input type="checkbox" id="enable10ml" onchange="toggleVariantPrice('10ml')">
+                                <span class="variant-title">10ml Sample</span>
+                            </label>
+                            <div class="variant-price">
+                                <label for="price10ml">Price (OMR)</label>
+                                <input type="number" id="price10ml" step="0.001" min="0" disabled placeholder="0.000">
+                            </div>
+                        </div>
+                        
+                        <div class="variant-card">
+                            <label class="variant-header">
+                                <input type="checkbox" id="enable30ml" onchange="toggleVariantPrice('30ml')">
+                                <span class="variant-title">30ml Sample</span>
+                            </label>
+                            <div class="variant-price">
+                                <label for="price30ml">Price (OMR)</label>
+                                <input type="number" id="price30ml" step="0.001" min="0" disabled placeholder="0.000">
+                            </div>
+                        </div>
+                        
+                        <div class="variant-card">
+                            <label class="variant-header">
+                                <input type="checkbox" id="enableFullBottle" onchange="toggleVariantPrice('full')">
+                                <span class="variant-title">Full Bottle</span>
+                            </label>
+                            <div class="variant-note">
+                                <small>Customers will contact for pricing</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="modal-footer">
-                    <button type="button" onclick="closeItemModal()" class="btn-secondary">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                        Cancel
-                    </button>
-                    <button type="submit" id="saveItemBtn" class="btn-primary">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
-                        </svg>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeItemModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveItemBtn">
                         <span id="saveButtonText">Save Item</span>
                     </button>
                 </div>
@@ -417,40 +365,44 @@
 
     <!-- Delete Confirmation Modal -->
     <div class="modal-overlay" id="deleteModalOverlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content small">
             <div class="modal-header">
-                <h3>Confirm Delete</h3>
+                <h3>Delete Item</h3>
                 <button class="modal-close" onclick="closeDeleteModal()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
                     </svg>
                 </button>
             </div>
-            
-            <div class="modal-body">
-                <p>Are you sure you want to delete this item? This action cannot be undone.</p>
-                <div id="deleteItemPreview" class="delete-preview">
-                    <!-- Item preview will be populated here -->
+            <div class="delete-content">
+                <div class="delete-warning">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                    <h4>Are you sure?</h4>
+                    <p>This will permanently delete the item and all its data. This action cannot be undone.</p>
                 </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button type="button" onclick="closeDeleteModal()" class="btn-secondary">Cancel</button>
-                <button type="button" onclick="confirmDelete()" class="btn-danger">
-                    <span id="deleteButtonText">Delete Item</span>
-                </button>
+                <div id="deleteItemPreview" class="delete-preview">
+                    <!-- Item preview will be populated by JavaScript -->
+                </div>
+                <div class="delete-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                        Delete Item
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Toast Notifications -->
-    <div id="toast" class="toast">
-        <div class="toast-content">
-            <span id="toastMessage"></span>
-        </div>
-    </div>
+    <div id="toast-container" class="toast-container"></div>
 
-    <script src="items-management-adapter.js"></script>
+    <!-- Scripts -->
     <script src="items-management-script.js"></script>
+    <script src="items-management-adapter.js"></script>
 </body>
 </html>
