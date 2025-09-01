@@ -952,7 +952,7 @@ body {
     gap: 1rem;
 }
 
-/* Toast Notifications - Configurable Position */
+/* Toast Notifications */
 .toast-container {
     position: fixed;
     z-index: 2000;
@@ -960,38 +960,9 @@ body {
     flex-direction: column;
     gap: 0.5rem;
     
-    /* DEFAULT: Top Right Corner */
-    top: 2rem;
-    right: 2rem;
-    
-    /* ALTERNATIVE POSITIONS - Uncomment the one you want to use:
-    
-    /* Top Left Corner 
-    top: 2rem;
-    left: 2rem;
-    */
-    
-    /* Bottom Right Corner 
-    bottom: 2rem;
-    right: 2rem;
-    */
-    
-    /* Bottom Left Corner 
-    bottom: 2rem;
-    left: 2rem;
-    */
-    
-    /* Top Center 
-    top: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    */
-    
-    /* Bottom Center 
     bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
-    */
 }
 
 .toast {

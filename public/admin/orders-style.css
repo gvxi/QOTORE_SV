@@ -747,8 +747,9 @@ input:checked + .slider:before {
 /* Toast Notifications */
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 2000;
     display: flex;
     flex-direction: column;
@@ -765,7 +766,7 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     gap: 1rem;
-    animation: slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
+    animation: slideInBottom 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
     min-width: 300px;
 }
 
@@ -822,13 +823,13 @@ input:checked + .slider:before {
     color: #666;
 }
 
-@keyframes slideInRight {
+@keyframes slideInBottom {
     from {
-        transform: translateX(100%);
+        transform: translateX(-50%) translateY(100%);
         opacity: 0;
     }
     to {
-        transform: translateX(0);
+        transform: translateX(-50%) translateY(0);
         opacity: 1;
     }
 }
@@ -1064,12 +1065,15 @@ input:checked + .slider:before {
         justify-content: center;
     }
     
+   @media (max-width: 768px) {
     .toast-container {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        max-width: calc(100vw - 20px);
     }
+}
     
     .toast {
         min-width: auto;
