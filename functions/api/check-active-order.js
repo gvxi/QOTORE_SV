@@ -1,4 +1,4 @@
-// functions/admin/check-active-order.js - Check if customer has active order (moved to admin path for env vars)
+// functions/api/check-active-order.js - Customer endpoint with service role key
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -22,15 +22,33 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Get Supabase credentials from admin path (where env vars are available)
+    // Get Supabase credentials - try both keys
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY;
     
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Missing Supabase environment variables in admin path');
+    // Use service role key (bypasses RLS) for customer operations
+    const apiKey = SUPABASE_SERVICE_ROLE_KEY;
+    
+    console.log('Environment check:', {
+      hasUrl: !!SUPABASE_URL,
+      hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY,
+      hasAnonKey: !!SUPABASE_ANON_KEY,
+      usingKey: apiKey ? 'service_role' : 'none',
+      path: url.pathname
+    });
+    
+    if (!SUPABASE_URL || !apiKey) {
+      console.error('Missing Supabase environment variables');
       return new Response(JSON.stringify({
         error: 'Database not configured',
+        debug: {
+          hasUrl: !!SUPABASE_URL,
+          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY,
+          hasAnonKey: !!SUPABASE_ANON_KEY,
+          allEnvKeys: Object.keys(env).filter(key => key.includes('SUPABASE'))
+        },
         success: false
       }), {
         status: 500,
@@ -50,8 +68,8 @@ export async function onRequestGet(context) {
 
     const response = await fetch(query, {
       headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'apikey': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       }
     });
@@ -61,6 +79,7 @@ export async function onRequestGet(context) {
       console.error('Supabase query failed:', errorText);
       return new Response(JSON.stringify({
         error: 'Database query failed',
+        details: errorText,
         success: false
       }), {
         status: 500,
