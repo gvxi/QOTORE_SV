@@ -1,4 +1,5 @@
-// Admin Orders Dashboard JavaScript
+// FIXED Admin Orders Dashboard JavaScript
+// Updated to work with your exact database structure
 
 // Global variables
 let orders = [];
@@ -25,14 +26,8 @@ async function initializeApp() {
             return;
         }
         
-        // Initialize PWA features
-        await initializePWA();
-        
         // Load initial data
         await loadOrders();
-        
-        // Initialize notifications
-        initializeNotifications();
         
         // Set up event listeners
         setupEventListeners();
@@ -57,271 +52,6 @@ function redirectToLogin() {
     }, 2000);
 }
 
-// PWA Initialization
-async function initializePWA() {
-    try {
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-            const registration = await navigator.serviceWorker.register('/admin/sw.js');
-            console.log('✅ Service Worker registered:', registration.scope);
-            
-            serviceWorker = registration.active || registration.waiting || registration.installing;
-            
-            // Listen for service worker messages
-            navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-            
-            // Request notification permission for iOS/Desktop
-            if ('Notification' in window) {
-                const permission = await Notification.requestPermission();
-                console.log('📱 Notification permission:', permission);
-            }
-        }
-        
-        // Handle PWA install prompt
-        window.addEventListener('beforeinstallprompt', handleInstallPrompt);
-        
-        // Handle visibility changes for battery optimization
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        
-    } catch (error) {
-        console.error('❌ PWA initialization failed:', error);
-    }
-}
-
-function handleServiceWorkerMessage(event) {
-    const { type, data } = event.data;
-    
-    switch (type) {
-        case 'NEW_ORDER_DETECTED':
-            showNewOrderNotification(data);
-            refreshData(true);
-            break;
-        case 'CONNECTION_STATUS':
-            updateConnectionStatus(data.online);
-            break;
-        case 'SW_ERROR':
-            console.error('Service Worker Error:', data);
-            break;
-    }
-}
-
-function handleInstallPrompt(event) {
-    event.preventDefault();
-    const installBtn = document.getElementById('installBtn');
-    if (installBtn) {
-        installBtn.style.display = 'block';
-        installBtn.addEventListener('click', () => {
-            event.prompt();
-        });
-    }
-}
-
-function handleVisibilityChange() {
-    const isVisible = !document.hidden;
-    if (serviceWorker) {
-        serviceWorker.postMessage({
-            type: 'PAGE_VISIBILITY',
-            visible: isVisible
-        });
-    }
-}
-
-// Initialize notifications system
-function initializeNotifications() {
-    console.log('🔔 Initializing notification system...');
-    
-    // Check if notifications are supported
-    if (!('Notification' in window)) {
-        console.warn('⚠️ Notifications not supported in this environment');
-        const notificationToggle = document.getElementById('notificationToggle');
-        if (notificationToggle) {
-            notificationToggle.disabled = true;
-            notificationToggle.parentElement.title = 'Notifications not supported in this browser';
-        }
-        return;
-    }
-    
-    // Load saved notification preferences
-    const savedState = localStorage.getItem('notificationsEnabled') === 'true';
-    const notificationToggle = document.getElementById('notificationToggle');
-    
-    if (notificationToggle) {
-        notificationToggle.checked = savedState;
-        isNotificationsEnabled = savedState;
-        
-        // Initialize monitoring if enabled
-        if (isNotificationsEnabled && Notification.permission === 'granted') {
-            startNotificationMonitoring();
-        }
-    }
-    
-    updateNotificationStatus();
-    console.log('✅ Notification system initialized');
-}
-
-// Event Listeners
-function setupEventListeners() {
-    // Search functionality
-    const searchInput = document.getElementById('ordersSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-        searchInput.addEventListener('input', function() {
-            const clearBtn = document.getElementById('ordersClearSearch');
-            if (clearBtn) {
-                clearBtn.style.display = this.value.length > 0 ? 'block' : 'none';
-            }
-        });
-    }
-    
-    // Clear search button
-    const clearSearchBtn = document.getElementById('ordersClearSearch');
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', clearOrdersSearch);
-    }
-    
-    // Refresh button
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => refreshData());
-    }
-    
-    // Items per page dropdown
-    const itemsPerPageSelect = document.getElementById('ordersPerPage');
-    if (itemsPerPageSelect) {
-        itemsPerPageSelect.addEventListener('change', function() {
-            ordersPerPage = parseInt(this.value);
-            currentPage = 1;
-            applyFiltersAndPagination();
-        });
-    }
-    
-    // Filter buttons
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filter = this.dataset.filter;
-            if (filter !== currentFilter) {
-                // Update active state
-                filterButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Apply filter
-                currentFilter = filter;
-                currentPage = 1;
-                applyFiltersAndPagination();
-            }
-        });
-    });
-    
-    // Notification toggle
-    const notificationToggle = document.getElementById('notificationToggle');
-    if (notificationToggle) {
-        notificationToggle.addEventListener('change', handleNotificationToggle);
-    }
-    
-    // Auto-refresh every 30 seconds if notifications enabled
-    setInterval(() => {
-        if (isNotificationsEnabled && !document.hidden) {
-            refreshData(true); // Silent refresh
-        }
-    }, 30000);
-}
-
-function handleSearch(event) {
-    searchTerm = event.target.value.toLowerCase().trim();
-    console.log('🔍 Searching:', searchTerm);
-    applyFiltersAndPagination();
-}
-
-function clearOrdersSearch() {
-    const searchInput = document.getElementById('ordersSearch');
-    const clearBtn = document.getElementById('ordersClearSearch');
-    
-    if (searchInput) {
-        searchInput.value = '';
-        searchTerm = '';
-        clearBtn.style.display = 'none';
-        applyFiltersAndPagination();
-    }
-}
-
-async function handleNotificationToggle(event) {
-    const isEnabled = event.target.checked;
-    console.log('🔔 Notifications toggled:', isEnabled);
-    
-    try {
-        if (isEnabled) {
-            // Request permission if needed
-            if ('Notification' in window) {
-                const permission = await Notification.requestPermission();
-                if (permission !== 'granted') {
-                    event.target.checked = false;
-                    showToast('Notification permission denied', 'error');
-                    return;
-                }
-            }
-            
-            // Start monitoring
-            await startNotificationMonitoring();
-            isNotificationsEnabled = true;
-            showToast('Order notifications enabled', 'success');
-        } else {
-            // Stop monitoring
-            await stopNotificationMonitoring();
-            isNotificationsEnabled = false;
-            showToast('Order notifications disabled', 'info');
-        }
-        
-        // Save state
-        localStorage.setItem('notificationsEnabled', isNotificationsEnabled);
-        updateNotificationStatus();
-        
-    } catch (error) {
-        console.error('❌ Notification toggle failed:', error);
-        event.target.checked = false;
-        showToast('Failed to toggle notifications', 'error');
-    }
-}
-
-async function startNotificationMonitoring() {
-    if (serviceWorker) {
-        // Initialize known orders to prevent false notifications on first load
-        const knownOrderIds = orders.map(order => order.id);
-        lastKnownOrderIds = new Set(knownOrderIds);
-        
-        const channel = new MessageChannel();
-        serviceWorker.postMessage({
-            type: 'START_ORDER_MONITORING',
-            enabled: true
-        }, [channel.port2]);
-        
-        serviceWorker.postMessage({
-            type: 'INIT_KNOWN_ORDERS',
-            orderIds: knownOrderIds
-        });
-        
-        console.log('🔔 Notification monitoring started');
-    }
-}
-
-async function stopNotificationMonitoring() {
-    if (serviceWorker) {
-        const channel = new MessageChannel();
-        serviceWorker.postMessage({
-            type: 'STOP_ORDER_MONITORING'
-        }, [channel.port2]);
-        
-        console.log('🔔 Notification monitoring stopped');
-    }
-}
-
-function updateNotificationStatus() {
-    const statusEl = document.getElementById('notificationStatus');
-    if (statusEl) {
-        statusEl.style.display = isNotificationsEnabled ? 'flex' : 'none';
-    }
-}
-
 // Data Loading Functions
 async function loadOrders() {
     console.log('📊 Loading orders...');
@@ -331,162 +61,150 @@ async function loadOrders() {
         const response = await fetch('/admin/orders', {
             credentials: 'include',
             headers: {
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-cache',
+                'Content-Type': 'application/json'
             }
         });
+        
+        console.log('Orders API response status:', response.status);
         
         if (!response.ok) {
             if (response.status === 401) {
                 redirectToLogin();
                 return;
             }
+            
+            const errorText = await response.text();
+            console.error('Orders API error:', errorText);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
+        console.log('Orders API result:', result);
         
-        if (result.success && result.data) {
+        if (result.success && Array.isArray(result.data)) {
             orders = result.data;
             console.log(`✅ Loaded ${orders.length} orders`);
             
-            updateStats(result.stats);
-            applyFiltersAndPagination();
-            
-            // Check for new orders if notifications are enabled
-            if (isNotificationsEnabled && lastKnownOrderIds.size > 0) {
-                checkForNewOrders();
+            // Debug: Log first order structure
+            if (orders.length > 0) {
+                console.log('First order structure:', orders[0]);
             }
             
+            updateStats(result.stats || calculateStats());
+            applyFiltersAndPagination();
             showOrdersContent();
         } else {
-            throw new Error(result.error || 'Failed to load orders');
+            console.warn('Unexpected API response:', result);
+            throw new Error(result.error || 'Failed to load orders - Invalid response format');
         }
         
     } catch (error) {
         console.error('❌ Failed to load orders:', error);
-        showErrorState();
+        showErrorState(error.message);
         showToast('Failed to load orders: ' + error.message, 'error');
     }
 }
 
-function checkForNewOrders() {
-    const currentOrderIds = new Set(orders.map(order => order.id));
-    const newOrderIds = [...currentOrderIds].filter(id => !lastKnownOrderIds.has(id));
+// Calculate stats from orders data
+function calculateStats() {
+    const totalOrders = orders.length;
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const completedOrders = orders.filter(o => o.status === 'completed').length;
+    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
+    const reviewedOrders = orders.filter(o => o.reviewed).length;
     
-    if (newOrderIds.length > 0) {
-        console.log('🆕 Found new orders:', newOrderIds);
-        showNewOrderBadge(newOrderIds.length);
-        showToast(`${newOrderIds.length} new order(s) received!`, 'success');
-        
-        // Update known orders
-        lastKnownOrderIds = currentOrderIds;
-    }
+    // Calculate revenue in OMR (total_amount is in fils/cents)
+    const totalRevenue = orders
+        .filter(o => o.status === 'completed')
+        .reduce((sum, o) => sum + (o.total_amount || 0), 0) / 1000;
+    
+    return {
+        total: totalOrders,
+        pending: pendingOrders,
+        completed: completedOrders,
+        cancelled: cancelledOrders,
+        reviewed: reviewedOrders,
+        revenue: totalRevenue
+    };
 }
 
-async function refreshData(silent = false) {
-    if (!silent) {
-        console.log('🔄 Refreshing data...');
-        
-        const refreshBtn = document.getElementById('refreshBtn');
-        if (refreshBtn) {
-            refreshBtn.classList.add('refreshing');
-        }
+// Update stats display
+function updateStats(stats) {
+    if (!stats) return;
+    
+    const totalEl = document.getElementById('totalOrdersCount');
+    const pendingEl = document.getElementById('pendingOrdersCount');
+    const completedEl = document.getElementById('completedOrdersCount');
+    const revenueEl = document.getElementById('totalRevenueAmount');
+    
+    if (totalEl) totalEl.textContent = stats.total || 0;
+    if (pendingEl) pendingEl.textContent = stats.pending || 0;
+    if (completedEl) completedEl.textContent = stats.completed || 0;
+    if (revenueEl) revenueEl.textContent = `${(stats.revenue || 0).toFixed(3)} OMR`;
+}
+
+function setupEventListeners() {
+    // Search functionality
+    const searchInput = document.getElementById('searchOrders');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase().trim();
+            currentPage = 1;
+            applyFiltersAndPagination();
+        });
     }
     
-    try {
-        await loadOrders();
-        if (!silent) {
-            showToast('Orders data refreshed successfully', 'success');
-        }
-    } catch (error) {
-        if (!silent) {
-            showToast('Failed to refresh orders data', 'error');
-        }
-    } finally {
-        if (!silent) {
-            const refreshBtn = document.getElementById('refreshBtn');
-            if (refreshBtn) {
-                refreshBtn.classList.remove('refreshing');
-            }
-        }
+    // Filter buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all buttons
+            filterButtons.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+            
+            currentFilter = btn.dataset.filter;
+            currentPage = 1;
+            applyFiltersAndPagination();
+        });
+    });
+    
+    // Refresh button
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => refreshData());
     }
 }
 
-// UI State Management
-function showLoadingState() {
-    document.getElementById('ordersLoading').style.display = 'block';
-    document.getElementById('ordersContent').style.display = 'none';
-    document.getElementById('ordersEmpty').style.display = 'none';
-    document.getElementById('ordersNoResults').style.display = 'none';
-    document.getElementById('ordersError').style.display = 'none';
-    document.getElementById('ordersControls').style.display = 'none';
-}
-
-function showOrdersContent() {
-    document.getElementById('ordersLoading').style.display = 'none';
-    document.getElementById('ordersContent').style.display = 'block';
-    document.getElementById('ordersEmpty').style.display = 'none';
-    document.getElementById('ordersNoResults').style.display = 'none';
-    document.getElementById('ordersError').style.display = 'none';
-    document.getElementById('ordersControls').style.display = 'flex';
-}
-
-function showEmptyState() {
-    document.getElementById('ordersLoading').style.display = 'none';
-    document.getElementById('ordersContent').style.display = 'none';
-    document.getElementById('ordersEmpty').style.display = 'block';
-    document.getElementById('ordersNoResults').style.display = 'none';
-    document.getElementById('ordersError').style.display = 'none';
-    document.getElementById('ordersControls').style.display = 'none';
-}
-
-function showNoResultsState() {
-    document.getElementById('ordersLoading').style.display = 'none';
-    document.getElementById('ordersContent').style.display = 'none';
-    document.getElementById('ordersEmpty').style.display = 'none';
-    document.getElementById('ordersNoResults').style.display = 'block';
-    document.getElementById('ordersError').style.display = 'none';
-    document.getElementById('ordersControls').style.display = 'flex';
-}
-
-function showErrorState() {
-    document.getElementById('ordersLoading').style.display = 'none';
-    document.getElementById('ordersContent').style.display = 'none';
-    document.getElementById('ordersEmpty').style.display = 'none';
-    document.getElementById('ordersNoResults').style.display = 'none';
-    document.getElementById('ordersError').style.display = 'block';
-    document.getElementById('ordersControls').style.display = 'none';
-}
-
-// Filtering and Pagination
 function applyFiltersAndPagination() {
-    console.log(`🔧 Applying filters: ${currentFilter}, search: "${searchTerm}"`);
-    
     // Start with all orders
     filteredOrders = [...orders];
     
     // Apply search filter
     if (searchTerm) {
         filteredOrders = filteredOrders.filter(order => {
-            const searchFields = [
-                order.order_number,
-                order.customer_name,
-                order.customer_email,
-                order.customer_phone,
-                order.status
-            ].filter(field => field).join(' ').toLowerCase();
+            // Build customer name from database fields
+            const customerName = `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.toLowerCase();
+            const customerPhone = (order.customer_phone || '').toLowerCase();
+            const customerEmail = (order.customer_email || '').toLowerCase();
+            const orderNumber = (order.order_number || '').toLowerCase();
             
-            return searchFields.includes(searchTerm);
+            return customerName.includes(searchTerm) || 
+                   customerPhone.includes(searchTerm) || 
+                   customerEmail.includes(searchTerm) ||
+                   orderNumber.includes(searchTerm);
         });
     }
     
     // Apply status filter
-    if (currentFilter !== 'all') {
+    if (currentFilter && currentFilter !== 'all') {
         filteredOrders = filteredOrders.filter(order => {
             switch (currentFilter) {
                 case 'pending': return order.status === 'pending';
                 case 'completed': return order.status === 'completed';
                 case 'cancelled': return order.status === 'cancelled';
+                case 'reviewed': return order.reviewed === true;
                 default: return true;
             }
         });
@@ -520,9 +238,13 @@ function applyFiltersAndPagination() {
     showOrdersContent();
 }
 
+// Render orders table with proper data handling
 function renderOrdersTable(orders) {
-    const tbody = document.querySelector('#ordersTable tbody');
-    if (!tbody) return;
+    const tbody = document.querySelector('#ordersTable tbody') || document.querySelector('#ordersTableBody');
+    if (!tbody) {
+        console.error('Orders table tbody not found');
+        return;
+    }
     
     tbody.innerHTML = '';
     
@@ -532,23 +254,47 @@ function renderOrdersTable(orders) {
     });
 }
 
+// Create order row with your exact database structure
 function createOrderRow(order) {
     const row = document.createElement('tr');
     row.className = 'order-row';
+    
+    // Build customer name from database fields
+    const customerName = `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.trim();
+    
+    // Handle order items - get from the items array that should be populated by the API
+    const itemsCount = (order.items && Array.isArray(order.items)) ? order.items.length : 0;
+    const itemsPreview = getItemsPreview(order.items || []);
+    
+    // Convert total_amount from fils to OMR (divide by 1000)
+    const totalAmount = order.total_amount ? (order.total_amount / 1000).toFixed(3) : '0.000';
+    
+    // Handle order number
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    
+    // Primary contact info
+    const primaryContact = order.customer_email || order.customer_phone || 'No contact';
+    
+    // Status badge with review indicator
+    const statusBadge = order.reviewed ? 
+        `<span class="status-badge status-${order.status}">✓ ${order.status}</span>` :
+        `<span class="status-badge status-${order.status}">${order.status}</span>`;
+    
     row.innerHTML = `
-        <td class="order-number">${order.order_number}</td>
+        <td class="order-number">${orderNumber}</td>
         <td class="customer-info">
-            <div class="customer-name">${order.customer_name}</div>
-            <div class="customer-contact">${order.customer_email}</div>
-            ${order.customer_phone ? `<div class="customer-phone">${order.customer_phone}</div>` : ''}
+            <div class="customer-name">${customerName}</div>
+            <div class="customer-contact">${primaryContact}</div>
+            ${order.customer_phone && order.customer_phone !== primaryContact ? 
+                `<div class="customer-phone">${order.customer_phone}</div>` : ''}
         </td>
         <td class="order-items">
-            <div class="items-count">${order.items.length} item(s)</div>
-            <div class="items-preview">${getItemsPreview(order.items)}</div>
+            <div class="items-count">${itemsCount} item(s)</div>
+            <div class="items-preview">${itemsPreview}</div>
         </td>
-        <td class="order-total">$${order.total.toFixed(2)}</td>
+        <td class="order-total">${totalAmount} OMR</td>
         <td class="order-status">
-            <span class="status-badge status-${order.status}">${order.status}</span>
+            ${statusBadge}
         </td>
         <td class="order-date">${formatDate(order.created_at)}</td>
         <td class="order-actions">
@@ -556,11 +302,11 @@ function createOrderRow(order) {
                 <i class="icon-eye"></i> View
             </button>
             <div class="status-actions">
-                ${order.status === 'pending' ? `
-                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}', 'completed')">
+                ${order.status === 'pending' ?
+                    `<button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}', 'completed')">
                         <i class="icon-check"></i> Complete
-                    </button>
-                ` : ''}
+                    </button>` : ''
+                }
                 <button class="btn btn-sm btn-danger" onclick="deleteOrder('${order.id}')">
                     <i class="icon-trash"></i> Delete
                 </button>
@@ -571,20 +317,54 @@ function createOrderRow(order) {
     return row;
 }
 
+// Get items preview with proper handling of order_items structure
 function getItemsPreview(items) {
-    if (!items || items.length === 0) return 'No items';
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        return 'No items';
+    }
     
-    const preview = items.slice(0, 2).map(item => 
-        `${item.name} (${item.size})`
-    ).join(', ');
+    // Handle the structure from order_items table
+    const preview = items.slice(0, 2).map(item => {
+        // Use fragrance_name and variant_size from order_items table
+        const name = item.fragrance_name || item.name || 'Unknown Item';
+        const size = item.variant_size || item.size || '';
+        const quantity = item.quantity || 1;
+        
+        return `${name} (${size}) x${quantity}`;
+    }).join(', ');
     
     return items.length > 2 ? `${preview}...` : preview;
 }
 
+// Format date helper
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        console.warn('Date formatting error:', error);
+        return dateString;
+    }
+}
+
+// Pagination helpers
 function updatePaginationInfo(start, end, total, totalPages) {
-    const infoEl = document.getElementById('ordersInfo');
+    const infoEl = document.getElementById('ordersInfo') || document.getElementById('ordersPageInfo');
     if (infoEl) {
-        infoEl.textContent = `Showing ${start}-${end} of ${total} orders (Page ${currentPage} of ${totalPages})`;
+        infoEl.textContent = `Showing ${start}-${end} of ${total} orders`;
+    }
+    
+    const totalEl = document.getElementById('ordersTotalCount');
+    if (totalEl) {
+        totalEl.textContent = total;
     }
 }
 
@@ -594,7 +374,12 @@ function generatePaginationControls(totalPages) {
     
     container.innerHTML = '';
     
-    if (totalPages <= 1) return;
+    if (totalPages <= 1) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'flex';
     
     // Previous button
     const prevBtn = document.createElement('button');
@@ -604,37 +389,16 @@ function generatePaginationControls(totalPages) {
     prevBtn.onclick = () => goToPage(currentPage - 1);
     container.appendChild(prevBtn);
     
-    // Page numbers
+    // Page numbers (show current and nearby pages)
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
     
-    if (startPage > 1) {
-        const firstBtn = createPageButton(1);
-        container.appendChild(firstBtn);
-        
-        if (startPage > 2) {
-            const ellipsis = document.createElement('span');
-            ellipsis.className = 'pagination-ellipsis';
-            ellipsis.textContent = '...';
-            container.appendChild(ellipsis);
-        }
-    }
-    
     for (let i = startPage; i <= endPage; i++) {
-        const pageBtn = createPageButton(i, i === currentPage);
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `btn ${i === currentPage ? 'btn-primary' : 'btn-outline'}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => goToPage(i);
         container.appendChild(pageBtn);
-    }
-    
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            const ellipsis = document.createElement('span');
-            ellipsis.className = 'pagination-ellipsis';
-            ellipsis.textContent = '...';
-            container.appendChild(ellipsis);
-        }
-        
-        const lastBtn = createPageButton(totalPages);
-        container.appendChild(lastBtn);
     }
     
     // Next button
@@ -646,14 +410,6 @@ function generatePaginationControls(totalPages) {
     container.appendChild(nextBtn);
 }
 
-function createPageButton(pageNumber, isActive = false) {
-    const btn = document.createElement('button');
-    btn.className = `btn ${isActive ? 'btn-primary' : 'btn-outline'}`;
-    btn.textContent = pageNumber;
-    btn.onclick = () => goToPage(pageNumber);
-    return btn;
-}
-
 function goToPage(page) {
     const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
     if (page >= 1 && page <= totalPages) {
@@ -662,16 +418,48 @@ function goToPage(page) {
     }
 }
 
+// Refresh data
+async function refreshData(silent = false) {
+    if (!silent) {
+        console.log('🔄 Refreshing data...');
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.classList.add('refreshing');
+        }
+    }
+    
+    try {
+        await loadOrders();
+        if (!silent) {
+            showToast('Orders data refreshed successfully', 'success');
+        }
+    } catch (error) {
+        if (!silent) {
+            showToast('Failed to refresh orders data', 'error');
+        }
+    } finally {
+        if (!silent) {
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                refreshBtn.classList.remove('refreshing');
+            }
+        }
+    }
+}
+
 // Order Management Functions
 async function updateOrderStatus(orderId, newStatus) {
     try {
-        const response = await fetch(`/admin/orders/${orderId}/status`, {
-            method: 'PATCH',
+        const response = await fetch('/admin/update-order-status', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({ 
+                id: parseInt(orderId), 
+                status: newStatus 
+            })
         });
         
         if (!response.ok) {
@@ -699,9 +487,15 @@ async function deleteOrder(orderId) {
     }
     
     try {
-        const response = await fetch(`/admin/orders/${orderId}`, {
-            method: 'DELETE',
-            credentials: 'include'
+        const response = await fetch('/admin/delete-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ 
+                id: parseInt(orderId) 
+            })
         });
         
         if (!response.ok) {
@@ -723,802 +517,190 @@ async function deleteOrder(orderId) {
     }
 }
 
-function viewOrder(orderId) {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-    
-    // Create modal for order details
-    showOrderDetailsModal(order);
-}
-
-function showOrderDetailsModal(order) {
-    // Create modal if it doesn't exist
-    let modal = document.getElementById('orderDetailsModal');
-    if (!modal) {
-        modal = createOrderDetailsModal();
-        document.body.appendChild(modal);
+async function viewOrder(orderId) {
+    // Find the order in current data
+    const order = orders.find(o => o.id == orderId);
+    if (!order) {
+        showToast('Order not found', 'error');
+        return;
     }
     
-    // Populate modal with order details
-    populateOrderModal(order);
+    // Create modal content
+    const customerName = `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.trim();
+    const totalAmount = (order.total_amount / 1000).toFixed(3);
     
-    // Show modal
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function createOrderDetailsModal() {
-    const modal = document.createElement('div');
-    modal.id = 'orderDetailsModal';
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Order Details</h3>
-                <button class="modal-close" onclick="closeOrderModal()">
-                    <i class="icon-x"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="orderDetailsContent"></div>
-            </div>
-        </div>
-    `;
-    
-    return modal;
-}
-
-function populateOrderModal(order) {
-    const content = document.getElementById('orderDetailsContent');
-    if (!content) return;
-    
-    content.innerHTML = `
-        <div class="order-details">
-            <div class="order-header">
-                <h4>Order #${order.order_number}</h4>
-                <span class="status-badge status-${order.status}">${order.status}</span>
-            </div>
-            
-            <div class="customer-section">
-                <h5>Customer Information</h5>
-                <div class="customer-details">
-                    <p><strong>Name:</strong> ${order.customer_name}</p>
-                    <p><strong>Email:</strong> ${order.customer_email}</p>
-                    ${order.customer_phone ? `<p><strong>Phone:</strong> ${order.customer_phone}</p>` : ''}
+    let itemsHtml = '';
+    if (order.items && order.items.length > 0) {
+        itemsHtml = order.items.map(item => {
+            const itemTotal = (item.total_price_cents / 1000).toFixed(3);
+            const itemPrice = (item.unit_price_cents / 1000).toFixed(3);
+            return `
+                <div class="order-item">
+                    <div class="item-name">${item.fragrance_name}</div>
+                    <div class="item-details">${item.variant_size} × ${item.quantity} = ${itemTotal} OMR</div>
+                    <div class="item-price">${itemPrice} OMR each</div>
                 </div>
-            </div>
-            
-            <div class="items-section">
-                <h5>Order Items</h5>
-                <div class="items-list">
-                    ${order.items.map(item => `
-                        <div class="item-row">
-                            <div class="item-info">
-                                <strong>${item.name}</strong>
-                                <span class="item-size">${item.size}</span>
-                            </div>
-                            <div class="item-price">
-                                ${item.quantity}x $${item.price} = $${(item.quantity * item.price).toFixed(2)}
-                            </div>
+            `;
+        }).join('');
+    } else {
+        itemsHtml = '<div class="no-items">No items found</div>';
+    }
+    
+    const modalHtml = `
+        <div class="modal-overlay" onclick="closeOrderModal()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3>Order Details - ${order.order_number}</h3>
+                    <button onclick="closeOrderModal()" class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="order-details">
+                        <div class="detail-section">
+                            <h4>Customer Information</h4>
+                            <p><strong>Name:</strong> ${customerName}</p>
+                            <p><strong>Phone:</strong> ${order.customer_phone || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${order.customer_email || 'N/A'}</p>
                         </div>
-                    `).join('')}
+                        
+                        <div class="detail-section">
+                            <h4>Delivery Information</h4>
+                            <p><strong>Address:</strong> ${order.delivery_address}</p>
+                            <p><strong>City:</strong> ${order.delivery_city}</p>
+                            <p><strong>Region:</strong> ${order.delivery_region || 'N/A'}</p>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4>Order Items</h4>
+                            ${itemsHtml}
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4>Order Summary</h4>
+                            <p><strong>Status:</strong> ${order.status}</p>
+                            <p><strong>Total:</strong> ${totalAmount} OMR</p>
+                            <p><strong>Created:</strong> ${formatDate(order.created_at)}</p>
+                            <p><strong>Notes:</strong> ${order.notes || 'None'}</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="order-summary">
-                <h5>Order Summary</h5>
-                <div class="summary-row">
-                    <span>Total:</span>
-                    <strong>$${order.total.toFixed(2)}</strong>
-                </div>
-                <div class="summary-row">
-                    <span>Order Date:</span>
-                    <span>${formatDate(order.created_at)}</span>
-                </div>
-            </div>
-            
-            <div class="order-actions">
-                ${order.status === 'pending' ? `
-                    <button class="btn btn-success" onclick="updateOrderStatus('${order.id}', 'completed')">
-                        Mark as Completed
-                    </button>
-                ` : ''}
-                <button class="btn btn-danger" onclick="deleteOrder('${order.id}')">
-                    Delete Order
-                </button>
             </div>
         </div>
     `;
+    
+    // Add modal to page
+    const existingModal = document.querySelector('.modal-overlay');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
 function closeOrderModal() {
-    const modal = document.getElementById('orderDetailsModal');
+    const modal = document.querySelector('.modal-overlay');
     if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+        modal.remove();
     }
 }
 
-// Statistics and Analytics
-function updateStats(stats) {
-    if (!stats) return;
+// UI State Management
+function showLoadingState() {
+    const loadingEl = document.getElementById('ordersLoading');
+    const contentEl = document.getElementById('ordersContent');
+    const emptyEl = document.getElementById('ordersEmpty');
+    const errorEl = document.getElementById('ordersError');
+    const controlsEl = document.getElementById('ordersControls');
     
-    const elements = {
-        totalOrders: document.getElementById('totalOrders'),
-        pendingOrders: document.getElementById('pendingOrders'),
-        completedOrders: document.getElementById('completedOrders'),
-        totalRevenue: document.getElementById('totalRevenue')
-    };
-    
-    if (elements.totalOrders) elements.totalOrders.textContent = stats.total || 0;
-    if (elements.pendingOrders) elements.pendingOrders.textContent = stats.pending || 0;
-    if (elements.completedOrders) elements.completedOrders.textContent = stats.completed || 0;
-    if (elements.totalRevenue) elements.totalRevenue.textContent = `$${(stats.revenue || 0).toFixed(2)}`;
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (contentEl) contentEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
+    if (controlsEl) controlsEl.style.display = 'none';
 }
 
-// Notification Functions
-function showNewOrderNotification(orderData) {
-    // Show browser notification if supported and permitted
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('New Order Received!', {
-            body: `Order ${orderData.orderNumber} from ${orderData.customerName}`,
-            icon: '/icons/icon-192x192.png',
-            badge: '/icons/icon-32x32.png'
-        });
+function showOrdersContent() {
+    const loadingEl = document.getElementById('ordersLoading');
+    const contentEl = document.getElementById('ordersContent');
+    const emptyEl = document.getElementById('ordersEmpty');
+    const errorEl = document.getElementById('ordersError');
+    const controlsEl = document.getElementById('ordersControls');
+    
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (contentEl) contentEl.style.display = 'block';
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
+    if (controlsEl) controlsEl.style.display = 'flex';
+}
+
+function showEmptyState() {
+    const loadingEl = document.getElementById('ordersLoading');
+    const contentEl = document.getElementById('ordersContent');
+    const emptyEl = document.getElementById('ordersEmpty');
+    const errorEl = document.getElementById('ordersError');
+    const controlsEl = document.getElementById('ordersControls');
+    
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (contentEl) contentEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'block';
+    if (errorEl) errorEl.style.display = 'none';
+    if (controlsEl) controlsEl.style.display = 'none';
+}
+
+function showNoResultsState() {
+    const noResultsEl = document.getElementById('ordersNoResults');
+    const contentEl = document.getElementById('ordersContent');
+    
+    if (noResultsEl) noResultsEl.style.display = 'block';
+    if (contentEl) contentEl.style.display = 'none';
+}
+
+function showErrorState(errorMessage) {
+    const loadingEl = document.getElementById('ordersLoading');
+    const contentEl = document.getElementById('ordersContent');
+    const emptyEl = document.getElementById('ordersEmpty');
+    const errorEl = document.getElementById('ordersError');
+    const controlsEl = document.getElementById('ordersControls');
+    
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (contentEl) contentEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (errorEl) {
+        errorEl.style.display = 'block';
+        const errorMsgEl = errorEl.querySelector('.error-message');
+        if (errorMsgEl) {
+            errorMsgEl.textContent = errorMessage;
+        }
     }
-    
-    // Show toast notification
-    showToast(`New order ${orderData.orderNumber} from ${orderData.customerName}`, 'success');
-    
-    // Show new order badge
-    showNewOrderBadge(1);
+    if (controlsEl) controlsEl.style.display = 'none';
 }
 
-function showNewOrderBadge(count) {
-    const badge = document.getElementById('newOrderBadge');
-    if (badge) {
-        badge.textContent = count;
-        badge.style.display = 'inline-block';
-        badge.classList.add('pulse');
-        
-        // Auto-hide after 10 seconds
-        setTimeout(() => {
-            badge.style.display = 'none';
-            badge.classList.remove('pulse');
-        }, 10000);
-    }
-}
-
-function updateConnectionStatus(isOnline) {
-    const statusEl = document.getElementById('connectionStatus');
-    if (statusEl) {
-        statusEl.className = `connection-status ${isOnline ? 'online' : 'offline'}`;
-        statusEl.innerHTML = `
-            <i class="icon-${isOnline ? 'wifi' : 'wifi-off'}"></i>
-            ${isOnline ? 'Online' : 'Offline'}
-        `;
-    }
-}
-
-// Utility Functions
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
+// Toast notification helper
 function showToast(message, type = 'info') {
-    // Create toast if it doesn't exist
-    let toastContainer = document.getElementById('toastContainer');
+    const toastContainer = document.getElementById('toastContainer');
     if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toastContainer';
-        toastContainer.className = 'toast-container';
-        document.body.appendChild(toastContainer);
+        console.warn('Toast container not found');
+        return;
     }
     
-    // Create toast element
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <div class="toast-content">
-            <i class="toast-icon icon-${getToastIcon(type)}"></i>
-            <span class="toast-message">${message}</span>
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">
-            <i class="icon-x"></i>
-        </button>
-    `;
+    toast.textContent = message;
     
     toastContainer.appendChild(toast);
     
-    // Auto-remove after 5 seconds
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Remove toast
     setTimeout(() => {
-        if (toast.parentElement) {
-            toast.remove();
-        }
-    }, 5000);
+        toast.classList.remove('show');
+        setTimeout(() => toastContainer.removeChild(toast), 300);
+    }, 3000);
 }
 
-function getToastIcon(type) {
-    const icons = {
-        success: 'check-circle',
-        error: 'x-circle',
-        warning: 'alert-triangle',
-        info: 'info'
-    };
-    return icons[type] || 'info';
-}
-
-// logout function
-async function logout() {
-    try {
-        console.log('🚪 Logging out from orders dashboard...');
-        
-        // Show loading state on logout button
-        const logoutBtn = document.querySelector('button[onclick="logout()"]');
-        if (logoutBtn) {
-            const originalContent = logoutBtn.innerHTML;
-            logoutBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                <span>Logging out...</span>
-            `;
-            logoutBtn.style.pointerEvents = 'none';
-            logoutBtn.style.opacity = '0.7';
-        }
-        
-        // Call logout endpoint to clear server-side session
-        const response = await fetch('/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Logout request failed: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('Logout response:', result);
-        
-        // Clear client-side cookies as backup
-        clearAllAdminCookies();
-        
-        // Clear any stored admin data
-        clearAdminStorage();
-        
-        // Show success message using existing toast function
-        if (typeof showToast === 'function') {
-            showToast('Logged out successfully', 'success');
-        }
-        
-        // Redirect after short delay
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 1000);
-        
-    } catch (error) {
-        console.error('❌ Logout error:', error);
-        
-        // Even if server logout fails, clear client-side data
-        clearAllAdminCookies();
-        clearAdminStorage();
-        
-        // Show warning message
-        if (typeof showToast === 'function') {
-            showToast('Logout completed (with errors)', 'warning');
-        }
-        
-        // Redirect anyway
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 1500);
-    }
-}
-
-function clearAllAdminCookies() {
-    // Clear admin session cookie with multiple approaches to ensure it's removed
-    const cookieOptions = [
-        'admin_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; Secure; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0',
-        'admin_session=; Max-Age=0'
-    ];
-    
-    cookieOptions.forEach(cookieString => {
-        document.cookie = cookieString;
-    });
-    
-    // Also clear any other potential admin cookies
-    const adminCookies = ['admin_token', 'admin_auth', 'qotore_admin'];
-    adminCookies.forEach(cookieName => {
-        document.cookie = `${cookieName}=; Path=/; Max-Age=0`;
-    });
-    
-    console.log('🧹 Client-side admin cookies cleared');
-}
-
-function clearAdminStorage() {
-    // Clear localStorage items that might contain admin data
-    const adminKeys = [
-        'admin_session',
-        'admin_data',
-        'qotore_admin',
-        'items_cache',
-        'orders_cache',
-        'notifications_cache'
-    ];
-    
-    adminKeys.forEach(key => {
-        localStorage.removeItem(key);
-    });
-    
-    // Clear sessionStorage
-    try {
-        sessionStorage.clear();
-    } catch (error) {
-        console.warn('Could not clear sessionStorage:', error);
-    }
-    
-    console.log('🧹 Admin storage cleared');
-}
-
-// Authentication monitoring for orders page
-function checkOrdersAuthentication() {
-    const cookies = document.cookie.split(';');
-    const hasAdminSession = cookies.some(cookie => 
-        cookie.trim().startsWith('admin_session=') && 
-        cookie.trim().split('=')[1] !== ''
-    );
-    
-    if (!hasAdminSession) {
-        console.warn('⚠️ No valid admin session found on orders page');
-        if (typeof showToast === 'function') {
-            showToast('Session expired. Please login again.', 'warning');
-        }
-        
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 2000);
-        
-        return false;
-    }
-    
-    return true;
-}
-
-// Add CSS for spin animation if not already present
-if (!document.querySelector('#logout-spin-styles')) {
-    const style = document.createElement('style');
-    style.id = 'logout-spin-styles';
-    style.textContent = `
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Initialize logout monitoring when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Check authentication on page load
-    checkOrdersAuthentication();
-    
-    // Set up periodic authentication monitoring (every 5 minutes)
-    setInterval(() => {
-        console.log('🔍 Orders page - checking authentication status...');
-        checkOrdersAuthentication();
-    }, 5 * 60 * 1000); // 5 minutes
-    
-    console.log('🔐 Orders page logout functionality initialized');
-});
-
-window.logout = logout;
+// Export functions for global access
 window.updateOrderStatus = updateOrderStatus;
 window.deleteOrder = deleteOrder;
 window.viewOrder = viewOrder;
 window.closeOrderModal = closeOrderModal;
 window.goToPage = goToPage;
-
-//=======================================
-
-// Updated createOrderRow function to include reviewed button
-function createOrderRow(order) {
-    const row = document.createElement('tr');
-    row.className = 'order-row';
-    
-    // Determine if order needs review
-    const needsReview = order.status === 'pending' && !order.reviewed;
-    const isReviewed = order.reviewed || order.status === 'reviewed';
-    
-    row.innerHTML = `
-        <td class="order-number">${order.order_number}</td>
-        <td class="customer-info">
-            <div class="customer-name">${order.customer_name}</div>
-            <div class="customer-contact">${order.customer_email || order.customer_phone}</div>
-            ${order.customer_phone ? `<div class="customer-phone">${order.customer_phone}</div>` : ''}
-        </td>
-        <td class="order-items">
-            <div class="items-count">${order.items ? order.items.length : 0} item(s)</div>
-            <div class="items-preview">${getItemsPreview(order.items || [])}</div>
-        </td>
-        <td class="order-total">${(order.total_amount / 1000).toFixed(3)} OMR</td>
-        <td class="order-status">
-            <div class="status-container">
-                <span class="status-badge status-${order.status}">${order.status}</span>
-                ${isReviewed ? '<span class="review-badge">✓ Reviewed</span>' : ''}
-                ${needsReview ? '<span class="needs-review-badge">⚠ Needs Review</span>' : ''}
-            </div>
-        </td>
-        <td class="order-date">${formatDate(order.created_at)}</td>
-        <td class="order-actions">
-            <button class="btn btn-sm btn-outline" onclick="viewOrder('${order.id}')">
-                <i class="icon-eye"></i> View
-            </button>
-            <div class="status-actions">
-                ${needsReview ? `
-                    <button class="btn btn-sm btn-review" onclick="markAsReviewed('${order.id}')" title="Mark as Reviewed">
-                        <i class="icon-check"></i> Review
-                    </button>
-                ` : ''}
-                ${order.status === 'pending' || order.status === 'reviewed' ? `
-                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}', 'completed')" title="Mark as Completed">
-                        <i class="icon-check-circle"></i> Complete
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="updateOrderStatus('${order.id}', 'cancelled')" title="Cancel Order">
-                        <i class="icon-x-circle"></i> Cancel
-                    </button>
-                ` : ''}
-            </div>
-        </td>
-    `;
-    
-    return row;
-}
-
-// Function to mark order as reviewed
-async function markAsReviewed(orderId) {
-    if (!confirm('Mark this order as reviewed? This will allow the customer to proceed with the order.')) {
-        return;
-    }
-
-    const reviewBtn = document.querySelector(`button[onclick="markAsReviewed('${orderId}')"]`);
-    if (reviewBtn) {
-        reviewBtn.disabled = true;
-        reviewBtn.innerHTML = '<span class="spinner-small"></span> Reviewing...';
-    }
-
-    try {
-        console.log('Marking order as reviewed:', orderId);
-
-        const response = await fetch('/admin/mark-order-reviewed', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                order_id: parseInt(orderId)
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            showToast(`Order marked as reviewed successfully!`, 'success');
-            
-            // Reload orders to reflect changes
-            await loadOrders();
-        } else {
-            throw new Error(result.error || 'Failed to mark order as reviewed');
-        }
-
-    } catch (error) {
-        console.error('Failed to mark order as reviewed:', error);
-        showToast('Failed to mark order as reviewed: ' + error.message, 'error');
-        
-        // Re-enable button on error
-        if (reviewBtn) {
-            reviewBtn.disabled = false;
-            reviewBtn.innerHTML = '<i class="icon-check"></i> Review';
-        }
-    }
-}
-
-// Updated mobile card creation for mobile view
-function createMobileOrderCard(order) {
-    const needsReview = order.status === 'pending' && !order.reviewed;
-    const isReviewed = order.reviewed || order.status === 'reviewed';
-    
-    const card = document.createElement('div');
-    card.className = 'mobile-card';
-    card.innerHTML = `
-        <div class="mobile-card-header">
-            <div class="mobile-card-title">
-                <strong>${order.order_number}</strong>
-                <div class="status-container">
-                    <span class="status-badge status-${order.status}">${order.status}</span>
-                    ${isReviewed ? '<span class="review-badge">✓ Reviewed</span>' : ''}
-                    ${needsReview ? '<span class="needs-review-badge">⚠ Needs Review</span>' : ''}
-                </div>
-            </div>
-            <div class="mobile-card-date">${formatDate(order.created_at)}</div>
-        </div>
-        
-        <div class="mobile-card-body">
-            <div class="mobile-field">
-                <strong>Customer:</strong> ${order.customer_name}
-            </div>
-            <div class="mobile-field">
-                <strong>Contact:</strong> ${order.customer_email || order.customer_phone}
-            </div>
-            <div class="mobile-field">
-                <strong>Items:</strong> ${order.items ? order.items.length : 0} item(s)
-                <div class="items-preview">${getItemsPreview(order.items || [])}</div>
-            </div>
-            <div class="mobile-field">
-                <strong>Total:</strong> ${(order.total_amount / 1000).toFixed(3)} OMR
-            </div>
-        </div>
-        
-        <div class="mobile-card-actions">
-            <button class="btn btn-sm btn-outline" onclick="viewOrder('${order.id}')">
-                <i class="icon-eye"></i> View
-            </button>
-            ${needsReview ? `
-                <button class="btn btn-sm btn-review" onclick="markAsReviewed('${order.id}')">
-                    <i class="icon-check"></i> Review
-                </button>
-            ` : ''}
-            ${order.status === 'pending' || order.status === 'reviewed' ? `
-                <button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}', 'completed')">
-                    <i class="icon-check-circle"></i> Complete
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="updateOrderStatus('${order.id}', 'cancelled')">
-                    <i class="icon-x-circle"></i> Cancel
-                </button>
-            ` : ''}
-        </div>
-    `;
-    
-    return card;
-}
-
-// Add new filter for orders needing review
-function addReviewFilter() {
-    const filterButtons = document.querySelector('.filter-buttons');
-    if (filterButtons && !document.querySelector('[data-filter="needs-review"]')) {
-        const reviewFilterBtn = document.createElement('button');
-        reviewFilterBtn.className = 'filter-btn';
-        reviewFilterBtn.setAttribute('data-filter', 'needs-review');
-        reviewFilterBtn.onclick = () => filterOrders('needs-review');
-        reviewFilterBtn.innerHTML = '⚠ Needs Review';
-        
-        // Insert after "Pending" button
-        const pendingBtn = document.querySelector('[data-filter="pending"]');
-        if (pendingBtn) {
-            pendingBtn.insertAdjacentElement('afterend', reviewFilterBtn);
-        } else {
-            filterButtons.appendChild(reviewFilterBtn);
-        }
-    }
-}
-
-// Updated filter function to handle "needs-review" filter
-function filterOrders(filterType) {
-    console.log('Filtering orders by:', filterType);
-    currentFilter = filterType;
-    
-    // Update active filter button
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('data-filter') === filterType) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Reset pagination
-    currentPage = 1;
-    
-    // Apply filters
-    applyFiltersAndPagination();
-}
-
-// Updated applyFiltersAndPagination to handle new filter
-const originalApplyFiltersAndPagination = applyFiltersAndPagination;
-function applyFiltersAndPagination() {
-    let filteredOrders = [...orders];
-    
-    // Apply search filter
-    if (currentSearch) {
-        const searchLower = currentSearch.toLowerCase();
-        filteredOrders = filteredOrders.filter(order => {
-            const customerName = order.customer_name ? order.customer_name.toLowerCase() : '';
-            const customerPhone = order.customer_phone ? order.customer_phone.toLowerCase() : '';
-            const orderNumber = order.order_number ? order.order_number.toLowerCase() : '';
-            
-            return customerName.includes(searchLower) || 
-                   customerPhone.includes(searchLower) || 
-                   orderNumber.includes(searchLower);
-        });
-    }
-    
-    // Apply status filter
-    if (currentFilter && currentFilter !== 'all') {
-        filteredOrders = filteredOrders.filter(order => {
-            switch (currentFilter) {
-                case 'pending': return order.status === 'pending';
-                case 'reviewed': return order.status === 'reviewed' || order.reviewed;
-                case 'completed': return order.status === 'completed';
-                case 'cancelled': return order.status === 'cancelled';
-                case 'needs-review': return order.status === 'pending' && !order.reviewed;
-                default: return true;
-            }
-        });
-    }
-    
-    // Continue with original pagination logic
-    console.log(`📋 Filtered to ${filteredOrders.length} orders`);
-    
-    // Handle empty results
-    if (filteredOrders.length === 0) {
-        if (orders.length === 0) {
-            showEmptyState();
-        } else {
-            showNoResultsState();
-        }
-        return;
-    }
-    
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-    const startIndex = (currentPage - 1) * ordersPerPage;
-    const endIndex = Math.min(startIndex + ordersPerPage, filteredOrders.length);
-    
-    // Get current page orders
-    const currentPageOrders = filteredOrders.slice(startIndex, endIndex);
-    
-    // Update UI
-    renderOrdersTable(currentPageOrders);
-    renderMobileOrderCards(currentPageOrders);
-    updatePaginationInfo(startIndex + 1, endIndex, filteredOrders.length, totalPages);
-    generatePaginationControls(totalPages);
-    
-    showOrdersContent();
-}
-
-// Function to render mobile cards
-function renderMobileOrderCards(orders) {
-    const mobileContainer = document.querySelector('#orderCards');
-    if (!mobileContainer) return;
-    
-    mobileContainer.innerHTML = '';
-    
-    orders.forEach(order => {
-        const card = createMobileOrderCard(order);
-        mobileContainer.appendChild(card);
-    });
-}
-
-// Initialize review filter when orders are loaded
-const originalLoadOrders = loadOrders;
-async function loadOrders() {
-    await originalLoadOrders();
-    addReviewFilter();
-}
-
-// Add CSS for new UI elements
-const reviewStyles = document.createElement('style');
-reviewStyles.textContent = `
-    /* Review-related styles */
-    .status-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-    
-    .review-badge {
-        background: rgba(40, 167, 69, 0.1);
-        color: #28a745;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-align: center;
-        border: 1px solid #28a745;
-    }
-    
-    .needs-review-badge {
-        background: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-align: center;
-        border: 1px solid #ffc107;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.7; }
-        100% { opacity: 1; }
-    }
-    
-    .btn-review {
-        background: rgba(23, 162, 184, 0.1);
-        color: #17a2b8;
-        border: 1px solid #17a2b8;
-    }
-    
-    .btn-review:hover {
-        background: #17a2b8;
-        color: white;
-    }
-    
-    .spinner-small {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border: 2px solid #f3f3f3;
-        border-top: 2px solid #17a2b8;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-    
-    .filter-btn[data-filter="needs-review"] {
-        background: rgba(255, 193, 7, 0.1);
-        border-color: #ffc107;
-        color: #ffc107;
-    }
-    
-    .filter-btn[data-filter="needs-review"].active {
-        background: #ffc107;
-        color: #212529;
-    }
-    
-    /* Mobile responsiveness */
-    @media (max-width: 768px) {
-        .status-container {
-            align-items: flex-start;
-        }
-        
-        .review-badge,
-        .needs-review-badge {
-            font-size: 0.65rem;
-            padding: 0.2rem 0.4rem;
-        }
-    }
-`;
-
-document.head.appendChild(reviewStyles);
-
-// Make functions available globally
-window.markAsReviewed = markAsReviewed;
-window.createOrderRow = createOrderRow;
-window.createMobileOrderCard = createMobileOrderCard;
