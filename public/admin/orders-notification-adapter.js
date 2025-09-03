@@ -1,6 +1,6 @@
 // ===================================
-// SIMPLIFIED ADMIN ORDERS NOTIFICATION ADAPTER
-// No function overrides to avoid conflicts
+// FIXED ADMIN ORDERS NOTIFICATION ADAPTER
+// Works with existing notification toggle - NO duplicate UI elements
 // ===================================
 
 // Global variables for notification management
@@ -11,9 +11,9 @@ let isPageVisible = true;
 
 // Initialize notification system when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📬 Initializing simplified notification system');
+    console.log('📬 Initializing notification system (no duplicate UI)');
     
-    // Wait for page to fully load
+    // Wait for page to fully load and connect to existing toggle
     setTimeout(() => {
         // Initialize PWA service worker
         initializeServiceWorker();
@@ -21,18 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set up page visibility tracking
         setupPageVisibilityTracking();
         
-        // Initialize notification UI
-        setupNotificationUI();
+        // Connect to existing notification toggle (don't create new one)
+        connectToExistingToggle();
         
         // Load notification preferences
         loadNotificationPreferences();
         
-        // Set up periodic order checking (every 30 seconds)
-        if (notificationEnabled) {
-            startPeriodicOrderChecking();
-        }
-        
-        console.log('✅ Simplified notification adapter initialized');
+        console.log('✅ Notification adapter initialized (using existing toggle)');
     }, 2000);
 });
 
@@ -43,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
+            const registration = await navigator.serviceWorker.register('/admin/sw.js');
             console.log('📱 Service Worker registered');
             await requestNotificationPermission();
         } catch (error) {
@@ -62,35 +57,27 @@ async function requestNotificationPermission() {
 }
 
 // ===================================
-// NOTIFICATION UI SETUP
+// CONNECT TO EXISTING TOGGLE (NO NEW UI)
 // ===================================
 
-function setupNotificationUI() {
-    // Find a good place to add the toggle
-    const header = document.querySelector('.header-content') || document.querySelector('.section-header');
-    if (!header) return;
+function connectToExistingToggle() {
+    // Find the existing notification toggle in the page
+    const existingToggle = document.getElementById('notificationToggle');
+    if (!existingToggle) {
+        console.warn('⚠️ Existing notification toggle not found');
+        return;
+    }
     
-    // Create notification toggle
-    const toggleHTML = `
-        <div class="notification-toggle" style="
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            margin-left: auto;
-        ">
-            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: white;">
-                <input type="checkbox" id="notificationToggle" onchange="toggleNotifications(this.checked)"
-                       style="transform: scale(1.2);">
-                <span>🔔 Notifications</span>
-            </label>
-            <span id="notificationStatus" style="font-size: 0.75rem; opacity: 0.8; color: white;">Off</span>
-        </div>
-    `;
+    console.log('🔌 Connected to existing notification toggle');
     
-    header.insertAdjacentHTML('beforeend', toggleHTML);
+    // Add event listener to existing toggle
+    existingToggle.addEventListener('change', function(e) {
+        const enabled = e.target.checked;
+        toggleNotifications(enabled);
+    });
+    
+    // Update the status display function to work with existing UI
+    updateNotificationStatusDisplay();
 }
 
 // ===================================
@@ -101,11 +88,8 @@ function toggleNotifications(enabled) {
     notificationEnabled = enabled;
     localStorage.setItem('admin_notifications_enabled', enabled.toString());
     
-    const status = document.getElementById('notificationStatus');
-    if (status) {
-        status.textContent = enabled ? 'On' : 'Off';
-        status.style.color = enabled ? '#28a745' : 'white';
-    }
+    // Update existing status display
+    updateNotificationStatusDisplay();
     
     if (enabled) {
         requestNotificationPermission();
@@ -116,6 +100,24 @@ function toggleNotifications(enabled) {
         stopPeriodicOrderChecking();
         console.log('🔕 Order notifications disabled');
         showSimpleToast('Order notifications disabled', 'info');
+    }
+}
+
+function updateNotificationStatusDisplay() {
+    // Update the existing notification status section
+    const statusSection = document.getElementById('notificationStatus');
+    const toggle = document.getElementById('notificationToggle');
+    
+    if (statusSection && toggle) {
+        if (toggle.checked && notificationEnabled) {
+            statusSection.style.display = 'flex';
+            statusSection.innerHTML = `
+                <div class="status-icon">✅</div>
+                <div class="status-text">Notifications are active</div>
+            `;
+        } else {
+            statusSection.style.display = 'none';
+        }
     }
 }
 
@@ -137,7 +139,10 @@ function loadNotificationPreferences() {
 function setupPageVisibilityTracking() {
     document.addEventListener('visibilitychange', function() {
         isPageVisible = !document.hidden;
+        console.log('👁️ Page visibility changed:', isPageVisible ? 'visible' : 'hidden');
+        
         if (isPageVisible && notificationEnabled) {
+            // Check for new orders when page becomes visible
             setTimeout(checkForNewOrders, 1000);
         }
     });
@@ -167,6 +172,7 @@ function stopPeriodicOrderChecking() {
         clearInterval(notificationCheckInterval);
         notificationCheckInterval = null;
     }
+    console.log('⏰ Stopped periodic order checking');
 }
 
 async function checkForNewOrders() {
@@ -209,12 +215,12 @@ async function checkForNewOrders() {
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                     .slice(0, newOrdersCount);
                 
-                // Send notifications
+                // Send notifications for each new order
                 for (const order of newestOrders) {
                     await sendNewOrderNotification(order);
                 }
                 
-                // Refresh the page data if main function exists
+                // Refresh the main orders data if function exists
                 if (typeof window.loadOrders === 'function') {
                     setTimeout(() => window.loadOrders(), 1000);
                 }
@@ -230,76 +236,58 @@ async function checkForNewOrders() {
 
 async function sendNewOrderNotification(order) {
     const orderTotal = (order.total_amount / 1000).toFixed(3);
-    const title = '🛒 New Order!';
-    const body = `${order.order_number} from ${order.customer_name} (${orderTotal} OMR)`;
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
     
-    // Browser notification
-    if (Notification.permission === 'granted' && !isPageVisible) {
-        const notification = new Notification(title, {
-            body: body,
-            icon: '/icons/icon-192x192.png',
-            tag: `order-${order.id}`
-        });
-        
-        notification.onclick = () => {
-            window.focus();
-            notification.close();
-        };
-        
-        setTimeout(() => notification.close(), 8000);
+    const title = '🛒 New Order Received!';
+    const message = `Order ${orderNumber} from ${customerName} - ${orderTotal} OMR`;
+    
+    console.log('📬 Sending notification:', { title, message });
+    
+    // Show browser notification if permission granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            const notification = new Notification(title, {
+                body: message,
+                icon: '/icons/icon-192x192.png',
+                badge: '/icons/icon-32x32.png',
+                tag: `order-${order.id}`,
+                requireInteraction: true,
+                data: {
+                    orderId: order.id,
+                    orderNumber: orderNumber,
+                    customerName: customerName,
+                    total: orderTotal
+                }
+            });
+            
+            // Auto-close after 10 seconds
+            setTimeout(() => notification.close(), 10000);
+            
+            // Handle notification click
+            notification.onclick = function() {
+                window.focus();
+                if (typeof window.viewOrder === 'function') {
+                    window.viewOrder(order.id);
+                }
+                notification.close();
+            };
+            
+        } catch (error) {
+            console.warn('Failed to show browser notification:', error);
+        }
     }
     
-    // In-page notification
-    showNewOrderAlert(order);
+    // Always show toast notification as fallback
+    showSimpleToast(message, 'success');
     
-    // Simple notification sound
-    playSimpleSound();
+    // Play notification sound
+    playNotificationSound();
 }
 
-function showNewOrderAlert(order) {
-    const orderTotal = (order.total_amount / 1000).toFixed(3);
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #28a745, #20c997);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(40, 167, 69, 0.3);
-        z-index: 2000;
-        animation: slideInRight 0.5s ease;
-        cursor: pointer;
-        max-width: 300px;
-    `;
-    
-    notification.innerHTML = `
-        <div style="font-weight: 600; margin-bottom: 0.5rem;">🛒 New Order!</div>
-        <div style="font-size: 0.9rem; opacity: 0.9;">
-            ${order.order_number}<br>
-            ${order.customer_name}<br>
-            ${orderTotal} OMR
-        </div>
-    `;
-    
-    // Add click handler
-    notification.onclick = () => notification.remove();
-    
-    document.body.appendChild(notification);
-    
-    // Auto-remove
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 5000);
-}
-
-function playSimpleSound() {
+function playNotificationSound() {
     try {
+        // Create a simple notification beep
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -317,9 +305,13 @@ function playSimpleSound() {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.15);
     } catch (error) {
-        console.warn('Could not play notification sound');
+        console.warn('Could not play notification sound:', error);
     }
 }
+
+// ===================================
+// TOAST NOTIFICATIONS
+// ===================================
 
 function showSimpleToast(message, type) {
     // Use existing toast function if available
@@ -333,18 +325,31 @@ function showSimpleToast(message, type) {
     toast.style.cssText = `
         position: fixed;
         top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${type === 'success' ? '#28a745' : '#17a2b8'};
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
         color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
         z-index: 2000;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        animation: slideInRight 0.3s ease-out;
+        max-width: 300px;
+        word-wrap: break-word;
     `;
     toast.textContent = message;
     
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    
+    // Remove after 4 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 4000);
 }
 
 // Add required CSS for animations
@@ -354,15 +359,24 @@ style.textContent = `
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
     }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
 `;
 document.head.appendChild(style);
 
-// Make functions globally available
+// ===================================
+// GLOBAL FUNCTIONS
+// ===================================
+
+// Export toggle function for potential external use
 window.toggleNotifications = toggleNotifications;
 
-// Cleanup on unload
+// Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     stopPeriodicOrderChecking();
+    console.log('🧹 Notification adapter cleaned up');
 });
 
-console.log('📬 Simplified notification adapter loaded');
+console.log('📬 Notification adapter loaded');
