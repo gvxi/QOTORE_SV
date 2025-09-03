@@ -151,8 +151,8 @@ export async function onRequestPost(context) {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         'Prefer': 'return=representation'
       },
       body: JSON.stringify(updateData)
