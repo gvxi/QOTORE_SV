@@ -1243,7 +1243,18 @@
                 }
             } catch (error) {
                 console.error('Order submission failed:', error);
-                showToast('Failed to place order: ' + error.message, 'error');
+                let errorMessage = 'Failed to place order: ' + error.message;
+                
+                // Provide helpful error messages
+                if (error.message.includes('Invalid variant ID')) {
+                    errorMessage = 'Some items in your cart are no longer available. Please refresh the page and try again.';
+                } else if (error.message.includes('already have an active order')) {
+                    errorMessage = 'You already have an active order. Please complete or cancel it first.';
+                } else if (error.message.includes('out of stock')) {
+                    errorMessage = 'Some items are out of stock. Please remove them and try again.';
+                }
+                
+                showToast(errorMessage, 'error');
             } finally {
                 hideLoading();
             }

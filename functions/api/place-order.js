@@ -138,8 +138,10 @@ export async function onRequestPost(context) {
       const variant = variants.find(v => v.id === item.variant_id);
       
       if (!variant) {
+        console.error('Variant not found:', item.variant_id, 'Available variants:', variants.map(v => v.id));
         return new Response(JSON.stringify({
-          error: `Invalid variant ID: ${item.variant_id}`,
+          error: `Invalid variant ID: ${item.variant_id}. This variant may have been removed or doesn't exist.`,
+          available_variants: variants.map(v => ({ id: v.id, size: `${v.size_ml}ml`, fragrance: v.fragrances?.name })),
           success: false
         }), {
           status: 400,
