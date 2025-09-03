@@ -1,4 +1,4 @@
-// functions/api/check-active-order.js - Check if customer has active order
+// functions/admin/check-active-order.js - Check if customer has active order (moved to admin path for env vars)
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -22,13 +22,13 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Get Supabase credentials
+    // Get Supabase credentials from admin path (where env vars are available)
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
-    const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY;
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
     
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      console.error('Missing Supabase environment variables');
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase environment variables in admin path');
       return new Response(JSON.stringify({
         error: 'Database not configured',
         success: false
@@ -50,8 +50,8 @@ export async function onRequestGet(context) {
 
     const response = await fetch(query, {
       headers: {
-        'apikey': apiKey,
-        'Authorization': `Bearer ${apiKey}`,
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         'Content-Type': 'application/json'
       }
     });
@@ -142,35 +142,5 @@ export async function onRequestOptions() {
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400'
     }
-  });
-}
-
-// Test endpoint
-export async function onRequestPost(context) {
-  return new Response(JSON.stringify({
-    message: 'Check active order endpoint is working!',
-    method: 'GET /api/check-active-order?ip=CUSTOMER_IP',
-    requiredParams: ['ip (string)'],
-    optionalParams: ['phone (string)'],
-    returns: {
-      success: 'boolean',
-      data: {
-        has_order: 'boolean',
-        order_id: 'number (if has_order)',
-        order_number: 'string (if has_order)',
-        order_status: 'pending|reviewed|completed|cancelled',
-        reviewed: 'boolean',
-        can_cancel: 'boolean',
-        total_amount: 'number (fils)',
-        created_at: 'ISO datetime',
-        review_deadline: 'ISO datetime',
-        customer_name: 'string',
-        delivery_city: 'string',
-        order_items: 'array'
-      }
-    },
-    note: 'Returns order details if customer has active (pending/reviewed) order'
-  }), {
-    headers: { 'Content-Type': 'application/json' }
   });
 }

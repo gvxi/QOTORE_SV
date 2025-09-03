@@ -1,4 +1,4 @@
-// functions/api/place-order.js - Place new order with IP tracking and single order restriction
+// functions/admin/place-order.js - Place new order (moved to admin path for env vars)
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -9,12 +9,12 @@ export async function onRequestPost(context) {
   try {
     console.log('Place order request received');
 
-    // Get Supabase credentials
+    // Get Supabase credentials from admin path
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
-    const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY;
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
     
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error('Missing Supabase environment variables');
       return new Response(JSON.stringify({
         error: 'Database not configured',
@@ -85,8 +85,8 @@ export async function onRequestPost(context) {
       `${SUPABASE_URL}/rest/v1/orders?customer_ip=eq.${orderData.customer_ip}&status=in.(pending,reviewed)&select=id,order_number,status&limit=1`,
       {
         headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
         }
       }
     );
@@ -111,8 +111,8 @@ export async function onRequestPost(context) {
     
     const variantsResponse = await fetch(variantsQuery, {
       headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       }
     });
 
@@ -221,8 +221,8 @@ export async function onRequestPost(context) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         'Prefer': 'return=representation'
       },
       body: JSON.stringify(newOrder)
@@ -256,8 +256,8 @@ export async function onRequestPost(context) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         'Prefer': 'return=representation'
       },
       body: JSON.stringify(itemsWithOrderId)
@@ -289,25 +289,6 @@ export async function onRequestPost(context) {
     const createdItems = await itemsResponse.json();
     
     console.log(`✅ Order ${createdOrder.order_number} placed successfully with ${createdItems.length} items`);
-
-    // Step 5: Trigger admin notification (if endpoint exists)
-    try {
-      await fetch(`${context.request.url.split('/api/')[0]}/admin/notify-new-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          order_id: createdOrder.id,
-          order_number: createdOrder.order_number,
-          customer_name: `${createdOrder.customer_first_name} ${createdOrder.customer_last_name}`.trim(),
-          total_amount: totalAmount / 1000 // Convert to OMR
-        })
-      });
-    } catch (notificationError) {
-      console.warn('Failed to send admin notification:', notificationError);
-      // Don't fail the order if notification fails
-    }
 
     // Success response
     return new Response(JSON.stringify({
@@ -352,42 +333,5 @@ export async function onRequestOptions() {
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400'
     }
-  });
-}
-
-// Test endpoint
-export async function onRequestGet(context) {
-  return new Response(JSON.stringify({
-    message: 'Place order endpoint is working!',
-    method: 'POST /api/place-order',
-    requiredFields: [
-      'customer_ip (string)',
-      'customer_first_name (string)',
-      'customer_phone (string)',
-      'delivery_address (string)',
-      'delivery_city (string)',
-      'items (array)'
-    ],
-    optionalFields: [
-      'customer_last_name (string)',
-      'customer_email (string)',
-      'delivery_region (string)',
-      'notes (string)'
-    ],
-    itemsFormat: [
-      {
-        fragrance_id: 'number',
-        variant_id: 'number',
-        quantity: 'number (1-50)'
-      }
-    ],
-    restrictions: [
-      'Only one active order per IP address',
-      'No whole bottle variants allowed',
-      'All variants must be in stock'
-    ],
-    note: 'Creates order with pending status and 1-hour review deadline'
-  }), {
-    headers: { 'Content-Type': 'application/json' }
   });
 }

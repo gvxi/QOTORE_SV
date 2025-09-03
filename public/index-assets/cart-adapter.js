@@ -1,8 +1,3 @@
-// ===================================
-// MAIN PAGE CART ADAPTER
-// Handles cart button behavior and existing order detection
-// ===================================
-
 // Global variables for order checking
 let customerIP = null;
 let hasActiveOrder = false;
@@ -46,7 +41,7 @@ async function checkForActiveOrder() {
     if (!customerIP) return;
     
     try {
-        const response = await fetch(`/api/check-active-order?ip=${customerIP}`, {
+        const response = await fetch(`/admin/check-active-order?ip=${customerIP}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
