@@ -24,105 +24,7 @@ export async function onRequestPost(context) {
         headers: corsHeaders
       });
     }
-
-    const updatedOrders = await updateResponse.json();
-    const cancelledOrder = updatedOrders[0];
-
-    console.log(`✅ Order ${order.order_number} cancelled successfully`);
-
-    // Step 4: Notify admin of cancellation (optional)
-    try {
-      await fetch(`${context.request.url.split('/api/')[0]}/admin/notify-order-cancelled`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          order_id: order.id,
-          order_number: order.order_number,
-          customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim(),
-          customer_ip: order.customer_ip,
-          cancelled_at: cancelledOrder.updated_at
-        })
-      });
-    } catch (notificationError) {
-      console.warn('Failed to send cancellation notification:', notificationError);
-      // Don't fail the cancellation if notification fails
-    }
-
-    // Success response
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Order cancelled successfully',
-      data: {
-        order_id: cancelledOrder.id,
-        order_number: order.order_number,
-        status: cancelledOrder.status,
-        cancelled_at: cancelledOrder.updated_at,
-        customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim()
-      }
-    }), {
-      status: 200,
-      headers: corsHeaders
-    });
-
-  } catch (error) {
-    console.error('Cancel order error:', error);
-    return new Response(JSON.stringify({
-      error: 'Failed to cancel order: ' + error.message,
-      success: false
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
-  }
-}
-
-// Handle CORS preflight
-export async function onRequestOptions() {
-  return new Response(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Max-Age': '86400'
-    }
-  });
-}
-
-// Test endpoint
-export async function onRequestGet(context) {
-  return new Response(JSON.stringify({
-    message: 'Cancel order endpoint is working!',
-    method: 'POST /api/cancel-order',
-    requiredFields: [
-      'order_id (number)',
-      'customer_ip (string)'
-    ],
-    restrictions: [
-      'Order must have status "pending"',
-      'Order must not be reviewed by admin',
-      'Must be within review deadline (1 hour from creation)',
-      'Order must belong to the requesting IP address'
-    ],
-    returns: {
-      success: 'boolean',
-      message: 'string',
-      data: {
-        order_id: 'number',
-        order_number: 'string',
-        status: 'cancelled',
-        cancelled_at: 'ISO datetime',
-        customer_name: 'string'
-      }
-    },
-    note: 'Only customers can cancel their own orders within the allowed timeframe'
-  }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
+    
     // Parse request data
     let requestData;
     try {
@@ -264,16 +166,129 @@ export async function onRequestGet(context) {
         details: errorText,
         success: false
       }), {
-        status: 500
+        status: 500,
+        headers: corsHeaders
       });
     }
 
-    const updatedOrder = await updateResponse.json();
-    console.log('Order cancelled successfully:', updatedOrder);
+    const updatedOrders = await updateResponse.json();
+    const cancelledOrder = updatedOrders[0];
 
+    console.log(`✅ Order ${order.order_number} cancelled successfully`);
+
+    // Step 4: Notify admin of cancellation (optional)
+    try {
+      await fetch(`${context.request.url.split('/api/')[0]}/admin/notify-order-cancelled`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          order_id: order.id,
+          order_number: order.order_number,
+          customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim(),
+          customer_ip: order.customer_ip,
+          cancelled_at: cancelledOrder.updated_at
+        })
+      });
+    } catch (notificationError) {
+      console.warn('Failed to send cancellation notification:', notificationError);
+      // Don't fail the cancellation if notification fails
+    }
+
+    // Success response
     return new Response(JSON.stringify({
       success: true,
-      order: updatedOrder
+      message: 'Order cancelled successfully',
+      data: {
+        order_id: cancelledOrder.id,
+        order_number: order.order_number,
+        status: cancelledOrder.status,
+        cancelled_at: cancelledOrder.updated_at,
+        customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim()
+      }
     }), {
-      status: 200
+      status: 200,
+      headers: corsHeaders
     });
+
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to cancel order: ' + error.message,
+      success: false
+    }), {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
+}
+
+// Handle CORS preflight
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400'
+    }
+  });
+}
+
+// Test endpoint
+export async function onRequestGet(context) {
+  return new Response(JSON.stringify({
+    message: 'Cancel order endpoint is working!',
+    method: 'POST /api/cancel-order',
+    requiredFields: [
+      'order_id (number)',
+      'customer_ip (string)'
+    ],
+    restrictions: [
+      'Order must have status "pending"',
+      'Order must not be reviewed by admin',
+      'Must be within review deadline (1 hour from creation)',
+      'Order must belong to the requesting IP address'
+    ],
+    returns: {
+      success: 'boolean',
+      message: 'string',
+      data: {
+        order_id: 'number',
+        order_number: 'string',
+        status: 'cancelled',
+        cancelled_at: 'ISO datetime',
+        customer_name: 'string'
+      }
+    },
+    workflow: [
+      '1. Customer places order → status: "pending"',
+      '2. Customer has 1 hour to cancel (before admin review)',
+      '3. Once admin reviews → cancellation no longer allowed',
+      '4. Auto-cancellation after 1 hour if not reviewed'
+    ],
+    example: {
+      request: {
+        order_id: 123,
+        customer_ip: '192.168.1.1'
+      },
+      response: {
+        success: true,
+        message: 'Order cancelled successfully',
+        data: {
+          order_id: 123,
+          order_number: 'ORD-00123',
+          status: 'cancelled',
+          cancelled_at: '2025-01-15T10:30:00Z',
+          customer_name: 'John Doe'
+        }
+      }
+    },
+    note: 'Only customers can cancel their own orders within the allowed timeframe'
+  }), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
