@@ -1,4 +1,4 @@
-// functions/admin/cancel-order.js - Cancel customer order (moved to admin path for env vars)
+// functions/api/cancel-order.js - Cancel customer order
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -9,7 +9,7 @@ export async function onRequestPost(context) {
   try {
     console.log('Cancel order request received');
 
-    // Get Supabase credentials from admin path
+    // Get Supabase credentials
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;

@@ -1,4 +1,4 @@
-// functions/admin/place-order.js - Place new order (moved to admin path for env vars)
+// functions/api/place-order.js - Place new order (customer endpoint)
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -9,7 +9,7 @@ export async function onRequestPost(context) {
   try {
     console.log('Place order request received');
 
-    // Get Supabase credentials from admin path
+    // Get Supabase credentials
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
