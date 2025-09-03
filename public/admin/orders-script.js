@@ -1137,10 +1137,388 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🔐 Orders page logout functionality initialized');
 });
 
-// Make logout function globally available
 window.logout = logout;
 window.updateOrderStatus = updateOrderStatus;
 window.deleteOrder = deleteOrder;
 window.viewOrder = viewOrder;
 window.closeOrderModal = closeOrderModal;
 window.goToPage = goToPage;
+
+//=======================================
+
+// Updated createOrderRow function to include reviewed button
+function createOrderRow(order) {
+    const row = document.createElement('tr');
+    row.className = 'order-row';
+    
+    // Determine if order needs review
+    const needsReview = order.status === 'pending' && !order.reviewed;
+    const isReviewed = order.reviewed || order.status === 'reviewed';
+    
+    row.innerHTML = `
+        <td class="order-number">${order.order_number}</td>
+        <td class="customer-info">
+            <div class="customer-name">${order.customer_name}</div>
+            <div class="customer-contact">${order.customer_email || order.customer_phone}</div>
+            ${order.customer_phone ? `<div class="customer-phone">${order.customer_phone}</div>` : ''}
+        </td>
+        <td class="order-items">
+            <div class="items-count">${order.items ? order.items.length : 0} item(s)</div>
+            <div class="items-preview">${getItemsPreview(order.items || [])}</div>
+        </td>
+        <td class="order-total">${(order.total_amount / 1000).toFixed(3)} OMR</td>
+        <td class="order-status">
+            <div class="status-container">
+                <span class="status-badge status-${order.status}">${order.status}</span>
+                ${isReviewed ? '<span class="review-badge">✓ Reviewed</span>' : ''}
+                ${needsReview ? '<span class="needs-review-badge">⚠ Needs Review</span>' : ''}
+            </div>
+        </td>
+        <td class="order-date">${formatDate(order.created_at)}</td>
+        <td class="order-actions">
+            <button class="btn btn-sm btn-outline" onclick="viewOrder('${order.id}')">
+                <i class="icon-eye"></i> View
+            </button>
+            <div class="status-actions">
+                ${needsReview ? `
+                    <button class="btn btn-sm btn-review" onclick="markAsReviewed('${order.id}')" title="Mark as Reviewed">
+                        <i class="icon-check"></i> Review
+                    </button>
+                ` : ''}
+                ${order.status === 'pending' || order.status === 'reviewed' ? `
+                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}', 'completed')" title="Mark as Completed">
+                        <i class="icon-check-circle"></i> Complete
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="updateOrderStatus('${order.id}', 'cancelled')" title="Cancel Order">
+                        <i class="icon-x-circle"></i> Cancel
+                    </button>
+                ` : ''}
+            </div>
+        </td>
+    `;
+    
+    return row;
+}
+
+// Function to mark order as reviewed
+async function markAsReviewed(orderId) {
+    if (!confirm('Mark this order as reviewed? This will allow the customer to proceed with the order.')) {
+        return;
+    }
+
+    const reviewBtn = document.querySelector(`button[onclick="markAsReviewed('${orderId}')"]`);
+    if (reviewBtn) {
+        reviewBtn.disabled = true;
+        reviewBtn.innerHTML = '<span class="spinner-small"></span> Reviewing...';
+    }
+
+    try {
+        console.log('Marking order as reviewed:', orderId);
+
+        const response = await fetch('/admin/mark-order-reviewed', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                order_id: parseInt(orderId)
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showToast(`Order marked as reviewed successfully!`, 'success');
+            
+            // Reload orders to reflect changes
+            await loadOrders();
+        } else {
+            throw new Error(result.error || 'Failed to mark order as reviewed');
+        }
+
+    } catch (error) {
+        console.error('Failed to mark order as reviewed:', error);
+        showToast('Failed to mark order as reviewed: ' + error.message, 'error');
+        
+        // Re-enable button on error
+        if (reviewBtn) {
+            reviewBtn.disabled = false;
+            reviewBtn.innerHTML = '<i class="icon-check"></i> Review';
+        }
+    }
+}
+
+// Updated mobile card creation for mobile view
+function createMobileOrderCard(order) {
+    const needsReview = order.status === 'pending' && !order.reviewed;
+    const isReviewed = order.reviewed || order.status === 'reviewed';
+    
+    const card = document.createElement('div');
+    card.className = 'mobile-card';
+    card.innerHTML = `
+        <div class="mobile-card-header">
+            <div class="mobile-card-title">
+                <strong>${order.order_number}</strong>
+                <div class="status-container">
+                    <span class="status-badge status-${order.status}">${order.status}</span>
+                    ${isReviewed ? '<span class="review-badge">✓ Reviewed</span>' : ''}
+                    ${needsReview ? '<span class="needs-review-badge">⚠ Needs Review</span>' : ''}
+                </div>
+            </div>
+            <div class="mobile-card-date">${formatDate(order.created_at)}</div>
+        </div>
+        
+        <div class="mobile-card-body">
+            <div class="mobile-field">
+                <strong>Customer:</strong> ${order.customer_name}
+            </div>
+            <div class="mobile-field">
+                <strong>Contact:</strong> ${order.customer_email || order.customer_phone}
+            </div>
+            <div class="mobile-field">
+                <strong>Items:</strong> ${order.items ? order.items.length : 0} item(s)
+                <div class="items-preview">${getItemsPreview(order.items || [])}</div>
+            </div>
+            <div class="mobile-field">
+                <strong>Total:</strong> ${(order.total_amount / 1000).toFixed(3)} OMR
+            </div>
+        </div>
+        
+        <div class="mobile-card-actions">
+            <button class="btn btn-sm btn-outline" onclick="viewOrder('${order.id}')">
+                <i class="icon-eye"></i> View
+            </button>
+            ${needsReview ? `
+                <button class="btn btn-sm btn-review" onclick="markAsReviewed('${order.id}')">
+                    <i class="icon-check"></i> Review
+                </button>
+            ` : ''}
+            ${order.status === 'pending' || order.status === 'reviewed' ? `
+                <button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}', 'completed')">
+                    <i class="icon-check-circle"></i> Complete
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                    <i class="icon-x-circle"></i> Cancel
+                </button>
+            ` : ''}
+        </div>
+    `;
+    
+    return card;
+}
+
+// Add new filter for orders needing review
+function addReviewFilter() {
+    const filterButtons = document.querySelector('.filter-buttons');
+    if (filterButtons && !document.querySelector('[data-filter="needs-review"]')) {
+        const reviewFilterBtn = document.createElement('button');
+        reviewFilterBtn.className = 'filter-btn';
+        reviewFilterBtn.setAttribute('data-filter', 'needs-review');
+        reviewFilterBtn.onclick = () => filterOrders('needs-review');
+        reviewFilterBtn.innerHTML = '⚠ Needs Review';
+        
+        // Insert after "Pending" button
+        const pendingBtn = document.querySelector('[data-filter="pending"]');
+        if (pendingBtn) {
+            pendingBtn.insertAdjacentElement('afterend', reviewFilterBtn);
+        } else {
+            filterButtons.appendChild(reviewFilterBtn);
+        }
+    }
+}
+
+// Updated filter function to handle "needs-review" filter
+function filterOrders(filterType) {
+    console.log('Filtering orders by:', filterType);
+    currentFilter = filterType;
+    
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-filter') === filterType) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Reset pagination
+    currentPage = 1;
+    
+    // Apply filters
+    applyFiltersAndPagination();
+}
+
+// Updated applyFiltersAndPagination to handle new filter
+const originalApplyFiltersAndPagination = applyFiltersAndPagination;
+function applyFiltersAndPagination() {
+    let filteredOrders = [...orders];
+    
+    // Apply search filter
+    if (currentSearch) {
+        const searchLower = currentSearch.toLowerCase();
+        filteredOrders = filteredOrders.filter(order => {
+            const customerName = order.customer_name ? order.customer_name.toLowerCase() : '';
+            const customerPhone = order.customer_phone ? order.customer_phone.toLowerCase() : '';
+            const orderNumber = order.order_number ? order.order_number.toLowerCase() : '';
+            
+            return customerName.includes(searchLower) || 
+                   customerPhone.includes(searchLower) || 
+                   orderNumber.includes(searchLower);
+        });
+    }
+    
+    // Apply status filter
+    if (currentFilter && currentFilter !== 'all') {
+        filteredOrders = filteredOrders.filter(order => {
+            switch (currentFilter) {
+                case 'pending': return order.status === 'pending';
+                case 'reviewed': return order.status === 'reviewed' || order.reviewed;
+                case 'completed': return order.status === 'completed';
+                case 'cancelled': return order.status === 'cancelled';
+                case 'needs-review': return order.status === 'pending' && !order.reviewed;
+                default: return true;
+            }
+        });
+    }
+    
+    // Continue with original pagination logic
+    console.log(`📋 Filtered to ${filteredOrders.length} orders`);
+    
+    // Handle empty results
+    if (filteredOrders.length === 0) {
+        if (orders.length === 0) {
+            showEmptyState();
+        } else {
+            showNoResultsState();
+        }
+        return;
+    }
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+    const startIndex = (currentPage - 1) * ordersPerPage;
+    const endIndex = Math.min(startIndex + ordersPerPage, filteredOrders.length);
+    
+    // Get current page orders
+    const currentPageOrders = filteredOrders.slice(startIndex, endIndex);
+    
+    // Update UI
+    renderOrdersTable(currentPageOrders);
+    renderMobileOrderCards(currentPageOrders);
+    updatePaginationInfo(startIndex + 1, endIndex, filteredOrders.length, totalPages);
+    generatePaginationControls(totalPages);
+    
+    showOrdersContent();
+}
+
+// Function to render mobile cards
+function renderMobileOrderCards(orders) {
+    const mobileContainer = document.querySelector('#orderCards');
+    if (!mobileContainer) return;
+    
+    mobileContainer.innerHTML = '';
+    
+    orders.forEach(order => {
+        const card = createMobileOrderCard(order);
+        mobileContainer.appendChild(card);
+    });
+}
+
+// Initialize review filter when orders are loaded
+const originalLoadOrders = loadOrders;
+async function loadOrders() {
+    await originalLoadOrders();
+    addReviewFilter();
+}
+
+// Add CSS for new UI elements
+const reviewStyles = document.createElement('style');
+reviewStyles.textContent = `
+    /* Review-related styles */
+    .status-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .review-badge {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-align: center;
+        border: 1px solid #28a745;
+    }
+    
+    .needs-review-badge {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-align: center;
+        border: 1px solid #ffc107;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .btn-review {
+        background: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+        border: 1px solid #17a2b8;
+    }
+    
+    .btn-review:hover {
+        background: #17a2b8;
+        color: white;
+    }
+    
+    .spinner-small {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #17a2b8;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    .filter-btn[data-filter="needs-review"] {
+        background: rgba(255, 193, 7, 0.1);
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+    
+    .filter-btn[data-filter="needs-review"].active {
+        background: #ffc107;
+        color: #212529;
+    }
+    
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .status-container {
+            align-items: flex-start;
+        }
+        
+        .review-badge,
+        .needs-review-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
+        }
+    }
+`;
+
+document.head.appendChild(reviewStyles);
+
+// Make functions available globally
+window.markAsReviewed = markAsReviewed;
+window.createOrderRow = createOrderRow;
+window.createMobileOrderCard = createMobileOrderCard;
