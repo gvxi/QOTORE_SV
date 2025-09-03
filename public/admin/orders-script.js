@@ -1141,4 +1141,4 @@ window.logout = logout;
 window.updateOrderStatusFromModal = updateOrderStatusFromModal;
 window.deleteOrderFromModal = deleteOrderFromModal;
 window.toggleOrderReview = toggleOrderReview;
-window.printInvoice = printInvoice;
+window.toggleOrderReviewFromTable = toggleOrderReviewFromTable;
