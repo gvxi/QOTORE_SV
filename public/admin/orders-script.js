@@ -1,4 +1,46 @@
-// FIXED Admin Orders Dashboard JavaScript
+// Create order row with your exact database structure
+function createOrderRow(order) {
+    const row = document.createElement('tr');
+    row.className = 'order-row';
+    
+    // Build customer name from database fields
+    const customerName = `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.trim();
+    
+    // Handle order items - get from the items array that should be populated by the API
+    const itemsCount = (order.items && Array.isArray(order.items)) ? order.items.length : 0;
+    const itemsPreview = getItemsPreview(order.items || []);
+    
+    // Convert total_amount from fils to OMR (divide by 1000)
+    const totalAmount = order.total_amount ? (order.total_amount / 1000).toFixed(3) : '0.000';
+    
+    // Handle order number
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    
+    // Primary contact info
+    const primaryContact = order.customer_email || order.customer_phone || 'No contact';
+    
+    // Status badge with review indicator - FIXED
+    let statusContent = '';
+    if (order.reviewed) {
+        statusContent = `
+            <div class="status-container">
+                <span class="status-badge status-${order.status}">${order.status}</span>
+                <span class="review-badge">✓ Reviewed</span>
+            </div>
+        `;
+    } else {
+        statusContent = `
+            <div class="status-container">
+                <span class="status-badge status-${order.status}">${order.status}</span>
+                <span class="needs-review-badge">Needs Review</span>
+            </div>
+        `;
+    }
+    
+    row.innerHTML = `
+        <td class="order-number">${orderNumber}</td>
+        <td class="customer-info">
+            <div class="customer-name">${customerName}// FIXED Admin Orders Dashboard JavaScript
 // Updated to work with your exact database structure
 
 // Global variables
@@ -205,6 +247,7 @@ function applyFiltersAndPagination() {
                 case 'completed': return order.status === 'completed';
                 case 'cancelled': return order.status === 'cancelled';
                 case 'reviewed': return order.reviewed === true;
+                case 'needs-review': return !order.reviewed;
                 default: return true;
             }
         });
