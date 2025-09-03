@@ -1,4 +1,4 @@
-// functions/admin/orders.js - Get all orders for admin
+// functions/admin/orders.js - FIXED VERSION with correct data structure
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -89,50 +89,65 @@ export async function onRequestGet(context) {
         data: [],
         count: 0,
         source: 'admin-supabase',
-        message: 'No orders found'
+        message: 'No orders found',
+        stats: {
+          total: 0,
+          pending: 0,
+          completed: 0,
+          revenue: 0
+        }
       }), {
         status: 200,
         headers: corsHeaders
       });
     }
 
-    // Transform orders for frontend
+    // Transform orders to match frontend expectations
     const orders = ordersData.map(order => {
       const items = Array.isArray(order.order_items)
         ? order.order_items.map(item => ({
-            fragranceId: item.fragrance_id,
-            fragranceName: item.fragrance_name,
-            fragranceBrand: item.fragrance_brand || '',
-            variantSize: item.variant_size,
-            variantPrice: item.unit_price_cents / 1000, // Convert from fils to OMR
+            id: item.id,
+            name: item.fragrance_name,
+            brand: item.fragrance_brand || '',
+            size: item.variant_size,
+            price: item.unit_price_cents / 1000, // Convert from fils to OMR
             quantity: item.quantity,
-            totalPrice: item.total_price_cents / 1000,
-            isWholeBottle: item.is_whole_bottle
+            total: item.total_price_cents / 1000
           }))
         : [];
 
       return {
+        // FIXED: Use field names that match frontend expectations
         id: order.id,
-        orderNumber: order.order_number || `ORD-${String(order.id).padStart(5, '0')}`,
-        customer: {
-          firstName: order.customer_first_name,
-          lastName: order.customer_last_name || '',
-          phone: order.customer_phone,
-          email: order.customer_email || ''
-        },
-        delivery: {
-          address: order.delivery_address,
-          city: order.delivery_city,
-          region: order.delivery_region || ''
-        },
+        order_number: order.order_number || `ORD-${String(order.id).padStart(5, '0')}`,
+        
+        // Customer info - frontend expects these exact field names
+        customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim(),
+        customer_first_name: order.customer_first_name,
+        customer_last_name: order.customer_last_name || '',
+        customer_phone: order.customer_phone,
+        customer_email: order.customer_email || '',
+        
+        // Delivery info
+        delivery_address: order.delivery_address,
+        delivery_city: order.delivery_city,
+        delivery_region: order.delivery_region || '',
+        
+        // Order details
         notes: order.notes || '',
         items: items,
-        itemCount: items.length,
-        totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
-        total: order.total_amount / 1000, // Convert from fils to OMR
+        total_amount: order.total_amount, // Keep in fils for calculations
+        total: order.total_amount / 1000, // Also provide in OMR for display
         status: order.status || 'pending',
-        orderDate: order.created_at,
-        updated_at: order.updated_at
+        reviewed: order.reviewed || false,
+        
+        // Timestamps
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+        review_deadline: order.review_deadline,
+        
+        // Customer IP for admin reference
+        customer_ip: order.customer_ip
       };
     });
 
@@ -141,8 +156,12 @@ export async function onRequestGet(context) {
     // Calculate stats
     const totalOrders = orders.length;
     const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const reviewedOrders = orders.filter(o => o.reviewed).length;
     const completedOrders = orders.filter(o => o.status === 'completed').length;
-    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
+    const totalRevenue = orders
+      .filter(o => o.status === 'completed')
+      .reduce((sum, o) => sum + (o.total_amount / 1000), 0);
 
     return new Response(JSON.stringify({
       success: true,
@@ -152,7 +171,9 @@ export async function onRequestGet(context) {
       stats: {
         total: totalOrders,
         pending: pendingOrders,
+        reviewed: reviewedOrders,
         completed: completedOrders,
+        cancelled: cancelledOrders,
         revenue: totalRevenue
       }
     }), {
