@@ -1,4 +1,4 @@
-// functions/_middleware.js - Updated to allow customer admin endpoints
+// functions/_middleware.js - Complete authentication middleware
 export async function onRequest(context) {
   const { request, next } = context;
   const url = new URL(request.url);
@@ -15,23 +15,10 @@ export async function onRequest(context) {
     return next();
   }
   
-  // Allow customer-facing admin endpoints (these don't need admin authentication)
-  const customerAdminEndpoints = [
-    '/admin/check-active-order',
-    '/admin/place-order', 
-    '/admin/cancel-order'
-  ];
-  
-  if (customerAdminEndpoints.some(endpoint => url.pathname.startsWith(endpoint))) {
-    console.log('Allowing customer admin endpoint:', url.pathname);
-    return next();
-  }
-  
-  // Only protect admin HTML pages and admin API endpoints (excluding customer endpoints)
+  // Only protect admin HTML pages and admin API endpoints
   const isAdminPage = url.pathname.startsWith('/admin/') && 
                      (url.pathname.endsWith('.html') || url.pathname.endsWith('/'));
-  const isAdminAPI = url.pathname.startsWith('/admin/') && 
-                     !customerAdminEndpoints.some(endpoint => url.pathname.startsWith(endpoint));
+  const isAdminAPI = url.pathname.startsWith('/admin/api/');
   
   if (isAdminPage || isAdminAPI) {
     console.log('Checking auth for admin resource:', url.pathname);
