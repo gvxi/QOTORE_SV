@@ -1,4 +1,4 @@
-// functions/admin/update-order-status.js - Update order status (pending/completed)
+// functions/admin/update-order-status.js - FIXED to support all order statuses
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -71,13 +71,23 @@ export async function onRequestPost(context) {
     // Validate required fields
     const { id, status } = requestData;
     
-    if (!id || !status || !['pending', 'completed'].includes(status)) {
+    if (!id || !status) {
       return new Response(JSON.stringify({ 
-        error: 'Missing or invalid fields: id (number), status (pending|completed)',
-        received: {
-          id: id,
-          status: status
-        }
+        error: 'Missing required fields: id, status',
+        received: { id: !!id, status: !!status }
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Validate status value - FIXED to support all valid statuses
+    const validStatuses = ['pending', 'reviewed', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid status. Must be one of: ' + validStatuses.join(', '),
+        received: status,
+        validOptions: validStatuses
       }), {
         status: 400,
         headers: corsHeaders
@@ -86,8 +96,8 @@ export async function onRequestPost(context) {
 
     console.log('Updating order status:', { id, status });
 
-    // Step 1: Check if order exists
-    const checkResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=id,status`, {
+    // Step 1: Check if order exists and get current details
+    const checkResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=id,customer_first_name,customer_last_name,status,total_amount,order_number`, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
@@ -119,13 +129,38 @@ export async function onRequestPost(context) {
     }
 
     const order = existingOrders[0];
-    console.log('Found order:', order.id, 'Current status:', order.status);
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    
+    console.log('Found order:', orderNumber, 'Customer:', customerName, 'Current status:', order.status);
+
+    // Don't update if status is the same
+    if (order.status === status) {
+      return new Response(JSON.stringify({
+        success: true,
+        message: `Order ${orderNumber} is already ${status}`,
+        data: {
+          id: parseInt(id),
+          status: status,
+          orderNumber: orderNumber,
+          customer: customerName
+        }
+      }), {
+        status: 200,
+        headers: corsHeaders
+      });
+    }
 
     // Step 2: Update order status
     const updatePayload = {
       status: status,
       updated_at: new Date().toISOString()
     };
+
+    // If marking as reviewed, also set the reviewed boolean flag
+    if (status === 'reviewed') {
+      updatePayload.reviewed = true;
+    }
 
     console.log('Updating order status with payload:', updatePayload);
 
@@ -146,7 +181,8 @@ export async function onRequestPost(context) {
       
       return new Response(JSON.stringify({
         error: 'Failed to update order status',
-        details: errorText
+        details: errorText,
+        supabaseError: errorText
       }), {
         status: 500,
         headers: corsHeaders
@@ -159,10 +195,14 @@ export async function onRequestPost(context) {
     // Success response
     return new Response(JSON.stringify({ 
       success: true,
-      message: `Order status updated to ${status} successfully!`,
+      message: `Order ${orderNumber} from ${customerName} updated to ${status} successfully!`,
       data: {
         id: parseInt(id),
-        status: status,
+        orderNumber: orderNumber,
+        customer: customerName,
+        previousStatus: order.status,
+        newStatus: status,
+        totalAmount: order.total_amount / 1000, // Convert fils to OMR
         updated_at: updatedOrder[0].updated_at
       }
     }), {
@@ -174,7 +214,8 @@ export async function onRequestPost(context) {
     console.error('Update order status error:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to update order status',
-      details: error.message
+      details: error.message,
+      stack: error.stack
     }), {
       status: 500,
       headers: corsHeaders
@@ -209,13 +250,19 @@ export async function onRequestGet(context) {
     message: 'Update order status endpoint is working!',
     authenticated: isAuthenticated,
     method: 'POST /admin/update-order-status to update order status',
-    requiredFields: ['id (number)', 'status (pending|completed)'],
+    requiredFields: ['id (number)', 'status (pending|reviewed|completed|cancelled)'],
+    validStatuses: ['pending', 'reviewed', 'completed', 'cancelled'],
     examples: {
+      markReviewed: { id: 123, status: 'reviewed' },
       markCompleted: { id: 123, status: 'completed' },
-      markPending: { id: 123, status: 'pending' }
+      markPending: { id: 123, status: 'pending' },
+      markCancelled: { id: 123, status: 'cancelled' }
     },
     note: 'Authentication required via admin_session cookie'
   }), {
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    }
   });
 }

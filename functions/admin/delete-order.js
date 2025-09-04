@@ -1,165 +1,167 @@
-// functions/admin/delete-order.js
+// functions/admin/delete-order.js - FIXED delete order function
 export async function onRequestPost(context) {
   const corsHeaders = {
+    'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Credentials': 'true',
-    'Content-Type': 'application/json'
+    'Access-Control-Allow-Credentials': 'true'
   };
 
   try {
-    // Get environment variables
-    const { env } = context;
-    const SUPABASE_URL = env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Missing required environment variables');
-      return new Response(JSON.stringify({
-        error: 'Server configuration error',
-        success: false
-      }), {
-        status: 500,
-        headers: corsHeaders
-      });
-    }
-
+    console.log('Delete order request received');
+    
     // Check authentication
-    const cookies = context.request.headers.get('Cookie') || '';
+    const request = context.request;
+    const cookies = request.headers.get('Cookie') || '';
     const sessionCookie = cookies
       .split(';')
       .find(c => c.trim().startsWith('admin_session='));
-
+    
     if (!sessionCookie) {
-      return new Response(JSON.stringify({
+      return new Response(JSON.stringify({ 
         error: 'Authentication required',
-        success: false
+        redirectUrl: '/login.html'
       }), {
         status: 401,
         headers: corsHeaders
       });
     }
 
-    // Parse request body
-    const body = await context.request.json();
-    const { id } = body;
-
-    if (!id || isNaN(parseInt(id))) {
+    // Get Supabase credentials
+    const { env } = context;
+    const SUPABASE_URL = env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase environment variables');
       return new Response(JSON.stringify({
-        error: 'Valid order ID is required',
-        success: false
+        error: 'Database not configured for admin operations',
+        debug: {
+          hasUrl: !!SUPABASE_URL,
+          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
+        }
+      }), {
+        status: 500,
+        headers: corsHeaders
+      });
+    }
+    
+    // Parse request data
+    let requestData;
+    try {
+      const text = await request.text();
+      if (!text || text.trim() === '') {
+        return new Response(JSON.stringify({ 
+          error: 'No data provided' 
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      requestData = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid request data format' 
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+    
+    // Validate required fields
+    const { id } = requestData;
+    
+    if (!id) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing required field: id',
+        received: { id: !!id }
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
 
-    console.log(`🗑️ Attempting to delete order ID: ${id}`);
+    console.log('Deleting order:', id);
 
-    // Step 1: Get order details before deleting (for confirmation message)
-    const getOrderQuery = `${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=*`;
-    
-    const getOrderResponse = await fetch(getOrderQuery, {
+    // Step 1: Get order details before deletion (for logging and response)
+    const checkResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=id,customer_first_name,customer_last_name,status,total_amount,order_number,created_at`, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       }
     });
 
-    if (!getOrderResponse.ok) {
-      const errorText = await getOrderResponse.text();
-      console.error('Failed to get order details:', errorText);
+    if (!checkResponse.ok) {
+      const errorText = await checkResponse.text();
+      console.error('Failed to check order existence:', errorText);
       
       return new Response(JSON.stringify({
-        error: 'Failed to retrieve order details',
-        details: errorText,
-        success: false
+        error: 'Failed to verify order existence',
+        details: errorText
       }), {
         status: 500,
         headers: corsHeaders
       });
     }
 
-    const orders = await getOrderResponse.json();
-    if (orders.length === 0) {
+    const existingOrders = await checkResponse.json();
+    if (existingOrders.length === 0) {
       return new Response(JSON.stringify({
         error: 'Order not found',
-        id: id,
-        success: false
+        id: id
       }), {
         status: 404,
         headers: corsHeaders
       });
     }
 
-    const order = orders[0];
-    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    const order = existingOrders[0];
     const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
     
-    console.log(`📋 Found order to delete: ${orderNumber} from ${customerName}`);
+    console.log('Found order to delete:', orderNumber, 'Customer:', customerName, 'Status:', order.status);
 
-    // Step 2: Delete order items first (due to foreign key constraints)
-    const deleteItemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items?order_id=eq.${id}`, {
+    // Step 2: Delete the order (order_items will be deleted automatically due to CASCADE)
+    const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`, {
       method: 'DELETE',
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Prefer': 'return=representation'
       }
     });
 
-    if (!deleteItemsResponse.ok) {
-      const itemsError = await deleteItemsResponse.text();
-      console.error('Failed to delete order items:', itemsError);
+    if (!deleteResponse.ok) {
+      const errorText = await deleteResponse.text();
+      console.error('Failed to delete order:', errorText);
       
       return new Response(JSON.stringify({
-        error: 'Failed to delete order items',
-        details: itemsError,
-        success: false
+        error: 'Failed to delete order',
+        details: errorText,
+        supabaseError: errorText
       }), {
         status: 500,
         headers: corsHeaders
       });
     }
 
-    console.log(`🗑️ Deleted order items for order ${id}`);
+    const deletedOrders = await deleteResponse.json();
+    console.log('Successfully deleted order:', orderNumber);
 
-    // Step 3: Delete the main order
-    const deleteOrderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-      }
-    });
-
-    if (!deleteOrderResponse.ok) {
-      const orderError = await deleteOrderResponse.text();
-      console.error('Failed to delete order:', orderError);
-      
-      return new Response(JSON.stringify({
-        error: 'Failed to delete order from database',
-        details: orderError,
-        success: false
-      }), {
-        status: 500,
-        headers: corsHeaders
-      });
-    }
-
-    console.log(`✅ Successfully deleted order: ${orderNumber}`);
-
-    // Success response with detailed information
+    // Success response
     return new Response(JSON.stringify({ 
       success: true,
       message: `Order ${orderNumber} from ${customerName} deleted successfully!`,
       data: {
-        id: parseInt(id),
-        order_number: orderNumber,
-        customer: customerName,
-        amount: (order.total_amount / 1000).toFixed(3), // Convert from fils to OMR
-        deleted_at: new Date().toISOString()
+        deletedOrder: {
+          id: parseInt(id),
+          orderNumber: orderNumber,
+          customer: customerName,
+          status: order.status,
+          totalAmount: order.total_amount / 1000, // Convert fils to OMR
+          createdAt: order.created_at,
+          deletedAt: new Date().toISOString()
+        }
       }
     }), {
       status: 200,
@@ -167,11 +169,11 @@ export async function onRequestPost(context) {
     });
     
   } catch (error) {
-    console.error('❌ Delete order error:', error);
+    console.error('Delete order error:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete order',
       details: error.message,
-      success: false
+      stack: error.stack
     }), {
       status: 500,
       headers: corsHeaders
@@ -193,7 +195,7 @@ export async function onRequestOptions() {
   });
 }
 
-// Test endpoint for debugging
+// Test endpoint
 export async function onRequestGet(context) {
   const cookies = context.request.headers.get('Cookie') || '';
   const sessionCookie = cookies
@@ -205,31 +207,16 @@ export async function onRequestGet(context) {
   return new Response(JSON.stringify({
     message: 'Delete order endpoint is working!',
     authenticated: isAuthenticated,
-    method: 'POST /admin/delete-order',
+    method: 'POST /admin/delete-order to delete an order',
     requiredFields: ['id (number)'],
-    workflow: [
-      '1. Verify admin authentication',
-      '2. Validate order ID',
-      '3. Fetch order details for confirmation',
-      '4. Delete order items (foreign key constraint)',
-      '5. Delete main order record',
-      '6. Return success message with details'
-    ],
-    example: {
-      request: { id: 123 },
-      response: {
-        success: true,
-        message: 'Order ORD-00123 from John Doe deleted successfully!',
-        data: {
-          id: 123,
-          order_number: 'ORD-00123',
-          customer: 'John Doe',
-          amount: '25.500',
-          deleted_at: '2025-09-04T12:00:00.000Z'
-        }
-      }
-    }
+    examples: {
+      deleteOrder: { id: 123 }
+    },
+    note: 'Authentication required via admin_session cookie. Order items will be deleted automatically due to CASCADE.'
   }), {
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    }
   });
 }
