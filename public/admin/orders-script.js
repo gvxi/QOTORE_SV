@@ -12,8 +12,9 @@ async function loadTranslations() {
     try {
         const response = await fetch('/admin/translations.json');
         translations = await response.json();
+        console.log('Translations loaded from JSON:', Object.keys(translations));
     } catch (error) {
-        console.error('Failed to load translations:', error);
+        console.error('Failed to load translations JSON:', error);
         translations = { en: {}, ar: {} };
     }
 }
@@ -63,8 +64,8 @@ function getCurrentPageOrders() {
     return currentOrders.slice(startIndex, endIndex);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadTranslations();
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadTranslations(); // Load JSON first
     loadLanguagePreference();
     initializeEventListeners();
     loadOrders();
