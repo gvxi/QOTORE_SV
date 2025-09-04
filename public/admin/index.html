@@ -4,367 +4,224 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Management - Qotore Admin</title>
-    
-    <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-    
-    <!-- PWA Theme -->
-    <meta name="theme-color" content="#8B4513">
-    <meta name="msapplication-TileColor" content="#8B4513">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Qotore Admin">
-    
-    <!-- Meta Tags -->
-    <meta property="og:title" content="Qotore Admin - Orders Management">
-    <meta property="og:description" content="Manage your fragrance store orders">
-    <meta property="og:image" content="/icons/icon-512x512.png">
-    <meta property="og:url" content="/admin/orders">
-    <meta property="og:type" content="website">
-    
     <link rel="stylesheet" href="orders-style.css">
+    <link rel="icon" type="image/x-icon" href="/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <div class="logo">
+            <div class="logo-section">
                 <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>Qotore Orders</span>
+                <div class="logo-text">
+                    <h1>Qotore Admin</h1>
+                    <p>Orders Management</p>
+                </div>
             </div>
-            <div class="nav-buttons">
-                <a href="/admin/items-management.html" class="nav-btn">
+            <nav class="nav-buttons">
+                <a href="/admin" class="btn btn-outline">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
                     </svg>
-                    <span>Items</span>
+                    Dashboard
                 </a>
-                <button id="refreshBtn" class="nav-btn" onclick="refreshData()">
+                <a href="/admin/items-management" class="btn btn-outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,2A3,3 0 0,1 15,5V7H20A1,1 0 0,1 21,8V19A1,1 0 0,1 20,20H4A1,1 0 0,1 3,19V8A1,1 0 0,1 4,7H9V5A3,3 0 0,1 12,2M12,4A1,1 0 0,0 11,5V7H13V5A1,1 0 0,0 12,4Z"/>
+                    </svg>
+                    Items
+                </a>
+                <button class="btn btn-primary" onclick="refreshData()" id="refreshBtn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
                     </svg>
-                    <span>Refresh</span>
+                    Refresh
                 </button>
-                <button class="nav-btn" onclick="logout()">
+                <button class="btn btn-danger" onclick="logout()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
+                        <path d="M14.08,15.59L16.67,13H7V11H16.67L14.08,8.41L15.49,7L20.49,12L15.49,17L14.08,15.59M19,3A2,2 0 0,1 21,5V9.67L19,7.67V5H5V19H19V16.33L21,14.33V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H19Z"/>
                     </svg>
-                    <span>Logout</span>
+                    Logout
                 </button>
-            </div>
+            </nav>
         </div>
     </header>
 
+    <!-- Dashboard Stats -->
+    <section class="dashboard-stats">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">📊</div>
+            </div>
+            <div class="stat-value" id="totalOrders">0</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">⏳</div>
+            </div>
+            <div class="stat-value" id="pendingOrders">0</div>
+            <div class="stat-label">Pending Orders</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">✅</div>
+            </div>
+            <div class="stat-value" id="completedOrders">0</div>
+            <div class="stat-label">Completed Orders</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">💰</div>
+            </div>
+            <div class="stat-value" id="totalRevenue">0.000 OMR</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+    </section>
+
+    <!-- Notification Toggle -->
+    <div class="notification-toggle">
+        <div>
+            <h3 style="margin: 0; color: #2d3748;">Order Notifications</h3>
+            <p style="margin: 0.5rem 0 0 0; color: #64748b;">Receive notifications when new orders are placed</p>
+        </div>
+        <div class="toggle-switch" id="notificationToggle">
+            <div class="toggle-slider"></div>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Dashboard Stats -->
-        <section class="dashboard-stats">
-            <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalOrdersCount">0</div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⏳</div>
-                <div class="stat-content">
-                    <div class="stat-number" id="pendingOrdersCount">0</div>
-                    <div class="stat-label">Pending Orders</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-content">
-                    <div class="stat-number" id="completedOrdersCount">0</div>
-                    <div class="stat-label">Completed Orders</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalRevenueAmount">0.000 OMR</div>
-                    <div class="stat-label">Total Revenue</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Notification Settings -->
-        <section class="notification-section">
-            <div class="notification-toggle">
-                <div class="toggle-content">
-                    <div class="toggle-icon">🔔</div>
-                    <div class="toggle-text">
-                        <strong>Real-time Order Notifications</strong>
-                        <small>Get instant notifications when new orders are received</small>
-                    </div>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="notificationToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="notification-status" id="notificationStatus" style="display: none;">
-                <div class="status-icon">✅</div>
-                <div class="status-text">Notifications are active - you'll be notified of new orders</div>
-            </div>
-        </section>
-
         <!-- Orders Section -->
-        <section class="orders-section">
+        <section class="section-card">
             <div class="section-header">
-                <h2 class="section-title">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17,18C17.56,18 18,18.44 18,19A1,1 0 0,1 17,20H7A1,1 0 0,1 6,19C6,18.44 6.44,18 7,18H17M18.5,8A2.5,2.5 0 0,1 21,10.5C21,11.88 20.38,13.11 19.5,14C19.13,14.5 18,16 18,16H6C6,16 4.87,14.5 4.5,14C3.62,13.11 3,11.88 3,10.5A2.5,2.5 0 0,1 5.5,8H18.5M12,2A4,4 0 0,1 16,6H8A4,4 0 0,1 12,2Z"/>
-                    </svg>
+                <div class="section-title">
+                    <div class="section-icon">📋</div>
                     Orders Management
-                </h2>
-                <div class="section-actions">
-                    <div class="search-container">
-                        <input type="text" id="searchOrders" class="search-input" placeholder="Search orders by customer, phone, or order number...">
-                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
-                        </svg>
-                    </div>
                 </div>
             </div>
 
             <!-- Orders Controls -->
-            <div class="orders-controls" id="ordersControls">
-                <div class="filters-container">
-                    <button class="filter-btn active" data-filter="all">All Orders</button>
-                    <button class="filter-btn" data-filter="pending">Pending</button>
-                    <button class="filter-btn" data-filter="completed">Completed</button>
-                    <button class="filter-btn" data-filter="cancelled">Cancelled</button>
-                    <button class="filter-btn" data-filter="reviewed">Reviewed</button>
-                    <button class="filter-btn" data-filter="needs-review">Needs Review</button>
+            <div class="orders-controls">
+                <div class="search-container">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+                    </svg>
+                    <input type="text" 
+                           class="search-input" 
+                           id="searchInput" 
+                           placeholder="Search by customer name, phone, or order number...">
                 </div>
-                <div class="orders-per-page">
-                    <label for="ordersPerPageSelect">Show:</label>
-                    <select id="ordersPerPageSelect">
-                        <option value="10">10 per page</option>
-                        <option value="25">25 per page</option>
-                        <option value="50">50 per page</option>
-                        <option value="100">100 per page</option>
-                    </select>
+                
+                <select class="filter-select" id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-container">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container" id="ordersPagination">
+                <div class="pagination-info">
+                    <span id="ordersInfo">Showing 0-0 of 0 orders</span>
                 </div>
-            </div>
-
-            <!-- Loading State -->
-            <div id="ordersLoading" class="loading-spinner">
-                <div class="spinner"></div>
-                <div class="loading-text">Loading orders...</div>
-            </div>
-
-            <!-- Error State -->
-            <div id="ordersError" class="error-state" style="display: none;">
-                <div class="error-icon">⚠️</div>
-                <div class="error-message">Failed to load orders</div>
-                <button class="btn btn-primary" onclick="loadOrders()">Try Again</button>
-            </div>
-
-            <!-- Empty State -->
-            <div id="ordersEmpty" class="empty-state" style="display: none;">
-                <div class="empty-icon">📦</div>
-                <div class="empty-message">No orders found</div>
-                <div class="empty-description">Orders will appear here when customers place them</div>
-            </div>
-
-            <!-- No Results State -->
-            <div id="ordersNoResults" class="empty-state" style="display: none;">
-                <div class="empty-icon">🔍</div>
-                <div class="empty-message">No orders match your search</div>
-                <div class="empty-description">Try adjusting your search terms or filters</div>
-            </div>
-
-            <!-- Orders Content -->
-            <div id="ordersContent" style="display: none;">
-                <!-- Desktop Table View -->
-                <div class="table-container">
-                    <table class="orders-table" id="ordersTable">
-                        <thead>
-                            <tr>
-                                <th>Order #</th>
-                                <th>Customer</th>
-                                <th>Items</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody">
-                            <!-- Dynamic content -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="pagination-container" id="ordersPagination">
-                    <div class="pagination-info">
-                        <span id="ordersInfo">Showing 0-0 of 0 orders</span>
-                    </div>
-                    <div class="pagination-buttons">
-                        <!-- Dynamic pagination buttons -->
-                    </div>
+                <div class="pagination-buttons">
+                    <!-- Dynamic pagination buttons -->
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Order Details Modal -->
-    <div id="orderModal" class="modal-overlay" style="display: none;">
-        <div class="modal-container">
-            <div class="invoice-modal">
-                <div class="invoice-header">
-                    <div class="invoice-logo">
-                        <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                        <div class="company-info">
-                            <h2>Qotore</h2>
-                            <p>Premium Fragrances</p>
-                            <p>Muscat, Oman</p>
-                        </div>
-                    </div>
-                    <div class="invoice-details">
-                        <h1 id="invoiceTitle">INVOICE</h1>
-                        <div class="invoice-meta">
-                            <div><strong>Order #:</strong> <span id="invoiceOrderNumber"></span></div>
-                            <div><strong>Date:</strong> <span id="invoiceDate"></span></div>
-                            <div><strong>Status:</strong> <span id="invoiceStatus" class="status-badge"></span></div>
-                        </div>
-                    </div>
-                    <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/96894909090" target="_blank" class="whatsapp-float" title="Contact Support">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.570-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.265-1.636c1.767.962 3.79 1.467 5.829 1.464C18.505 23.828 23.84 18.493 23.843 11.936a11.815 11.815 0 00-3.463-8.42Z"/>
+        </svg>
+    </a>
+
+    <!-- Footer with Contact Links -->
+    <footer style="background: #2d3748; color: white; padding: 2rem; margin-top: 4rem;">
+        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <img src="/icons/icon-32x32.png" alt="Qotore" style="width: 32px; height: 32px;">
+                    <h3 style="margin: 0; color: #8B4513;">Qotore</h3>
                 </div>
-
-                <div class="invoice-body">
-                    <div class="customer-section">
-                        <h3>Bill To:</h3>
-                        <div class="customer-details">
-                            <div class="customer-name" id="invoiceCustomerName"></div>
-                            <div class="customer-contact" id="invoiceCustomerContact"></div>
-                            <div class="delivery-address" id="invoiceDeliveryAddress"></div>
-                        </div>
-                    </div>
-
-                    <div class="items-section">
-                        <h3>Order Items:</h3>
-                        <table class="invoice-items-table">
-                            <thead>
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Item</th>
-                                    <th>Size</th>
-                                    <th>Qty</th>
-                                    <th>Unit Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="invoiceItemsBody">
-                                <!-- Dynamic items -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="invoice-summary">
-                        <div class="summary-row">
-                            <span>Subtotal:</span>
-                            <span id="invoiceSubtotal">0.000 OMR</span>
-                        </div>
-                        <div class="summary-row total-row">
-                            <span><strong>Total:</strong></span>
-                            <span id="invoiceTotal"><strong>0.000 OMR</strong></span>
-                        </div>
-                    </div>
-
-                    <div class="notes-section" id="invoiceNotesSection" style="display: none;">
-                        <h3>Notes:</h3>
-                        <div class="notes-content" id="invoiceNotes"></div>
-                    </div>
-                </div>
-
-                <div class="invoice-footer">
-                    <div class="order-actions">
-                        <button id="markCompleteBtn" class="btn btn-success" onclick="updateOrderStatusFromModal('completed')" style="display: none;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                            </svg>
-                            Mark as Completed
-                        </button>
-                        <button id="markPendingBtn" class="btn btn-warning" onclick="updateOrderStatusFromModal('pending')" style="display: none;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A1.5,1.5 0 0,1 10.5,15.5A1.5,1.5 0 0,1 12,14A1.5,1.5 0 0,1 13.5,15.5A1.5,1.5 0 0,1 12,17M12,13A1.5,1.5 0 0,1 10.5,11.5A1.5,1.5 0 0,1 12,10A1.5,1.5 0 0,1 13.5,11.5A1.5,1.5 0 0,1 12,13Z"/>
-                            </svg>
-                            Mark as Pending
-                        </button>
-                        <button class="btn btn-danger" onclick="deleteOrderFromModal()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
-                            </svg>
-                            Delete Order
-                        </button>
-                        <button class="btn btn-secondary" onclick="printInvoice()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18,3H6V7H18M19,12A1,1 0 0,1 18,11A1,1 0 0,1 19,10A1,1 0 0,1 20,11A1,1 0 0,1 19,12M16,19H8V14H16M19,8H5A3,3 0 0,0 2,11V17H6V21H18V17H22V11A3,3 0 0,0 19,8Z"/>
-                            </svg>
-                            Print Invoice
-                        </button>
-                    </div>
-                </div>
+                <p style="color: #a0aec0; margin: 0;">Premium fragrances for discerning tastes. Quality and luxury in every bottle.</p>
             </div>
-        </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>Contact Us</h4>
-                <div class="contact-links">
-                    <a href="https://wa.me/96812345678" target="_blank" class="contact-link">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.298-0.347,0.446-0.52c0.149-0.173,0.198-0.297,0.297-0.497c0.099-0.198,0.05-0.371-0.025-0.52C10.612,9.627,9.918,8.166,9.695,7.571c-0.217-0.579-0.438-0.5-0.6-0.509C8.896,7.048,8.696,7.047,8.497,7.047c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.095,3.2,5.076,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.926,14.927,17.769,14.531,17.472,14.382z"/>
-                        </svg>
-                        WhatsApp
-                    </a>
-                    <a href="https://instagram.com/qotore" target="_blank" class="contact-link">
+            
+            <div>
+                <h4 style="color: #8B4513; margin-bottom: 1rem;">Contact Us</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <a href="https://instagram.com/qotore" target="_blank" style="color: #a0aec0; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/>
                         </svg>
                         Instagram
                     </a>
-                    <a href="https://snapchat.com/add/qotore" target="_blank" class="contact-link">
+                    <a href="https://snapchat.com/add/qotore" target="_blank" style="color: #a0aec0; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4.07C9.05,4.07 6.67,6.45 6.67,9.4C6.67,10.25 6.85,11.06 7.17,11.8L6.83,12.18C6.37,12.72 5.64,12.72 5.18,12.18L4.82,11.8C5.14,11.06 5.32,10.25 5.32,9.4C5.32,5.7 8.3,2.72 12,2.72C15.7,2.72 18.68,5.7 18.68,9.4C18.68,10.25 18.86,11.06 19.18,11.8L18.82,12.18C18.36,12.72 17.63,12.72 17.17,12.18L16.83,11.8C17.15,11.06 17.33,10.25 17.33,9.4C17.33,6.45 14.95,4.07 12,4.07Z"/>
+                            <path d="M12,2.5c-0.83,0-1.5,0.67-1.5,1.5s0.67,1.5,1.5,1.5s1.5-0.67,1.5-1.5S12.83,2.5,12,2.5z M12,6.5c-0.83,0-1.5,0.67-1.5,1.5s0.67,1.5,1.5,1.5s1.5-0.67,1.5-1.5S12.83,6.5,12,6.5z M12,10.5c-0.83,0-1.5,0.67-1.5,1.5s0.67,1.5,1.5,1.5s1.5-0.67,1.5-1.5S12.83,10.5,12,10.5z M12,14.5c-0.83,0-1.5,0.67-1.5,1.5s0.67,1.5,1.5,1.5s1.5-0.67,1.5-1.5S12.83,14.5,12,14.5z M12,18.5c-0.83,0-1.5,0.67-1.5,1.5s0.67,1.5,1.5,1.5s1.5-0.67,1.5-1.5S12.83,18.5,12,18.5z"/>
                         </svg>
                         Snapchat
                     </a>
+                    <a href="https://wa.me/96894909090" target="_blank" style="color: #a0aec0; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.570-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.265-1.636c1.767.962 3.79 1.467 5.829 1.464C18.505 23.828 23.84 18.493 23.843 11.936a11.815 11.815 0 00-3.463-8.42Z"/>
+                        </svg>
+                        WhatsApp
+                    </a>
                 </div>
             </div>
-            <p>&copy; 2024 Qotore. All rights reserved.</p>
+            
+            <div>
+                <h4 style="color: #8B4513; margin-bottom: 1rem;">Quick Links</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <a href="/admin" style="color: #a0aec0; text-decoration: none; transition: color 0.3s;">Dashboard</a>
+                    <a href="/admin/items-management" style="color: #a0aec0; text-decoration: none; transition: color 0.3s;">Items Management</a>
+                    <a href="/" style="color: #a0aec0; text-decoration: none; transition: color 0.3s;">Visit Store</a>
+                </div>
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid #4a5568; margin-top: 2rem; padding-top: 2rem; text-align: center; color: #718096;">
+            <p style="margin: 0;">&copy; 2024 Qotore. All rights reserved. Made in Oman 🇴🇲</p>
         </div>
     </footer>
 
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/96812345678?text=Hello%20Qotore%2C%20I%20need%20help%20with%20my%20orders" 
-       target="_blank" 
-       class="whatsapp-float" 
-       title="Need help? Contact us on WhatsApp">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.298-0.347,0.446-0.52c0.149-0.173,0.198-0.297,0.297-0.497c0.099-0.198,0.05-0.371-0.025-0.52C10.612,9.627,9.918,8.166,9.695,7.571c-0.217-0.579-0.438-0.5-0.6-0.509C8.896,7.048,8.696,7.047,8.497,7.047c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.095,3.2,5.076,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.926,14.927,17.769,14.531,17.472,14.382z"/>
-        </svg>
-    </a>
-
     <!-- Scripts -->
     <script src="orders-script.js"></script>
-  
+    <script src="orders-notification-adapter.js"></script>
+
+    <!-- Toast Container (will be created dynamically) -->
+    <div id="toastContainer" class="toast-container"></div>
 </body>
 </html>
