@@ -1,1090 +1,522 @@
-// Items Management Adapter - Bridge Script for New Design
-// This adapter connects the new UI design with existing functionality
-
-// Override and extend existing functions to work with new design
+// Fixed Items Management Adapter - Enhanced variant handling
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔌 Items management adapter loaded');
     
-    // Initialize new design specific features
-    initializeNewDesignFeatures();
+    // Initialize enhanced features
+    initializeEnhancedFeatures();
     
-    // Override existing functions for new design compatibility
-    overrideFunctionsForNewDesign();
+    // Override existing functions for better variant handling
+    overrideFunctionsForVariantHandling();
 });
 
-function initializeNewDesignFeatures() {
-    // Items per page selector
-    const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
-    if (itemsPerPageSelect) {
-        itemsPerPageSelect.addEventListener('change', (e) => {
-            const newItemsPerPage = parseInt(e.target.value);
-            if (newItemsPerPage !== itemsPerPage) {
-                // Update the global variable from items-management-script.js
-                window.itemsPerPage = newItemsPerPage;
-                currentPage = 1;
-                applyFiltersAndPagination();
-            }
-        });
-    }
+function initializeEnhancedFeatures() {
+    // Enhanced variant checkbox handling
+    setupEnhancedVariantListeners();
     
-    // Enhanced search with loading state
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                currentSearchTerm = e.target.value;
-                currentPage = 1;
-                applyFiltersAndPagination();
-            }, 300);
-        });
-    }
-// Override the problematic updatePreviews function
-window.originalUpdatePreviews = window.updatePreviews;
-window.updatePreviews = function() {
-    const itemNameInput = document.getElementById('itemName');
-    if (!itemNameInput) return;
+    // Enhanced form validation
+    setupFormValidation();
     
-    const itemName = itemNameInput.value || 'creed-aventus';
-    const slug = generateSlug(itemName);
+    // Enhanced modal handling
+    setupEnhancedModalHandling();
     
-    // Check if preview elements exist (from old HTML structure)
-    const slugPreview = document.getElementById('slugPreview');
-    const imageNamePreview = document.getElementById('imageNamePreview');
-    
-    if (slugPreview) {
-        slugPreview.textContent = slug;
-    } else {
-        console.log('📝 Slug preview element not found (this is normal with new design)');
-    }
-    
-    if (imageNamePreview) {
-        imageNamePreview.textContent = `${slug}.png`;
-    } else {
-        console.log('🖼️ Image name preview element not found (this is normal with new design)');
-    }
-    
-    // For the new design, we could show the slug in the form title or elsewhere
-    // but it's not critical functionality
-    console.log('Generated slug:', slug);
-};
+    // Setup keyboard shortcuts
+    setupKeyboardShortcuts();
+}
 
-// Override generateSlug to make sure it exists
-window.generateSlug = function(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-};
-    // Override updateStats function to work with new design
-    window.originalUpdateStats = window.updateStats;
-    window.updateStats = function() {
-        if (!items || !Array.isArray(items)) return;
-        
-        const totalItems = items.length;
-        const visibleItems = items.filter(item => !item.hidden).length;
-        const hiddenItems = items.filter(item => item.hidden).length;
-        
-        // Update stats in new design
-        updateStatCard('totalItems', totalItems);
-        updateStatCard('visibleItems', visibleItems);
-        updateStatCard('hiddenItems', hiddenItems);
-        
-        console.log('📊 Stats updated:', { totalItems, visibleItems, hiddenItems });
-    };
+function setupEnhancedVariantListeners() {
+    const variants = [
+        { id: 'enable5ml', priceId: 'price5ml', variant: '5ml' },
+        { id: 'enable10ml', priceId: 'price10ml', variant: '10ml' },
+        { id: 'enable30ml', priceId: 'price30ml', variant: '30ml' },
+        { id: 'enableFullBottle', priceId: null, variant: 'fullBottle' }
+    ];
     
-    // Override renderItems function for new table design
-    window.originalRenderItems = window.renderItems;
-    window.renderItems = function(itemsToRender) {
-        const itemsList = document.getElementById('itemsList');
-        const emptyState = document.getElementById('emptyState');
-        const table = document.getElementById('itemsTable');
-        
-        if (!itemsList) {
-            console.error('Items list container not found');
-            return;
-        }
-        
-        // Show/hide empty state
-        if (!itemsToRender || itemsToRender.length === 0) {
-            if (emptyState) emptyState.style.display = 'block';
-            if (table) table.style.display = 'none';
-            itemsList.innerHTML = '';
-            updatePaginationInfo(0, 0, 0);
-            return;
-        }
-        
-        if (emptyState) emptyState.style.display = 'none';
-        if (table) table.style.display = 'table';
-        
-        // Generate table rows
-        itemsList.innerHTML = itemsToRender.map(item => createItemRow(item)).join('');
-        
-        // Update pagination info
-        const startIndex = (currentPage - 1) * itemsPerPage + 1;
-        const endIndex = Math.min(startIndex + itemsToRender.length - 1, filteredItems.length);
-        updatePaginationInfo(startIndex, endIndex, filteredItems.length);
-        
-        // Update stats
-        updateStats();
-        
-        console.log(`📋 Rendered ${itemsToRender.length} items for page ${currentPage}`);
-    };
-    
-    // Override pagination function for new design
-    window.originalRenderPagination = window.renderPagination;
-    window.renderPagination = function(totalPages) {
-        const paginationContainer = document.getElementById('paginationContainer');
-        if (!paginationContainer || totalPages <= 1) {
-            if (paginationContainer) paginationContainer.innerHTML = '';
-            return;
-        }
-        
-        let paginationHTML = '';
-        
-        // Previous button
-        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
-        paginationHTML += `
-            <button class="pagination-btn ${prevDisabled}" onclick="changePage(${currentPage - 1})" ${prevDisabled}>
-                Previous
-            </button>
-        `;
-        
-        // Page numbers with smart ellipsis
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-        
-        // Adjust start if we're near the end
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-        
-        // First page + ellipsis
-        if (startPage > 1) {
-            paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
-            if (startPage > 2) {
-                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
-            }
-        }
-        
-        // Page numbers
-        for (let i = startPage; i <= endPage; i++) {
-            const activeClass = i === currentPage ? 'active' : '';
-            paginationHTML += `
-                <button class="pagination-btn ${activeClass}" onclick="changePage(${i})">
-                    ${i}
-                </button>
-            `;
-        }
-        
-        // Last page + ellipsis
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
-            }
-            paginationHTML += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
-        }
-        
-        // Next button
-        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
-        paginationHTML += `
-            <button class="pagination-btn ${nextDisabled}" onclick="changePage(${currentPage + 1})" ${nextDisabled}>
-                Next
-            </button>
-        `;
-        
-        paginationContainer.innerHTML = paginationHTML;
-    };
-    
-    // Override showModal and hideModal functions for new design
-    window.showModal = function(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+    variants.forEach(({ id, priceId, variant }) => {
+        const checkbox = document.getElementById(id);
+        if (checkbox) {
+            // Remove existing listeners to prevent duplicates
+            checkbox.removeEventListener('change', checkbox._enhancedListener);
             
-            // Add focus trap
-            setTimeout(() => {
-                const firstInput = modal.querySelector('input[type="text"], textarea, select');
-                if (firstInput) firstInput.focus();
-            }, 100);
-        } else {
-            console.error('Modal not found:', modalId);
+            // Add enhanced listener
+            const listener = function() {
+                console.log(`Variant ${variant} toggled:`, this.checked);
+                
+                // Update price input
+                if (priceId) {
+                    const priceInput = document.getElementById(priceId);
+                    if (priceInput) {
+                        priceInput.disabled = !this.checked;
+                        priceInput.required = this.checked;
+                        
+                        if (this.checked) {
+                            priceInput.focus();
+                            // Add subtle animation
+                            priceInput.style.transition = 'all 0.3s ease';
+                            priceInput.style.borderColor = '#8B4513';
+                        } else {
+                            priceInput.value = '';
+                            priceInput.style.borderColor = '#e9ecef';
+                        }
+                    }
+                }
+                
+                // Update variant card styling
+                const variantCard = this.closest('.variant-card');
+                if (variantCard) {
+                    variantCard.classList.toggle('active', this.checked);
+                    
+                    if (this.checked) {
+                        variantCard.style.borderColor = '#8B4513';
+                        variantCard.style.backgroundColor = '#f8f9fa';
+                        variantCard.style.transform = 'scale(1.02)';
+                    } else {
+                        variantCard.style.borderColor = '#e9ecef';
+                        variantCard.style.backgroundColor = 'white';
+                        variantCard.style.transform = 'scale(1)';
+                    }
+                }
+                
+                // Show validation feedback
+                updateVariantValidation();
+            };
+            
+            checkbox.addEventListener('change', listener);
+            checkbox._enhancedListener = listener; // Store reference for removal
         }
-    };
-    
-    window.hideModal = function(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        } else {
-            console.error('Modal not found:', modalId);
-        }
-    };
-    
-// Debug function to check modal elements
-function debugModalElements() {
-    const modalOverlay = document.getElementById('itemModalOverlay');
-    const modalTitle = document.getElementById('itemModalTitle');
-    const saveButtonText = document.getElementById('saveButtonText');
-    const itemForm = document.getElementById('itemForm');
-    
-    console.log('🔍 Modal Debug:', {
-        modalOverlay: modalOverlay ? 'Found' : 'NOT FOUND',
-        modalTitle: modalTitle ? 'Found' : 'NOT FOUND',
-        saveButtonText: saveButtonText ? 'Found' : 'NOT FOUND',
-        itemForm: itemForm ? 'Found' : 'NOT FOUND',
-        modalOverlayDisplay: modalOverlay ? modalOverlay.style.display : 'N/A'
+    });
+}
+
+function updateVariantValidation() {
+    const variants = ['enable5ml', 'enable10ml', 'enable30ml', 'enableFullBottle'];
+    const hasSelectedVariant = variants.some(id => {
+        const checkbox = document.getElementById(id);
+        return checkbox && checkbox.checked;
     });
     
-    return {
-        modalOverlay,
-        modalTitle,
-        saveButtonText,
-        itemForm
+    // Show/hide validation message
+    let validationMsg = document.getElementById('variantValidationMsg');
+    if (!validationMsg) {
+        validationMsg = document.createElement('div');
+        validationMsg.id = 'variantValidationMsg';
+        validationMsg.className = 'validation-message';
+        
+        const variantsSection = document.querySelector('.variants-section');
+        if (variantsSection) {
+            variantsSection.appendChild(validationMsg);
+        }
+    }
+    
+    if (!hasSelectedVariant) {
+        validationMsg.textContent = '⚠️ Please select at least one variant';
+        validationMsg.style.color = '#dc3545';
+        validationMsg.style.display = 'block';
+    } else {
+        validationMsg.style.display = 'none';
+    }
+    
+    return hasSelectedVariant;
+}
+
+function setupFormValidation() {
+    const form = document.getElementById('itemForm');
+    if (!form) return;
+    
+    // Enhanced form validation before submission
+    form.addEventListener('submit', function(e) {
+        console.log('Form submission intercepted for validation');
+        
+        // Check if at least one variant is selected
+        if (!updateVariantValidation()) {
+            e.preventDefault();
+            showToast('Please select at least one variant (5ml, 10ml, 30ml, or Full Bottle)', 'error');
+            return false;
+        }
+        
+        // Validate selected variants have prices
+        const selectedVariants = [
+            { id: 'enable5ml', priceId: 'price5ml', name: '5ml' },
+            { id: 'enable10ml', priceId: 'price10ml', name: '10ml' },
+            { id: 'enable30ml', priceId: 'price30ml', name: '30ml' }
+        ];
+        
+        for (const variant of selectedVariants) {
+            const checkbox = document.getElementById(variant.id);
+            const priceInput = document.getElementById(variant.priceId);
+            
+            if (checkbox && checkbox.checked && priceInput) {
+                const price = parseFloat(priceInput.value);
+                if (isNaN(price) || price <= 0) {
+                    e.preventDefault();
+                    priceInput.focus();
+                    showToast(`Please enter a valid price for ${variant.name} variant`, 'error');
+                    return false;
+                }
+            }
+        }
+        
+        console.log('Form validation passed');
+    });
+}
+
+function setupEnhancedModalHandling() {
+    // Enhanced modal open function
+    window.openAddItemModal = function() {
+        console.log('🔧 Opening add item modal (enhanced)...');
+        
+        currentEditingId = null;
+        
+        // Update modal title and button
+        const modalTitle = document.getElementById('itemModalTitle');
+        const saveButtonText = document.getElementById('saveButtonText');
+        
+        if (modalTitle) modalTitle.textContent = 'Add New Item';
+        if (saveButtonText) saveButtonText.textContent = 'Save Item';
+        
+        // Reset form with enhanced reset
+        resetFormEnhanced();
+        
+        // Show modal with animation
+        showModalEnhanced('itemModalOverlay');
+    };
+    
+    // Enhanced edit function
+    window.editItem = function(itemId) {
+        console.log('🔧 Editing item (enhanced):', itemId);
+        
+        const item = items.find(i => i.id == itemId);
+        if (!item) {
+            showToast('Item not found', 'error');
+            return;
+        }
+        
+        currentEditingId = itemId;
+        
+        // Update modal title and button
+        const modalTitle = document.getElementById('itemModalTitle');
+        const saveButtonText = document.getElementById('saveButtonText');
+        
+        if (modalTitle) modalTitle.textContent = 'Edit Item';
+        if (saveButtonText) saveButtonText.textContent = 'Update Item';
+        
+        // Populate form with enhanced population
+        populateFormEnhanced(item);
+        
+        // Show modal
+        showModalEnhanced('itemModalOverlay');
     };
 }
 
-// Enhanced openAddItemModal with debugging
-window.openAddItemModal = function() {
-    console.log('🔧 Opening add item modal...');
+function resetFormEnhanced() {
+    console.log('🧹 Enhanced form reset');
     
-    // Debug modal elements
-    const elements = debugModalElements();
-    
-    if (!elements.modalOverlay) {
-        console.error('❌ Modal overlay not found! Make sure the HTML has id="itemModalOverlay"');
-        showToast('Modal error: Overlay not found', 'error');
-        return;
+    // Reset basic form
+    const form = document.getElementById('itemForm');
+    if (form) {
+        form.reset();
     }
     
-    currentEditingId = null;
+    // Reset all variants with animation
+    const variants = [
+        { id: 'enable5ml', priceId: 'price5ml' },
+        { id: 'enable10ml', priceId: 'price10ml' },
+        { id: 'enable30ml', priceId: 'price30ml' },
+        { id: 'enableFullBottle', priceId: null }
+    ];
     
-    // Update modal title and button text
-    if (elements.modalTitle) elements.modalTitle.textContent = 'Add New Item';
-    if (elements.saveButtonText) elements.saveButtonText.textContent = 'Save Item';
+    variants.forEach(({ id, priceId }) => {
+        const checkbox = document.getElementById(id);
+        if (checkbox) {
+            checkbox.checked = false;
+            
+            // Trigger change event to update styling
+            checkbox.dispatchEvent(new Event('change'));
+        }
+        
+        if (priceId) {
+            const priceInput = document.getElementById(priceId);
+            if (priceInput) {
+                priceInput.value = '';
+                priceInput.disabled = true;
+            }
+        }
+    });
     
-    // Reset form
-    if (typeof resetForm === 'function') {
-        resetForm();
-    } else {
-        console.warn('⚠️ resetForm function not found');
+    // Reset image preview
+    const imagePreview = document.getElementById('imagePreview');
+    if (imagePreview) {
+        imagePreview.style.display = 'none';
     }
     
-    // Show modal with extra debugging
-    console.log('📱 Showing modal...');
-    elements.modalOverlay.style.display = 'flex';
+    // Clear validation messages
+    const validationMsg = document.getElementById('variantValidationMsg');
+    if (validationMsg) {
+        validationMsg.style.display = 'none';
+    }
+}
+
+function populateFormEnhanced(item) {
+    console.log('📝 Enhanced form population with item:', item);
+    
+    // Reset first
+    resetFormEnhanced();
+    
+    // Basic fields
+    const fields = [
+        { id: 'itemName', value: item.name },
+        { id: 'itemBrand', value: item.brand },
+        { id: 'itemDescription', value: item.description }
+    ];
+    
+    fields.forEach(({ id, value }) => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.value = value || '';
+        }
+    });
+    
+    // Hidden checkbox
+    const hiddenCheckbox = document.getElementById('itemHidden');
+    if (hiddenCheckbox) {
+        hiddenCheckbox.checked = item.hidden || false;
+    }
+    
+    // FIXED: Enhanced variant handling
+    if (item.variants && Array.isArray(item.variants)) {
+        console.log('Processing variants:', item.variants);
+        
+        // Process each variant with delay for smooth animation
+        item.variants.forEach((variant, index) => {
+            setTimeout(() => {
+                if (variant.is_whole_bottle) {
+                    const checkbox = document.getElementById('enableFullBottle');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                } else if (variant.size_ml) {
+                    const size = variant.size_ml;
+                    const checkboxId = `enable${size}ml`;
+                    const priceId = `price${size}ml`;
+                    
+                    const checkbox = document.getElementById(checkboxId);
+                    const priceInput = document.getElementById(priceId);
+                    
+                    if (checkbox && priceInput) {
+                        checkbox.checked = true;
+                        checkbox.dispatchEvent(new Event('change'));
+                        
+                        // Set price with animation
+                        setTimeout(() => {
+                            priceInput.value = (variant.price_cents / 1000).toFixed(3);
+                            priceInput.style.transition = 'all 0.3s ease';
+                            priceInput.style.backgroundColor = '#e8f5e8';
+                            
+                            setTimeout(() => {
+                                priceInput.style.backgroundColor = 'white';
+                            }, 500);
+                        }, 100);
+                    }
+                }
+            }, index * 100); // Stagger animations
+        });
+    }
+    
+    // Handle existing image
+    if (item.image_path) {
+        setTimeout(() => {
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imagePreview && previewImg) {
+                previewImg.src = `/api/image/${item.image_path}?v=${Date.now()}`;
+                imagePreview.style.display = 'block';
+                
+                // Add loading animation
+                previewImg.style.opacity = '0';
+                previewImg.onload = function() {
+                    this.style.transition = 'opacity 0.3s ease';
+                    this.style.opacity = '1';
+                };
+            }
+        }, 300);
+    }
+}
+
+function showModalEnhanced(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    modal.style.display = 'flex';
+    modal.style.opacity = '0';
     document.body.style.overflow = 'hidden';
     
-    // Verify modal is visible
+    // Animate in
+    requestAnimationFrame(() => {
+        modal.style.transition = 'opacity 0.3s ease';
+        modal.style.opacity = '1';
+    });
+    
+    // Focus first input with delay
     setTimeout(() => {
-        const isVisible = elements.modalOverlay.style.display === 'flex';
-        console.log('👁️ Modal visibility check:', isVisible ? 'VISIBLE' : 'HIDDEN');
-        
-        if (!isVisible) {
-            console.error('❌ Modal failed to show!');
-            showToast('Modal failed to open', 'error');
-        } else {
-            // Focus first input
-            const firstInput = elements.modalOverlay.querySelector('input[type="text"], textarea, select');
-            if (firstInput) {
-                firstInput.focus();
-                console.log('🎯 Focused first input');
+        const firstInput = modal.querySelector('input[type="text"]:not([disabled])');
+        if (firstInput) {
+            firstInput.focus();
+            firstInput.select();
+        }
+    }, 300);
+}
+
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + N: Add new item
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            if (typeof openAddItemModal === 'function') {
+                openAddItemModal();
             }
         }
-    }, 100);
-};
-    
-    // Override closeItemModal function
-    window.closeItemModal = function() {
-        hideModal('itemModalOverlay');
-        resetForm();
-        currentEditingId = null;
-    };
-    
-    // Override closeDeleteModal function  
-    window.closeDeleteModal = function() {
-        hideModal('deleteModalOverlay');
-        window.deleteItemId = null;
-    };
-}
-
-// New design specific functions
-function createItemRow(item) {
-    const imageUrl = item.image_path ? `/api/image/${item.image_path}?v=${Date.now()}` : null;
-    const statusClass = item.hidden ? 'status-hidden' : 'status-visible';
-    const statusText = item.hidden ? 'Hidden' : 'Visible';
-    
-    return `
-        <tr class="${item.hidden ? 'hidden-item' : ''}">
-            <td>
-                <div class="item-image">
-                    ${imageUrl ? 
-                        `<img src="${imageUrl}" alt="${item.name || 'Item'}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-image\\'>No Image</div>'">` :
-                        '<div class="no-image">No Image</div>'
-                    }
-                </div>
-            </td>
-            <td>
-                <div class="item-details">
-                    <h4>${item.name || 'Unnamed Item'}</h4>
-                    ${item.brand ? `<div class="item-brand">${item.brand}</div>` : ''}
-                    ${item.description ? `<div class="item-description" title="${item.description}">${item.description}</div>` : ''}
-                </div>
-            </td>
-            <td>
-                <div class="variants-info">
-                    ${getVariantsDisplayForTable(item.variants)}
-                </div>
-            </td>
-            <td>
-                <span class="status-badge ${statusClass}">
-                    ${statusText}
-                </span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-small btn-edit" onclick="editItem('${item.id}')" title="Edit Item">
-                        Edit
-                    </button>
-                    <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                            onclick="toggleItemVisibility('${item.id}', ${item.hidden})"
-                            title="${item.hidden ? 'Show Item' : 'Hide Item'}">
-                        ${item.hidden ? 'Show' : 'Hide'}
-                    </button>
-                    <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')" title="Delete Item">
-                        Delete
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `;
-}
-
-function getVariantsDisplayForTable(variants) {
-    if (!variants || variants.length === 0) {
-        return '<span style="color: #999; font-style: italic;">No variants</span>';
-    }
-    
-    return variants.map(variant => {
-        if (variant.is_whole_bottle) {
-            return '<div class="variant-item">Full Bottle (Contact)</div>';
-        }
-        const size = variant.size_ml ? `${variant.size_ml}ml` : (variant.size || 'Unknown size');
-        const price = variant.price_cents ? 
-            `${(variant.price_cents / 1000).toFixed(3)} OMR` : 
-            (variant.price ? `${variant.price.toFixed(3)} OMR` : 'No price');
-        return `<div class="variant-item">${size} - ${price}</div>`;
-    }).join('');
-}
-
-function updateStatCard(cardId, value) {
-    const statElement = document.getElementById(cardId);
-    if (statElement) {
-        statElement.textContent = value;
         
-        // Add animation effect
-        statElement.style.transform = 'scale(1.1)';
-        setTimeout(() => {
-            statElement.style.transform = 'scale(1)';
-        }, 200);
-    }
-}
-
-function updatePaginationInfo(start, end, total) {
-    const startElement = document.getElementById('startIndex');
-    const endElement = document.getElementById('endIndex');
-    const totalElement = document.getElementById('totalCount');
-    
-    if (startElement) startElement.textContent = start;
-    if (endElement) endElement.textContent = end;
-    if (totalElement) totalElement.textContent = total;
-}
-
-// Enhanced refresh function with loading animation
-function refreshData() {
-    const refreshBtn = document.getElementById('refreshBtn');
-    const originalContent = refreshBtn.innerHTML;
-    
-    // Add refreshing state
-    refreshBtn.classList.add('refreshing');
-    refreshBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6 0-3.31 2.69-6 6-6 1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-        </svg>
-        <span>Refreshing...</span>
-    `;
-    
-    // Call original loadItems function
-    loadItems().then(() => {
-        // Remove refreshing state after a short delay
-        setTimeout(() => {
-            refreshBtn.classList.remove('refreshing');
-            refreshBtn.innerHTML = originalContent;
-            showToast('Items refreshed successfully', 'success');
-        }, 1000);
-    }).catch((error) => {
-        console.error('Refresh failed:', error);
-        refreshBtn.classList.remove('refreshing');
-        refreshBtn.innerHTML = originalContent;
-        showToast('Failed to refresh items', 'error');
+        // Escape: Close modals
+        if (e.key === 'Escape') {
+            const modal = document.querySelector('.modal-overlay[style*="flex"]');
+            if (modal && modal.id === 'itemModalOverlay') {
+                closeItemModal();
+            }
+        }
     });
 }
 
-// Enhanced variant toggle function for new form design
-function toggleVariantPrice(variant) {
-    let checkboxId, priceId;
+function overrideFunctionsForVariantHandling() {
+    // Store original functions
+    window.originalResetForm = window.resetForm;
+    window.originalPopulateForm = window.populateForm;
     
-    switch(variant) {
-        case '5ml':
-            checkboxId = 'enable5ml';
-            priceId = 'price5ml';
-            break;
-        case '10ml':
-            checkboxId = 'enable10ml';
-            priceId = 'price10ml';
-            break;
-        case '30ml':
-            checkboxId = 'enable30ml';
-            priceId = 'price30ml';
-            break;
-        case 'full':
-            checkboxId = 'enableFullBottle';
-            priceId = null; // Full bottle doesn't have price input
-            break;
-        default:
-            console.error('Unknown variant:', variant);
-            return;
-    }
+    // Override with enhanced versions
+    window.resetForm = resetFormEnhanced;
+    window.populateForm = populateFormEnhanced;
     
-    const checkbox = document.getElementById(checkboxId);
-    const priceInput = priceId ? document.getElementById(priceId) : null;
-    
-    if (!checkbox) {
-        console.error('Checkbox not found:', checkboxId);
-        return;
-    }
-    
-    // Update price input state
-    if (priceInput) {
-        priceInput.disabled = !checkbox.checked;
-        if (checkbox.checked) {
-            priceInput.focus();
-        } else {
-            priceInput.value = '';
-        }
-    }
-    
-    // Visual feedback for variant card
-    const variantCard = checkbox.closest('.variant-card');
-    if (variantCard) {
-        if (checkbox.checked) {
-            variantCard.style.borderColor = '#8B4513';
-            variantCard.style.backgroundColor = '#f8f9fa';
-        } else {
-            variantCard.style.borderColor = '#e9ecef';
-            variantCard.style.backgroundColor = 'white';
-        }
-    }
-    
-    console.log(`Variant ${variant} ${checkbox.checked ? 'enabled' : 'disabled'}`);
+    console.log('✅ Functions overridden for enhanced variant handling');
 }
 
-// Enhanced modal functions with improved animations
-function openAddItemModal() {
-    // Call original function
-    if (window.openAddItemModal) {
-        window.originalOpenAddItemModal();
-    }
-    
-    currentEditingId = null;
-    document.getElementById('itemModalTitle').textContent = 'Add New Item';
-    const saveButtonText = document.getElementById('saveButtonText');
-    if (saveButtonText) saveButtonText.textContent = 'Save Item';
-    
-    resetForm();
-    showModal('itemModalOverlay');
-}
-
-// Enhanced toast notification system
+// Enhanced toast notification
 function showToast(message, type = 'info', duration = 4000) {
-    const container = document.getElementById('toast-container');
-    if (!container) {
-        console.error('Toast container not found');
-        return;
-    }
+    console.log('📢 Toast:', type, message);
+    
+    // Remove existing toasts of the same type
+    const existingToasts = document.querySelectorAll(`.toast.${type}`);
+    existingToasts.forEach(toast => toast.remove());
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${getToastColor(type)};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        z-index: 2000;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        animation: slideInRight 0.3s ease-out;
+        max-width: 400px;
+        word-wrap: break-word;
+    `;
+    
     toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <div style="flex-shrink: 0;">
-                ${getToastIcon(type)}
-            </div>
-            <div style="flex: 1;">
-                ${message}
-            </div>
+            <span>${getToastIcon(type)}</span>
+            <span>${message}</span>
         </div>
     `;
     
-    container.appendChild(toast);
+    document.body.appendChild(toast);
     
-    // Auto remove after duration
+    // Auto remove
     setTimeout(() => {
-        if (toast && toast.parentElement) {
-            toast.style.animation = 'slideOut 0.3s ease forwards';
+        if (toast.parentNode) {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
             setTimeout(() => {
-                toast.remove();
+                if (toast.parentNode) {
+                    toast.remove();
+                }
             }, 300);
         }
     }, duration);
     
     // Click to dismiss
     toast.addEventListener('click', () => {
-        toast.style.animation = 'slideOut 0.3s ease forwards';
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
+        toast.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
     });
+}
+
+function getToastColor(type) {
+    const colors = {
+        success: '#28a745',
+        error: '#dc3545',
+        warning: '#ffc107',
+        info: '#17a2b8'
+    };
+    return colors[type] || colors.info;
 }
 
 function getToastIcon(type) {
     const icons = {
-        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#28a745"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>',
-        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#dc3545"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
-        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#ffc107"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
-        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#17a2b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
     };
     return icons[type] || icons.info;
 }
 
-// Enhanced form validation with visual feedback
-function validateItemForm() {
-    const form = document.getElementById('itemForm');
-    if (!form) return false;
-    
-    let isValid = true;
-    const errors = [];
-    
-    // Required fields validation
-    const itemName = document.getElementById('itemName');
-    const itemImage = document.getElementById('itemImage');
-    
-    if (!itemName || !itemName.value.trim()) {
-        errors.push('Item name is required');
-        if (itemName) addFieldError(itemName);
-        isValid = false;
-    } else {
-        if (itemName) removeFieldError(itemName);
+// Add required CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
     }
     
-    // Image validation for new items
-    if (!currentEditingId && (!itemImage || !itemImage.files.length)) {
-        errors.push('Item image is required');
-        if (itemImage) addFieldError(itemImage);
-        isValid = false;
-    } else {
-        if (itemImage) removeFieldError(itemImage);
+    .variant-card {
+        transition: all 0.3s ease;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1rem;
+        background: white;
     }
     
-    // Variants validation
-    const hasVariants = document.getElementById('enable5ml').checked ||
-                       document.getElementById('enable10ml').checked ||
-                       document.getElementById('enable30ml').checked ||
-                       document.getElementById('enableFullBottle').checked;
-    
-    if (!hasVariants) {
-        errors.push('At least one variant must be selected');
-        isValid = false;
+    .variant-card.active {
+        border-color: #8B4513 !important;
+        background-color: #f8f9fa !important;
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
     }
     
-    // Price validation for enabled variants
-    const variants = [
-        { checkbox: 'enable5ml', price: 'price5ml', name: '5ml' },
-        { checkbox: 'enable10ml', price: 'price10ml', name: '10ml' },
-        { checkbox: 'enable30ml', price: 'price30ml', name: '30ml' }
-    ];
-    
-    variants.forEach(variant => {
-        const checkbox = document.getElementById(variant.checkbox);
-        const priceInput = document.getElementById(variant.price);
-        
-        if (checkbox && checkbox.checked && priceInput) {
-            const price = parseFloat(priceInput.value);
-            if (!price || price <= 0) {
-                errors.push(`${variant.name} price must be greater than 0`);
-                addFieldError(priceInput);
-                isValid = false;
-            } else {
-                removeFieldError(priceInput);
-            }
-        }
-    });
-    
-    // Show errors if any
-    if (errors.length > 0) {
-        showToast(errors.join('. '), 'error', 6000);
+    .validation-message {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        font-weight: 600;
     }
     
-    return isValid;
-}
-
-function addFieldError(field) {
-    field.style.borderColor = '#dc3545';
-    field.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.1)';
-}
-
-function removeFieldError(field) {
-    field.style.borderColor = '#e9ecef';
-    field.style.boxShadow = 'none';
-}
-
-// Enhanced image preview functionality
-function handleImagePreview(e) {
-    const file = e.target.files[0];
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-    
-    if (!file) {
-        if (imagePreview) imagePreview.style.display = 'none';
-        return;
+    .toast {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    // Validation
-    if (!file.type.includes('png')) {
-        showToast('Only PNG images are allowed', 'error');
-        e.target.value = '';
-        return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('Image too large. Please choose an image under 5MB.', 'error');
-        e.target.value = '';
-        return;
-    }
-    
-    // Show preview
-    if (imagePreview && previewImg) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            imagePreview.style.display = 'block';
-            
-            // Add loading animation
-            previewImg.style.opacity = '0';
-            previewImg.onload = function() {
-                previewImg.style.transition = 'opacity 0.3s ease';
-                previewImg.style.opacity = '1';
-            };
-        };
-        reader.readAsDataURL(file);
-    }
-}
+`;
+document.head.appendChild(style);
 
-function removeImagePreview() {
-    const imagePreview = document.getElementById('imagePreview');
-    const imageInput = document.getElementById('itemImage');
-    
-    if (imagePreview) imagePreview.style.display = 'none';
-    if (imageInput) imageInput.value = '';
-}
+console.log('🔌 Enhanced items management adapter loaded successfully');
 
-// Enhanced search functionality with highlighting
-function highlightSearchTerms(text, searchTerm) {
-    if (!searchTerm) return text;
-
-    // Escape regex special characters in the search term
-    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedTerm})`, 'gi');
-
-    return text.replace(regex, '<mark style="background: yellow; padding: 0 2px;">$1</mark>');
-}
-
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    // Ctrl/Cmd + N: Add new item
-    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        openAddItemModal();
-    }
-    
-    // Ctrl/Cmd + R: Refresh
-    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-        e.preventDefault();
-        refreshData();
-    }
-    
-    // Escape: Close modals
-    if (e.key === 'Escape') {
-        const modals = document.querySelectorAll('.modal-overlay[style*="flex"]');
-        modals.forEach(modal => {
-            if (modal.id === 'itemModalOverlay') {
-                closeItemModal();
-            } else if (modal.id === 'deleteModalOverlay') {
-                closeDeleteModal();
-            }
-        });
-    }
-    
-    // Enter: Submit forms
-    if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.form) {
-        const form = e.target.form;
-        if (form.id === 'itemForm') {
-            e.preventDefault();
-            handleFormSubmit({ preventDefault: () => {}, target: form });
-        }
-    }
-});
-
-// Enhanced delete confirmation with item details
-function deleteItem(itemId) {
-    const item = items.find(i => i.id == itemId);
-    if (!item) {
-        showToast('Item not found', 'error');
-        return;
-    }
-    
-    deleteItemId = itemId;
-    
-    // Populate enhanced delete preview
-    const preview = document.getElementById('deleteItemPreview');
-    if (preview) {
-        const imageUrl = item.image_path ? `/api/image/${item.image_path}?v=${Date.now()}` : null;
-        
-        preview.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: white; border-radius: 12px; border: 2px solid #dc3545;">
-                <div class="item-image" style="flex-shrink: 0;">
-                    ${imageUrl ? 
-                        `<img src="${imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">` :
-                        '<div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.75rem;">No Image</div>'
-                    }
-                </div>
-                <div style="flex: 1;">
-                    <h5 style="margin: 0 0 0.5rem 0; font-weight: 700; color: #2d3748;">${item.name || 'Unnamed Item'}</h5>
-                    ${item.brand ? `<p style="margin: 0 0 0.5rem 0; color: #6c757d; font-size: 0.9rem;"><strong>Brand:</strong> ${item.brand}</p>` : ''}
-                    <div style="color: #6c757d; font-size: 0.85rem;">
-                        <strong>Variants:</strong> ${getVariantsDisplayText(item.variants)}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    showModal('deleteModalOverlay');
-}
-
-function getVariantsDisplayText(variants) {
-    if (!variants || variants.length === 0) {
-        return 'No variants';
-    }
-    
-    return variants.map(variant => {
-        if (variant.is_whole_bottle) {
-            return 'Full Bottle';
-        }
-        const size = variant.size_ml ? `${variant.size_ml}ml` : (variant.size || 'Unknown');
-        return size;
-    }).join(', ');
-}
-
-// Enhanced loading states
-function showLoadingState() {
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const itemsTable = document.getElementById('itemsTable');
-    const emptyState = document.getElementById('emptyState');
-    
-    if (loadingSpinner) loadingSpinner.style.display = 'flex';
-    if (itemsTable) itemsTable.style.display = 'none';
-    if (emptyState) emptyState.style.display = 'none';
-}
-
-function hideLoadingState() {
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    if (loadingSpinner) loadingSpinner.style.display = 'none';
-}
-
-// Performance optimization for large datasets
-function optimizeTableRendering() {
-    const table = document.getElementById('itemsTable');
-    if (table && items.length > 100) {
-        // Virtual scrolling could be implemented here for very large datasets
-        console.log(`📊 Large dataset detected (${items.length} items). Consider implementing virtual scrolling for better performance.`);
-    }
-}
-
-// Auto-save draft functionality (for edit mode)
-function setupAutoSave() {
-    const form = document.getElementById('itemForm');
-    if (!form) return;
-    
-    const inputs = form.querySelectorAll('input, textarea, select');
-    let saveTimeout;
-    
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                if (currentEditingId) {
-                    saveDraft();
-                }
-            }, 2000); // Auto-save after 2 seconds of inactivity
-        });
-    });
-}
-
-function saveDraft() {
-    const formData = {
-        name: document.getElementById('itemName').value,
-        brand: document.getElementById('itemBrand').value,
-        description: document.getElementById('itemDescription').value,
-        hidden: document.getElementById('itemHidden').checked,
-        variants: {
-            '5ml': {
-                enabled: document.getElementById('enable5ml').checked,
-                price: document.getElementById('price5ml').value
-            },
-            '10ml': {
-                enabled: document.getElementById('enable10ml').checked,
-                price: document.getElementById('price10ml').value
-            },
-            '30ml': {
-                enabled: document.getElementById('enable30ml').checked,
-                price: document.getElementById('price30ml').value
-            },
-            'full': {
-                enabled: document.getElementById('enableFullBottle').checked
-            }
-        }
-    };
-    
-    localStorage.setItem(`qotore_item_draft_${currentEditingId}`, JSON.stringify(formData));
-    console.log('💾 Draft saved automatically');
-}
-
-function loadDraft(itemId) {
-    const draftKey = `qotore_item_draft_${itemId}`;
-    const draft = localStorage.getItem(draftKey);
-    
-    if (draft) {
-        try {
-            const formData = JSON.parse(draft);
-            // Apply draft data to form
-            // This would be implemented if auto-save is needed
-            console.log('📄 Draft loaded for item', itemId);
-        } catch (error) {
-            console.error('Failed to load draft:', error);
-            localStorage.removeItem(draftKey);
-        }
-    }
-}
-
-function clearDraft(itemId) {
-    const draftKey = `qotore_item_draft_${itemId}`;
-    localStorage.removeItem(draftKey);
-}
-
-// Initialize new features when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up auto-save for forms
-    setTimeout(setupAutoSave, 1000);
-    
-    // Add smooth scrolling to pagination
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('pagination-btn') && !e.target.disabled) {
-            setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
-        }
-    });
-    
-    // Add loading states to action buttons
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-small')) {
-            const originalText = e.target.textContent;
-            e.target.style.opacity = '0.7';
-            e.target.disabled = true;
-            
-            setTimeout(() => {
-                e.target.style.opacity = '1';
-                e.target.disabled = false;
-            }, 1000);
-        }
-    });
-});
-
-// Enhanced logout function with proper cookie clearing
-async function handleLogout() {
-    try {
-        console.log('🚪 Logging out...');
-        
-        // Show loading state
-        const logoutBtn = document.querySelector('a[href="../login.html"]');
-        if (logoutBtn) {
-            const originalContent = logoutBtn.innerHTML;
-            logoutBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                <span>Logging out...</span>
-            `;
-            logoutBtn.style.pointerEvents = 'none';
-            logoutBtn.style.opacity = '0.7';
-        }
-        
-        // Call logout endpoint to clear server-side session
-        const response = await fetch('/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Logout request failed: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('Logout response:', result);
-        
-        // Clear client-side cookies as backup
-        clearAllAdminCookies();
-        
-        // Clear any stored admin data
-        clearAdminStorage();
-        
-        // Show success message
-        showToast('Logged out successfully', 'success');
-        
-        // Redirect after short delay
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 1000);
-        
-    } catch (error) {
-        console.error('❌ Logout error:', error);
-        
-        // Even if server logout fails, clear client-side data
-        clearAllAdminCookies();
-        clearAdminStorage();
-        
-        showToast('Logout completed (with errors)', 'warning');
-        
-        // Redirect anyway
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 1500);
-    }
-}
-
-function clearAllAdminCookies() {
-    // Clear admin session cookie with multiple approaches to ensure it's removed
-    const cookieOptions = [
-        'admin_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; Secure; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0',
-        'admin_session=; Max-Age=0'
-    ];
-    
-    cookieOptions.forEach(cookieString => {
-        document.cookie = cookieString;
-    });
-    
-    // Also clear any other potential admin cookies
-    const adminCookies = ['admin_token', 'admin_auth', 'qotore_admin'];
-    adminCookies.forEach(cookieName => {
-        document.cookie = `${cookieName}=; Path=/; Max-Age=0`;
-    });
-    
-    console.log('🧹 Client-side admin cookies cleared');
-}
-
-function clearAdminStorage() {
-    // Clear localStorage items that might contain admin data
-    const adminKeys = [
-        'admin_session',
-        'admin_data',
-        'qotore_admin',
-        'items_cache',
-        'orders_cache'
-    ];
-    
-    adminKeys.forEach(key => {
-        localStorage.removeItem(key);
-    });
-    
-    // Clear sessionStorage
-    try {
-        sessionStorage.clear();
-    } catch (error) {
-        console.warn('Could not clear sessionStorage:', error);
-    }
-    
-    console.log('🧹 Admin storage cleared');
-}
-
-// Override the logout link behavior
-function setupLogoutHandler() {
-    const logoutLink = document.querySelector('a[href="../login.html"]');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            handleLogout();
-        });
-        
-        // Also handle if it's a button
-        logoutLink.style.cursor = 'pointer';
-        console.log('🔗 Logout handler attached');
-    } else {
-        console.warn('⚠️ Logout link not found');
-    }
-}
-
-// Authentication check function
-function checkAuthentication() {
-    const cookies = document.cookie.split(';');
-    const hasAdminSession = cookies.some(cookie => 
-        cookie.trim().startsWith('admin_session=') && 
-        cookie.trim().split('=')[1] !== ''
-    );
-    
-    if (!hasAdminSession) {
-        console.warn('⚠️ No valid admin session found');
-        showToast('Session expired. Please login again.', 'warning');
-        
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 2000);
-        
-        return false;
-    }
-    
-    return true;
-}
-
-// Periodic authentication check (every 5 minutes)
-function startAuthenticationMonitoring() {
-    setInterval(() => {
-        console.log('🔍 Checking authentication status...');
-        checkAuthentication();
-    }, 5 * 60 * 1000); // 5 minutes
-}
-
-// Initialize authentication features
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up logout handler
-    setTimeout(setupLogoutHandler, 500);
-    
-    // Start authentication monitoring
-    startAuthenticationMonitoring();
-    
-    // Initial auth check
-    checkAuthentication();
-});
+// Export enhanced functions
+window.showToast = showToast;
+window.updateVariantValidation = updateVariantValidation;
+window.setupEnhancedVariantListeners = setupEnhancedVariantListeners;
