@@ -63,8 +63,8 @@ function getCurrentPageOrders() {
     return currentOrders.slice(startIndex, endIndex);
 }
 
-document.addEventListener('DOMContentLoaded', async function() {
-    await loadTranslations();
+document.addEventListener('DOMContentLoaded', function() {
+    loadTranslations();
     loadLanguagePreference();
     initializeEventListeners();
     loadOrders();

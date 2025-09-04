@@ -1,4 +1,7 @@
-{
+// admin/translations-loader.js - Load translations for admin interface
+// This should be included before the main orders script
+
+let adminTranslations = {
   "en": {
     "qotore_orders": "Qotore Orders",
     "items": "Items",
@@ -159,4 +162,7 @@
     "loaded_orders_successfully": "طلبات بنجاح",
     "failed_to_load_orders": "فشل في تحميل الطلبات"
   }
-}
+};
+
+// Make translations available globally
+window.adminTranslations = adminTranslations;
