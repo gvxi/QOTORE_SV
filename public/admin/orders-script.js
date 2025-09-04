@@ -520,120 +520,136 @@ function createAndShowInvoiceModal(order) {
         existingModal.remove();
     }
     
-    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    const orderNumber = order.order_number || 'ORD-' + String(order.id).padStart(5, '0');
+    const customerName = (order.customer_first_name || '') + ' ' + (order.customer_last_name || '');
     
-    const modalHTML = `
-        <div id="orderModal" class="modal-overlay">
-            <div class="modal-container">
-                <div class="invoice-modal">
-                    <div class="invoice-header">
-                        <div class="invoice-logo">
-                            <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                            <div class="company-info">
-                                <h2>Qotore</h2>
-                                <p>Premium Fragrances</p>
-                                <p>Muscat, Oman</p>
-                            </div>
-                        </div>
-                        <div class="invoice-details">
-                            <h1 id="invoiceTitle">INVOICE</h1>
-                            <div class="invoice-meta">
-                                <div><strong>Order #:</strong> <span id="invoiceOrderNumber">${orderNumber}</span></div>
-                                <div><strong>Date:</strong> <span id="invoiceDate">${formatDate(order.created_at)}</span></div>
-                                <div><strong>Status:</strong> <span id="invoiceStatus" class="status-badge status-${order.status}">${order.status.toUpperCase()}</span></div>
-                                ${order.reviewed ? '<div><strong>✓ Reviewed</strong></div>' : ''}
-                            </div>
-                        </div>
-                        <button class="modal-close" onclick="closeOrderModal()">&times;</button>
-                    </div>
+    console.log('Creating modal for order:', order);
+    console.log('Order items:', order.items);
+    
+    const modalHTML = 
+        '<div id="orderModal" class="modal-overlay">' +
+            '<div class="modal-container">' +
+                '<div class="invoice-modal">' +
+                    '<div class="invoice-header">' +
+                        '<div class="invoice-logo">' +
+                            '<img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">' +
+                            '<div class="company-info">' +
+                                '<h2>Qotore</h2>' +
+                                '<p>Premium Fragrances</p>' +
+                                '<p>Muscat, Oman</p>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="invoice-details">' +
+                            '<h1 id="invoiceTitle">INVOICE</h1>' +
+                            '<div class="invoice-meta">' +
+                                '<div><strong>Order #:</strong> <span id="invoiceOrderNumber">' + orderNumber + '</span></div>' +
+                                '<div><strong>Date:</strong> <span id="invoiceDate">' + formatDate(order.created_at) + '</span></div>' +
+                                '<div><strong>Status:</strong> <span id="invoiceStatus" class="status-badge status-' + order.status + '">' + order.status.toUpperCase() + '</span></div>' +
+                                (order.reviewed ? '<div><strong>✓ Reviewed</strong></div>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        '<button class="modal-close" onclick="closeOrderModal()">&times;</button>' +
+                    '</div>' +
 
-                    <div class="invoice-body">
-                        <div class="customer-section">
-                            <h3>Bill To:</h3>
-                            <div class="customer-details">
-                                <div class="customer-name" id="invoiceCustomerName"></div>
-                                <div class="customer-contact" id="invoiceCustomerContact"></div>
-                                <div class="delivery-address" id="invoiceDeliveryAddress"></div>
-                            </div>
-                        </div>
+                    '<div class="invoice-body">' +
+                        '<div class="customer-section">' +
+                            '<h3>Bill To:</h3>' +
+                            '<div class="customer-details">' +
+                                '<div class="customer-name" id="invoiceCustomerName">' + customerName.trim() + '</div>' +
+                                '<div class="customer-contact" id="invoiceCustomerContact">' +
+                                    (order.customer_phone ? '<div>📞 ' + order.customer_phone + '</div>' : '') +
+                                    (order.customer_email ? '<div>✉️ ' + order.customer_email + '</div>' : '') +
+                                '</div>' +
+                                '<div class="delivery-address" id="invoiceDeliveryAddress">' +
+                                    '<div><strong>Delivery Address:</strong></div>' +
+                                    '<div>' + (order.delivery_address || 'N/A') + '</div>' +
+                                    '<div>' + (order.delivery_city || '') + (order.delivery_region ? ', ' + order.delivery_region : '') + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
 
-                        <div class="items-section">
-                            <h3>Order Items:</h3>
-                            <table class="invoice-items-table">
-                                <thead>
-                                    <tr>
-                                        <th>Image</th>
-                                        <th>Item</th>
-                                        <th>Size</th>
-                                        <th>Qty</th>
-                                        <th>Unit Price</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="invoiceItemsBody">
-                                </tbody>
-                            </table>
-                        </div>
+                        '<div class="items-section">' +
+                            '<h3>Order Items:</h3>' +
+                            '<table class="invoice-items-table">' +
+                                '<thead>' +
+                                    '<tr>' +
+                                        '<th>Image</th>' +
+                                        '<th>Item</th>' +
+                                        '<th>Size</th>' +
+                                        '<th>Qty</th>' +
+                                        '<th>Unit Price</th>' +
+                                        '<th>Total</th>' +
+                                    '</tr>' +
+                                '</thead>' +
+                                '<tbody id="invoiceItemsBody">' +
+                                '</tbody>' +
+                            '</table>' +
+                        '</div>' +
 
-                        <div class="invoice-summary">
-                            <div class="summary-row">
-                                <span>Subtotal:</span>
-                                <span id="invoiceSubtotal">0.000 OMR</span>
-                            </div>
-                            <div class="summary-row total-row">
-                                <span><strong>Total:</strong></span>
-                                <span id="invoiceTotal"><strong>0.000 OMR</strong></span>
-                            </div>
-                        </div>
+                        '<div class="invoice-summary">' +
+                            '<div class="summary-row">' +
+                                '<span>Subtotal:</span>' +
+                                '<span id="invoiceSubtotal">' + (order.total_amount / 1000).toFixed(3) + ' OMR</span>' +
+                            '</div>' +
+                            '<div class="summary-row total-row">' +
+                                '<span><strong>Total:</strong></span>' +
+                                '<span id="invoiceTotal"><strong>' + (order.total_amount / 1000).toFixed(3) + ' OMR</strong></span>' +
+                            '</div>' +
+                        '</div>' +
 
-                        <div class="notes-section" id="invoiceNotesSection" style="display: none;">
-                            <h3>Notes:</h3>
-                            <div class="notes-content" id="invoiceNotes"></div>
-                        </div>
-                    </div>
+                        (order.notes && order.notes.trim() ? 
+                            '<div class="notes-section" id="invoiceNotesSection">' +
+                                '<h3>Notes:</h3>' +
+                                '<div class="notes-content" id="invoiceNotes">' + order.notes + '</div>' +
+                            '</div>' : ''
+                        ) +
+                    '</div>' +
 
-                    <div class="invoice-footer">
-                        <div class="order-actions">
-                            <button id="markCompleteBtn" class="btn btn-success" onclick="updateOrderStatusFromModal('completed')" style="display: none;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                                </svg>
-                                Mark as Completed
-                            </button>
-                            <button id="markPendingBtn" class="btn btn-warning" onclick="updateOrderStatusFromModal('pending')" style="display: none;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A1.5,1.5 0 0,1 10.5,15.5A1.5,1.5 0 0,1 12,14A1.5,1.5 0 0,1 13.5,15.5A1.5,1.5 0 0,1 12,17M12,13A1.5,1.5 0 0,1 10.5,11.5A1.5,1.5 0 0,1 12,10A1.5,1.5 0 0,1 13.5,11.5A1.5,1.5 0 0,1 12,13Z"/>
-                                </svg>
-                                Mark as Pending
-                            </button>
-                            <button id="markReviewedBtn" class="btn btn-secondary" onclick="toggleOrderReview()" style="display: none;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
-                                </svg>
-                                <span id="reviewButtonText">Mark as Reviewed</span>
-                            </button>
-                            <button class="btn btn-danger" onclick="deleteOrderFromModal()">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
-                                </svg>
-                                Delete Order
-                            </button>
-                            <button class="btn btn-secondary" onclick="printInvoice()">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M18,3H6V7H18M19,12A1,1 0 0,1 18,11A1,1 0 0,1 19,10A1,1 0 0,1 20,11A1,1 0 0,1 19,12M16,19H8V14H16M19,8H5A3,3 0 0,0 2,11V17H6V21H18V17H22V11A3,3 0 0,0 19,8Z"/>
-                                </svg>
-                                Print Invoice
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+                    '<div class="invoice-footer">' +
+                        '<div class="order-actions">' +
+                            (order.status === 'pending' ? 
+                                '<button id="markCompleteBtn" class="btn btn-success" onclick="updateOrderStatusFromModal(\'completed\')">' +
+                                    '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
+                                        '<path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>' +
+                                    '</svg>' +
+                                    ' Mark as Completed' +
+                                '</button>' : ''
+                            ) +
+                            (order.status === 'completed' ? 
+                                '<button id="markPendingBtn" class="btn btn-warning" onclick="updateOrderStatusFromModal(\'pending\')">' +
+                                    '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
+                                        '<path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A1.5,1.5 0 0,1 10.5,15.5A1.5,1.5 0 0,1 12,14A1.5,1.5 0 0,1 13.5,15.5A1.5,1.5 0 0,1 12,17M12,13A1.5,1.5 0 0,1 10.5,11.5A1.5,1.5 0 0,1 12,10A1.5,1.5 0 0,1 13.5,11.5A1.5,1.5 0 0,1 12,13Z"/>' +
+                                    '</svg>' +
+                                    ' Mark as Pending' +
+                                '</button>' : ''
+                            ) +
+                            '<button id="markReviewedBtn" class="btn ' + (order.reviewed ? 'btn-warning' : 'btn-secondary') + '" onclick="toggleOrderReview()">' +
+                                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
+                                    '<path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>' +
+                                '</svg>' +
+                                '<span id="reviewButtonText">' + (order.reviewed ? 'Mark as Unreviewed' : 'Mark as Reviewed') + '</span>' +
+                            '</button>' +
+                            '<button class="btn btn-danger" onclick="deleteOrderFromModal()">' +
+                                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
+                                    '<path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>' +
+                                '</svg>' +
+                                ' Delete Order' +
+                            '</button>' +
+                            '<button class="btn btn-secondary" onclick="printInvoice()">' +
+                                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
+                                    '<path d="M18,3H6V7H18M19,12A1,1 0 0,1 18,11A1,1 0 0,1 19,10A1,1 0 0,1 20,11A1,1 0 0,1 19,12M16,19H8V14H16M19,8H5A3,3 0 0,0 2,11V17H6V21H18V17H22V11A3,3 0 0,0 19,8Z"/>' +
+                                '</svg>' +
+                                ' Print Invoice' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    populateInvoiceModal(order);
+    populateInvoiceItems(order.items || []);
     
     document.body.style.overflow = 'hidden';
 }
