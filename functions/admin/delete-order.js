@@ -1,93 +1,70 @@
-// functions/admin/delete-order.js - Delete orders
-export async function onRequestDelete(context) {
+// functions/admin/delete-order.js
+export async function onRequestPost(context) {
   const corsHeaders = {
-    'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Credentials': 'true'
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Credentials': 'true',
+    'Content-Type': 'application/json'
   };
 
   try {
-    console.log('Delete order request received');
-    
+    // Get environment variables
+    const { env } = context;
+    const SUPABASE_URL = env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing required environment variables');
+      return new Response(JSON.stringify({
+        error: 'Server configuration error',
+        success: false
+      }), {
+        status: 500,
+        headers: corsHeaders
+      });
+    }
+
     // Check authentication
-    const request = context.request;
-    const cookies = request.headers.get('Cookie') || '';
+    const cookies = context.request.headers.get('Cookie') || '';
     const sessionCookie = cookies
       .split(';')
       .find(c => c.trim().startsWith('admin_session='));
-    
+
     if (!sessionCookie) {
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'Authentication required',
-        redirectUrl: '/login.html'
+        success: false
       }), {
         status: 401,
         headers: corsHeaders
       });
     }
 
-    // Get Supabase credentials
-    const { env } = context;
-    const SUPABASE_URL = env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Missing Supabase environment variables');
+    // Parse request body
+    const body = await context.request.json();
+    const { id } = body;
+
+    if (!id || isNaN(parseInt(id))) {
       return new Response(JSON.stringify({
-        error: 'Database not configured for admin operations',
-        debug: {
-          hasUrl: !!SUPABASE_URL,
-          hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY
-        }
-      }), {
-        status: 500,
-        headers: corsHeaders
-      });
-    }
-    
-    // Parse request data
-    let requestData;
-    try {
-      const text = await request.text();
-      if (!text || text.trim() === '') {
-        return new Response(JSON.stringify({ 
-          error: 'No data provided' 
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
-      requestData = JSON.parse(text);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      return new Response(JSON.stringify({ 
-        error: 'Invalid request data format' 
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-    
-    // Validate required fields
-    const { id } = requestData;
-    
-    if (!id) {
-      return new Response(JSON.stringify({ 
-        error: 'Missing required field: id',
-        received: { id: id }
+        error: 'Valid order ID is required',
+        success: false
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
 
-    console.log('Deleting order with ID:', id);
+    console.log(`🗑️ Attempting to delete order ID: ${id}`);
 
-    // Step 1: Get order details before deletion (for response)
-    const getOrderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=id,customer_first_name,customer_last_name,total_amount`, {
+    // Step 1: Get order details before deleting (for confirmation message)
+    const getOrderQuery = `${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=*`;
+    
+    const getOrderResponse = await fetch(getOrderQuery, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json'
       }
     });
 
@@ -97,7 +74,8 @@ export async function onRequestDelete(context) {
       
       return new Response(JSON.stringify({
         error: 'Failed to retrieve order details',
-        details: errorText
+        details: errorText,
+        success: false
       }), {
         status: 500,
         headers: corsHeaders
@@ -108,7 +86,8 @@ export async function onRequestDelete(context) {
     if (orders.length === 0) {
       return new Response(JSON.stringify({
         error: 'Order not found',
-        id: id
+        id: id,
+        success: false
       }), {
         status: 404,
         headers: corsHeaders
@@ -116,9 +95,37 @@ export async function onRequestDelete(context) {
     }
 
     const order = orders[0];
-    console.log('Found order to delete:', `${order.customer_first_name} ${order.customer_last_name}`);
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    
+    console.log(`📋 Found order to delete: ${orderNumber} from ${customerName}`);
 
-    // Step 2: Delete the order
+    // Step 2: Delete order items first (due to foreign key constraints)
+    const deleteItemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items?order_id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+      }
+    });
+
+    if (!deleteItemsResponse.ok) {
+      const itemsError = await deleteItemsResponse.text();
+      console.error('Failed to delete order items:', itemsError);
+      
+      return new Response(JSON.stringify({
+        error: 'Failed to delete order items',
+        details: itemsError,
+        success: false
+      }), {
+        status: 500,
+        headers: corsHeaders
+      });
+    }
+
+    console.log(`🗑️ Deleted order items for order ${id}`);
+
+    // Step 3: Delete the main order
     const deleteOrderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`, {
       method: 'DELETE',
       headers: {
@@ -133,23 +140,25 @@ export async function onRequestDelete(context) {
       
       return new Response(JSON.stringify({
         error: 'Failed to delete order from database',
-        details: orderError
+        details: orderError,
+        success: false
       }), {
         status: 500,
         headers: corsHeaders
       });
     }
 
-    console.log('Successfully deleted order:', id);
+    console.log(`✅ Successfully deleted order: ${orderNumber}`);
 
-    // Success response
+    // Success response with detailed information
     return new Response(JSON.stringify({ 
       success: true,
-      message: `Order from ${order.customer_first_name} ${order.customer_last_name} deleted successfully!`,
+      message: `Order ${orderNumber} from ${customerName} deleted successfully!`,
       data: {
         id: parseInt(id),
-        customer: `${order.customer_first_name} ${order.customer_last_name}`,
-        amount: order.total_amount / 1000, // Convert from fils to OMR
+        order_number: orderNumber,
+        customer: customerName,
+        amount: (order.total_amount / 1000).toFixed(3), // Convert from fils to OMR
         deleted_at: new Date().toISOString()
       }
     }), {
@@ -158,10 +167,11 @@ export async function onRequestDelete(context) {
     });
     
   } catch (error) {
-    console.error('Delete order error:', error);
+    console.error('❌ Delete order error:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete order',
-      details: error.message
+      details: error.message,
+      success: false
     }), {
       status: 500,
       headers: corsHeaders
@@ -175,7 +185,7 @@ export async function onRequestOptions() {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400'
@@ -183,7 +193,7 @@ export async function onRequestOptions() {
   });
 }
 
-// Test endpoint
+// Test endpoint for debugging
 export async function onRequestGet(context) {
   const cookies = context.request.headers.get('Cookie') || '';
   const sessionCookie = cookies
@@ -195,11 +205,30 @@ export async function onRequestGet(context) {
   return new Response(JSON.stringify({
     message: 'Delete order endpoint is working!',
     authenticated: isAuthenticated,
-    method: 'DELETE /admin/delete-order to permanently delete an order',
+    method: 'POST /admin/delete-order',
     requiredFields: ['id (number)'],
-    example: { id: 123 },
-    warning: 'This action is permanent and cannot be undone',
-    note: 'Authentication required via admin_session cookie'
+    workflow: [
+      '1. Verify admin authentication',
+      '2. Validate order ID',
+      '3. Fetch order details for confirmation',
+      '4. Delete order items (foreign key constraint)',
+      '5. Delete main order record',
+      '6. Return success message with details'
+    ],
+    example: {
+      request: { id: 123 },
+      response: {
+        success: true,
+        message: 'Order ORD-00123 from John Doe deleted successfully!',
+        data: {
+          id: 123,
+          order_number: 'ORD-00123',
+          customer: 'John Doe',
+          amount: '25.500',
+          deleted_at: '2025-09-04T12:00:00.000Z'
+        }
+      }
+    }
   }), {
     headers: { 'Content-Type': 'application/json' }
   });

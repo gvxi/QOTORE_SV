@@ -1,872 +1,715 @@
-let orders = [];
-let filteredOrders = [];
-let currentFilter = 'all';
-let currentPage = 1;
-let ordersPerPage = 10;
-let searchTerm = '';
-let isNotificationsEnabled = false;
-let serviceWorker = null;
-let lastKnownOrderIds = new Set();
+// ===================================
+// ORDERS MANAGEMENT - FIXED VERSION
+// Enhanced with proper scrolling modal, delete functionality, and Supabase integration
+// ===================================
 
+// Global variables
+let allOrders = [];
+let currentOrders = [];
+let currentPage = 1;
+let ordersPerPage = 25;
+let currentSearchTerm = '';
+let currentStatusFilter = '';
+let currentOrderModal = null;
+
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Admin Orders Dashboard Loading...');
-    initializeApp();
+    console.log('🚀 Orders management initialized');
+    
+    // Initialize components
+    initializeEventListeners();
+    loadOrders();
+    
+    // Load user preferences
+    loadUserPreferences();
+    
+    console.log('✅ Orders management ready');
 });
 
-async function initializeApp() {
-    try {
-        if (!isAuthenticated()) {
-            redirectToLogin();
-            return;
-        }
-        
-        await loadOrders();
-        setupEventListeners();
-        
-        console.log('✅ Admin Orders Dashboard Ready');
-        showToast('Dashboard loaded successfully', 'success');
-    } catch (error) {
-        console.error('❌ Initialization failed:', error);
-        showToast('Failed to initialize dashboard', 'error');
+// ===================================
+// EVENT LISTENERS
+// ===================================
+
+function initializeEventListeners() {
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearchTerm = e.target.value.toLowerCase();
+                currentPage = 1;
+                applyFiltersAndPagination();
+            }, 300);
+        });
     }
-}
-
-function isAuthenticated() {
-    const cookies = document.cookie.split(';');
-    return cookies.some(cookie => cookie.trim().startsWith('admin_session='));
-}
-
-function redirectToLogin() {
-    showToast('Session expired. Redirecting to login...', 'warning');
-    setTimeout(() => {
-        window.location.href = '/login.html';
-    }, 2000);
-}
-
-async function loadOrders() {
-    console.log('📊 Loading orders...');
-    showLoadingState();
     
-    try {
-        const response = await fetch('/admin/orders', {
-            credentials: 'include',
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Content-Type': 'application/json'
+    // Status filter
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', (e) => {
+            currentStatusFilter = e.target.value;
+            currentPage = 1;
+            applyFiltersAndPagination();
+        });
+    }
+    
+    // Orders per page
+    const ordersPerPageSelect = document.getElementById('ordersPerPageSelect');
+    if (ordersPerPageSelect) {
+        ordersPerPageSelect.addEventListener('change', (e) => {
+            ordersPerPage = parseInt(e.target.value);
+            currentPage = 1;
+            applyFiltersAndPagination();
+            saveUserPreferences();
+        });
+    }
+    
+    // Modal close on background click
+    const modal = document.getElementById('orderModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeOrderModal();
             }
         });
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeOrderModal();
+        }
+        if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+            e.preventDefault();
+            refreshData();
+        }
+    });
+    
+    console.log('🎛️ Event listeners initialized');
+}
+
+// ===================================
+// DATA LOADING AND MANAGEMENT
+// ===================================
+
+async function loadOrders() {
+    try {
+        showLoading(true);
+        console.log('📊 Loading orders from server...');
         
-        console.log('Orders API response status:', response.status);
+        const response = await fetch('/admin/orders', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
+        });
         
         if (!response.ok) {
             if (response.status === 401) {
-                redirectToLogin();
+                showToast('Session expired. Please login again.', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
                 return;
             }
-            
-            const errorText = await response.text();
-            console.error('Orders API error:', errorText);
-            throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
-        console.log('Orders API result:', result);
+        console.log('📊 Server response:', result);
         
-        if (result.success && Array.isArray(result.data)) {
-            orders = result.data;
-            console.log(`✅ Loaded ${orders.length} orders`);
-            
-            if (orders.length > 0) {
-                console.log('First order structure:', orders[0]);
-            }
-            
-            updateStats(result.stats || calculateStats());
-            applyFiltersAndPagination();
-            showOrdersContent();
-        } else {
-            console.warn('Unexpected API response:', result);
-            throw new Error(result.error || 'Failed to load orders - Invalid response format');
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load orders');
         }
+        
+        // Handle the data
+        allOrders = result.data || [];
+        currentOrders = [...allOrders];
+        
+        // Update stats
+        updateDashboardStats(result.stats);
+        
+        // Apply filters and display
+        applyFiltersAndPagination();
+        
+        console.log(`✅ Loaded ${allOrders.length} orders successfully`);
+        showToast(`Loaded ${allOrders.length} orders successfully`, 'success');
         
     } catch (error) {
-        console.error('❌ Failed to load orders:', error);
-        showErrorState(error.message);
-        showToast('Failed to load orders: ' + error.message, 'error');
+        console.error('❌ Error loading orders:', error);
+        showToast(`Failed to load orders: ${error.message}`, 'error');
+        showEmptyState();
+    } finally {
+        showLoading(false);
     }
 }
 
-function calculateStats() {
-    const totalOrders = orders.length;
-    const pendingOrders = orders.filter(o => o.status === 'pending').length;
-    const completedOrders = orders.filter(o => o.status === 'completed').length;
-    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
-    const reviewedOrders = orders.filter(o => o.reviewed).length;
+function updateDashboardStats(stats) {
+    if (!stats) {
+        // Calculate stats from loaded orders
+        stats = calculateStatsFromOrders();
+    }
     
-    const totalRevenue = orders
-        .filter(o => o.status === 'completed')
-        .reduce((sum, o) => sum + (o.total_amount || 0), 0) / 1000;
-    
-    return {
-        total: totalOrders,
-        pending: pendingOrders,
-        completed: completedOrders,
-        cancelled: cancelledOrders,
-        reviewed: reviewedOrders,
-        revenue: totalRevenue
+    const elements = {
+        totalOrders: document.getElementById('totalOrders'),
+        pendingOrders: document.getElementById('pendingOrders'),
+        completedOrders: document.getElementById('completedOrders'),
+        totalRevenue: document.getElementById('totalRevenue')
     };
-}
-
-function updateStats(stats) {
-    if (!stats) return;
     
-    const totalEl = document.getElementById('totalOrdersCount');
-    const pendingEl = document.getElementById('pendingOrdersCount');
-    const completedEl = document.getElementById('completedOrdersCount');
-    const revenueEl = document.getElementById('totalRevenueAmount');
-    
-    if (totalEl) totalEl.textContent = stats.total || 0;
-    if (pendingEl) pendingEl.textContent = stats.pending || 0;
-    if (completedEl) completedEl.textContent = stats.completed || 0;
-    if (revenueEl) revenueEl.textContent = `${(stats.revenue || 0).toFixed(3)} OMR`;
-}
-
-function setupEventListeners() {
-    const searchInput = document.getElementById('searchOrders');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            searchTerm = e.target.value.toLowerCase().trim();
-            currentPage = 1;
-            applyFiltersAndPagination();
-        });
+    // Animate the numbers
+    if (elements.totalOrders) animateValue(elements.totalOrders, 0, stats.total || 0, 800);
+    if (elements.pendingOrders) animateValue(elements.pendingOrders, 0, stats.pending || 0, 800);
+    if (elements.completedOrders) animateValue(elements.completedOrders, 0, stats.completed || 0, 800);
+    if (elements.totalRevenue) {
+        const revenue = (stats.revenue || 0) / 1000; // Convert fils to OMR
+        animateValue(elements.totalRevenue, 0, revenue, 1000, true);
     }
+}
+
+function calculateStatsFromOrders() {
+    const stats = {
+        total: allOrders.length,
+        pending: 0,
+        completed: 0,
+        revenue: 0
+    };
     
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            currentFilter = btn.dataset.filter;
-            currentPage = 1;
-            applyFiltersAndPagination();
-        });
+    allOrders.forEach(order => {
+        const status = order.status?.toLowerCase();
+        
+        switch (status) {
+            case 'pending':
+                stats.pending++;
+                break;
+            case 'completed':
+                stats.completed++;
+                break;
+        }
+        
+        if (status === 'completed') {
+            stats.revenue += (order.total_amount || 0);
+        }
     });
     
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => refreshData());
-    }
+    return stats;
 }
+
+function animateValue(element, start, end, duration, isDecimal = false) {
+    if (!element) return;
+    
+    const startTimestamp = performance.now();
+    const step = (timestamp) => {
+        const elapsed = timestamp - startTimestamp;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const current = start + (end - start) * progress;
+        
+        if (isDecimal) {
+            element.textContent = current.toFixed(3);
+        } else {
+            element.textContent = Math.floor(current);
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        }
+    };
+    
+    requestAnimationFrame(step);
+}
+
+// ===================================
+// FILTERING AND PAGINATION
+// ===================================
 
 function applyFiltersAndPagination() {
-    filteredOrders = [...orders];
+    console.log('🔍 Applying filters and pagination');
     
-    if (searchTerm) {
+    // Start with all orders
+    let filteredOrders = [...allOrders];
+    
+    // Apply search filter
+    if (currentSearchTerm) {
         filteredOrders = filteredOrders.filter(order => {
-            const customerName = `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.toLowerCase();
-            const customerPhone = (order.customer_phone || '').toLowerCase();
-            const customerEmail = (order.customer_email || '').toLowerCase();
-            const orderNumber = (order.order_number || '').toLowerCase();
+            const searchFields = [
+                order.order_number || '',
+                order.customer_first_name || '',
+                order.customer_last_name || '',
+                order.customer_phone || '',
+                order.customer_email || '',
+                order.delivery_city || '',
+                order.notes || ''
+            ].join(' ').toLowerCase();
             
-            return customerName.includes(searchTerm) || 
-                   customerPhone.includes(searchTerm) || 
-                   customerEmail.includes(searchTerm) ||
-                   orderNumber.includes(searchTerm);
+            return searchFields.includes(currentSearchTerm);
         });
     }
     
-    if (currentFilter && currentFilter !== 'all') {
-        filteredOrders = filteredOrders.filter(order => {
-            switch (currentFilter) {
-                case 'pending': return order.status === 'pending';
-                case 'completed': return order.status === 'completed';
-                case 'cancelled': return order.status === 'cancelled';
-                case 'reviewed': return order.reviewed === true;
-                case 'needs-review': return !order.reviewed;
-                default: return true;
-            }
-        });
+    // Apply status filter
+    if (currentStatusFilter) {
+        filteredOrders = filteredOrders.filter(order => 
+            order.status === currentStatusFilter
+        );
     }
     
-    console.log(`📋 Filtered to ${filteredOrders.length} orders`);
+    // Sort by creation date (newest first)
+    filteredOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
-    if (filteredOrders.length === 0) {
-        if (orders.length === 0) {
-            showEmptyState();
-        } else {
-            showNoResultsState();
-        }
-        return;
+    // Store filtered results
+    currentOrders = filteredOrders;
+    
+    // Calculate pagination
+    const totalOrders = currentOrders.length;
+    const totalPages = Math.ceil(totalOrders / ordersPerPage) || 1;
+    
+    // Ensure current page is valid
+    if (currentPage > totalPages) {
+        currentPage = 1;
     }
     
-    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+    // Get current page orders
     const startIndex = (currentPage - 1) * ordersPerPage;
-    const endIndex = Math.min(startIndex + ordersPerPage, filteredOrders.length);
+    const endIndex = startIndex + ordersPerPage;
+    const pageOrders = currentOrders.slice(startIndex, endIndex);
     
-    const currentPageOrders = filteredOrders.slice(startIndex, endIndex);
+    // Display results
+    displayOrders(pageOrders);
+    setupPagination(totalPages, totalOrders);
     
-    renderOrdersTable(currentPageOrders);
-    updatePaginationInfo(startIndex + 1, endIndex, filteredOrders.length, totalPages);
-    generatePaginationControls(totalPages);
-    
-    showOrdersContent();
+    console.log(`📄 Page ${currentPage} of ${totalPages} (${totalOrders} total orders)`);
 }
 
-function renderOrdersTable(orders) {
-    const tbody = document.querySelector('#ordersTable tbody') || document.querySelector('#ordersTableBody');
-    if (!tbody) {
-        console.error('Orders table tbody not found');
+function displayOrders(orders) {
+    const tableBody = document.getElementById('ordersTableBody');
+    const ordersSection = document.getElementById('ordersSection');
+    const emptyState = document.getElementById('emptyState');
+    
+    if (!orders || orders.length === 0) {
+        showEmptyState();
         return;
     }
     
-    tbody.innerHTML = '';
+    // Show orders section, hide empty state
+    if (ordersSection) ordersSection.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
     
-    orders.forEach(order => {
-        const row = createOrderRow(order);
-        tbody.appendChild(row);
-    });
+    if (!tableBody) {
+        console.error('Orders table body not found');
+        return;
+    }
+    
+    // Generate table rows
+    tableBody.innerHTML = orders.map(order => createOrderRow(order)).join('');
+    
+    console.log(`📊 Displayed ${orders.length} orders`);
 }
 
 function createOrderRow(order) {
-    const row = document.createElement('tr');
-    row.className = 'order-row';
-    
-    const customerName = `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.trim();
-    const itemsCount = (order.items && Array.isArray(order.items)) ? order.items.length : 0;
-    const itemsPreview = getItemsPreview(order.items || []);
-    const totalAmount = order.total_amount ? (order.total_amount / 1000).toFixed(3) : '0.000';
     const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
-    const primaryContact = order.customer_email || order.customer_phone || 'No contact';
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    const totalAmount = ((order.total_amount || 0) / 1000).toFixed(3);
+    const orderDate = new Date(order.created_at).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
     
-    let statusContent = '';
-    if (order.reviewed) {
-        statusContent = `
-            <div class="status-container">
-                <span class="status-badge status-${order.status}">${order.status}</span>
-                <span class="review-badge">✓ Reviewed</span>
-            </div>
-        `;
-    } else {
-        statusContent = `
-            <div class="status-container">
-                <span class="status-badge status-${order.status}">${order.status}</span>
-                <span class="needs-review-badge">Needs Review</span>
-            </div>
-        `;
-    }
+    // Create items summary
+    const items = order.items || [];
+    const itemsSummary = items.length > 0 
+        ? items.map(item => {
+            const itemName = item.fragrance_name || 'Unknown Item';
+            const variant = item.variant_size || 'Unknown Size';
+            const quantity = item.quantity || 1;
+            return `<div class="item-entry">${quantity}x ${itemName} (${variant})</div>`;
+        }).join('')
+        : '<div class="item-entry">No items</div>';
     
-    row.innerHTML = `
-        <td class="order-number">${orderNumber}</td>
-        <td class="customer-info">
-            <div class="customer-name">${customerName}</div>
-            <div class="customer-contact">${primaryContact}</div>
-            ${order.customer_phone && order.customer_phone !== primaryContact ? 
-                `<div class="customer-phone">${order.customer_phone}</div>` : ''}
-        </td>
-        <td class="order-items">
-            <div class="items-count">${itemsCount} item(s)</div>
-            <div class="items-preview">${itemsPreview}</div>
-        </td>
-        <td class="order-total">${totalAmount} OMR</td>
-        <td class="order-status">
-            ${statusContent}
-        </td>
-        <td class="order-date">${formatDate(order.created_at)}</td>
-        <td class="order-actions">
-            <button class="btn btn-sm btn-outline" onclick="viewOrder('${order.id}')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
-                </svg>
-                View
-            </button>
-            <div class="status-actions">
-                ${order.status === 'pending' ?
-                    `<button class="btn btn-sm btn-success" onclick="updateOrderStatus('${order.id}', 'completed')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                        </svg>
-                        Complete
-                    </button>` : ''
-                }
-                <button class="btn btn-sm btn-danger" onclick="deleteOrder('${order.id}')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
-                    </svg>
-                    Delete
-                </button>
-            </div>
-        </td>
+    // Status badge
+    const status = order.status || 'pending';
+    const statusClass = `status-${status}`;
+    const statusIcon = getStatusIcon(status);
+    
+    return `
+        <tr>
+            <td>
+                <div class="order-details">
+                    <h4>${orderNumber}</h4>
+                    <div class="order-number">ID: ${order.id}</div>
+                </div>
+            </td>
+            <td>
+                <div class="customer-info">
+                    <h5>${customerName}</h5>
+                    <div class="customer-contact">${order.customer_phone || 'No phone'}</div>
+                    <div class="customer-contact">${order.customer_email || 'No email'}</div>
+                    <div class="customer-address">${order.delivery_address || ''}, ${order.delivery_city || ''}</div>
+                </div>
+            </td>
+            <td>
+                <div class="order-items-summary">
+                    ${itemsSummary}
+                </div>
+            </td>
+            <td>
+                <div class="total-amount">${totalAmount} OMR</div>
+            </td>
+            <td>
+                <span class="status-badge ${statusClass}" onclick="toggleOrderStatus(${order.id}, '${status}')">
+                    ${statusIcon} ${status.toUpperCase()}
+                </span>
+            </td>
+            <td>
+                <div class="order-date">${orderDate}</div>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-small btn-view" onclick="viewOrder(${order.id})">
+                        👁️ View
+                    </button>
+                    <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
     `;
-    
-    return row;
 }
 
-function getItemsPreview(items) {
-    if (!items || !Array.isArray(items) || items.length === 0) {
-        return 'No items';
-    }
-    
-    const preview = items.slice(0, 2).map(item => {
-        const name = item.fragrance_name || item.name || 'Unknown Item';
-        const size = item.variant_size || item.size || '';
-        const quantity = item.quantity || 1;
-        
-        return `${name} (${size}) x${quantity}`;
-    }).join(', ');
-    
-    return items.length > 2 ? `${preview}...` : preview;
+function getStatusIcon(status) {
+    const icons = {
+        pending: '⏳',
+        reviewed: '👀',
+        completed: '✅',
+        cancelled: '❌'
+    };
+    return icons[status] || '❓';
 }
 
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
+function showEmptyState() {
+    const ordersSection = document.getElementById('ordersSection');
+    const emptyState = document.getElementById('emptyState');
     
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (error) {
-        console.warn('Date formatting error:', error);
-        return dateString;
-    }
+    if (ordersSection) ordersSection.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'block';
 }
 
-function updatePaginationInfo(start, end, total, totalPages) {
-    const infoEl = document.getElementById('ordersInfo') || document.getElementById('ordersPageInfo');
-    if (infoEl) {
-        infoEl.textContent = `Showing ${start}-${end} of ${total} orders`;
-    }
-    
-    const totalEl = document.getElementById('ordersTotalCount');
-    if (totalEl) {
-        totalEl.textContent = total;
-    }
-}
+// ===================================
+// PAGINATION
+// ===================================
 
-function generatePaginationControls(totalPages) {
-    const container = document.getElementById('ordersPagination');
+function setupPagination(totalPages, totalOrders) {
+    const container = document.getElementById('paginationContainer');
     if (!container) return;
     
-    container.innerHTML = '';
-    
     if (totalPages <= 1) {
-        container.style.display = 'none';
+        container.innerHTML = '';
         return;
     }
     
-    container.style.display = 'flex';
+    const startItem = ((currentPage - 1) * ordersPerPage) + 1;
+    const endItem = Math.min(currentPage * ordersPerPage, totalOrders);
     
-    const prevBtn = document.createElement('button');
-    prevBtn.className = `btn btn-outline ${currentPage === 1 ? 'disabled' : ''}`;
-    prevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"/></svg> Previous';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => goToPage(currentPage - 1);
-    container.appendChild(prevBtn);
+    let paginationHTML = `
+        <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+            ‹ Previous
+        </button>
+    `;
     
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
+    // Calculate visible pages
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
     
+    // Always show first page
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+    
+    // Page numbers
     for (let i = startPage; i <= endPage; i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.className = `btn ${i === currentPage ? 'btn-primary' : 'btn-outline'}`;
-        pageBtn.textContent = i;
-        pageBtn.onclick = () => goToPage(i);
-        container.appendChild(pageBtn);
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                ${i}
+            </button>
+        `;
     }
     
-    const nextBtn = document.createElement('button');
-    nextBtn.className = `btn btn-outline ${currentPage === totalPages ? 'disabled' : ''}`;
-    nextBtn.innerHTML = 'Next <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => goToPage(currentPage + 1);
-    container.appendChild(nextBtn);
-}
-
-function goToPage(page) {
-    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-    if (page >= 1 && page <= totalPages) {
-        currentPage = page;
-        applyFiltersAndPagination();
-    }
-}
-
-async function refreshData(silent = false) {
-    if (!silent) {
-        console.log('🔄 Refreshing data...');
-        const refreshBtn = document.getElementById('refreshBtn');
-        if (refreshBtn) {
-            refreshBtn.classList.add('refreshing');
+    // Always show last page
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="pagination-ellipsis">...</span>`;
         }
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
     }
     
-    try {
-        await loadOrders();
-        if (!silent) {
-            showToast('Orders data refreshed successfully', 'success');
-        }
-    } catch (error) {
-        if (!silent) {
-            showToast('Failed to refresh orders data', 'error');
-        }
-    } finally {
-        if (!silent) {
-            const refreshBtn = document.getElementById('refreshBtn');
-            if (refreshBtn) {
-                refreshBtn.classList.remove('refreshing');
-            }
-        }
-    }
+    paginationHTML += `
+        <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+            Next ›
+        </button>
+        <div class="pagination-info">
+            Showing ${startItem}-${endItem} of ${totalOrders} orders
+        </div>
+    `;
+    
+    container.innerHTML = paginationHTML;
 }
 
-async function updateOrderStatus(orderId, newStatus) {
-    try {
-        const response = await fetch('/admin/update-order-status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ 
-                id: parseInt(orderId), 
-                status: newStatus 
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast(`Order status updated to ${newStatus}`, 'success');
-            await refreshData(true);
-        } else {
-            throw new Error(result.error || 'Failed to update order status');
-        }
-        
-    } catch (error) {
-        console.error('❌ Failed to update order status:', error);
-        showToast('Failed to update order status: ' + error.message, 'error');
-    }
-}
-
-async function deleteOrder(orderId) {
-    if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+function changePage(page) {
+    if (page < 1 || page > Math.ceil(currentOrders.length / ordersPerPage)) {
         return;
     }
     
-    try {
-        const response = await fetch('/admin/delete-order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ 
-                id: parseInt(orderId) 
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast('Order deleted successfully', 'success');
-            await refreshData(true);
-        } else {
-            throw new Error(result.error || 'Failed to delete order');
-        }
-        
-    } catch (error) {
-        console.error('❌ Failed to delete order:', error);
-        showToast('Failed to delete order: ' + error.message, 'error');
-    }
+    currentPage = page;
+    applyFiltersAndPagination();
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-let currentModalOrderId = null;
+// ===================================
+// ORDER MODAL - FIXED WITH SCROLLING
+// ===================================
 
 async function viewOrder(orderId) {
-    const order = orders.find(o => o.id == orderId);
-    if (!order) {
-        showToast('Order not found', 'error');
-        return;
-    }
-    
-    currentModalOrderId = orderId;
-    
-    await populateInvoiceModal(order);
-    
-    const modal = document.getElementById('orderModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    } else {
-        console.error('Order modal not found in DOM');
-        createAndShowInvoiceModal(order);
-    }
-}
-
-function createAndShowInvoiceModal(order) {
-    const existingModal = document.getElementById('orderModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    const orderNumber = order.order_number || 'ORD-' + String(order.id).padStart(5, '0');
-    const customerName = (order.customer_first_name || '') + ' ' + (order.customer_last_name || '');
-    
-    console.log('Creating modal for order:', order);
-    console.log('Order items:', order.items);
-    
-    const modalHTML = 
-        '<div id="orderModal" class="modal-overlay">' +
-            '<div class="modal-container">' +
-                '<div class="invoice-modal">' +
-                    '<div class="invoice-header">' +
-                        '<div class="invoice-logo">' +
-                            '<img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">' +
-                            '<div class="company-info">' +
-                                '<h2>Qotore</h2>' +
-                                '<p>Premium Fragrances</p>' +
-                                '<p>Muscat, Oman</p>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="invoice-details">' +
-                            '<h1 id="invoiceTitle">INVOICE</h1>' +
-                            '<div class="invoice-meta">' +
-                                '<div><strong>Order #:</strong> <span id="invoiceOrderNumber">' + orderNumber + '</span></div>' +
-                                '<div><strong>Date:</strong> <span id="invoiceDate">' + formatDate(order.created_at) + '</span></div>' +
-                                '<div><strong>Status:</strong> <span id="invoiceStatus" class="status-badge status-' + order.status + '">' + order.status.toUpperCase() + '</span></div>' +
-                                (order.reviewed ? '<div><strong>✓ Reviewed</strong></div>' : '') +
-                            '</div>' +
-                        '</div>' +
-                        '<button class="modal-close" onclick="closeOrderModal()">&times;</button>' +
-                    '</div>' +
-
-                    '<div class="invoice-body">' +
-                        '<div class="customer-section">' +
-                            '<h3>Bill To:</h3>' +
-                            '<div class="customer-details">' +
-                                '<div class="customer-name" id="invoiceCustomerName">' + customerName.trim() + '</div>' +
-                                '<div class="customer-contact" id="invoiceCustomerContact">' +
-                                    (order.customer_phone ? '<div>📞 ' + order.customer_phone + '</div>' : '') +
-                                    (order.customer_email ? '<div>✉️ ' + order.customer_email + '</div>' : '') +
-                                '</div>' +
-                                '<div class="delivery-address" id="invoiceDeliveryAddress">' +
-                                    '<div><strong>Delivery Address:</strong></div>' +
-                                    '<div>' + (order.delivery_address || 'N/A') + '</div>' +
-                                    '<div>' + (order.delivery_city || '') + (order.delivery_region ? ', ' + order.delivery_region : '') + '</div>' +
-                                '</div>' +
-                            '</div>' +
-                        '</div>' +
-
-                        '<div class="items-section">' +
-                            '<h3>Order Items:</h3>' +
-                            '<table class="invoice-items-table">' +
-                                '<thead>' +
-                                    '<tr>' +
-                                        '<th>Image</th>' +
-                                        '<th>Item</th>' +
-                                        '<th>Size</th>' +
-                                        '<th>Qty</th>' +
-                                        '<th>Unit Price</th>' +
-                                        '<th>Total</th>' +
-                                    '</tr>' +
-                                '</thead>' +
-                                '<tbody id="invoiceItemsBody">' +
-                                '</tbody>' +
-                            '</table>' +
-                        '</div>' +
-
-                        '<div class="invoice-summary">' +
-                            '<div class="summary-row">' +
-                                '<span>Subtotal:</span>' +
-                                '<span id="invoiceSubtotal">' + (order.total_amount / 1000).toFixed(3) + ' OMR</span>' +
-                            '</div>' +
-                            '<div class="summary-row total-row">' +
-                                '<span><strong>Total:</strong></span>' +
-                                '<span id="invoiceTotal"><strong>' + (order.total_amount / 1000).toFixed(3) + ' OMR</strong></span>' +
-                            '</div>' +
-                        '</div>' +
-
-                        (order.notes && order.notes.trim() ? 
-                            '<div class="notes-section" id="invoiceNotesSection">' +
-                                '<h3>Notes:</h3>' +
-                                '<div class="notes-content" id="invoiceNotes">' + order.notes + '</div>' +
-                            '</div>' : ''
-                        ) +
-                    '</div>' +
-
-                    '<div class="invoice-footer">' +
-                        '<div class="order-actions">' +
-                            (order.status === 'pending' ? 
-                                '<button id="markCompleteBtn" class="btn btn-success" onclick="updateOrderStatusFromModal(\'completed\')">' +
-                                    '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
-                                        '<path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>' +
-                                    '</svg>' +
-                                    ' Mark as Completed' +
-                                '</button>' : ''
-                            ) +
-                            (order.status === 'completed' ? 
-                                '<button id="markPendingBtn" class="btn btn-warning" onclick="updateOrderStatusFromModal(\'pending\')">' +
-                                    '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
-                                        '<path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A1.5,1.5 0 0,1 10.5,15.5A1.5,1.5 0 0,1 12,14A1.5,1.5 0 0,1 13.5,15.5A1.5,1.5 0 0,1 12,17M12,13A1.5,1.5 0 0,1 10.5,11.5A1.5,1.5 0 0,1 12,10A1.5,1.5 0 0,1 13.5,11.5A1.5,1.5 0 0,1 12,13Z"/>' +
-                                    '</svg>' +
-                                    ' Mark as Pending' +
-                                '</button>' : ''
-                            ) +
-                            '<button id="markReviewedBtn" class="btn ' + (order.reviewed ? 'btn-warning' : 'btn-secondary') + '" onclick="toggleOrderReview()">' +
-                                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
-                                    '<path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>' +
-                                '</svg>' +
-                                '<span id="reviewButtonText">' + (order.reviewed ? 'Mark as Unreviewed' : 'Mark as Reviewed') + '</span>' +
-                            '</button>' +
-                            '<button class="btn btn-danger" onclick="deleteOrderFromModal()">' +
-                                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
-                                    '<path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>' +
-                                '</svg>' +
-                                ' Delete Order' +
-                            '</button>' +
-                            '<button class="btn btn-secondary" onclick="printInvoice()">' +
-                                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">' +
-                                    '<path d="M18,3H6V7H18M19,12A1,1 0 0,1 18,11A1,1 0 0,1 19,10A1,1 0 0,1 20,11A1,1 0 0,1 19,12M16,19H8V14H16M19,8H5A3,3 0 0,0 2,11V17H6V21H18V17H22V11A3,3 0 0,0 19,8Z"/>' +
-                                '</svg>' +
-                                ' Print Invoice' +
-                            '</button>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-            '</div>' +
-        '</div>';
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    populateInvoiceItems(order.items || []);
-    
-    document.body.style.overflow = 'hidden';
-}
-
-async function populateInvoiceModal(order) {
-    const customerName = `${order.customer_first_name || ''} ${order.customer_last_name || ''}`.trim();
-    const totalAmount = (order.total_amount / 1000).toFixed(3);
-    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
-    
-    const titleEl = document.getElementById('invoiceTitle');
-    const orderNumEl = document.getElementById('invoiceOrderNumber');
-    const dateEl = document.getElementById('invoiceDate');
-    const statusEl = document.getElementById('invoiceStatus');
-    
-    if (titleEl) titleEl.textContent = 'ORDER INVOICE';
-    if (orderNumEl) orderNumEl.textContent = orderNumber;
-    if (dateEl) dateEl.textContent = formatDate(order.created_at);
-    
-    if (statusEl) {
-        statusEl.textContent = order.status.toUpperCase();
-        statusEl.className = `status-badge status-${order.status}`;
-        
-        const metaDiv = statusEl.closest('.invoice-meta');
-        if (metaDiv && order.reviewed) {
-            const reviewedIndicator = metaDiv.querySelector('.reviewed-indicator');
-            if (!reviewedIndicator) {
-                const reviewDiv = document.createElement('div');
-                reviewDiv.className = 'reviewed-indicator';
-                reviewDiv.innerHTML = '<strong style="color: #28a745;">✓ Reviewed</strong>';
-                metaDiv.appendChild(reviewDiv);
-            }
-        }
-    }
-    
-    const customerNameEl = document.getElementById('invoiceCustomerName');
-    const customerContactEl = document.getElementById('invoiceCustomerContact');
-    const deliveryAddressEl = document.getElementById('invoiceDeliveryAddress');
-    
-    if (customerNameEl) customerNameEl.textContent = customerName;
-    if (customerContactEl) {
-        customerContactEl.innerHTML = `
-            ${order.customer_phone ? `<div>📞 ${order.customer_phone}</div>` : ''}
-            ${order.customer_email ? `<div>✉️ ${order.customer_email}</div>` : ''}
-        `;
-    }
-    if (deliveryAddressEl) {
-        deliveryAddressEl.innerHTML = `
-            <div><strong>Delivery Address:</strong></div>
-            <div>${order.delivery_address}</div>
-            <div>${order.delivery_city}${order.delivery_region ? `, ${order.delivery_region}` : ''}</div>
-        `;
-    }
-    
-    await populateInvoiceItems(order.items || []);
-    
-    const subtotalEl = document.getElementById('invoiceSubtotal');
-    const totalEl = document.getElementById('invoiceTotal');
-    if (subtotalEl) subtotalEl.textContent = `${totalAmount} OMR`;
-    if (totalEl) totalEl.textContent = `${totalAmount} OMR`;
-    
-    const notesSection = document.getElementById('invoiceNotesSection');
-    const notesContent = document.getElementById('invoiceNotes');
-    if (notesSection && notesContent) {
-        if (order.notes && order.notes.trim()) {
-            notesSection.style.display = 'block';
-            notesContent.textContent = order.notes;
-        } else {
-            notesSection.style.display = 'none';
-        }
-    }
-    
-    setupModalActionButtons(order);
-}
-
-async function populateInvoiceItems(items) {
-    const tbody = document.getElementById('invoiceItemsBody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    if (!items || items.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="no-items">No items found in this order</td>
-            </tr>
-        `;
-        return;
-    }
-    
-    const cacheBuster = Date.now();
-    
-    for (const item of items) {
-        const itemTotal = (item.total_price_cents / 1000).toFixed(3);
-        const itemPrice = (item.unit_price_cents / 1000).toFixed(3);
-        
-        let imageHtml = '<div class="item-image-placeholder">📦</div>';
-        
-        const fragranceName = item.fragrance_name || '';
-        const slug = generateSlugFromName(fragranceName);
-        
-        if (slug) {
-            imageHtml = `
-                <div class="item-image-container">
-                    <img src="/api/image/${slug}.png?v=${cacheBuster}" 
-                         alt="${fragranceName}"
-                         class="item-image"
-                         onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'item-image-placeholder\\'>📦</div>'"
-                         loading="lazy">
-                </div>
-            `;
-        }
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td class="item-image-cell">
-                ${imageHtml}
-            </td>
-            <td class="item-details-cell">
-                <div class="item-name">${item.fragrance_name}</div>
-                ${item.fragrance_brand ? `<div class="item-brand">${item.fragrance_brand}</div>` : ''}
-            </td>
-            <td class="item-size">${item.variant_size}</td>
-            <td class="item-quantity">${item.quantity}</td>
-            <td class="item-price">${itemPrice} OMR</td>
-            <td class="item-total"><strong>${itemTotal} OMR</strong></td>
-        `;
-        
-        tbody.appendChild(row);
-    }
-}
-
-function generateSlugFromName(name) {
-    if (!name) return null;
-    return name
-        .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-}
-
-function setupModalActionButtons(order) {
-    const markCompleteBtn = document.getElementById('markCompleteBtn');
-    const markPendingBtn = document.getElementById('markPendingBtn');
-    const markReviewedBtn = document.getElementById('markReviewedBtn');
-    const reviewButtonText = document.getElementById('reviewButtonText');
-    
-    if (markCompleteBtn) {
-        if (order.status === 'pending') {
-            markCompleteBtn.style.display = 'inline-flex';
-        } else {
-            markCompleteBtn.style.display = 'none';
-        }
-    }
-    
-    if (markPendingBtn) {
-        if (order.status === 'completed') {
-            markPendingBtn.style.display = 'inline-flex';
-        } else {
-            markPendingBtn.style.display = 'none';
-        }
-    }
-    
-    if (markReviewedBtn && reviewButtonText) {
-        markReviewedBtn.style.display = 'inline-flex';
-        if (order.reviewed) {
-            reviewButtonText.textContent = 'Mark as Unreviewed';
-            markReviewedBtn.className = 'btn btn-warning';
-        } else {
-            reviewButtonText.textContent = 'Mark as Reviewed';
-            markReviewedBtn.className = 'btn btn-secondary';
-        }
-    }
-}
-
-async function toggleOrderReview() {
-    if (!currentModalOrderId) return;
-    
-    const order = orders.find(o => o.id == currentModalOrderId);
-    if (!order) return;
-    
-    const newReviewStatus = !order.reviewed;
-    
     try {
-        const response = await fetch('/admin/toggle-order-review', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ 
-                id: parseInt(currentModalOrderId), 
-                reviewed: newReviewStatus 
-            })
-        });
+        console.log(`👁️ Viewing order: ${orderId}`);
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) {
+            showToast('Order not found', 'error');
+            return;
         }
         
-        const result = await response.json();
+        // Store current order for delete functionality
+        currentOrderModal = order;
         
-        if (result.success) {
-            showToast(`Order marked as ${newReviewStatus ? 'reviewed' : 'unreviewed'}`, 'success');
-            
-            order.reviewed = newReviewStatus;
-            
-            setupModalActionButtons(order);
-            
-            await refreshData(true);
-        } else {
-            throw new Error(result.error || 'Failed to update review status');
-        }
+        // Show loading in modal
+        showOrderModal();
+        document.getElementById('modalTitle').textContent = 'Loading...';
+        document.getElementById('modalBody').innerHTML = '<div class="loading-spinner"><div class="spinner"></div><div class="loading-text">Loading order details...</div></div>';
+        
+        // Load full order details (in case we need fresh data)
+        const orderDetails = await loadOrderDetails(orderId);
+        
+        // Display order details
+        displayOrderDetails(orderDetails || order);
         
     } catch (error) {
-        console.error('❌ Failed to toggle review status:', error);
-        showToast('Failed to update review status: ' + error.message, 'error');
+        console.error('❌ Error viewing order:', error);
+        showToast(`Failed to load order details: ${error.message}`, 'error');
+        closeOrderModal();
+    }
+}
+
+async function loadOrderDetails(orderId) {
+    try {
+        // For now, return the cached order data
+        // In the future, this could make a specific API call for full details
+        return allOrders.find(o => o.id === orderId);
+    } catch (error) {
+        console.error('Error loading order details:', error);
+        return null;
+    }
+}
+
+function displayOrderDetails(order) {
+    const modal = document.getElementById('orderModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    if (!order || !modalTitle || !modalBody) {
+        console.error('Order data or modal elements not found');
+        return;
+    }
+    
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    modalTitle.textContent = `Order ${orderNumber}`;
+    
+    const totalAmount = ((order.total_amount || 0) / 1000).toFixed(3);
+    const orderDate = new Date(order.created_at).toLocaleString('en-GB');
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    
+    // Create order details HTML
+    modalBody.innerHTML = `
+        <!-- Order Information -->
+        <div class="order-detail-section">
+            <h3>📋 Order Information</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Order Number</div>
+                    <div class="detail-value">${orderNumber}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Order ID</div>
+                    <div class="detail-value">#${order.id}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value">
+                        <span class="status-badge status-${order.status}">${getStatusIcon(order.status)} ${(order.status || 'pending').toUpperCase()}</span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Order Date</div>
+                    <div class="detail-value">${orderDate}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="order-detail-section">
+            <h3>👤 Customer Information</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Full Name</div>
+                    <div class="detail-value">${customerName || 'Not provided'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Phone Number</div>
+                    <div class="detail-value">
+                        ${order.customer_phone ? `<a href="tel:${order.customer_phone}">${order.customer_phone}</a>` : 'Not provided'}
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Email Address</div>
+                    <div class="detail-value">
+                        ${order.customer_email ? `<a href="mailto:${order.customer_email}">${order.customer_email}</a>` : 'Not provided'}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Information -->
+        <div class="order-detail-section">
+            <h3>🚚 Delivery Information</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Address</div>
+                    <div class="detail-value">${order.delivery_address || 'Not provided'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">City</div>
+                    <div class="detail-value">${order.delivery_city || 'Not provided'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Region</div>
+                    <div class="detail-value">${order.delivery_region || 'Not provided'}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-detail-section">
+            <h3>🛍️ Order Items</h3>
+            <div class="order-items-list">
+                ${createOrderItemsList(order.items || [])}
+            </div>
+        </div>
+
+        <!-- Order Notes -->
+        ${order.notes ? `
+        <div class="order-detail-section">
+            <h3>📝 Order Notes</h3>
+            <div class="detail-item">
+                <div class="detail-value">${order.notes}</div>
+            </div>
+        </div>
+        ` : ''}
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <div class="summary-row">
+                <span class="summary-label">Items Total:</span>
+                <span class="summary-value">${totalAmount} OMR</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Delivery:</span>
+                <span class="summary-value">Free</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label total-amount-large">Total Amount:</span>
+                <span class="summary-value total-amount-large">${totalAmount} OMR</span>
+            </div>
+        </div>
+
+        <!-- Status Change Buttons -->
+        <div class="status-change-buttons">
+            ${createStatusChangeButtons(order)}
+        </div>
+    `;
+}
+
+function createOrderItemsList(items) {
+    if (!items || items.length === 0) {
+        return '<div class="order-item"><div class="item-details"><div class="item-name">No items found</div></div></div>';
+    }
+    
+    return items.map(item => {
+        const itemTotal = ((item.total_price_cents || 0) / 1000).toFixed(3);
+        const unitPrice = ((item.unit_price_cents || 0) / 1000).toFixed(3);
+        
+        return `
+            <div class="order-item">
+                <div class="item-details">
+                    <div class="item-name">${item.fragrance_name || 'Unknown Item'}</div>
+                    <div class="item-brand">${item.fragrance_brand || 'Unknown Brand'}</div>
+                    <div class="item-variant">${item.variant_size || 'Unknown Size'}</div>
+                </div>
+                <div class="item-pricing">
+                    <div class="item-quantity">Qty: ${item.quantity || 1}</div>
+                    <div class="item-unit-price">${unitPrice} OMR each</div>
+                    <div class="item-total">${itemTotal} OMR</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function createStatusChangeButtons(order) {
+    const currentStatus = order.status || 'pending';
+    const buttons = [];
+    
+    // Status transition buttons based on current status
+    switch (currentStatus) {
+        case 'pending':
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'reviewed')">👀 Mark as Reviewed</button>`);
+            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ Mark as Completed</button>`);
+            buttons.push(`<button class="btn btn-danger" onclick="changeOrderStatus(${order.id}, 'cancelled')">❌ Cancel Order</button>`);
+            break;
+        case 'reviewed':
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ Mark as Pending</button>`);
+            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ Mark as Completed</button>`);
+            buttons.push(`<button class="btn btn-danger" onclick="changeOrderStatus(${order.id}, 'cancelled')">❌ Cancel Order</button>`);
+            break;
+        case 'completed':
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ Mark as Pending</button>`);
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'reviewed')">👀 Mark as Reviewed</button>`);
+            break;
+        case 'cancelled':
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ Mark as Pending</button>`);
+            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ Mark as Completed</button>`);
+            break;
+    }
+    
+    return buttons.join('');
+}
+
+function showOrderModal() {
+    const modal = document.getElementById('orderModal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
     }
 }
 
@@ -874,241 +717,194 @@ function closeOrderModal() {
     const modal = document.getElementById('orderModal');
     if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = 'auto'; // Restore scrolling
+        currentOrderModal = null;
     }
-    currentModalOrderId = null;
 }
 
-async function updateOrderStatusFromModal(newStatus) {
-    if (!currentModalOrderId) return;
+// ===================================
+// ORDER STATUS MANAGEMENT
+// ===================================
+
+async function toggleOrderStatus(orderId, currentStatus) {
+    // Simple toggle for quick status changes
+    const nextStatus = getNextStatus(currentStatus);
+    await changeOrderStatus(orderId, nextStatus);
+}
+
+function getNextStatus(currentStatus) {
+    const statusFlow = {
+        'pending': 'reviewed',
+        'reviewed': 'completed',
+        'completed': 'pending',
+        'cancelled': 'pending'
+    };
     
+    return statusFlow[currentStatus] || 'pending';
+}
+
+async function changeOrderStatus(orderId, newStatus) {
     try {
-        await updateOrderStatus(currentModalOrderId, newStatus);
-        closeOrderModal();
-    } catch (error) {
-        console.error('Failed to update order status from modal:', error);
-    }
-}
-
-async function deleteOrderFromModal() {
-    if (!currentModalOrderId) return;
-    
-    try {
-        await deleteOrder(currentModalOrderId);
-        closeOrderModal();
-    } catch (error) {
-        console.error('Failed to delete order from modal:', error);
-    }
-}
-
-function printInvoice() {
-    const modalContent = document.querySelector('.invoice-modal');
-    const printWindow = window.open('', '_blank');
-    
-    const printStyles = `
-        <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .invoice-header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 2px solid #8B4513; padding-bottom: 20px; }
-            .invoice-logo { display: flex; align-items: center; gap: 15px; }
-            .invoice-logo img { width: 40px; height: 40px; }
-            .company-info h2 { color: #8B4513; margin: 0; }
-            .company-info p { margin: 2px 0; color: #666; }
-            .invoice-details { text-align: right; }
-            .invoice-details h1 { color: #8B4513; margin: 0; font-size: 2rem; }
-            .invoice-meta div { margin: 5px 0; }
-            .customer-section { margin-bottom: 30px; }
-            .customer-details { margin-left: 20px; }
-            .invoice-items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            .invoice-items-table th, .invoice-items-table td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-            .invoice-items-table th { background: #f5f5f5; font-weight: bold; }
-            .item-image { width: 40px; height: 40px; object-fit: cover; border-radius: 5px; }
-            .item-image-placeholder { width: 40px; height: 40px; background: #f0f0f0; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
-            .invoice-summary { text-align: right; margin: 20px 0; }
-            .summary-row { margin: 10px 0; }
-            .total-row { font-size: 1.2rem; border-top: 2px solid #8B4513; padding-top: 10px; }
-            .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; }
-            .status-pending { background: #fff3cd; color: #856404; }
-            .status-completed { background: #d4edda; color: #155724; }
-            .status-cancelled { background: #f8d7da; color: #721c24; }
-            .modal-close, .order-actions { display: none !important; }
-            @media print { .modal-close, .order-actions { display: none !important; } }
-        </style>
-    `;
-    
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Invoice - ${document.getElementById('invoiceOrderNumber').textContent}</title>
-            ${printStyles}
-        </head>
-        <body>
-            ${modalContent.innerHTML}
-        </body>
-        </html>
-    `);
-    
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);
-}
-
-function showLoadingState() {
-    const loadingEl = document.getElementById('ordersLoading');
-    const contentEl = document.getElementById('ordersContent');
-    const emptyEl = document.getElementById('ordersEmpty');
-    const errorEl = document.getElementById('ordersError');
-    const controlsEl = document.getElementById('ordersControls');
-    
-    if (loadingEl) loadingEl.style.display = 'block';
-    if (contentEl) contentEl.style.display = 'none';
-    if (emptyEl) emptyEl.style.display = 'none';
-    if (errorEl) errorEl.style.display = 'none';
-    if (controlsEl) controlsEl.style.display = 'none';
-}
-
-function showOrdersContent() {
-    const loadingEl = document.getElementById('ordersLoading');
-    const contentEl = document.getElementById('ordersContent');
-    const emptyEl = document.getElementById('ordersEmpty');
-    const errorEl = document.getElementById('ordersError');
-    const controlsEl = document.getElementById('ordersControls');
-    
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (contentEl) contentEl.style.display = 'block';
-    if (emptyEl) emptyEl.style.display = 'none';
-    if (errorEl) errorEl.style.display = 'none';
-    if (controlsEl) controlsEl.style.display = 'flex';
-}
-
-function showEmptyState() {
-    const loadingEl = document.getElementById('ordersLoading');
-    const contentEl = document.getElementById('ordersContent');
-    const emptyEl = document.getElementById('ordersEmpty');
-    const errorEl = document.getElementById('ordersError');
-    const controlsEl = document.getElementById('ordersControls');
-    
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (contentEl) contentEl.style.display = 'none';
-    if (emptyEl) emptyEl.style.display = 'block';
-    if (errorEl) errorEl.style.display = 'none';
-    if (controlsEl) controlsEl.style.display = 'none';
-}
-
-function showNoResultsState() {
-    const noResultsEl = document.getElementById('ordersNoResults');
-    const contentEl = document.getElementById('ordersContent');
-    
-    if (noResultsEl) noResultsEl.style.display = 'block';
-    if (contentEl) contentEl.style.display = 'none';
-}
-
-function showErrorState(errorMessage) {
-    const loadingEl = document.getElementById('ordersLoading');
-    const contentEl = document.getElementById('ordersContent');
-    const emptyEl = document.getElementById('ordersEmpty');
-    const errorEl = document.getElementById('ordersError');
-    const controlsEl = document.getElementById('ordersControls');
-    
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (contentEl) contentEl.style.display = 'none';
-    if (emptyEl) emptyEl.style.display = 'none';
-    if (errorEl) {
-        errorEl.style.display = 'block';
-        const errorMsgEl = errorEl.querySelector('.error-message');
-        if (errorMsgEl) {
-            errorMsgEl.textContent = errorMessage;
-        }
-    }
-    if (controlsEl) controlsEl.style.display = 'none';
-}
-
-function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) {
-        console.warn('Toast container not found, creating one');
-        createToastContainer();
-    }
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <div class="toast-content">
-            <div class="toast-icon">
-                ${type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '⚠' : 'ℹ'}
-            </div>
-            <div class="toast-message">${message}</div>
-        </div>
-    `;
-    
-    document.getElementById('toastContainer').appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 100);
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 300);
-    }, 4000);
-}
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-}
-
-async function logout() {
-    const logoutBtn = document.querySelector('button[onclick="logout()"]');
-    if (logoutBtn) {
-        logoutBtn.innerHTML = '<svg class="spin" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/></svg> <span>Logging out...</span>';
-        logoutBtn.disabled = true;
-    }
-    
-    try {
-        const response = await fetch('/admin/logout', {
+        console.log(`🔄 Changing order ${orderId} status to: ${newStatus}`);
+        
+        const response = await fetch('/admin/update-order-status', {
             method: 'POST',
-            credentials: 'include'
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                id: orderId,
+                status: newStatus
+            })
         });
         
-        if (response.ok) {
-            clearAdminCookies();
-            clearAdminStorage();
-            
-            showToast('Logged out successfully', 'success');
-            
-            setTimeout(() => {
-                window.location.href = '/login.html';
-            }, 1000);
-        } else {
-            throw new Error('Logout request failed');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to update order status');
+        }
+        
+        // Update local data
+        const orderIndex = allOrders.findIndex(o => o.id === orderId);
+        if (orderIndex !== -1) {
+            allOrders[orderIndex].status = newStatus;
+            allOrders[orderIndex].updated_at = new Date().toISOString();
+        }
+        
+        // Refresh displays
+        applyFiltersAndPagination();
+        updateDashboardStats();
+        
+        // Update modal if it's open for this order
+        if (currentOrderModal && currentOrderModal.id === orderId) {
+            currentOrderModal.status = newStatus;
+            displayOrderDetails(currentOrderModal);
+        }
+        
+        showToast(`Order status updated to ${newStatus}`, 'success');
+        console.log(`✅ Order ${orderId} status updated to: ${newStatus}`);
+        
     } catch (error) {
-        console.error('Logout error:', error);
-        
-        clearAdminCookies();
-        clearAdminStorage();
-        
-        showToast('Logged out (with cleanup)', 'warning');
-        
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 1500);
+        console.error('❌ Error updating order status:', error);
+        showToast(`Failed to update order status: ${error.message}`, 'error');
     }
 }
 
-function clearAdminCookies() {
+// ===================================
+// ORDER DELETION - FIXED
+// ===================================
+
+async function deleteOrder(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) {
+        showToast('Order not found', 'error');
+        return;
+    }
+    
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    
+    // Confirm deletion
+    const confirmed = confirm(`Are you sure you want to delete order ${orderNumber} from ${customerName}?\n\nThis action cannot be undone.`);
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        console.log(`🗑️ Deleting order: ${orderId}`);
+        
+        const response = await fetch('/admin/delete-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ id: orderId })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to delete order');
+        }
+        
+        // Remove from local data
+        const orderIndex = allOrders.findIndex(o => o.id === orderId);
+        if (orderIndex !== -1) {
+            allOrders.splice(orderIndex, 1);
+        }
+        
+        // Close modal if this order was being viewed
+        if (currentOrderModal && currentOrderModal.id === orderId) {
+            closeOrderModal();
+        }
+        
+        // Refresh displays
+        applyFiltersAndPagination();
+        updateDashboardStats();
+        
+        showToast(`Order ${orderNumber} deleted successfully`, 'success');
+        console.log(`✅ Order ${orderId} deleted successfully`);
+        
+    } catch (error) {
+        console.error('❌ Error deleting order:', error);
+        showToast(`Failed to delete order: ${error.message}`, 'error');
+    }
+}
+
+function deleteCurrentOrder() {
+    if (currentOrderModal && currentOrderModal.id) {
+        deleteOrder(currentOrderModal.id);
+    } else {
+        showToast('No order selected for deletion', 'error');
+    }
+}
+
+// ===================================
+// UTILITY FUNCTIONS
+// ===================================
+
+function showLoading(show) {
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const ordersSection = document.getElementById('ordersSection');
+    
+    if (show) {
+        if (loadingSpinner) loadingSpinner.style.display = 'flex';
+        if (ordersSection) ordersSection.style.display = 'none';
+    } else {
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+    }
+}
+
+function refreshData() {
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.classList.add('refreshing');
+        refreshBtn.querySelector('span').textContent = 'Refreshing...';
+    }
+    
+    loadOrders().finally(() => {
+        if (refreshBtn) {
+            refreshBtn.classList.remove('refreshing');
+            refreshBtn.querySelector('span').textContent = 'Refresh';
+        }
+    });
+}
+
+function clearAdminSession() {
+    // Clear cookies
     const cookieOptions = [
-        'admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
-        'admin_session=; Path=/admin; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
-        'admin_session=; Domain=' + window.location.hostname + '; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+        'admin_session=; Path=/admin/; Max-Age=0; SameSite=Lax',
+        'admin_session=; Path=/; Max-Age=0; SameSite=Lax',
         'admin_session=; Path=/; Max-Age=0',
         'admin_session=; Max-Age=0'
     ];
@@ -1117,44 +913,114 @@ function clearAdminCookies() {
         document.cookie = cookieString;
     });
     
-    const adminCookies = ['admin_token', 'admin_auth', 'qotore_admin'];
-    adminCookies.forEach(cookieName => {
-        document.cookie = `${cookieName}=; Path=/; Max-Age=0`;
-    });
+    // Clear localStorage
+    localStorage.removeItem('admin_session');
+    localStorage.removeItem('orders_cache');
+    localStorage.removeItem('admin_preferences');
     
-    console.log('🧹 Client-side admin cookies cleared');
+    console.log('🧹 Admin session cleared');
 }
 
-function clearAdminStorage() {
-    const adminKeys = [
-        'admin_session',
-        'admin_data',
-        'qotore_admin',
-        'items_cache',
-        'orders_cache',
-        'notifications_cache'
-    ];
-    
-    adminKeys.forEach(key => {
-        localStorage.removeItem(key);
-    });
+// ===================================
+// USER PREFERENCES
+// ===================================
+
+function saveUserPreferences() {
+    const preferences = {
+        ordersPerPage: ordersPerPage,
+        lastUpdate: Date.now()
+    };
     
     try {
-        sessionStorage.clear();
+        localStorage.setItem('orders_admin_preferences', JSON.stringify(preferences));
     } catch (error) {
-        console.warn('Could not clear sessionStorage:', error);
+        console.warn('Could not save user preferences:', error);
     }
-    
-    console.log('🧹 Admin storage cleared');
 }
 
-window.updateOrderStatus = updateOrderStatus;
-window.deleteOrder = deleteOrder;
+function loadUserPreferences() {
+    try {
+        const saved = localStorage.getItem('orders_admin_preferences');
+        if (saved) {
+            const preferences = JSON.parse(saved);
+            
+            if (preferences.ordersPerPage) {
+                ordersPerPage = preferences.ordersPerPage;
+                const select = document.getElementById('ordersPerPageSelect');
+                if (select) select.value = ordersPerPage;
+            }
+        }
+    } catch (error) {
+        console.warn('Could not load user preferences:', error);
+    }
+}
+
+// ===================================
+// TOAST NOTIFICATIONS
+// ===================================
+
+function showToast(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    if (!container) {
+        console.warn('Toast container not found');
+        return;
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const titles = {
+        success: 'Success',
+        error: 'Error',
+        warning: 'Warning',
+        info: 'Info'
+    };
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || 'ℹ️'}</div>
+        <div class="toast-content">
+            <div class="toast-title">${titles[type] || 'Notification'}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }
+    }, duration);
+}
+
+// ===================================
+// GLOBAL FUNCTIONS FOR WINDOW SCOPE
+// ===================================
+
+// Make functions available globally for onclick handlers
+window.refreshData = refreshData;
 window.viewOrder = viewOrder;
+window.deleteOrder = deleteOrder;
+window.deleteCurrentOrder = deleteCurrentOrder;
+window.changeOrderStatus = changeOrderStatus;
+window.toggleOrderStatus = toggleOrderStatus;
 window.closeOrderModal = closeOrderModal;
-window.goToPage = goToPage;
-window.logout = logout;
-window.updateOrderStatusFromModal = updateOrderStatusFromModal;
-window.deleteOrderFromModal = deleteOrderFromModal;
-window.toggleOrderReview = toggleOrderReview;
-window.toggleOrderReviewFromTable = toggleOrderReviewFromTable;
+window.changePage = changePage;
+window.clearAdminSession = clearAdminSession;
+window.loadOrders = loadOrders;
+
+console.log('📋 Orders management script loaded');
