@@ -199,15 +199,15 @@
     <div id="orderModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Order Details</h2>
+                <h2 id="modalTitle" data-translate="order_details">Order Details</h2>
                 <button class="close-btn" onclick="closeOrderModal()">&times;</button>
             </div>
             <div class="modal-body" id="modalBody">
                 <!-- Order details will be inserted here -->
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeOrderModal()">Close</button>
-                <button class="btn btn-danger" id="deleteOrderBtn" onclick="deleteCurrentOrder()">Delete Order</button>
+                <button class="btn btn-secondary" onclick="closeOrderModal()" data-translate="close">Close</button>
+                <button class="btn btn-danger" id="deleteOrderBtn" onclick="deleteCurrentOrder()" data-translate="delete_order">Delete Order</button>
             </div>
         </div>
     </div>

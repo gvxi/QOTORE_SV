@@ -13,6 +13,86 @@ body {
     font-size: 14px;
     line-height: 1.6;
     min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+/* RTL Support */
+body[dir="rtl"] {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+body[dir="rtl"] .header-content {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .nav-buttons {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .logo {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .orders-controls {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .controls-left,
+body[dir="rtl"] .controls-right {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .search-icon {
+    right: auto;
+    left: 1rem;
+}
+
+body[dir="rtl"] .search-input {
+    padding: 0.75rem 1rem 0.75rem 3rem;
+}
+
+body[dir="rtl"] .table th,
+body[dir="rtl"] .table td {
+    text-align: right;
+}
+
+body[dir="rtl"] .table th:first-child,
+body[dir="rtl"] .table td:first-child {
+    text-align: right;
+}
+
+body[dir="rtl"] .action-buttons {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .modal-header {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .modal-footer {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .detail-grid {
+    text-align: right;
+}
+
+body[dir="rtl"] .order-item {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .item-pricing {
+    text-align: left;
+}
+
+/* Language Toggle Button */
+#languageToggle {
+    position: relative;
+}
+
+#currentLang {
+    font-weight: bold;
+    font-size: 0.75rem;
 }
 
 /* Header Styles */

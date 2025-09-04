@@ -1,9 +1,3 @@
-// ===================================
-// ORDERS MANAGEMENT - FIXED VERSION
-// Enhanced with proper scrolling modal, delete functionality, and Supabase integration
-// ===================================
-
-// Global variables
 let allOrders = [];
 let currentOrders = [];
 let currentPage = 1;
@@ -11,27 +5,73 @@ let ordersPerPage = 25;
 let currentSearchTerm = '';
 let currentStatusFilter = '';
 let currentOrderModal = null;
+let currentLanguage = 'en';
+let translations = {};
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Orders management initialized');
+async function loadTranslations() {
+    try {
+        const response = await fetch('/admin/translations.json');
+        translations = await response.json();
+    } catch (error) {
+        console.error('Failed to load translations:', error);
+        translations = { en: {}, ar: {} };
+    }
+}
+
+function t(key) {
+    return translations[currentLanguage]?.[key] || key;
+}
+
+function updateTranslations() {
+    document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        element.textContent = t(key);
+    });
     
-    // Initialize components
+    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-translate-placeholder');
+        element.placeholder = t(key);
+    });
+}
+
+function toggleLanguage() {
+    currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+    document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
+    document.getElementById('currentLang').textContent = currentLanguage.toUpperCase();
+    
+    localStorage.setItem('admin_language', currentLanguage);
+    updateTranslations();
+    
+    if (currentOrders.length > 0) {
+        displayOrders(getCurrentPageOrders());
+    }
+}
+
+function loadLanguagePreference() {
+    const savedLanguage = localStorage.getItem('admin_language') || 'en';
+    if (savedLanguage !== currentLanguage) {
+        currentLanguage = savedLanguage;
+        document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
+        document.getElementById('currentLang').textContent = currentLanguage.toUpperCase();
+        updateTranslations();
+    }
+}
+
+function getCurrentPageOrders() {
+    const startIndex = (currentPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    return currentOrders.slice(startIndex, endIndex);
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadTranslations();
+    loadLanguagePreference();
     initializeEventListeners();
     loadOrders();
-    
-    // Load user preferences
     loadUserPreferences();
-    
-    console.log('✅ Orders management ready');
 });
 
-// ===================================
-// EVENT LISTENERS
-// ===================================
-
 function initializeEventListeners() {
-    // Search functionality
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         let searchTimeout;
@@ -45,7 +85,6 @@ function initializeEventListeners() {
         });
     }
     
-    // Status filter
     const statusFilter = document.getElementById('statusFilter');
     if (statusFilter) {
         statusFilter.addEventListener('change', (e) => {
@@ -55,7 +94,6 @@ function initializeEventListeners() {
         });
     }
     
-    // Orders per page
     const ordersPerPageSelect = document.getElementById('ordersPerPageSelect');
     if (ordersPerPageSelect) {
         ordersPerPageSelect.addEventListener('change', (e) => {
@@ -66,7 +104,6 @@ function initializeEventListeners() {
         });
     }
     
-    // Modal close on background click
     const modal = document.getElementById('orderModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
@@ -76,7 +113,6 @@ function initializeEventListeners() {
         });
     }
     
-    // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeOrderModal();
@@ -86,18 +122,11 @@ function initializeEventListeners() {
             refreshData();
         }
     });
-    
-    console.log('🎛️ Event listeners initialized');
 }
-
-// ===================================
-// DATA LOADING AND MANAGEMENT
-// ===================================
 
 async function loadOrders() {
     try {
         showLoading(true);
-        console.log('📊 Loading orders from server...');
         
         const response = await fetch('/admin/orders', {
             method: 'GET',
@@ -109,7 +138,7 @@ async function loadOrders() {
         
         if (!response.ok) {
             if (response.status === 401) {
-                showToast('Session expired. Please login again.', 'error');
+                showToast(t('session_expired'), 'error');
                 setTimeout(() => {
                     window.location.href = '/login.html';
                 }, 2000);
@@ -119,28 +148,22 @@ async function loadOrders() {
         }
         
         const result = await response.json();
-        console.log('📊 Server response:', result);
         
         if (!result.success) {
             throw new Error(result.error || 'Failed to load orders');
         }
         
-        // Handle the data
         allOrders = result.data || [];
         currentOrders = [...allOrders];
         
-        // Update stats
         updateDashboardStats(result.stats);
-        
-        // Apply filters and display
         applyFiltersAndPagination();
         
-        console.log(`✅ Loaded ${allOrders.length} orders successfully`);
-        showToast(`Loaded ${allOrders.length} orders successfully`, 'success');
+        showToast(`${allOrders.length} ${t('loaded_orders_successfully')}`, 'success');
         
     } catch (error) {
-        console.error('❌ Error loading orders:', error);
-        showToast(`Failed to load orders: ${error.message}`, 'error');
+        console.error('Error loading orders:', error);
+        showToast(`${t('failed_to_load_orders')}: ${error.message}`, 'error');
         showEmptyState();
     } finally {
         showLoading(false);
@@ -149,7 +172,6 @@ async function loadOrders() {
 
 function updateDashboardStats(stats) {
     if (!stats) {
-        // Calculate stats from loaded orders
         stats = calculateStatsFromOrders();
     }
     
@@ -160,12 +182,11 @@ function updateDashboardStats(stats) {
         totalRevenue: document.getElementById('totalRevenue')
     };
     
-    // Animate the numbers
     if (elements.totalOrders) animateValue(elements.totalOrders, 0, stats.total || 0, 800);
     if (elements.pendingOrders) animateValue(elements.pendingOrders, 0, stats.pending || 0, 800);
     if (elements.completedOrders) animateValue(elements.completedOrders, 0, stats.completed || 0, 800);
     if (elements.totalRevenue) {
-        const revenue = (stats.revenue || 0) / 1000; // Convert fils to OMR
+        const revenue = (stats.revenue || 0) / 1000;
         animateValue(elements.totalRevenue, 0, revenue, 1000, true);
     }
 }
@@ -222,17 +243,9 @@ function animateValue(element, start, end, duration, isDecimal = false) {
     requestAnimationFrame(step);
 }
 
-// ===================================
-// FILTERING AND PAGINATION
-// ===================================
-
 function applyFiltersAndPagination() {
-    console.log('🔍 Applying filters and pagination');
-    
-    // Start with all orders
     let filteredOrders = [...allOrders];
     
-    // Apply search filter
     if (currentSearchTerm) {
         filteredOrders = filteredOrders.filter(order => {
             const searchFields = [
@@ -249,38 +262,29 @@ function applyFiltersAndPagination() {
         });
     }
     
-    // Apply status filter
     if (currentStatusFilter) {
         filteredOrders = filteredOrders.filter(order => 
             order.status === currentStatusFilter
         );
     }
     
-    // Sort by creation date (newest first)
     filteredOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
-    // Store filtered results
     currentOrders = filteredOrders;
     
-    // Calculate pagination
     const totalOrders = currentOrders.length;
     const totalPages = Math.ceil(totalOrders / ordersPerPage) || 1;
     
-    // Ensure current page is valid
     if (currentPage > totalPages) {
         currentPage = 1;
     }
     
-    // Get current page orders
     const startIndex = (currentPage - 1) * ordersPerPage;
     const endIndex = startIndex + ordersPerPage;
     const pageOrders = currentOrders.slice(startIndex, endIndex);
     
-    // Display results
     displayOrders(pageOrders);
     setupPagination(totalPages, totalOrders);
-    
-    console.log(`📄 Page ${currentPage} of ${totalPages} (${totalOrders} total orders)`);
 }
 
 function displayOrders(orders) {
@@ -293,7 +297,6 @@ function displayOrders(orders) {
         return;
     }
     
-    // Show orders section, hide empty state
     if (ordersSection) ordersSection.style.display = 'block';
     if (emptyState) emptyState.style.display = 'none';
     
@@ -302,17 +305,14 @@ function displayOrders(orders) {
         return;
     }
     
-    // Generate table rows
     tableBody.innerHTML = orders.map(order => createOrderRow(order)).join('');
-    
-    console.log(`📊 Displayed ${orders.length} orders`);
 }
 
 function createOrderRow(order) {
     const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
     const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
     const totalAmount = ((order.total_amount || 0) / 1000).toFixed(3);
-    const orderDate = new Date(order.created_at).toLocaleDateString('en-GB', {
+    const orderDate = new Date(order.created_at).toLocaleDateString(currentLanguage === 'ar' ? 'ar-OM' : 'en-GB', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -320,21 +320,22 @@ function createOrderRow(order) {
         minute: '2-digit'
     });
     
-    // Create items summary
     const items = order.items || [];
     const itemsSummary = items.length > 0 
         ? items.map(item => {
-            const itemName = item.fragrance_name || 'Unknown Item';
+            const itemName = item.fragrance_name || t('no_items');
             const variant = item.variant_size || 'Unknown Size';
             const quantity = item.quantity || 1;
             return `<div class="item-entry">${quantity}x ${itemName} (${variant})</div>`;
         }).join('')
-        : '<div class="item-entry">No items</div>';
+        : `<div class="item-entry">${t('no_items')}</div>`;
     
-    // Status badge
     const status = order.status || 'pending';
     const statusClass = `status-${status}`;
     const statusIcon = getStatusIcon(status);
+    
+    const viewText = currentLanguage === 'ar' ? '👁️ عرض' : '👁️ View';
+    const deleteText = currentLanguage === 'ar' ? '🗑️ حذف' : '🗑️ Delete';
     
     return `
         <tr>
@@ -347,8 +348,8 @@ function createOrderRow(order) {
             <td>
                 <div class="customer-info">
                     <h5>${customerName}</h5>
-                    <div class="customer-contact">${order.customer_phone || 'No phone'}</div>
-                    <div class="customer-contact">${order.customer_email || 'No email'}</div>
+                    <div class="customer-contact">${order.customer_phone || t('not_provided')}</div>
+                    <div class="customer-contact">${order.customer_email || t('not_provided')}</div>
                     <div class="customer-address">${order.delivery_address || ''}, ${order.delivery_city || ''}</div>
                 </div>
             </td>
@@ -358,11 +359,11 @@ function createOrderRow(order) {
                 </div>
             </td>
             <td>
-                <div class="total-amount">${totalAmount} OMR</div>
+                <div class="total-amount">${totalAmount} ${currentLanguage === 'ar' ? 'ر.ع' : 'OMR'}</div>
             </td>
             <td>
                 <span class="status-badge ${statusClass}" onclick="toggleOrderStatus(${order.id}, '${status}')">
-                    ${statusIcon} ${status.toUpperCase()}
+                    ${statusIcon} ${t(status).toUpperCase()}
                 </span>
             </td>
             <td>
@@ -371,10 +372,10 @@ function createOrderRow(order) {
             <td>
                 <div class="action-buttons">
                     <button class="btn-small btn-view" onclick="viewOrder(${order.id})">
-                        👁️ View
+                        ${viewText}
                     </button>
                     <button class="btn-small btn-delete" onclick="deleteOrder(${order.id})">
-                        🗑️ Delete
+                        ${deleteText}
                     </button>
                 </div>
             </td>
@@ -400,10 +401,6 @@ function showEmptyState() {
     if (emptyState) emptyState.style.display = 'block';
 }
 
-// ===================================
-// PAGINATION
-// ===================================
-
 function setupPagination(totalPages, totalOrders) {
     const container = document.getElementById('paginationContainer');
     if (!container) return;
@@ -419,15 +416,13 @@ function setupPagination(totalPages, totalOrders) {
     let paginationHTML = `
         <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
                 onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
-            ‹ Previous
+            ‹ ${t('previous')}
         </button>
     `;
     
-    // Calculate visible pages
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, currentPage + 2);
     
-    // Always show first page
     if (startPage > 1) {
         paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
         if (startPage > 2) {
@@ -435,7 +430,6 @@ function setupPagination(totalPages, totalOrders) {
         }
     }
     
-    // Page numbers
     for (let i = startPage; i <= endPage; i++) {
         paginationHTML += `
             <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
@@ -444,7 +438,6 @@ function setupPagination(totalPages, totalOrders) {
         `;
     }
     
-    // Always show last page
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             paginationHTML += `<span class="pagination-ellipsis">...</span>`;
@@ -455,10 +448,10 @@ function setupPagination(totalPages, totalOrders) {
     paginationHTML += `
         <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
                 onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
-            Next ›
+            ${t('next')} ›
         </button>
         <div class="pagination-info">
-            Showing ${startItem}-${endItem} of ${totalOrders} orders
+            ${t('showing')} ${startItem}-${endItem} ${t('of')} ${totalOrders} ${t('orders')}
         </div>
     `;
     
@@ -473,40 +466,29 @@ function changePage(page) {
     currentPage = page;
     applyFiltersAndPagination();
     
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ===================================
-// ORDER MODAL - FIXED WITH SCROLLING
-// ===================================
-
 async function viewOrder(orderId) {
     try {
-        console.log(`👁️ Viewing order: ${orderId}`);
-        
         const order = allOrders.find(o => o.id === orderId);
         if (!order) {
-            showToast('Order not found', 'error');
+            showToast(t('order_not_found'), 'error');
             return;
         }
         
-        // Store current order for delete functionality
         currentOrderModal = order;
         
-        // Show loading in modal
         showOrderModal();
-        document.getElementById('modalTitle').textContent = 'Loading...';
-        document.getElementById('modalBody').innerHTML = '<div class="loading-spinner"><div class="spinner"></div><div class="loading-text">Loading order details...</div></div>';
+        document.getElementById('modalTitle').textContent = t('loading');
+        document.getElementById('modalBody').innerHTML = `<div class="loading-spinner"><div class="spinner"></div><div class="loading-text">${t('loading_order_details')}</div></div>`;
         
-        // Load full order details (in case we need fresh data)
         const orderDetails = await loadOrderDetails(orderId);
         
-        // Display order details
         displayOrderDetails(orderDetails || order);
         
     } catch (error) {
-        console.error('❌ Error viewing order:', error);
+        console.error('Error viewing order:', error);
         showToast(`Failed to load order details: ${error.message}`, 'error');
         closeOrderModal();
     }
@@ -514,8 +496,6 @@ async function viewOrder(orderId) {
 
 async function loadOrderDetails(orderId) {
     try {
-        // For now, return the cached order data
-        // In the future, this could make a specific API call for full details
         return allOrders.find(o => o.id === orderId);
     } catch (error) {
         console.error('Error loading order details:', error);
@@ -534,116 +514,106 @@ function displayOrderDetails(order) {
     }
     
     const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
-    modalTitle.textContent = `Order ${orderNumber}`;
+    modalTitle.textContent = `${t('order_details')} ${orderNumber}`;
     
     const totalAmount = ((order.total_amount || 0) / 1000).toFixed(3);
-    const orderDate = new Date(order.created_at).toLocaleString('en-GB');
+    const orderDate = new Date(order.created_at).toLocaleString(currentLanguage === 'ar' ? 'ar-OM' : 'en-GB');
     const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
     
-    // Create order details HTML
+    const currency = currentLanguage === 'ar' ? 'ر.ع' : 'OMR';
+    
     modalBody.innerHTML = `
-        <!-- Order Information -->
         <div class="order-detail-section">
-            <h3>📋 Order Information</h3>
+            <h3>📋 ${t('order_information')}</h3>
             <div class="detail-grid">
                 <div class="detail-item">
-                    <div class="detail-label">Order Number</div>
+                    <div class="detail-label">${t('order_number')}</div>
                     <div class="detail-value">${orderNumber}</div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">Order ID</div>
+                    <div class="detail-label">${t('order_id')}</div>
                     <div class="detail-value">#${order.id}</div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">Status</div>
+                    <div class="detail-label">${t('status')}</div>
                     <div class="detail-value">
-                        <span class="status-badge status-${order.status}">${getStatusIcon(order.status)} ${(order.status || 'pending').toUpperCase()}</span>
+                        <span class="status-badge status-${order.status}">${getStatusIcon(order.status)} ${t(order.status || 'pending').toUpperCase()}</span>
                     </div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">Order Date</div>
+                    <div class="detail-label">${t('order_date')}</div>
                     <div class="detail-value">${orderDate}</div>
                 </div>
             </div>
         </div>
 
-        <!-- Customer Information -->
         <div class="order-detail-section">
-            <h3>👤 Customer Information</h3>
+            <h3>👤 ${t('customer_information')}</h3>
             <div class="detail-grid">
                 <div class="detail-item">
-                    <div class="detail-label">Full Name</div>
-                    <div class="detail-value">${customerName || 'Not provided'}</div>
+                    <div class="detail-label">${t('full_name')}</div>
+                    <div class="detail-value">${customerName || t('not_provided')}</div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">Phone Number</div>
+                    <div class="detail-label">${t('phone_number')}</div>
                     <div class="detail-value">
-                        ${order.customer_phone ? `<a href="tel:${order.customer_phone}">${order.customer_phone}</a>` : 'Not provided'}
+                        ${order.customer_phone ? `<a href="tel:${order.customer_phone}">${order.customer_phone}</a>` : t('not_provided')}
                     </div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">Email Address</div>
+                    <div class="detail-label">${t('email_address')}</div>
                     <div class="detail-value">
-                        ${order.customer_email ? `<a href="mailto:${order.customer_email}">${order.customer_email}</a>` : 'Not provided'}
+                        ${order.customer_email ? `<a href="mailto:${order.customer_email}">${order.customer_email}</a>` : t('not_provided')}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Delivery Information -->
         <div class="order-detail-section">
-            <h3>🚚 Delivery Information</h3>
+            <h3>🚚 ${t('delivery_information')}</h3>
             <div class="detail-grid">
                 <div class="detail-item">
-                    <div class="detail-label">Address</div>
-                    <div class="detail-value">${order.delivery_address || 'Not provided'}</div>
+                    <div class="detail-label">${t('city')}</div>
+                    <div class="detail-value">${order.delivery_city || t('not_provided')}</div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">City</div>
-                    <div class="detail-value">${order.delivery_city || 'Not provided'}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Region</div>
-                    <div class="detail-value">${order.delivery_region || 'Not provided'}</div>
+                    <div class="detail-label">${t('region')}</div>
+                    <div class="detail-value">${order.delivery_region || t('not_provided')}</div>
                 </div>
             </div>
         </div>
 
-        <!-- Order Items -->
         <div class="order-detail-section">
-            <h3>🛍️ Order Items</h3>
+            <h3>🛍️ ${t('order_items')}</h3>
             <div class="order-items-list">
                 ${createOrderItemsList(order.items || [])}
             </div>
         </div>
 
-        <!-- Order Notes -->
         ${order.notes ? `
         <div class="order-detail-section">
-            <h3>📝 Order Notes</h3>
+            <h3>📝 ${t('order_notes')}</h3>
             <div class="detail-item">
                 <div class="detail-value">${order.notes}</div>
             </div>
         </div>
         ` : ''}
 
-        <!-- Order Summary -->
         <div class="order-summary">
             <div class="summary-row">
-                <span class="summary-label">Items Total:</span>
-                <span class="summary-value">${totalAmount} OMR</span>
+                <span class="summary-label">${t('items_total')}:</span>
+                <span class="summary-value">${totalAmount} ${currency}</span>
             </div>
             <div class="summary-row">
-                <span class="summary-label">Delivery:</span>
-                <span class="summary-value">Free</span>
+                <span class="summary-label">${t('delivery')}:</span>
+                <span class="summary-value">${t('free')}</span>
             </div>
             <div class="summary-row">
-                <span class="summary-label total-amount-large">Total Amount:</span>
-                <span class="summary-value total-amount-large">${totalAmount} OMR</span>
+                <span class="summary-label total-amount-large">${t('total_amount')}:</span>
+                <span class="summary-value total-amount-large">${totalAmount} ${currency}</span>
             </div>
         </div>
 
-        <!-- Status Change Buttons -->
         <div class="status-change-buttons">
             ${createStatusChangeButtons(order)}
         </div>
@@ -652,8 +622,10 @@ function displayOrderDetails(order) {
 
 function createOrderItemsList(items) {
     if (!items || items.length === 0) {
-        return '<div class="order-item"><div class="item-details"><div class="item-name">No items found</div></div></div>';
+        return `<div class="order-item"><div class="item-details"><div class="item-name">${t('no_items')}</div></div></div>`;
     }
+    
+    const currency = currentLanguage === 'ar' ? 'ر.ع' : 'OMR';
     
     return items.map(item => {
         const itemTotal = ((item.total_price_cents || 0) / 1000).toFixed(3);
@@ -662,14 +634,14 @@ function createOrderItemsList(items) {
         return `
             <div class="order-item">
                 <div class="item-details">
-                    <div class="item-name">${item.fragrance_name || 'Unknown Item'}</div>
+                    <div class="item-name">${item.fragrance_name || t('no_items')}</div>
                     <div class="item-brand">${item.fragrance_brand || 'Unknown Brand'}</div>
                     <div class="item-variant">${item.variant_size || 'Unknown Size'}</div>
                 </div>
                 <div class="item-pricing">
-                    <div class="item-quantity">Qty: ${item.quantity || 1}</div>
-                    <div class="item-unit-price">${unitPrice} OMR each</div>
-                    <div class="item-total">${itemTotal} OMR</div>
+                    <div class="item-quantity">${t('qty')}: ${item.quantity || 1}</div>
+                    <div class="item-unit-price">${unitPrice} ${currency} ${t('each')}</div>
+                    <div class="item-total">${itemTotal} ${currency}</div>
                 </div>
             </div>
         `;
@@ -680,25 +652,24 @@ function createStatusChangeButtons(order) {
     const currentStatus = order.status || 'pending';
     const buttons = [];
     
-    // Status transition buttons based on current status
     switch (currentStatus) {
         case 'pending':
-            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'reviewed')">👀 Mark as Reviewed</button>`);
-            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ Mark as Completed</button>`);
-            buttons.push(`<button class="btn btn-danger" onclick="changeOrderStatus(${order.id}, 'cancelled')">❌ Cancel Order</button>`);
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'reviewed')">👀 ${t('mark_reviewed')}</button>`);
+            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ ${t('mark_completed')}</button>`);
+            buttons.push(`<button class="btn btn-danger" onclick="changeOrderStatus(${order.id}, 'cancelled')">❌ ${t('cancel_order')}</button>`);
             break;
         case 'reviewed':
-            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ Mark as Pending</button>`);
-            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ Mark as Completed</button>`);
-            buttons.push(`<button class="btn btn-danger" onclick="changeOrderStatus(${order.id}, 'cancelled')">❌ Cancel Order</button>`);
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ ${t('mark_pending')}</button>`);
+            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ ${t('mark_completed')}</button>`);
+            buttons.push(`<button class="btn btn-danger" onclick="changeOrderStatus(${order.id}, 'cancelled')">❌ ${t('cancel_order')}</button>`);
             break;
         case 'completed':
-            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ Mark as Pending</button>`);
-            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'reviewed')">👀 Mark as Reviewed</button>`);
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ ${t('mark_pending')}</button>`);
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'reviewed')">👀 ${t('mark_reviewed')}</button>`);
             break;
         case 'cancelled':
-            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ Mark as Pending</button>`);
-            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ Mark as Completed</button>`);
+            buttons.push(`<button class="btn btn-warning" onclick="changeOrderStatus(${order.id}, 'pending')">⏳ ${t('mark_pending')}</button>`);
+            buttons.push(`<button class="btn btn-success" onclick="changeOrderStatus(${order.id}, 'completed')">✅ ${t('mark_completed')}</button>`);
             break;
     }
     
@@ -709,7 +680,7 @@ function showOrderModal() {
     const modal = document.getElementById('orderModal');
     if (modal) {
         modal.style.display = 'block';
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
     }
 }
 
@@ -717,17 +688,12 @@ function closeOrderModal() {
     const modal = document.getElementById('orderModal');
     if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = 'auto'; // Restore scrolling
+        document.body.style.overflow = 'auto';
         currentOrderModal = null;
     }
 }
 
-// ===================================
-// ORDER STATUS MANAGEMENT
-// ===================================
-
 async function toggleOrderStatus(orderId, currentStatus) {
-    // Simple toggle for quick status changes
     const nextStatus = getNextStatus(currentStatus);
     await changeOrderStatus(orderId, nextStatus);
 }
@@ -745,8 +711,6 @@ function getNextStatus(currentStatus) {
 
 async function changeOrderStatus(orderId, newStatus) {
     try {
-        console.log(`🔄 Changing order ${orderId} status to: ${newStatus}`);
-        
         const response = await fetch('/admin/update-order-status', {
             method: 'POST',
             headers: {
@@ -769,55 +733,44 @@ async function changeOrderStatus(orderId, newStatus) {
             throw new Error(result.error || 'Failed to update order status');
         }
         
-        // Update local data
         const orderIndex = allOrders.findIndex(o => o.id === orderId);
         if (orderIndex !== -1) {
             allOrders[orderIndex].status = newStatus;
             allOrders[orderIndex].updated_at = new Date().toISOString();
         }
         
-        // Refresh displays
         applyFiltersAndPagination();
         updateDashboardStats();
         
-        // Update modal if it's open for this order
         if (currentOrderModal && currentOrderModal.id === orderId) {
             currentOrderModal.status = newStatus;
             displayOrderDetails(currentOrderModal);
         }
         
-        showToast(`Order status updated to ${newStatus}`, 'success');
-        console.log(`✅ Order ${orderId} status updated to: ${newStatus}`);
+        showToast(`${t('order_status_updated')} ${t(newStatus)}`, 'success');
         
     } catch (error) {
-        console.error('❌ Error updating order status:', error);
-        showToast(`Failed to update order status: ${error.message}`, 'error');
+        console.error('Error updating order status:', error);
+        showToast(`${t('failed_to_update')} ${error.message}`, 'error');
     }
 }
-
-// ===================================
-// ORDER DELETION - FIXED
-// ===================================
 
 async function deleteOrder(orderId) {
     const order = allOrders.find(o => o.id === orderId);
     if (!order) {
-        showToast('Order not found', 'error');
+        showToast(t('order_not_found'), 'error');
         return;
     }
     
     const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
     const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
     
-    // Confirm deletion
-    const confirmed = confirm(`Are you sure you want to delete order ${orderNumber} from ${customerName}?\n\nThis action cannot be undone.`);
+    const confirmed = confirm(`${t('are_you_sure_delete')} ${orderNumber} ${t('from')} ${customerName}?\n\n${t('action_cannot_be_undone')}`);
     if (!confirmed) {
         return;
     }
     
     try {
-        console.log(`🗑️ Deleting order: ${orderId}`);
-        
         const response = await fetch('/admin/delete-order', {
             method: 'POST',
             headers: {
@@ -837,27 +790,23 @@ async function deleteOrder(orderId) {
             throw new Error(result.error || 'Failed to delete order');
         }
         
-        // Remove from local data
         const orderIndex = allOrders.findIndex(o => o.id === orderId);
         if (orderIndex !== -1) {
             allOrders.splice(orderIndex, 1);
         }
         
-        // Close modal if this order was being viewed
         if (currentOrderModal && currentOrderModal.id === orderId) {
             closeOrderModal();
         }
         
-        // Refresh displays
         applyFiltersAndPagination();
         updateDashboardStats();
         
-        showToast(`Order ${orderNumber} deleted successfully`, 'success');
-        console.log(`✅ Order ${orderId} deleted successfully`);
+        showToast(`${orderNumber} ${t('order_deleted_successfully')}`, 'success');
         
     } catch (error) {
-        console.error('❌ Error deleting order:', error);
-        showToast(`Failed to delete order: ${error.message}`, 'error');
+        console.error('Error deleting order:', error);
+        showToast(`${t('failed_to_delete')} ${error.message}`, 'error');
     }
 }
 
@@ -865,13 +814,9 @@ function deleteCurrentOrder() {
     if (currentOrderModal && currentOrderModal.id) {
         deleteOrder(currentOrderModal.id);
     } else {
-        showToast('No order selected for deletion', 'error');
+        showToast(t('no_order_selected'), 'error');
     }
 }
-
-// ===================================
-// UTILITY FUNCTIONS
-// ===================================
 
 function showLoading(show) {
     const loadingSpinner = document.getElementById('loadingSpinner');
@@ -889,19 +834,18 @@ function refreshData() {
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
         refreshBtn.classList.add('refreshing');
-        refreshBtn.querySelector('span').textContent = 'Refreshing...';
+        refreshBtn.querySelector('span').textContent = t('refreshing');
     }
     
     loadOrders().finally(() => {
         if (refreshBtn) {
             refreshBtn.classList.remove('refreshing');
-            refreshBtn.querySelector('span').textContent = 'Refresh';
+            refreshBtn.querySelector('span').textContent = t('refresh');
         }
     });
 }
 
 function clearAdminSession() {
-    // Clear cookies
     const cookieOptions = [
         'admin_session=; Path=/admin/; Max-Age=0; SameSite=Lax',
         'admin_session=; Path=/; Max-Age=0; SameSite=Lax',
@@ -913,17 +857,10 @@ function clearAdminSession() {
         document.cookie = cookieString;
     });
     
-    // Clear localStorage
     localStorage.removeItem('admin_session');
     localStorage.removeItem('orders_cache');
     localStorage.removeItem('admin_preferences');
-    
-    console.log('🧹 Admin session cleared');
 }
-
-// ===================================
-// USER PREFERENCES
-// ===================================
 
 function saveUserPreferences() {
     const preferences = {
@@ -954,10 +891,6 @@ function loadUserPreferences() {
         console.warn('Could not load user preferences:', error);
     }
 }
-
-// ===================================
-// TOAST NOTIFICATIONS
-// ===================================
 
 function showToast(message, type = 'info', duration = 4000) {
     const container = document.getElementById('toastContainer');
@@ -994,7 +927,6 @@ function showToast(message, type = 'info', duration = 4000) {
     
     container.appendChild(toast);
     
-    // Auto remove after duration
     setTimeout(() => {
         if (toast.parentNode) {
             toast.style.animation = 'slideOutRight 0.3s ease-out';
@@ -1007,11 +939,6 @@ function showToast(message, type = 'info', duration = 4000) {
     }, duration);
 }
 
-// ===================================
-// GLOBAL FUNCTIONS FOR WINDOW SCOPE
-// ===================================
-
-// Make functions available globally for onclick handlers
 window.refreshData = refreshData;
 window.viewOrder = viewOrder;
 window.deleteOrder = deleteOrder;
@@ -1022,5 +949,4 @@ window.closeOrderModal = closeOrderModal;
 window.changePage = changePage;
 window.clearAdminSession = clearAdminSession;
 window.loadOrders = loadOrders;
-
-console.log('📋 Orders management script loaded');
+window.toggleLanguage = toggleLanguage;
