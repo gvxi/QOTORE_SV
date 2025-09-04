@@ -5,7 +5,7 @@ let ordersPerPage = 25;
 let currentSearchTerm = '';
 let currentStatusFilter = '';
 let currentOrderModal = null;
-let currentLanguage = 'en';
+let currentLanguage = 'ar';
 let translations = {};
 
 async function loadTranslations() {
