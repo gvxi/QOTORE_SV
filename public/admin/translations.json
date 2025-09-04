@@ -169,6 +169,9 @@
     "error": "خطأ",
     "warning": "تحذير",
     "info": "معلومات",
-    "notification": "إشعار"
+    "notification": "إشعارات",
+    "contact_help": "مساعدة",
+    "contact_us": "اتصل بنا",
+    "admin_footer_text": "© 2025 لوحة إدارة قطور. جميع الحقوق محفوظة."
   }
 }
