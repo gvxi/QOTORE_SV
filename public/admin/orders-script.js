@@ -5,7 +5,7 @@ let ordersPerPage = 25;
 let currentSearchTerm = '';
 let currentStatusFilter = '';
 let currentOrderModal = null;
-let currentLanguage = 'en';
+let currentLanguage = 'ar';
 let translations = {};
 
 async function loadTranslations() {
@@ -24,37 +24,76 @@ function t(key) {
 }
 
 function updateTranslations() {
+    console.log('Updating translations to:', currentLanguage);
+    
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
-        element.textContent = t(key);
+        const translation = t(key);
+        if (translation !== key) {
+            element.textContent = translation;
+        }
     });
     
     document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
         const key = element.getAttribute('data-translate-placeholder');
-        element.placeholder = t(key);
+        const translation = t(key);
+        if (translation !== key) {
+            element.placeholder = translation;
+        }
     });
+    
+    console.log('Translations updated');
+}
+
+function loadLanguagePreference() {
+    const mainPageLanguage = localStorage.getItem('qotore_language');
+    const adminLanguage = localStorage.getItem('admin_language');
+    const savedLanguage = mainPageLanguage || adminLanguage || 'ar';
+    
+    console.log('Loading language preference:', savedLanguage);
+    
+    currentLanguage = savedLanguage;
+    document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', currentLanguage);
+    
+    const langButton = document.getElementById('currentLang');
+    if (langButton) {
+        langButton.textContent = currentLanguage.toUpperCase();
+        console.log('Language button updated to:', currentLanguage.toUpperCase());
+    } else {
+        console.error('Language button not found!');
+    }
+    
+    updateTranslations();
 }
 
 function toggleLanguage() {
+    console.log('Toggling language from:', currentLanguage);
+    
     currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
     document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
-    document.getElementById('currentLang').textContent = currentLanguage.toUpperCase();
+    document.documentElement.setAttribute('lang', currentLanguage);
     
+    const langButton = document.getElementById('currentLang');
+    if (langButton) {
+        langButton.textContent = currentLanguage.toUpperCase();
+    }
+    
+    localStorage.setItem('qotore_language', currentLanguage);
     localStorage.setItem('admin_language', currentLanguage);
+    
+    console.log('Language switched to:', currentLanguage);
+    
     updateTranslations();
     
     if (currentOrders.length > 0) {
         displayOrders(getCurrentPageOrders());
     }
-}
-
-function loadLanguagePreference() {
-    const savedLanguage = localStorage.getItem('admin_language') || 'en';
-    if (savedLanguage !== currentLanguage) {
-        currentLanguage = savedLanguage;
-        document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
-        document.getElementById('currentLang').textContent = currentLanguage.toUpperCase();
-        updateTranslations();
+    
+    const totalOrders = currentOrders.length;
+    const totalPages = Math.ceil(totalOrders / ordersPerPage) || 1;
+    if (totalPages > 1) {
+        setupPagination(totalPages, totalOrders);
     }
 }
 
@@ -65,7 +104,8 @@ function getCurrentPageOrders() {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
-    await loadTranslations(); // Load JSON first
+    console.log('DOM loaded, initializing...');
+    await loadTranslations();
     loadLanguagePreference();
     initializeEventListeners();
     loadOrders();
@@ -151,7 +191,7 @@ async function loadOrders() {
         const result = await response.json();
         
         if (!result.success) {
-            throw new Error(result.error || 'Failed to load orders');
+            throw new Error(result.error || t('failed_to_load_orders'));
         }
         
         allOrders = result.data || [];
@@ -325,7 +365,7 @@ function createOrderRow(order) {
     const itemsSummary = items.length > 0 
         ? items.map(item => {
             const itemName = item.fragrance_name || t('no_items');
-            const variant = item.variant_size || 'Unknown Size';
+            const variant = item.variant_size || t('no_items');
             const quantity = item.quantity || 1;
             return `<div class="item-entry">${quantity}x ${itemName} (${variant})</div>`;
         }).join('')
@@ -335,8 +375,8 @@ function createOrderRow(order) {
     const statusClass = `status-${status}`;
     const statusIcon = getStatusIcon(status);
     
-    const viewText = currentLanguage === 'ar' ? '👁️ عرض' : '👁️ View';
-    const deleteText = currentLanguage === 'ar' ? '🗑️ حذف' : '🗑️ Delete';
+    const viewText = currentLanguage === 'ar' ? `👁️ ${t('view')}` : `👁️ ${t('view')}`;
+    const deleteText = currentLanguage === 'ar' ? `🗑️ ${t('delete')}` : `🗑️ ${t('delete')}`;
     
     return `
         <tr>
@@ -490,7 +530,7 @@ async function viewOrder(orderId) {
         
     } catch (error) {
         console.error('Error viewing order:', error);
-        showToast(`Failed to load order details: ${error.message}`, 'error');
+        showToast(`${t('failed_to_load_orders')}: ${error.message}`, 'error');
         closeOrderModal();
     }
 }
@@ -574,6 +614,10 @@ function displayOrderDetails(order) {
             <h3>🚚 ${t('delivery_information')}</h3>
             <div class="detail-grid">
                 <div class="detail-item">
+                    <div class="detail-label">${t('address')}</div>
+                    <div class="detail-value">${order.delivery_address || t('not_provided')}</div>
+                </div>
+                <div class="detail-item">
                     <div class="detail-label">${t('city')}</div>
                     <div class="detail-value">${order.delivery_city || t('not_provided')}</div>
                 </div>
@@ -636,8 +680,8 @@ function createOrderItemsList(items) {
             <div class="order-item">
                 <div class="item-details">
                     <div class="item-name">${item.fragrance_name || t('no_items')}</div>
-                    <div class="item-brand">${item.fragrance_brand || 'Unknown Brand'}</div>
-                    <div class="item-variant">${item.variant_size || 'Unknown Size'}</div>
+                    <div class="item-brand">${item.fragrance_brand || t('not_provided')}</div>
+                    <div class="item-variant">${item.variant_size || t('not_provided')}</div>
                 </div>
                 <div class="item-pricing">
                     <div class="item-quantity">${t('qty')}: ${item.quantity || 1}</div>
@@ -731,7 +775,7 @@ async function changeOrderStatus(orderId, newStatus) {
         const result = await response.json();
         
         if (!result.success) {
-            throw new Error(result.error || 'Failed to update order status');
+            throw new Error(result.error || t('failed_to_update'));
         }
         
         const orderIndex = allOrders.findIndex(o => o.id === orderId);
@@ -788,7 +832,7 @@ async function deleteOrder(orderId) {
         const result = await response.json();
         
         if (!result.success) {
-            throw new Error(result.error || 'Failed to delete order');
+            throw new Error(result.error || t('failed_to_delete'));
         }
         
         const orderIndex = allOrders.findIndex(o => o.id === orderId);
@@ -803,7 +847,7 @@ async function deleteOrder(orderId) {
         applyFiltersAndPagination();
         updateDashboardStats();
         
-        showToast(`${orderNumber} ${t('order_deleted_successfully')}`, 'success');
+        showToast(`${t('order')} ${orderNumber} ${t('order_deleted_successfully')}`, 'success');
         
     } catch (error) {
         console.error('Error deleting order:', error);
@@ -835,13 +879,15 @@ function refreshData() {
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
         refreshBtn.classList.add('refreshing');
-        refreshBtn.querySelector('span').textContent = t('refreshing');
+        const refreshSpan = refreshBtn.querySelector('span');
+        if (refreshSpan) refreshSpan.textContent = t('refreshing');
     }
     
     loadOrders().finally(() => {
         if (refreshBtn) {
             refreshBtn.classList.remove('refreshing');
-            refreshBtn.querySelector('span').textContent = t('refresh');
+            const refreshSpan = refreshBtn.querySelector('span');
+            if (refreshSpan) refreshSpan.textContent = t('refresh');
         }
     });
 }
@@ -911,16 +957,16 @@ function showToast(message, type = 'info', duration = 4000) {
     };
     
     const titles = {
-        success: 'Success',
-        error: 'Error',
-        warning: 'Warning',
-        info: 'Info'
+        success: t('success') || 'Success',
+        error: t('error') || 'Error',
+        warning: t('warning') || 'Warning',
+        info: t('info') || 'Info'
     };
     
     toast.innerHTML = `
         <div class="toast-icon">${icons[type] || 'ℹ️'}</div>
         <div class="toast-content">
-            <div class="toast-title">${titles[type] || 'Notification'}</div>
+            <div class="toast-title">${titles[type] || t('notification')}</div>
             <div class="toast-message">${message}</div>
         </div>
         <button class="toast-close" onclick="this.parentElement.remove()">×</button>
