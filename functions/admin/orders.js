@@ -1,4 +1,4 @@
-// functions/admin/orders.js - FIXED VERSION with correct data structure
+// functions/admin/orders.js - FIXED VERSION with proper fragrance data loading
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -56,8 +56,8 @@ export async function onRequestGet(context) {
 
     console.log('Fetching orders from Supabase for admin...');
 
-    // Fetch all orders with their items using a join
-    const ordersResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=*,order_items(*)&order=created_at.desc`, {
+    // STEP 1: Fetch all orders
+    const ordersResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=*&order=created_at.desc`, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
@@ -93,7 +93,9 @@ export async function onRequestGet(context) {
         stats: {
           total: 0,
           pending: 0,
+          reviewed: 0,
           completed: 0,
+          cancelled: 0,
           revenue: 0
         }
       }), {
@@ -102,27 +104,53 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Transform orders to match frontend expectations
+    // STEP 2: Fetch all order items for all orders
+    const orderIds = ordersData.map(order => order.id);
+    const orderItemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items?order_id=in.(${orderIds.join(',')})&select=*`, {
+      headers: {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    let orderItemsData = [];
+    if (orderItemsResponse.ok) {
+      orderItemsData = await orderItemsResponse.json();
+      console.log('Fetched order items:', orderItemsData.length);
+    } else {
+      console.warn('Order items fetch failed, proceeding with empty items');
+    }
+
+    // STEP 3: Transform orders to match frontend expectations
     const orders = ordersData.map(order => {
-      const items = Array.isArray(order.order_items)
-        ? order.order_items.map(item => ({
-            id: item.id,
-            name: item.fragrance_name,
-            brand: item.fragrance_brand || '',
-            size: item.variant_size,
-            price: item.unit_price_cents / 1000, // Convert from fils to OMR
-            quantity: item.quantity,
-            total: item.total_price_cents / 1000
-          }))
-        : [];
+      // Get items for this order
+      const orderItems = orderItemsData.filter(item => item.order_id === order.id);
+      
+      // Transform items to expected format - using stored data from order_items table
+      const items = orderItems.map(item => ({
+        id: item.id,
+        fragrance_name: item.fragrance_name || 'Unknown Item',
+        fragrance_brand: item.fragrance_brand || 'Unknown Brand',
+        variant_size: item.variant_size || 'Unknown Size',
+        quantity: item.quantity || 1,
+        unit_price_cents: item.unit_price_cents || 0,
+        total_price_cents: item.total_price_cents || 0,
+        is_whole_bottle: item.is_whole_bottle || false,
+        // Also provide formatted versions for display
+        name: item.fragrance_name || 'Unknown Item',
+        brand: item.fragrance_brand || 'Unknown Brand', 
+        size: item.variant_size || 'Unknown Size',
+        price: (item.unit_price_cents || 0) / 1000, // Convert fils to OMR
+        total: (item.total_price_cents || 0) / 1000 // Convert fils to OMR
+      }));
 
       return {
-        // FIXED: Use field names that match frontend expectations
+        // Order identification
         id: order.id,
         order_number: order.order_number || `ORD-${String(order.id).padStart(5, '0')}`,
         
-        // Customer info - frontend expects these exact field names
-        customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim(),
+        // Customer info
         customer_first_name: order.customer_first_name,
         customer_last_name: order.customer_last_name || '',
         customer_phone: order.customer_phone,
@@ -135,9 +163,8 @@ export async function onRequestGet(context) {
         
         // Order details
         notes: order.notes || '',
-        items: items,
+        items: items, // Properly formatted items with fragrance names and prices
         total_amount: order.total_amount, // Keep in fils for calculations
-        total: order.total_amount / 1000, // Also provide in OMR for display
         status: order.status || 'pending',
         reviewed: order.reviewed || false,
         
@@ -146,36 +173,33 @@ export async function onRequestGet(context) {
         updated_at: order.updated_at,
         review_deadline: order.review_deadline,
         
-        // Customer IP for admin reference
-        customer_ip: order.customer_ip
+        // Customer tracking
+        customer_ip: order.customer_ip,
+        session_id: order.session_id
       };
     });
 
     console.log(`Successfully processed ${orders.length} orders for admin`);
 
-    // Calculate stats
-    const totalOrders = orders.length;
-    const pendingOrders = orders.filter(o => o.status === 'pending').length;
-    const reviewedOrders = orders.filter(o => o.reviewed).length;
-    const completedOrders = orders.filter(o => o.status === 'completed').length;
-    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
-    const totalRevenue = orders
-      .filter(o => o.status === 'completed')
-      .reduce((sum, o) => sum + (o.total_amount / 1000), 0);
+    // Calculate comprehensive stats
+    const stats = {
+      total: orders.length,
+      pending: orders.filter(o => o.status === 'pending').length,
+      reviewed: orders.filter(o => o.status === 'reviewed').length,
+      completed: orders.filter(o => o.status === 'completed').length,
+      cancelled: orders.filter(o => o.status === 'cancelled').length,
+      revenue: orders
+        .filter(o => o.status === 'completed')
+        .reduce((sum, o) => sum + (o.total_amount || 0), 0) // Keep in fils for accuracy
+    };
 
     return new Response(JSON.stringify({
       success: true,
       data: orders,
-      count: totalOrders,
-      source: 'admin-supabase',
-      stats: {
-        total: totalOrders,
-        pending: pendingOrders,
-        reviewed: reviewedOrders,
-        completed: completedOrders,
-        cancelled: cancelledOrders,
-        revenue: totalRevenue
-      }
+      count: stats.total,
+      source: 'admin-supabase-fixed',
+      message: `Successfully loaded ${stats.total} orders with proper item details`,
+      stats: stats
     }), {
       status: 200,
       headers: corsHeaders
@@ -187,7 +211,8 @@ export async function onRequestGet(context) {
     return new Response(JSON.stringify({
       success: false,
       error: 'Internal server error',
-      details: error.message
+      details: error.message,
+      stack: error.stack
     }), {
       status: 500,
       headers: corsHeaders
@@ -219,11 +244,23 @@ export async function onRequestPost(context) {
   const isAuthenticated = !!sessionCookie;
   
   return new Response(JSON.stringify({
-    message: 'Admin orders API is working!',
+    message: 'Admin orders API is working! (FIXED VERSION)',
     authenticated: isAuthenticated,
     endpoints: {
-      get: 'GET /admin/orders - Fetch all orders for admin',
+      get: 'GET /admin/orders - Fetch all orders with proper item details',
       test: 'POST /admin/orders - This test endpoint'
+    },
+    fixes: {
+      'Item Loading': 'Now properly loads order_items table data with fragrance names and prices',
+      'Data Structure': 'Items include both original database fields and formatted display fields',
+      'Stats Calculation': 'Comprehensive stats including all order statuses',
+      'Error Handling': 'Better error handling for missing data'
+    },
+    dataStructure: {
+      orders: 'Array of order objects',
+      'order.items': 'Array of order items with fragrance details',
+      'item fields': 'fragrance_name, fragrance_brand, variant_size, quantity, unit_price_cents, total_price_cents',
+      'display fields': 'name, brand, size, price (OMR), total (OMR)'
     },
     supabaseConfig: {
       hasUrl: !!context.env.SUPABASE_URL,
@@ -231,6 +268,9 @@ export async function onRequestPost(context) {
     },
     note: 'Authentication required via admin_session cookie'
   }), {
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    }
   });
 }
