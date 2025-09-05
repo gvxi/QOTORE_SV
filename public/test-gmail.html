@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Configuration Test - Qotore</title>
+    <title>Gmail API Configuration Test - Qotore</title>
     
     <style>
         :root {
@@ -373,9 +373,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📧 Email Configuration Test</h1>
-            <p>Test your Resend email notification setup for order alerts</p>
-            <div class="service-badge">✨ Powered by Resend</div>
+            <h1>📧 Gmail API Configuration Test</h1>
+            <p>Test your Gmail API email notification setup for order alerts</p>
+            <div class="service-badge">🔐 Powered by Gmail API + OAuth2</div>
         </div>
 
         <div class="content">
@@ -384,7 +384,6 @@
                 <span>Back to Main Site</span>
             </a>
 
-            <!-- Configuration Status -->
             <div class="section status-check">
                 <h2>📋 Configuration Status</h2>
                 <div id="configStatus">
@@ -395,91 +394,98 @@
                 </div>
             </div>
 
-            <!-- Test Email Section -->
             <div class="section test-email">
                 <h2>✉️ Send Test Email</h2>
-                <p>Send a test email to verify your Resend configuration is working correctly.</p>
+                <p>Send a test email to verify your Gmail API configuration is working correctly.</p>
                 
                 <div class="action-buttons">
                     <button id="sendTestBtn" class="btn btn-success" onclick="sendTestEmail()">
                         <span>📧</span>
                         <span>Send Test Email</span>
                     </button>
-                    <a href="https://resend.com/emails" target="_blank" class="btn btn-info">
-                        <span>📊</span>
-                        <span>View Resend Dashboard</span>
+                    <a href="https://console.cloud.google.com/apis/api/gmail.googleapis.com" target="_blank" class="btn btn-info">
+                        <span>🛠️</span>
+                        <span>Google Cloud Console</span>
+                    </a>
+                    <a href="https://developers.google.com/oauthplayground" target="_blank" class="btn btn-primary">
+                        <span>🔑</span>
+                        <span>OAuth Playground</span>
                     </a>
                 </div>
 
                 <div id="testLoading" class="loading">
                     <div class="spinner"></div>
-                    <p>Sending test email via Resend...</p>
+                    <p>Sending test email via Gmail API...</p>
                 </div>
 
                 <div id="testResult" class="result"></div>
             </div>
 
-            <!-- Resend Features -->
             <div class="section features">
-                <h2>🚀 Resend Features</h2>
-                <p>Why Resend is perfect for order notifications:</p>
+                <h2>🚀 Gmail API Features</h2>
+                <p>Why Gmail API is perfect for order notifications:</p>
 
                 <div class="feature-grid">
                     <div class="feature-item">
-                        <h4>🎯 High Deliverability</h4>
-                        <p>99.9% uptime with excellent inbox placement rates</p>
+                        <h4>🔐 OAuth2 Security</h4>
+                        <p>Secure token-based authentication, no passwords stored</p>
                     </div>
                     <div class="feature-item">
-                        <h4>💰 Cost Effective</h4>
-                        <p>3,000 free emails/month forever - perfect for small businesses</p>
+                        <h4>💰 Completely Free</h4>
+                        <p>Use your existing Gmail account with no additional costs</p>
                     </div>
                     <div class="feature-item">
-                        <h4>⚡ Lightning Fast</h4>
-                        <p>Emails delivered in under 1 second on average</p>
+                        <h4>📧 High Deliverability</h4>
+                        <p>Emails sent from trusted Gmail servers with excellent reputation</p>
                     </div>
                     <div class="feature-item">
-                        <h4>🎨 Beautiful Emails</h4>
-                        <p>Professional HTML emails with responsive design</p>
+                        <h4>🎨 Professional Emails</h4>
+                        <p>Beautiful HTML emails sent from your actual Gmail account</p>
                     </div>
                     <div class="feature-item">
-                        <h4>🔒 Secure & Reliable</h4>
-                        <p>Enterprise-grade security with detailed analytics</p>
+                        <h4>⚡ Google Infrastructure</h4>
+                        <p>Backed by Google's reliable and fast email infrastructure</p>
                     </div>
                     <div class="feature-item">
-                        <h4>👨‍💻 Developer Friendly</h4>
-                        <p>Clean API with excellent documentation and error handling</p>
+                        <h4>📊 Built-in Tracking</h4>
+                        <p>See sent emails in your Gmail Sent folder for easy tracking</p>
                     </div>
                 </div>
 
                 <div class="alert alert-info">
-                    <strong>💡 Pro Tip:</strong> Resend is built by developers for developers, offering the best email delivery experience with minimal setup required.
+                    <strong>🔒 Security Note:</strong> This system uses OAuth2 with limited gmail.send scope - it can only send emails, not read them. Your Gmail remains completely secure and private.
                 </div>
             </div>
 
-            <!-- Comparison Table -->
             <div class="section">
                 <h2>📊 Email Service Comparison</h2>
                 <table class="comparison-table">
                     <thead>
                         <tr>
                             <th>Feature</th>
-                            <th>Resend</th>
+                            <th>Gmail API</th>
                             <th>Gmail SMTP</th>
-                            <th>Mailgun</th>
+                            <th>Resend/Mailgun</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>Setup Complexity</td>
-                            <td class="check">✅ Very Easy</td>
+                            <td class="cross">❌ Advanced</td>
                             <td class="cross">❌ Complex</td>
-                            <td class="cross">❌ Medium</td>
+                            <td class="check">✅ Easy</td>
                         </tr>
                         <tr>
-                            <td>Free Tier</td>
-                            <td class="check">✅ 3,000/month</td>
-                            <td class="check">✅ Unlimited*</td>
-                            <td class="check">✅ 5,000/month</td>
+                            <td>Monthly Cost</td>
+                            <td class="check">✅ Free</td>
+                            <td class="check">✅ Free</td>
+                            <td class="cross">❌ Paid plans</td>
+                        </tr>
+                        <tr>
+                            <td>Security</td>
+                            <td class="check">✅ OAuth2</td>
+                            <td class="cross">❌ App passwords</td>
+                            <td class="check">✅ API keys</td>
                         </tr>
                         <tr>
                             <td>Deliverability</td>
@@ -488,55 +494,67 @@
                             <td class="check">✅ Good</td>
                         </tr>
                         <tr>
-                            <td>HTML Emails</td>
-                            <td class="check">✅ Perfect</td>
-                            <td class="cross">❌ Encoding issues</td>
-                            <td class="check">✅ Good</td>
-                        </tr>
-                        <tr>
-                            <td>Analytics</td>
-                            <td class="check">✅ Detailed</td>
-                            <td class="cross">❌ None</td>
-                            <td class="check">✅ Basic</td>
+                            <td>Daily Limits</td>
+                            <td class="check">✅ 500 emails/day</td>
+                            <td class="cross">❌ Very limited</td>
+                            <td class="check">✅ High limits</td>
                         </tr>
                         <tr>
                             <td>Professional Look</td>
-                            <td class="check">✅ Domain verified</td>
-                            <td class="cross">❌ Personal email</td>
-                            <td class="check">✅ Domain verified</td>
+                            <td class="check">✅ Your Gmail</td>
+                            <td class="check">✅ Your Gmail</td>
+                            <td class="check">✅ Custom domain</td>
+                        </tr>
+                        <tr>
+                            <td>Email Tracking</td>
+                            <td class="check">✅ Gmail Sent folder</td>
+                            <td class="check">✅ Gmail Sent folder</td>
+                            <td class="check">✅ Service dashboard</td>
+                        </tr>
+                        <tr>
+                            <td>Reliability</td>
+                            <td class="check">✅ Google infrastructure</td>
+                            <td class="cross">❌ Rate limited</td>
+                            <td class="check">✅ Good uptime</td>
                         </tr>
                     </tbody>
                 </table>
-                <p style="font-size: 0.875rem; color: #666; margin-top: 0.5rem;">
-                    * Gmail has daily limits and may block automated emails
-                </p>
             </div>
 
-            <!-- Setup Guide -->
             <div class="section setup-guide">
-                <h2>🔧 Resend Setup Guide</h2>
-                <p>Follow these steps to configure Resend for order notifications:</p>
+                <h2>🔧 Gmail API Setup Guide</h2>
+                <p>Follow these steps to configure Gmail API for order notifications:</p>
 
                 <ol class="setup-steps">
                     <li>
-                        <strong>Create Resend Account</strong><br>
-                        Go to <a href="https://resend.com" target="_blank">resend.com</a> and sign up for free
+                        <strong>Create Google Cloud Project</strong><br>
+                        Go to <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a> and create a new project
                     </li>
                     <li>
-                        <strong>Add Your Domain</strong><br>
-                        In Resend dashboard → Domains → Add Domain → Follow DNS verification steps
+                        <strong>Enable Gmail API</strong><br>
+                        In APIs & Services → Library, search for "Gmail API" and enable it
                     </li>
                     <li>
-                        <strong>Generate API Key</strong><br>
-                        Go to API Keys → Create API Key → Copy the key (starts with "re_")
+                        <strong>Create OAuth2 Credentials</strong><br>
+                        In APIs & Services → Credentials, create OAuth client ID (Web application type)
+                    </li>
+                    <li>
+                        <strong>Configure OAuth Consent Screen</strong><br>
+                        Add app information and your Gmail as a test user
+                    </li>
+                    <li>
+                        <strong>Generate Refresh Token</strong><br>
+                        Use <a href="https://developers.google.com/oauthplayground" target="_blank">OAuth Playground</a> with gmail.send scope
                     </li>
                     <li>
                         <strong>Configure Environment Variables</strong><br>
                         Add these to your Cloudflare Workers dashboard:
                         <div class="code-block">
 ADMIN_EMAIL = your-admin@email.com<br>
-RESEND_API_KEY = re_your-resend-api-key<br>
-FROM_EMAIL = Qotore Orders &lt;orders@yourdomain.com&gt;<br>
+GMAIL_USER = your-gmail@gmail.com<br>
+GOOGLE_CLIENT_ID = your-client-id.apps.googleusercontent.com<br>
+GOOGLE_CLIENT_SECRET = GOCSPX-your-client-secret<br>
+GOOGLE_REFRESH_TOKEN = 1//your-refresh-token<br>
 SITE_URL = https://yourdomain.com
                         </div>
                     </li>
@@ -547,25 +565,24 @@ SITE_URL = https://yourdomain.com
                 </ol>
 
                 <div class="alert alert-warning">
-                    <strong>⚠️ Important:</strong> Make sure to verify your domain in Resend before sending emails. Unverified domains may have delivery issues.
+                    <strong>⚠️ Important:</strong> The OAuth refresh token needs gmail.send scope. Make sure to select this scope in OAuth Playground when generating your token.
                 </div>
             </div>
 
-            <!-- Quick Links -->
             <div class="section">
                 <h2>🔗 Quick Links</h2>
                 <div class="action-buttons">
-                    <a href="https://resend.com" target="_blank" class="btn btn-primary">
-                        <span>🌐</span>
-                        <span>Resend Website</span>
+                    <a href="https://console.cloud.google.com" target="_blank" class="btn btn-primary">
+                        <span>☁️</span>
+                        <span>Google Cloud Console</span>
                     </a>
-                    <a href="https://resend.com/docs" target="_blank" class="btn btn-info">
+                    <a href="https://developers.google.com/gmail/api" target="_blank" class="btn btn-info">
                         <span>📚</span>
-                        <span>Documentation</span>
+                        <span>Gmail API Docs</span>
                     </a>
-                    <a href="https://resend.com/pricing" target="_blank" class="btn btn-success">
-                        <span>💰</span>
-                        <span>Pricing</span>
+                    <a href="https://developers.google.com/oauthplayground" target="_blank" class="btn btn-success">
+                        <span>🔑</span>
+                        <span>OAuth Playground</span>
                     </a>
                     <a href="/admin/orders-management.html" class="btn btn-primary">
                         <span>📋</span>
@@ -577,7 +594,6 @@ SITE_URL = https://yourdomain.com
     </div>
 
     <script>
-        // Check configuration status on page load
         document.addEventListener('DOMContentLoaded', function() {
             checkConfiguration();
         });
@@ -588,7 +604,6 @@ SITE_URL = https://yourdomain.com
             loadingDiv.style.display = 'block';
 
             try {
-                // Try to get configuration status from the notification endpoint
                 const response = await fetch('/api/send-admin-notification', {
                     method: 'GET'
                 });
@@ -597,7 +612,6 @@ SITE_URL = https://yourdomain.com
                 
                 loadingDiv.style.display = 'none';
                 
-                // Display configuration status
                 statusDiv.innerHTML = `
                     <div class="status-item">
                         <span><strong>Admin Email</strong></span>
@@ -606,15 +620,27 @@ SITE_URL = https://yourdomain.com
                         </span>
                     </div>
                     <div class="status-item">
-                        <span><strong>Resend API Key</strong></span>
-                        <span class="status-badge ${result.environment_check?.hasResendKey ? 'status-success' : 'status-error'}">
-                            ${result.environment_check?.hasResendKey ? '✅ Configured' : '❌ Missing'}
+                        <span><strong>Gmail User</strong></span>
+                        <span class="status-badge ${result.environment_check?.hasGmailUser ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasGmailUser ? '✅ Configured' : '❌ Missing'}
                         </span>
                     </div>
                     <div class="status-item">
-                        <span><strong>From Email</strong></span>
-                        <span class="status-badge ${result.environment_check?.hasFromEmail ? 'status-success' : 'status-error'}">
-                            ${result.environment_check?.hasFromEmail ? '✅ Configured' : '❌ Missing'}
+                        <span><strong>Google Client ID</strong></span>
+                        <span class="status-badge ${result.environment_check?.hasClientId ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasClientId ? '✅ Configured' : '❌ Missing'}
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span><strong>Google Client Secret</strong></span>
+                        <span class="status-badge ${result.environment_check?.hasClientSecret ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasClientSecret ? '✅ Configured' : '❌ Missing'}
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span><strong>Google Refresh Token</strong></span>
+                        <span class="status-badge ${result.environment_check?.hasRefreshToken ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasRefreshToken ? '✅ Configured' : '❌ Missing'}
                         </span>
                     </div>
                     ${result.environment_check?.adminEmail ? `
@@ -623,22 +649,23 @@ SITE_URL = https://yourdomain.com
                         <span style="font-family: monospace; color: #666;">${result.environment_check.adminEmail}</span>
                     </div>
                     ` : ''}
-                    ${result.environment_check?.fromEmail ? `
+                    ${result.environment_check?.gmailUser ? `
                     <div class="status-item">
-                        <span><strong>Sender Email</strong></span>
-                        <span style="font-family: monospace; color: #666;">${result.environment_check.fromEmail}</span>
+                        <span><strong>Gmail Account</strong></span>
+                        <span style="font-family: monospace; color: #666;">${result.environment_check.gmailUser}</span>
                     </div>
                     ` : ''}
                     <div class="status-item">
                         <span><strong>Email Service</strong></span>
-                        <span style="color: #17a2b8; font-weight: 600;">✨ Resend API</span>
+                        <span style="color: #17a2b8; font-weight: 600;">🔐 Gmail API + OAuth2</span>
                     </div>
                 `;
 
-                // Enable/disable test button based on configuration
                 const allConfigured = result.environment_check?.hasAdminEmail && 
-                                    result.environment_check?.hasResendKey && 
-                                    result.environment_check?.hasFromEmail;
+                                    result.environment_check?.hasGmailUser && 
+                                    result.environment_check?.hasClientId &&
+                                    result.environment_check?.hasClientSecret &&
+                                    result.environment_check?.hasRefreshToken;
                 
                 const testBtn = document.getElementById('sendTestBtn');
                 testBtn.disabled = !allConfigured;
@@ -672,13 +699,11 @@ SITE_URL = https://yourdomain.com
             const loadingDiv = document.getElementById('testLoading');
             const resultDiv = document.getElementById('testResult');
 
-            // Show loading
             testBtn.disabled = true;
             loadingDiv.style.display = 'block';
             resultDiv.style.display = 'none';
 
             try {
-                // Create sample order data for testing
                 const testOrderData = {
                     order_number: 'TEST-' + Date.now(),
                     total_amount_omr: '25.750',
@@ -693,7 +718,7 @@ SITE_URL = https://yourdomain.com
                         address: 'Building 123, Way 4567, Block 89, Al Khuwair',
                         city: 'Muscat',
                         region: 'Qurum',
-                        notes: 'Please call before delivery - this is a test order for email notification'
+                        notes: 'Please call before delivery - this is a test order for Gmail API notification'
                     },
                     items: [
                         {
@@ -730,7 +755,6 @@ SITE_URL = https://yourdomain.com
 
                 const result = await response.json();
                 
-                // Hide loading
                 loadingDiv.style.display = 'none';
                 resultDiv.style.display = 'block';
 
@@ -739,7 +763,7 @@ SITE_URL = https://yourdomain.com
                     resultDiv.innerHTML = `
                         <h3>✅ Test Email Sent Successfully!</h3>
                         <div style="margin: 1rem 0;">
-                            <p><strong>📧 Email ID:</strong> ${result.email_id}</p>
+                            <p><strong>📧 Message ID:</strong> ${result.message_id}</p>
                             <p><strong>📬 Sent to:</strong> ${result.sent_to}</p>
                             <p><strong>📤 Sent from:</strong> ${result.sent_from}</p>
                             <p><strong>🚀 Method:</strong> ${result.method}</p>
@@ -750,10 +774,17 @@ SITE_URL = https://yourdomain.com
                             <ol style="margin: 0; padding-left: 1.5rem; color: #155724;">
                                 <li>Check your email inbox (and spam folder)</li>
                                 <li>Look for a professional email with Qotore branding</li>
+                                <li>Verify it was sent from your Gmail account</li>
+                                <li>Check your Gmail Sent folder for the email</li>
                                 <li>Click the action buttons to test functionality</li>
                                 <li>Place a real test order to verify complete flow</li>
-                                <li>Monitor delivery in your <a href="https://resend.com/emails" target="_blank">Resend dashboard</a></li>
                             </ol>
+                        </div>
+                        <div style="background: rgba(23, 162, 184, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <p style="margin: 0; color: #0c5460;">
+                                <strong>💡 Pro Tip:</strong> Check your <a href="https://mail.google.com/mail/u/0/#sent" target="_blank">Gmail Sent folder</a> 
+                                to see the email that was sent. This confirms your OAuth2 setup is working correctly!
+                            </p>
                         </div>
                     `;
                 } else {
@@ -772,18 +803,18 @@ SITE_URL = https://yourdomain.com
                             </ul>
                         </div>
                         ` : ''}
-                        ${result.resend_setup_guide ? `
+                        ${result.gmail_api_setup_guide ? `
                         <div style="margin-top: 1rem;">
-                            <h4>📚 Resend Setup Guide:</h4>
+                            <h4>📚 Gmail API Setup Guide:</h4>
                             <ol style="margin-left: 1rem;">
-                                ${result.resend_setup_guide.map(step => `<li>${step}</li>`).join('')}
+                                ${result.gmail_api_setup_guide.map(step => `<li>${step}</li>`).join('')}
                             </ol>
                         </div>
                         ` : ''}
                         <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-radius: 8px;">
                             <p style="margin: 0; color: #856404;">
-                                <strong>💡 Need help?</strong> Check the <a href="https://resend.com/docs" target="_blank">Resend documentation</a> 
-                                or view your <a href="https://resend.com/emails" target="_blank">Resend dashboard</a> for more details.
+                                <strong>💡 Need help?</strong> Check the <a href="https://developers.google.com/gmail/api" target="_blank">Gmail API documentation</a> 
+                                or use <a href="https://developers.google.com/oauthplayground" target="_blank">OAuth Playground</a> to test your tokens.
                             </p>
                         </div>
                     `;

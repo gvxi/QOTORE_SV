@@ -1,4 +1,4 @@
-// functions/api/send-admin-notification.js - Send email notification to admin using Resend
+// functions/api/send-admin-notification.js - Send email notification using Gmail API via Google Cloud
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -12,21 +12,25 @@ export async function onRequestPost(context) {
     // Get environment variables
     const { env } = context;
     const ADMIN_EMAIL = env.ADMIN_EMAIL;
-    const RESEND_API_KEY = env.RESEND_API_KEY;
-    const FROM_EMAIL = env.FROM_EMAIL || 'Qotore Orders <orders@resend.dev>';
+    const GMAIL_USER = env.GMAIL_USER; // Your Gmail address
+    const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID;
+    const GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET;
+    const GOOGLE_REFRESH_TOKEN = env.GOOGLE_REFRESH_TOKEN;
 
     // Validate required environment variables
-    if (!ADMIN_EMAIL || !RESEND_API_KEY) {
+    if (!ADMIN_EMAIL || !GMAIL_USER || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REFRESH_TOKEN) {
       console.error('Missing required environment variables');
       return new Response(JSON.stringify({
-        error: 'Email service not configured',
+        error: 'Gmail API service not configured',
         success: false,
         debug: {
           hasAdminEmail: !!ADMIN_EMAIL,
-          hasResendKey: !!RESEND_API_KEY,
-          hasFromEmail: !!FROM_EMAIL,
+          hasGmailUser: !!GMAIL_USER,
+          hasClientId: !!GOOGLE_CLIENT_ID,
+          hasClientSecret: !!GOOGLE_CLIENT_SECRET,
+          hasRefreshToken: !!GOOGLE_REFRESH_TOKEN,
           adminEmail: ADMIN_EMAIL ? ADMIN_EMAIL.replace(/@.+/, '@***') : 'Not set',
-          fromEmail: FROM_EMAIL ? FROM_EMAIL.replace(/@.+/, '@***') : 'Not set'
+          gmailUser: GMAIL_USER ? GMAIL_USER.replace(/@.+/, '@***') : 'Not set'
         }
       }), {
         status: 500,
@@ -89,9 +93,9 @@ export async function onRequestPost(context) {
     // Format items for email
     const itemsHtml = items.map(item => `
       <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 12px 8px; font-weight: 500;">${item.fragrance_name}</td>
-        <td style="padding: 12px 8px; color: #666;">${item.fragrance_brand || ''}</td>
-        <td style="padding: 12px 8px; text-align: center;">${item.variant_size}</td>
+        <td style="padding: 12px 8px; font-weight: 500;">${escapeHtml(item.fragrance_name)}</td>
+        <td style="padding: 12px 8px; color: #666;">${escapeHtml(item.fragrance_brand || '')}</td>
+        <td style="padding: 12px 8px; text-align: center;">${escapeHtml(item.variant_size)}</td>
         <td style="padding: 12px 8px; text-align: center;">${item.quantity}</td>
         <td style="padding: 12px 8px; text-align: right; font-weight: 500;">${(item.total_price_cents / 1000).toFixed(3)} OMR</td>
       </tr>
@@ -136,9 +140,9 @@ export async function onRequestPost(context) {
           <div style="margin-bottom: 30px;">
             <h3 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">👤 Customer Information</h3>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-              <p style="margin: 8px 0;"><strong>Name:</strong> ${customer.first_name} ${customer.last_name || ''}</p>
-              <p style="margin: 8px 0;"><strong>Phone:</strong> <a href="tel:${customer.phone}" style="color: #8B4513; text-decoration: none; font-weight: 500;">${customer.phone}</a></p>
-              ${customer.email ? `<p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${customer.email}" style="color: #8B4513; text-decoration: none;">${customer.email}</a></p>` : ''}
+              <p style="margin: 8px 0;"><strong>Name:</strong> ${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name || '')}</p>
+              <p style="margin: 8px 0;"><strong>Phone:</strong> <a href="tel:${customer.phone}" style="color: #8B4513; text-decoration: none; font-weight: 500;">${escapeHtml(customer.phone)}</a></p>
+              ${customer.email ? `<p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${customer.email}" style="color: #8B4513; text-decoration: none;">${escapeHtml(customer.email)}</a></p>` : ''}
             </div>
           </div>
           
@@ -146,10 +150,10 @@ export async function onRequestPost(context) {
           <div style="margin-bottom: 30px;">
             <h3 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">🚚 Delivery Information</h3>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-              <p style="margin: 8px 0;"><strong>Address:</strong> ${delivery.address}</p>
-              <p style="margin: 8px 0;"><strong>City:</strong> ${delivery.city}</p>
-              ${delivery.region ? `<p style="margin: 8px 0;"><strong>Region:</strong> ${delivery.region}</p>` : ''}
-              ${delivery.notes ? `<p style="margin: 8px 0;"><strong>Special Notes:</strong> <em>${delivery.notes}</em></p>` : ''}
+              <p style="margin: 8px 0;"><strong>Address:</strong> ${escapeHtml(delivery.address)}</p>
+              <p style="margin: 8px 0;"><strong>City:</strong> ${escapeHtml(delivery.city)}</p>
+              ${delivery.region ? `<p style="margin: 8px 0;"><strong>Region:</strong> ${escapeHtml(delivery.region)}</p>` : ''}
+              ${delivery.notes ? `<p style="margin: 8px 0;"><strong>Special Notes:</strong> <em>${escapeHtml(delivery.notes)}</em></p>` : ''}
             </div>
           </div>
           
@@ -246,51 +250,41 @@ This is an automated notification from Qotore Admin System
 Order received at ${orderDate} (Oman Time)
     `;
 
-    // Send email using Resend
-    console.log('Sending email via Resend API...');
+    // Send email using Gmail API
+    console.log('Sending email via Gmail API...');
     
-    const resendResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [ADMIN_EMAIL],
-        subject: `🛒 New Order ${order_number} - ${total_amount_omr} OMR`,
-        html: emailHtml,
-        text: emailText,
-        tags: [
-          { name: 'category', value: 'order-notification' },
-          { name: 'order_number', value: order_number }
-        ]
-      })
+    const emailResult = await sendViaGmailAPI({
+      to: ADMIN_EMAIL,
+      from: GMAIL_USER,
+      subject: `🛒 New Order ${order_number} - ${total_amount_omr} OMR`,
+      html: emailHtml,
+      text: emailText,
+      credentials: {
+        clientId: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        refreshToken: GOOGLE_REFRESH_TOKEN
+      }
     });
 
-    if (!resendResponse.ok) {
-      const errorData = await resendResponse.json().catch(() => ({}));
-      const errorText = await resendResponse.text().catch(() => 'Unknown error');
-      
-      console.error('Resend API error:', resendResponse.status, errorData, errorText);
+    if (!emailResult.success) {
+      console.error('Gmail API error:', emailResult.error);
       
       return new Response(JSON.stringify({
-        error: 'Failed to send email via Resend',
+        error: 'Failed to send email via Gmail API',
         success: false,
-        details: errorData.message || errorText,
-        status: resendResponse.status,
+        details: emailResult.error,
         troubleshooting: {
-          check_api_key: 'Verify RESEND_API_KEY is correct and active',
-          check_from_email: 'Verify FROM_EMAIL domain is verified in Resend',
-          check_admin_email: 'Verify ADMIN_EMAIL is a valid email address',
-          resend_setup: 'Ensure your Resend account is properly configured'
+          check_oauth_setup: 'Verify Google Cloud OAuth2 credentials are correct',
+          check_refresh_token: 'Ensure refresh token is valid and not expired',
+          check_gmail_api: 'Verify Gmail API is enabled in Google Cloud Console',
+          check_scopes: 'Ensure OAuth has gmail.send scope permission'
         },
-        resend_setup_guide: [
-          '1. Sign up at https://resend.com',
-          '2. Verify your sending domain',
-          '3. Generate an API key',
-          '4. Set RESEND_API_KEY environment variable',
-          '5. Set FROM_EMAIL to use your verified domain'
+        gmail_api_setup_guide: [
+          '1. Create project in Google Cloud Console',
+          '2. Enable Gmail API',
+          '3. Create OAuth2 credentials',
+          '4. Generate refresh token with gmail.send scope',
+          '5. Set all environment variables correctly'
         ]
       }), {
         status: 500,
@@ -298,17 +292,16 @@ Order received at ${orderDate} (Oman Time)
       });
     }
 
-    const result = await resendResponse.json();
-    console.log('Email sent successfully via Resend:', result.id);
+    console.log('Email sent successfully via Gmail API:', emailResult.messageId);
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Admin notification sent successfully via Resend',
-      email_id: result.id,
+      message: 'Admin notification sent successfully via Gmail API',
+      message_id: emailResult.messageId,
       sent_to: ADMIN_EMAIL,
-      sent_from: FROM_EMAIL,
+      sent_from: GMAIL_USER,
       order_number: order_number,
-      method: 'Resend API'
+      method: 'Gmail API'
     }), {
       status: 200,
       headers: corsHeaders
@@ -324,6 +317,118 @@ Order received at ${orderDate} (Oman Time)
       headers: corsHeaders
     });
   }
+}
+
+// Gmail API sending function using OAuth2
+async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
+  try {
+    console.log('Getting OAuth2 access token...');
+    
+    // Step 1: Get access token using refresh token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        client_id: credentials.clientId,
+        client_secret: credentials.clientSecret,
+        refresh_token: credentials.refreshToken,
+        grant_type: 'refresh_token'
+      })
+    });
+
+    if (!tokenResponse.ok) {
+      const tokenError = await tokenResponse.json();
+      console.error('Token refresh failed:', tokenError);
+      return { success: false, error: `Token refresh failed: ${tokenError.error_description || tokenError.error}` };
+    }
+
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+    
+    console.log('Access token obtained successfully');
+
+    // Step 2: Create email message in RFC 2822 format
+    const boundary = `boundary_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const emailMessage = [
+      `From: ${from}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+      text,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+      html,
+      ``,
+      `--${boundary}--`
+    ].join('\r\n');
+
+    // Step 3: Encode message for Gmail API
+    const encoder = new TextEncoder();
+    const messageBytes = encoder.encode(emailMessage);
+    
+    // Convert to base64url (Gmail API requirement)
+    let base64Message = '';
+    const chunkSize = 3;
+    for (let i = 0; i < messageBytes.length; i += chunkSize) {
+      const chunk = messageBytes.slice(i, i + chunkSize);
+      const binaryString = String.fromCharCode(...chunk);
+      base64Message += btoa(binaryString);
+    }
+    
+    const base64UrlMessage = base64Message
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    console.log('Sending email via Gmail API...');
+
+    // Step 4: Send email via Gmail API
+    const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        raw: base64UrlMessage
+      })
+    });
+
+    if (!gmailResponse.ok) {
+      const gmailError = await gmailResponse.json();
+      console.error('Gmail API send failed:', gmailError);
+      return { success: false, error: `Gmail API error: ${gmailError.error?.message || 'Unknown error'}` };
+    }
+
+    const result = await gmailResponse.json();
+    console.log('Gmail API send successful:', result.id);
+    
+    return { success: true, messageId: result.id };
+
+  } catch (error) {
+    console.error('Gmail API function error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // Handle CORS preflight
@@ -351,37 +456,49 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   return new Response(JSON.stringify({
-    message: 'Resend notification endpoint is working!',
-    method: 'POST /api/send-admin-notification to send order notifications via Resend',
+    message: 'Gmail API notification endpoint is working!',
+    method: 'POST /api/send-admin-notification to send order notifications via Gmail API',
     environment_check: {
       hasAdminEmail: !!env.ADMIN_EMAIL,
-      hasResendKey: !!env.RESEND_API_KEY,
-      hasFromEmail: !!env.FROM_EMAIL,
+      hasGmailUser: !!env.GMAIL_USER,
+      hasClientId: !!env.GOOGLE_CLIENT_ID,
+      hasClientSecret: !!env.GOOGLE_CLIENT_SECRET,
+      hasRefreshToken: !!env.GOOGLE_REFRESH_TOKEN,
       adminEmail: env.ADMIN_EMAIL ? env.ADMIN_EMAIL.replace(/@.+/, '@***') : 'Not set',
-      fromEmail: env.FROM_EMAIL ? env.FROM_EMAIL.replace(/@.+/, '@***') : 'Not set'
+      gmailUser: env.GMAIL_USER ? env.GMAIL_USER.replace(/@.+/, '@***') : 'Not set'
     },
     required_env_vars: [
       'ADMIN_EMAIL - Email address to receive order notifications',
-      'RESEND_API_KEY - Your Resend API key',
-      'FROM_EMAIL - Verified sender email (e.g., orders@yourdomain.com)'
+      'GMAIL_USER - Your Gmail address (e.g., yourname@gmail.com)',
+      'GOOGLE_CLIENT_ID - OAuth2 Client ID from Google Cloud Console',
+      'GOOGLE_CLIENT_SECRET - OAuth2 Client Secret from Google Cloud Console',
+      'GOOGLE_REFRESH_TOKEN - OAuth2 Refresh Token with gmail.send scope'
     ],
     optional_env_vars: [
-      'RESEND_DOMAIN - Your verified domain (if using subdomain)',
-      'SITE_URL - Your website URL for admin panel links'
+      'SITE_URL - Your website URL for admin panel links in emails'
     ],
     setup_instructions: [
-      '1. Create account at https://resend.com',
-      '2. Add and verify your domain',
-      '3. Generate API key in Resend dashboard',
-      '4. Set environment variables in Cloudflare Workers',
-      '5. Test using the test endpoint'
+      '1. Create project in Google Cloud Console',
+      '2. Enable Gmail API',
+      '3. Create OAuth2 credentials (Web application type)',
+      '4. Generate refresh token with gmail.send scope',
+      '5. Set all environment variables in Cloudflare Workers',
+      '6. Test using the test endpoint'
     ],
     features: [
-      'Professional HTML emails with beautiful styling',
-      'Plain text fallback for all email clients',
-      'Order tracking with tags and metadata',
-      'High deliverability and reliability',
-      'Detailed error reporting and troubleshooting'
+      'Professional HTML emails using your personal Gmail',
+      'OAuth2 authentication for security',
+      'Proper email encoding and formatting',
+      'High deliverability from trusted Gmail servers',
+      'No daily sending limits for personal use',
+      'Free to use with your existing Gmail account'
+    ],
+    advantages: [
+      'Uses your existing Gmail account',
+      'No additional email service costs',
+      'High deliverability and trust',
+      'Professional appearance from your Gmail',
+      'Google Cloud reliability and security'
     ]
   }), { 
     headers: corsHeaders
