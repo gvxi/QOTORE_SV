@@ -1,51 +1,37 @@
-// Items Management Adapter - MINIMAL FIX VERSION
-// This provides only the essential missing functions without conflicts
+// Items Management Adapter - MINIMAL VERSION
+// Only essential missing functions, no conflicts with main script
 
 let isAdapterInitialized = false;
 
 // Wait for DOM and other scripts to load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔌 Items management adapter loaded');
+    console.log('🔌 Minimal items management adapter loaded');
     
-    // Multiple attempts to ensure override
+    // Small delay to ensure other scripts are loaded first
     setTimeout(() => {
-        console.log('🔄 First initialization attempt...');
-        initializeAdapter();
-    }, 100);
-    
-    setTimeout(() => {
-        console.log('🔄 Second initialization attempt...');
-        initializeAdapter();
-    }, 1000);
-    
-    setTimeout(() => {
-        console.log('🔄 Final initialization attempt...');
-        initializeAdapter();
-    }, 2000);
+        initializeMinimalAdapter();
+    }, 500);
 });
 
-function initializeAdapter() {
+function initializeMinimalAdapter() {
     if (isAdapterInitialized) return;
     isAdapterInitialized = true;
     
-    console.log('🔧 Initializing adapter fixes...');
+    console.log('🔧 Initializing minimal adapter...');
     
-    // Add missing functions
-    addMissingFunctions();
+    // Only add missing functions, DO NOT override existing ones
+    addMissingFunctionsOnly();
     
-    // Fix modal functions if needed
-    fixModalFunctions();
+    // Add enhanced features without conflicts
+    addEnhancedFeaturesOnly();
     
-    // Add event listeners for new features and fix table rendering
-    addEnhancedFeatures();
-    
-    console.log('✅ Adapter initialization complete');
+    console.log('✅ Minimal adapter initialization complete');
 }
 
-// Add missing functions that cause errors
-function addMissingFunctions() {
+// Add only missing functions that cause errors
+function addMissingFunctionsOnly() {
     
-    // CRITICAL: Add missing resetVariantFields function
+    // Add missing resetVariantFields function if it doesn't exist
     if (typeof window.resetVariantFields !== 'function') {
         window.resetVariantFields = function() {
             console.log('🔄 Resetting variant fields...');
@@ -68,12 +54,16 @@ function addMissingFunctions() {
                 if (priceFieldEl) {
                     priceFieldEl.value = '';
                     priceFieldEl.disabled = true;
+                    // Remove any error styling
+                    priceFieldEl.style.borderColor = '#e9ecef';
+                    priceFieldEl.style.boxShadow = 'none';
                 }
             });
         };
+        console.log('✅ Added resetVariantFields function');
     }
     
-    // CRITICAL: Add missing removeImagePreview function  
+    // Add missing removeImagePreview function if it doesn't exist
     if (typeof window.removeImagePreview !== 'function') {
         window.removeImagePreview = function() {
             const imagePreview = document.getElementById('imagePreview');
@@ -82,30 +72,10 @@ function addMissingFunctions() {
             if (imagePreview) imagePreview.style.display = 'none';
             if (imageInput) imageInput.value = '';
         };
+        console.log('✅ Added removeImagePreview function');
     }
     
-    // CRITICAL: Add missing getVariantsDisplay function
-    if (typeof window.getVariantsDisplay !== 'function') {
-        window.getVariantsDisplay = function(variants) {
-            if (!variants || variants.length === 0) {
-                return '<span class="no-variants">No variants</span>';
-            }
-            
-            return variants.map(variant => {
-                if (variant.is_whole_bottle) {
-                    return '<span class="variant-tag whole-bottle">Full Bottle</span>';
-                } else {
-                    const size = variant.size_ml ? `${variant.size_ml}ml` : (variant.size || 'Unknown');
-                    const price = variant.price_cents ? 
-                        `${(variant.price_cents / 1000).toFixed(3)} OMR` : 
-                        (variant.price ? `${variant.price.toFixed(3)} OMR` : 'Contact');
-                    return `<span class="variant-tag">${size} - ${price}</span>`;
-                }
-            }).join(' ');
-        };
-    }
-    
-    // CRITICAL: Add missing toggleVariantPrice function
+    // Add missing toggleVariantPrice function if it doesn't exist
     if (typeof window.toggleVariantPrice !== 'function') {
         window.toggleVariantPrice = function(variant) {
             let checkboxId, priceId;
@@ -142,6 +112,7 @@ function addMissingFunctions() {
                 }
             }
         };
+        console.log('✅ Added toggleVariantPrice function');
     }
     
     // Add missing showModal/hideModal if they don't exist
@@ -168,6 +139,7 @@ function addMissingFunctions() {
             
             return true;
         };
+        console.log('✅ Added showModal function');
     }
     
     if (typeof window.hideModal !== 'function') {
@@ -185,94 +157,31 @@ function addMissingFunctions() {
             
             return true;
         };
+        console.log('✅ Added hideModal function');
     }
 }
 
-// Fix modal functions only if they're broken
-function fixModalFunctions() {
+// Add enhanced features without conflicting with main script
+function addEnhancedFeaturesOnly() {
     
-    // Only override openAddItemModal if it doesn't exist or is broken
-    if (typeof window.openAddItemModal !== 'function') {
-        window.openAddItemModal = function() {
-            console.log('🔧 Opening add item modal...');
-            
-            // Reset editing state
-            if (typeof currentEditingId !== 'undefined') {
-                currentEditingId = null;
-            }
-            
-            // Update modal content
-            const modalTitle = document.getElementById('itemModalTitle');
-            const saveButtonText = document.getElementById('saveButtonText');
-            
-            if (modalTitle) modalTitle.textContent = 'Add New Item';
-            if (saveButtonText) saveButtonText.textContent = 'Save Item';
-            
-            // Reset form
-            if (typeof resetForm === 'function') {
-                resetForm();
-            } else {
-                console.warn('⚠️ resetForm function not available');
-                const form = document.getElementById('itemForm');
-                if (form) form.reset();
-                if (typeof resetVariantFields === 'function') {
-                    resetVariantFields();
-                }
-            }
-            
-            // Show modal
-            showModal('itemModalOverlay');
-        };
-    }
-    
-    // Enhanced closeItemModal
-    const originalCloseItemModal = window.closeItemModal;
-    window.closeItemModal = function() {
-        console.log('🔧 Closing item modal...');
-        
-        hideModal('itemModalOverlay');
-        
-        if (typeof resetForm === 'function') {
-            resetForm();
-        } else if (typeof resetVariantFields === 'function') {
-            resetVariantFields();
-        }
-        
-        if (typeof currentEditingId !== 'undefined') {
-            currentEditingId = null;
-        }
-    };
-    
-    // Enhanced closeDeleteModal
-    const originalCloseDeleteModal = window.closeDeleteModal;
-    window.closeDeleteModal = function() {
-        console.log('🔧 Closing delete modal...');
-        
-        hideModal('deleteModalOverlay');
-        
-        if (typeof deleteItemId !== 'undefined') {
-            deleteItemId = null;
-        }
-    };
-}
-
-// Add enhanced features without breaking existing functionality
-function addEnhancedFeatures() {
-    
-    // Items per page selector
+    // Items per page selector (if it exists and main script doesn't handle it)
     const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
     if (itemsPerPageSelect && typeof applyFiltersAndPagination === 'function') {
-        itemsPerPageSelect.addEventListener('change', (e) => {
-            const newItemsPerPage = parseInt(e.target.value);
-            if (typeof itemsPerPage !== 'undefined' && newItemsPerPage !== itemsPerPage) {
-                window.itemsPerPage = newItemsPerPage;
-                if (typeof currentPage !== 'undefined') {
-                    currentPage = 1;
+        // Check if it already has event listeners
+        if (!itemsPerPageSelect.hasAttribute('data-adapter-initialized')) {
+            itemsPerPageSelect.addEventListener('change', (e) => {
+                const newItemsPerPage = parseInt(e.target.value);
+                if (typeof itemsPerPage !== 'undefined' && newItemsPerPage !== itemsPerPage) {
+                    window.itemsPerPage = newItemsPerPage;
+                    if (typeof currentPage !== 'undefined') {
+                        currentPage = 1;
+                    }
+                    applyFiltersAndPagination();
                 }
-                applyFiltersAndPagination();
-            }
-        });
-        console.log('✅ Items per page selector enhanced');
+            });
+            itemsPerPageSelect.setAttribute('data-adapter-initialized', 'true');
+            console.log('✅ Items per page selector enhanced');
+        }
     }
     
     // Keyboard shortcuts
@@ -298,7 +207,7 @@ function addEnhancedFeatures() {
         }
     });
     
-    console.log('✅ Enhanced features added');
+    console.log('✅ Enhanced features added without conflicts');
 }
 
 // Debug function to check what's working
@@ -308,12 +217,14 @@ function debugCurrentState() {
         functions: {
             loadItems: typeof loadItems,
             renderItems: typeof renderItems,
+            renderTableRows: typeof renderTableRows,
             openAddItemModal: typeof openAddItemModal,
             editItem: typeof editItem,
             resetVariantFields: typeof resetVariantFields,
             showModal: typeof showModal,
             hideModal: typeof hideModal,
-            getVariantsDisplay: typeof getVariantsDisplay
+            refreshData: typeof refreshData,
+            changePage: typeof changePage
         },
         
         // Check if critical elements exist
@@ -322,7 +233,9 @@ function debugCurrentState() {
             itemModalOverlay: !!document.getElementById('itemModalOverlay'),
             itemForm: !!document.getElementById('itemForm'),
             loadingSpinner: !!document.getElementById('loadingSpinner'),
-            itemsTable: !!document.getElementById('itemsTable')
+            itemsTable: !!document.getElementById('itemsTable'),
+            paginationContainer: !!document.getElementById('paginationContainer'),
+            refreshBtn: !!document.getElementById('refreshBtn')
         },
         
         // Check global variables
@@ -350,8 +263,8 @@ function debugCurrentState() {
         issues.push('❌ renderItems function not available');
     }
     
-    if (diagnostics.functions.openAddItemModal !== 'function') {
-        issues.push('❌ openAddItemModal function not available');
+    if (diagnostics.functions.changePage !== 'function') {
+        issues.push('❌ changePage function not available');
     }
     
     if (issues.length > 0) {
@@ -371,4 +284,4 @@ setTimeout(() => {
 // Make debug function available globally
 window.debugItemsManagement = debugCurrentState;
 
-console.log('✅ Items management adapter loaded (minimal fix version)');
+console.log('✅ Minimal items management adapter loaded successfully');
