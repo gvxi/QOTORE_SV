@@ -1,41 +1,37 @@
-// Items Management Adapter - PAGINATION FOCUSED
-// Handles pagination and UI elements that the main script misses
+// Pagination Only Adapter - ONLY handles pagination, nothing else
+// All other functionality is handled by the main script
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔌 Items management adapter (pagination focused) loaded');
+    console.log('📄 Pagination-only adapter loaded');
     
-    // Small delay to ensure main script is loaded
+    // Wait for main script to load
     setTimeout(() => {
-        initializePaginationAdapter();
-    }, 500);
+        initializePaginationOnly();
+    }, 1000);
 });
 
-function initializePaginationAdapter() {
-    console.log('🔧 Initializing pagination adapter...');
+function initializePaginationOnly() {
+    console.log('🔧 Initializing pagination-only adapter...');
     
-    // Override pagination functions to match HTML structure
-    overridePaginationFunctions();
+    // ONLY override pagination functions
+    overridePaginationOnly();
     
-    // Add missing utility functions
-    addMissingUtilityFunctions();
-    
-    // Enhanced features
-    addEnhancedFeatures();
-    
-    console.log('✅ Pagination adapter initialization complete');
+    console.log('✅ Pagination-only adapter complete');
 }
 
-function overridePaginationFunctions() {
+function overridePaginationOnly() {
     
-    // Override renderPagination to work with the HTML structure
+    // Override ONLY renderPagination function
     window.renderPagination = function(totalPages) {
+        console.log(`📄 Pagination adapter: renderPagination called with ${totalPages} pages`);
+        
         const paginationContainer = document.getElementById('paginationContainer');
         if (!paginationContainer) {
             console.warn('❌ paginationContainer not found');
             return;
         }
         
-        // Update pagination info first
+        // Update pagination info display
         updatePaginationInfo();
         
         if (totalPages <= 1) {
@@ -101,8 +97,11 @@ function overridePaginationFunctions() {
         console.log(`📄 Pagination rendered: Page ${currentPage} of ${totalPages}`);
     };
     
-    // Override changePage to add validation and better UX
+    // Override ONLY changePage function  
     window.changePage = function(page) {
+        console.log(`📄 Pagination adapter: changePage called with page ${page}`);
+        
+        // Validation
         if (!filteredItems || filteredItems.length === 0) {
             console.warn('❌ No filtered items available for pagination');
             return;
@@ -116,8 +115,9 @@ function overridePaginationFunctions() {
         }
         
         currentPage = page;
-        console.log(`📄 Changed to page ${page}`);
+        console.log(`📄 Changed to page ${page} of ${totalPages}`);
         
+        // Call main script's pagination function
         if (typeof applyFiltersAndPagination === 'function') {
             applyFiltersAndPagination();
         }
@@ -126,13 +126,10 @@ function overridePaginationFunctions() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     
-    console.log('✅ Pagination functions overridden');
-}
-
-function addMissingUtilityFunctions() {
-    
-    // Update pagination info display
+    // Add ONLY the pagination info update function
     window.updatePaginationInfo = function() {
+        console.log('📊 Updating pagination info...');
+        
         if (!filteredItems || filteredItems.length === 0) {
             updatePaginationDisplay(0, 0, 0);
             return;
@@ -147,265 +144,45 @@ function addMissingUtilityFunctions() {
     
     function updatePaginationDisplay(start, end, total) {
         const startElement = document.getElementById('startIndex');
-        const endElement = document.getElementById('endIndex');
+        const endElement = document.getElementById('endIndex'); 
         const totalElement = document.getElementById('totalCount');
         
         if (startElement) startElement.textContent = start;
         if (endElement) endElement.textContent = end;
         if (totalElement) totalElement.textContent = total;
         
-        console.log(`📊 Pagination info: ${start}-${end} of ${total} items`);
+        console.log(`📊 Pagination info: Showing ${start} to ${end} of ${total} items`);
     }
     
-    // Add missing resetVariantFields if it doesn't exist
-    if (typeof window.resetVariantFields !== 'function') {
-        window.resetVariantFields = function() {
-            const variants = [
-                { checkbox: 'enable5ml', priceField: 'price5ml' },
-                { checkbox: 'enable10ml', priceField: 'price10ml' },
-                { checkbox: 'enable30ml', priceField: 'price30ml' },
-                { checkbox: 'enableFullBottle', priceField: null }
-            ];
-            
-            variants.forEach(({ checkbox, priceField }) => {
-                const checkboxEl = document.getElementById(checkbox);
-                const priceFieldEl = priceField ? document.getElementById(priceField) : null;
-                
-                if (checkboxEl) checkboxEl.checked = false;
-                if (priceFieldEl) {
-                    priceFieldEl.value = '';
-                    priceFieldEl.disabled = true;
-                }
-            });
-        };
-        console.log('✅ Added resetVariantFields function');
-    }
-    
-    // Add missing removeImagePreview if it doesn't exist
-    if (typeof window.removeImagePreview !== 'function') {
-        window.removeImagePreview = function() {
-            const imagePreview = document.getElementById('imagePreview');
-            const imageInput = document.getElementById('itemImage');
-            
-            if (imagePreview) imagePreview.style.display = 'none';
-            if (imageInput) imageInput.value = '';
-        };
-        console.log('✅ Added removeImagePreview function');
-    }
-    
-    // Add missing toggleVariantPrice if it doesn't exist
-    if (typeof window.toggleVariantPrice !== 'function') {
-        window.toggleVariantPrice = function(variant) {
-            let checkboxId, priceId;
-            
-            switch(variant) {
-                case '5ml':
-                    checkboxId = 'enable5ml';
-                    priceId = 'price5ml';
-                    break;
-                case '10ml':
-                    checkboxId = 'enable10ml';
-                    priceId = 'price10ml';
-                    break;
-                case '30ml':
-                    checkboxId = 'enable30ml';
-                    priceId = 'price30ml';
-                    break;
-                case 'full':
-                    checkboxId = 'enableFullBottle';
-                    priceId = null;
-                    break;
-                default:
-                    console.error('Unknown variant:', variant);
-                    return;
-            }
-            
-            const checkbox = document.getElementById(checkboxId);
-            const priceInput = priceId ? document.getElementById(priceId) : null;
-            
-            if (checkbox && priceInput) {
-                priceInput.disabled = !checkbox.checked;
-                if (!checkbox.checked) {
-                    priceInput.value = '';
-                }
-            }
-        };
-        console.log('✅ Added toggleVariantPrice function');
-    }
-    
-    // Add missing modal functions if they don't exist
-    if (typeof window.showModal !== 'function') {
-        window.showModal = function(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                
-                setTimeout(() => {
-                    const firstInput = modal.querySelector('input[type="text"], textarea, select');
-                    if (firstInput && !firstInput.disabled) firstInput.focus();
-                }, 100);
-            }
-        };
-        console.log('✅ Added showModal function');
-    }
-    
-    if (typeof window.hideModal !== 'function') {
-        window.hideModal = function(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        };
-        console.log('✅ Added hideModal function');
-    }
+    console.log('✅ Pagination functions overridden');
 }
 
-function addEnhancedFeatures() {
-    
-    // Items per page selector
-    const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
-    if (itemsPerPageSelect && !itemsPerPageSelect.hasAttribute('data-adapter-enhanced')) {
-        itemsPerPageSelect.addEventListener('change', (e) => {
-            const newItemsPerPage = parseInt(e.target.value);
-            if (typeof itemsPerPage !== 'undefined' && newItemsPerPage !== itemsPerPage) {
-                window.itemsPerPage = newItemsPerPage;
-                currentPage = 1; // Reset to first page
-                
-                if (typeof applyFiltersAndPagination === 'function') {
-                    applyFiltersAndPagination();
-                }
-                
-                console.log(`📄 Items per page changed to: ${newItemsPerPage}`);
-            }
-        });
-        itemsPerPageSelect.setAttribute('data-adapter-enhanced', 'true');
-        console.log('✅ Items per page selector enhanced');
-    }
-    
-    // Enhanced search functionality
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput && !searchInput.hasAttribute('data-adapter-enhanced')) {
-        let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                if (typeof currentSearchTerm !== 'undefined') {
-                    currentSearchTerm = e.target.value;
-                    currentPage = 1; // Reset to first page on search
-                    
-                    if (typeof applyFiltersAndPagination === 'function') {
-                        applyFiltersAndPagination();
-                    }
-                    
-                    console.log(`🔍 Search term: "${e.target.value}"`);
-                }
-            }, 300);
-        });
-        searchInput.setAttribute('data-adapter-enhanced', 'true');
-        console.log('✅ Search functionality enhanced');
-    }
-    
-    // Enhanced filter functionality
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter && !statusFilter.hasAttribute('data-adapter-enhanced')) {
-        statusFilter.addEventListener('change', (e) => {
-            if (typeof currentFilter !== 'undefined') {
-                currentFilter = e.target.value;
-                currentPage = 1; // Reset to first page on filter change
-                
-                if (typeof applyFiltersAndPagination === 'function') {
-                    applyFiltersAndPagination();
-                }
-                
-                console.log(`🎯 Filter changed to: ${e.target.value}`);
-            }
-        });
-        statusFilter.setAttribute('data-adapter-enhanced', 'true');
-        console.log('✅ Filter functionality enhanced');
-    }
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + N: Add new item
-        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-            e.preventDefault();
-            if (typeof openAddItemModal === 'function') {
-                openAddItemModal();
-            }
-        }
-        
-        // Arrow keys for pagination
-        if (e.key === 'ArrowLeft' && e.ctrlKey) {
-            e.preventDefault();
-            const prevPage = currentPage - 1;
-            if (prevPage >= 1) changePage(prevPage);
-        }
-        
-        if (e.key === 'ArrowRight' && e.ctrlKey) {
-            e.preventDefault();
-            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-            const nextPage = currentPage + 1;
-            if (nextPage <= totalPages) changePage(nextPage);
-        }
-        
-        // Escape: Close modals
-        if (e.key === 'Escape') {
-            const modals = document.querySelectorAll('.modal-overlay[style*="flex"]');
-            modals.forEach(modal => {
-                if (modal.id === 'itemModalOverlay' && typeof closeItemModal === 'function') {
-                    closeItemModal();
-                } else if (modal.id === 'deleteModalOverlay' && typeof closeDeleteModal === 'function') {
-                    closeDeleteModal();
-                }
-            });
-        }
-    });
-    
-    console.log('✅ Enhanced features added (keyboard shortcuts: Ctrl+N, Ctrl+←/→, Escape)');
-}
-
-// Debug function
-function debugPaginationState() {
+// Debug function for pagination only
+function debugPagination() {
     const state = {
-        variables: {
-            items: typeof items !== 'undefined' ? items.length : 'undefined',
-            filteredItems: typeof filteredItems !== 'undefined' ? filteredItems.length : 'undefined',
-            currentPage: typeof currentPage !== 'undefined' ? currentPage : 'undefined',
-            itemsPerPage: typeof itemsPerPage !== 'undefined' ? itemsPerPage : 'undefined'
-        },
-        elements: {
-            paginationContainer: !!document.getElementById('paginationContainer'),
+        currentPage: typeof currentPage !== 'undefined' ? currentPage : 'undefined',
+        itemsPerPage: typeof itemsPerPage !== 'undefined' ? itemsPerPage : 'undefined',
+        filteredItems: typeof filteredItems !== 'undefined' ? filteredItems.length : 'undefined',
+        totalPages: typeof filteredItems !== 'undefined' && typeof itemsPerPage !== 'undefined' ? 
+                   Math.ceil(filteredItems.length / itemsPerPage) : 'cannot calculate',
+        paginationContainer: !!document.getElementById('paginationContainer'),
+        paginationInfo: {
             startIndex: !!document.getElementById('startIndex'),
             endIndex: !!document.getElementById('endIndex'),
-            totalCount: !!document.getElementById('totalCount'),
-            itemsList: !!document.getElementById('itemsList')
-        },
-        functions: {
-            applyFiltersAndPagination: typeof applyFiltersAndPagination,
-            renderPagination: typeof renderPagination,
-            changePage: typeof changePage,
-            updatePaginationInfo: typeof updatePaginationInfo
+            totalCount: !!document.getElementById('totalCount')
         }
     };
     
-    console.log('🔍 Pagination Debug State:', state);
-    
-    if (typeof filteredItems !== 'undefined' && filteredItems.length > 0) {
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-        console.log(`📄 Calculated total pages: ${totalPages}`);
-    }
-    
+    console.log('🔍 Pagination Debug:', state);
     return state;
 }
 
-// Make debug function available globally
-window.debugPaginationState = debugPaginationState;
+// Make debug available globally
+window.debugPagination = debugPagination;
 
-// Auto-debug after a delay
+// Auto-debug after initialization
 setTimeout(() => {
-    debugPaginationState();
-}, 2000);
+    debugPagination();
+}, 3000);
 
-console.log('✅ Items management adapter (pagination focused) loaded successfully');
+console.log('✅ Pagination-only adapter loaded successfully');
