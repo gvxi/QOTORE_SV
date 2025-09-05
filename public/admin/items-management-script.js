@@ -714,8 +714,9 @@ async function handleFormSubmit(e) {
             
             const imageResult = await imageResponse.json();
             if (imageResult.success) {
-                formData.image_path = imageResult.data.path; // Use the path from upload response
-                console.log('✅ Image uploaded successfully:', imageResult.data.path);
+                // FIXED: Use only the filename, not the full path
+                formData.image_path = imageResult.data.filename; // Use filename instead of path
+                console.log('✅ Image uploaded successfully, using filename:', imageResult.data.filename);
             } else {
                 throw new Error('Image upload failed');
             }
