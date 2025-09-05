@@ -311,6 +311,8 @@ function renderTableRows(pageItems) {
             </td>
         </tr>
     `).join('');
+    
+    console.log(`✅ Rendered ${pageItems.length} table rows for page ${currentPage}`);
 }
 
 function getVariantsDisplay(variants) {
