@@ -97,164 +97,176 @@ function setupVariantCheckboxListeners() {
                 if (!this.checked) {
                     priceFieldEl.value = '';
                 }
-                console.log(`${checkbox} ${this.checked ? 'enabled' : 'disabled'}`);
+                console.log(`${checkbox} ${this.checked ? 'enabled' : 'disabled'} ${priceField}`);
             });
         }
     });
-    
-    // Full bottle checkbox (no price field)
-    const fullBottleCheckbox = document.getElementById('enableFullBottle');
-    if (fullBottleCheckbox) {
-        fullBottleCheckbox.addEventListener('change', function() {
-            console.log(`Full bottle ${this.checked ? 'enabled' : 'disabled'}`);
-        });
-    }
 }
 
-// MISSING FUNCTION ADDED: Reset all variant fields
-function resetVariantFields() {
-    console.log('🔄 Resetting variant fields...');
-    
-    // Reset 5ml variant
-    const enable5ml = document.getElementById('enable5ml');
-    const price5ml = document.getElementById('price5ml');
-    if (enable5ml) {
-        enable5ml.checked = false;
-    }
-    if (price5ml) {
-        price5ml.disabled = true;
-        price5ml.value = '';
-    }
-    
-    // Reset 10ml variant
-    const enable10ml = document.getElementById('enable10ml');
-    const price10ml = document.getElementById('price10ml');
-    if (enable10ml) {
-        enable10ml.checked = false;
-    }
-    if (price10ml) {
-        price10ml.disabled = true;
-        price10ml.value = '';
-    }
-    
-    // Reset 30ml variant
-    const enable30ml = document.getElementById('enable30ml');
-    const price30ml = document.getElementById('price30ml');
-    if (enable30ml) {
-        enable30ml.checked = false;
-    }
-    if (price30ml) {
-        price30ml.disabled = true;
-        price30ml.value = '';
-    }
-    
-    // Reset full bottle variant
-    const enableFullBottle = document.getElementById('enableFullBottle');
-    if (enableFullBottle) {
-        enableFullBottle.checked = false;
-    }
-    
-    console.log('✅ Variant fields reset complete');
+// Utility functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
-// Data loading and processing
+function updatePreviews() {
+    const itemName = document.getElementById('itemName').value || 'creed-aventus';
+    const slug = generateSlug(itemName);
+    
+    document.getElementById('slugPreview').textContent = slug;
+    document.getElementById('imageNamePreview').textContent = `${slug}.png`;
+}
+
+function generateSlug(text) {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+}
+
+// Data loading functions
 async function loadItems() {
-    console.log('📦 Loading items...');
-    const loadingEl = document.getElementById('loadingState');
-    const contentEl = document.getElementById('contentContainer');
+    const itemsList = document.getElementById('itemsList');
+    const loadingSpinner = document.getElementById('loadingSpinner');
     
-    if (loadingEl) loadingEl.style.display = 'block';
-    if (contentEl) contentEl.style.display = 'none';
+    if (loadingSpinner) loadingSpinner.style.display = 'flex';
     
     try {
-        const response = await fetch('/api/admin/items');
+        console.log('Loading items from admin API...');
+        
+        const response = await fetch('/admin/fragrances', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
         
         if (!response.ok) {
             if (response.status === 401) {
-                showToast('Authentication failed. Please log in again.', 'error');
-                window.location.href = '/admin/login.html';
+                window.location.href = '/admin/login';
                 return;
             }
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        const result = await response.json();
+        const data = await response.json();
+        console.log('Items loaded successfully:', data);
         
-        if (result.success && Array.isArray(result.data)) {
-            items = result.data;
-            console.log(`✅ Loaded ${items.length} items`);
-            
-            updateStats();
+        if (data.success && Array.isArray(data.data)) {
+            items = data.data;
+            console.log(`Loaded ${items.length} items for admin management`);
             applyFiltersAndPagination();
         } else {
-            throw new Error(result.error || 'Invalid response format');
+            console.warn('Invalid response structure:', data);
+            items = [];
+            renderItems([]);
         }
         
     } catch (error) {
-        console.error('💥 Load items error:', error);
-        showToast('Failed to load items: ' + error.message, 'error');
+        console.error('Failed to load items:', error);
+        showToast('Failed to load items. Please check your connection and try again.', 'error');
         items = [];
+        renderItems([]);
     } finally {
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (contentEl) contentEl.style.display = 'block';
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
     }
-}
-
-function updateStats() {
-    const totalItems = items.length;
-    const visibleItems = items.filter(item => !item.hidden).length;
-    const hiddenItems = items.filter(item => item.hidden).length;
-    
-    // Update stat displays
-    const totalStat = document.getElementById('totalItems');
-    const visibleStat = document.getElementById('visibleItems');
-    const hiddenStat = document.getElementById('hiddenItems');
-    
-    if (totalStat) totalStat.textContent = totalItems;
-    if (visibleStat) visibleStat.textContent = visibleItems;
-    if (hiddenStat) hiddenStat.textContent = hiddenItems;
 }
 
 function applyFiltersAndPagination() {
-    // Apply search and filter
-    filteredItems = items.filter(item => {
-        const matchesSearch = !currentSearchTerm || 
-            item.name.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
-            item.brand.toLowerCase().includes(currentSearchTerm.toLowerCase());
-        
-        const matchesFilter = currentFilter === 'all' ||
-            (currentFilter === 'visible' && !item.hidden) ||
-            (currentFilter === 'hidden' && item.hidden);
-        
-        return matchesSearch && matchesFilter;
-    });
+    let filtered = [...items];
     
-    // Calculate pagination
+    // Apply search filter
+    if (currentSearchTerm) {
+        const searchLower = currentSearchTerm.toLowerCase();
+        filtered = filtered.filter(item => 
+            (item.name && item.name.toLowerCase().includes(searchLower)) ||
+            (item.brand && item.brand.toLowerCase().includes(searchLower)) ||
+            (item.description && item.description.toLowerCase().includes(searchLower))
+        );
+    }
+    
+    // Apply status filter
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(item => {
+            if (currentFilter === 'visible') return !item.hidden;
+            if (currentFilter === 'hidden') return item.hidden;
+            return true;
+        });
+    }
+    
+    filteredItems = filtered;
+    
+    // Update pagination info
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, filteredItems.length);
-    const pageItems = filteredItems.slice(startIndex, endIndex);
+    const startItem = (currentPage - 1) * itemsPerPage;
+    const endItem = startItem + itemsPerPage;
+    const pageItems = filteredItems.slice(startItem, endItem);
     
-    // Render content
     renderItems(pageItems);
     renderPagination(totalPages);
-    
-    // Update results info
-    const resultsInfo = document.getElementById('resultsInfo');
-    if (resultsInfo) {
-        resultsInfo.textContent = `Showing ${startIndex + 1}-${endIndex} of ${filteredItems.length} items`;
-    }
 }
 
 function renderItems(pageItems) {
-    if (window.innerWidth <= 768) {
+    const itemsList = document.getElementById('itemsList');
+    const statsContainer = document.getElementById('statsContainer');
+    
+    if (!itemsList) return;
+    
+    // Update stats
+    if (statsContainer) {
+        const visibleCount = items.filter(item => !item.hidden).length;
+        const hiddenCount = items.filter(item => item.hidden).length;
+        
+        statsContainer.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-number">${items.length}</div>
+                <div class="stat-label">Total Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${visibleCount}</div>
+                <div class="stat-label">Visible</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${hiddenCount}</div>
+                <div class="stat-label">Hidden</div>
+            </div>
+        `;
+    }
+    
+    if (pageItems.length === 0) {
+        itemsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">No items found</div>
+                <div class="empty-subtitle">
+                    ${currentSearchTerm ? 'Try different search terms' : 'Add your first fragrance to get started'}
+                </div>
+                ${!currentSearchTerm ? '<button class="btn-primary" onclick="openAddItemModal()">Add First Item</button>' : ''}
+            </div>
+        `;
+        return;
+    }
+    
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
         renderMobileItems(pageItems);
     } else {
-        renderTableItems(pageItems);
+        renderDesktopItems(pageItems);
     }
 }
 
-function renderTableItems(pageItems) {
+function renderDesktopItems(pageItems) {
     const itemsList = document.getElementById('itemsList');
     
     // Add cache buster timestamp for images
@@ -264,16 +276,16 @@ function renderTableItems(pageItems) {
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 80px;">Image</th>
-                    <th>Details</th>
-                    <th style="width: 200px;">Variants</th>
-                    <th style="width: 100px;">Status</th>
-                    <th style="width: 150px;">Actions</th>
+                    <th>Image</th>
+                    <th>Item Details</th>
+                    <th>Variants</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 ${pageItems.map(item => `
-                    <tr class="${item.hidden ? 'hidden-item' : ''}">
+                    <tr class="item-row ${item.hidden ? 'hidden-item' : ''}">
                         <td>
                             <div class="item-image">
                                 ${item.image_path ? 
@@ -286,7 +298,7 @@ function renderTableItems(pageItems) {
                             <div class="item-details">
                                 <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
                                 <p class="item-brand">${item.brand || 'No brand'}</p>
-                                <p class="item-description">${(item.description || 'No description').substring(0, 100)}${item.description && item.description.length > 100 ? '...' : ''}</p>
+                                <p class="item-description">${(item.description || 'No description').substring(0, 100)}${(item.description && item.description.length > 100) ? '...' : ''}</p>
                             </div>
                         </td>
                         <td>
@@ -419,40 +431,62 @@ async function toggleItemVisibility(itemId, newVisibility) {
             itemId, 
             newVisibility, 
             willBeHidden: !newVisibility,
-            action: newVisibility ? 'show' : 'hide'
+            action: newVisibility ? 'SHOW item' : 'HIDE item'
         });
         
-        const response = await fetch('/api/admin/items/toggle-visibility', {
+        // Find current item to check its current state
+        const currentItem = items.find(item => item.id == itemId);
+        if (!currentItem) {
+            throw new Error('Item not found in local data');
+        }
+        
+        console.log('📋 Current item state:', {
+            id: currentItem.id,
+            name: currentItem.name,
+            currentlyHidden: currentItem.hidden,
+            newVisibility: newVisibility,
+            shouldSetHiddenTo: !newVisibility
+        });
+        
+        const response = await fetch('/admin/toggle-fragrance', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({
                 id: parseInt(itemId),
-                hidden: !newVisibility // Toggle the value
+                hidden: !newVisibility // if newVisibility=true (show), hidden=false
             })
         });
         
+        console.log('🌐 Toggle response status:', response.status);
+        
         if (!response.ok) {
-            if (response.status === 401) {
-                showToast('Authentication failed. Please log in again.', 'error');
-                window.location.href = '/admin/login.html';
-                return;
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('❌ Toggle response error:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
+        console.log('📨 Toggle response data:', result);
         
         if (result.success) {
-            // Update local data
-            const item = items.find(i => i.id == itemId);
-            if (item) {
-                item.hidden = !newVisibility;
+            // Update local data with the actual returned state
+            const itemIndex = items.findIndex(item => item.id == itemId);
+            if (itemIndex !== -1) {
+                const oldHidden = items[itemIndex].hidden;
+                items[itemIndex].hidden = result.data.hidden; // Use server response
+                console.log('💾 Updated local item:', {
+                    id: itemId,
+                    oldHidden: oldHidden,
+                    newHidden: items[itemIndex].hidden,
+                    serverConfirmedHidden: result.data.hidden
+                });
             }
             
-            updateStats();
-            const actionPerformed = newVisibility ? 'hidden' : 'shown';
+            // Show success message based on actual result
+            const actionPerformed = result.data.hidden ? 'hidden' : 'shown';
             showToast(`Item ${actionPerformed} successfully`, 'success');
             
             // Force re-render to update button states and styling
@@ -597,53 +631,67 @@ function deleteItem(itemId) {
             <p>${item.brand || 'No brand'}</p>
             <p>${getVariantsDisplay(item.variants)}</p>
         </div>
-        ${imageUrl ? `<img src="${imageUrl}" alt="${item.name}" style="max-width: 100px; height: auto; border-radius: 4px;">` : ''}
+        ${imageUrl ? `
+        <div class="item-image-preview">
+            <img src="${imageUrl}" alt="${item.name}">
+        </div>
+        ` : ''}
     `;
     
     showModal('deleteModalOverlay');
 }
 
 async function confirmDelete() {
-    if (!deleteItemId) {
-        showToast('No item selected for deletion', 'error');
-        return;
-    }
+    if (!deleteItemId) return;
+    
+    const deleteButton = document.querySelector('#deleteModalOverlay .btn-delete');
+    const originalText = deleteButton.textContent;
+    
+    deleteButton.disabled = true;
+    deleteButton.innerHTML = '<div class="loading-spinner"></div> Deleting...';
     
     try {
-        const response = await fetch('/api/admin/items/delete', {
-            method: 'POST',
+        console.log('🗑️ Deleting item with ID:', deleteItemId);
+        
+        const response = await fetch('/admin/delete-fragrance', {
+            method: 'POST', // Changed to POST to match the endpoint 
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                id: parseInt(deleteItemId)
-            })
+            credentials: 'include',
+            body: JSON.stringify({ id: parseInt(deleteItemId) })
         });
         
+        console.log('🌐 Delete response status:', response.status);
+        
         if (!response.ok) {
-            if (response.status === 401) {
-                showToast('Authentication failed. Please log in again.', 'error');
-                window.location.href = '/admin/login.html';
-                return;
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('❌ Delete response error:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
+        console.log('📨 Delete response data:', result);
         
         if (result.success) {
+            // Remove from local data
             items = items.filter(item => item.id != deleteItemId);
+            
             showToast('Item deleted successfully', 'success');
-            updateStats();
-            applyFiltersAndPagination();
             closeDeleteModal();
+            applyFiltersAndPagination();
+            
+            console.log('✅ Item removed from local data and UI updated');
         } else {
             throw new Error(result.error || 'Failed to delete item');
         }
         
     } catch (error) {
-        console.error('💥 Delete item error:', error);
+        console.error('💥 Delete error:', error);
         showToast('Failed to delete item: ' + error.message, 'error');
+    } finally {
+        deleteButton.disabled = false;
+        deleteButton.textContent = originalText;
     }
 }
 
@@ -651,19 +699,17 @@ function closeDeleteModal() {
     hideModal('deleteModalOverlay');
     deleteItemId = null;
 }
-
-// Form handling and validation
+// FIXED: Updated handleFormSubmit to properly handle variants
 async function handleFormSubmit(e) {
     e.preventDefault();
     
-    if (!validateForm()) {
-        return;
-    }
+    let saveButton = document.getElementById('saveItemBtn') || 
+                    document.querySelector('[onclick="saveItem()"]') ||
+                    e.target.querySelector('button[type="submit"]') ||
+                    document.querySelector('.btn-primary');
     
-    // Find save button
-    const saveButton = document.querySelector('#itemForm button[type="submit"]');
-    const saveButtonText = document.getElementById('saveButtonText') || 
-        (saveButton && saveButton.querySelector('span') ? saveButton.querySelector('span') : saveButton);
+    let saveButtonText = document.getElementById('saveButtonText') ||
+                        (saveButton ? saveButton.querySelector('span') || saveButton : null);
     
     if (!saveButton || !saveButtonText) {
         console.error('Could not find save button or save button text element');
@@ -733,217 +779,94 @@ async function handleFormSubmit(e) {
             });
         }
         
-        console.log('📤 Submitting form data:', formData);
+        console.log('Submitting form data:', formData);
         
-        // Create FormData for file upload
-        const submitData = new FormData();
-        submitData.append('data', JSON.stringify(formData));
-        
-        // Add image if selected
-        const imageInput = document.getElementById('itemImage');
-        if (imageInput && imageInput.files.length > 0) {
-            submitData.append('image', imageInput.files[0]);
+        // Submit the form
+        let endpoint, method;
+        if (currentEditingId) {
+            endpoint = '/admin/update-fragrance';
+            method = 'POST';
+        } else {
+            endpoint = '/admin/add-fragrance';
+            method = 'POST';
         }
         
-        const url = currentEditingId ? '/api/admin/items/update' : '/api/admin/items/create';
-        const response = await fetch(url, {
-            method: 'POST',
-            body: submitData
+        const response = await fetch(endpoint, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(formData)
         });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                showToast('Authentication failed. Please log in again.', 'error');
-                window.location.href = '/admin/login.html';
-                return;
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
         
         const result = await response.json();
         
-        if (result.success) {
-            showToast(`Item ${currentEditingId ? 'updated' : 'created'} successfully`, 'success');
+        if (response.ok && result.success) {
+            showToast(currentEditingId ? 'Item updated successfully!' : 'Item added successfully!', 'success');
             closeItemModal();
-            await loadItems(); // Reload items to show changes
+            loadItems(); // Reload the items list
         } else {
-            throw new Error(result.error || 'Failed to save item');
+            throw new Error(result.error || result.message || 'Failed to save item');
         }
         
     } catch (error) {
-        console.error('💥 Form submission error:', error);
+        console.error('Form submission error:', error);
         showToast('Failed to save item: ' + error.message, 'error');
     } finally {
-        // Restore button state
+        // Re-enable button
         saveButton.disabled = false;
         saveButtonText.textContent = originalText;
     }
 }
 
-function validateForm() {
-    const errors = [];
-    let isValid = true;
-    
-    // Required fields
-    const itemName = document.getElementById('itemName');
-    if (!itemName.value.trim()) {
-        errors.push('Item name is required');
-        if (itemName) addFieldError(itemName);
-        isValid = false;
-    } else {
-        if (itemName) removeFieldError(itemName);
-    }
-    
-    const itemBrand = document.getElementById('itemBrand');
-    if (!itemBrand.value.trim()) {
-        errors.push('Brand is required');
-        if (itemBrand) addFieldError(itemBrand);
-        isValid = false;
-    } else {
-        if (itemBrand) removeFieldError(itemBrand);
-    }
-    
-    // Image validation (required for new items)
-    const itemImage = document.getElementById('itemImage');
-    if (!currentEditingId && (!itemImage || !itemImage.files || !itemImage.files.length)) {
-        errors.push('Item image is required');
-        if (itemImage) addFieldError(itemImage);
-        isValid = false;
-    } else {
-        if (itemImage) removeFieldError(itemImage);
-    }
-    
-    // Variants validation
-    const hasVariants = document.getElementById('enable5ml').checked ||
-                       document.getElementById('enable10ml').checked ||
-                       document.getElementById('enable30ml').checked ||
-                       document.getElementById('enableFullBottle').checked;
-    
-    if (!hasVariants) {
-        errors.push('At least one variant must be selected');
-        isValid = false;
-    }
-    
-    // Price validation for enabled variants
-    const variants = [
-        { checkbox: 'enable5ml', price: 'price5ml', name: '5ml' },
-        { checkbox: 'enable10ml', price: 'price10ml', name: '10ml' },
-        { checkbox: 'enable30ml', price: 'price30ml', name: '30ml' }
-    ];
-    
-    variants.forEach(variant => {
-        const checkbox = document.getElementById(variant.checkbox);
-        const priceInput = document.getElementById(variant.price);
-        
-        if (checkbox && checkbox.checked && priceInput) {
-            const price = parseFloat(priceInput.value);
-            if (!price || price <= 0) {
-                errors.push(`${variant.name} price must be greater than 0`);
-                addFieldError(priceInput);
-                isValid = false;
-            } else {
-                removeFieldError(priceInput);
-            }
-        }
-    });
-    
-    // Show errors if any
-    if (errors.length > 0) {
-        showToast(errors.join('. '), 'error', 6000);
-    }
-    
-    return isValid;
-}
-
-function addFieldError(field) {
-    field.style.borderColor = '#dc3545';
-    field.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.1)';
-}
-
-function removeFieldError(field) {
-    field.style.borderColor = '#e9ecef';
-    field.style.boxShadow = 'none';
-}
-
-// Utility functions
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+async function saveItem() {
+    const form = document.getElementById('itemForm');
+    if (form) {
+        // Create a mock event object
+        const mockEvent = {
+            preventDefault: () => {},
+            target: form
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function generateSlug(name) {
-    return name
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-function updatePreviews() {
-    const itemNameInput = document.getElementById('itemName');
-    const slugPreview = document.getElementById('slugPreview');
-    const filenamePreview = document.getElementById('filenamePreview');
-    
-    if (!itemNameInput) return;
-    
-    const name = itemNameInput.value.trim();
-    
-    if (name) {
-        const slug = generateSlug(name);
         
-        if (slugPreview) {
-            slugPreview.textContent = slug || 'item-slug';
-        }
-        
-        if (filenamePreview) {
-            filenamePreview.textContent = `${slug || 'item-name'}.png`;
-        }
+        // Call handleFormSubmit directly
+        await handleFormSubmit(mockEvent);
     } else {
-        if (slugPreview) slugPreview.textContent = 'item-slug';
-        if (filenamePreview) filenamePreview.textContent = 'item-name.png';
+        console.error('Form not found');
+        showToast('Internal error: Form not found', 'error');
     }
 }
 
+// Image handling functions
 function handleImagePreview(e) {
     const file = e.target.files[0];
-    
-    if (!file) {
-        removeImagePreview();
-        return;
-    }
-    
-    // Validation
-    if (!file.type.includes('png')) {
-        showToast('Only PNG images are allowed', 'error');
-        e.target.value = '';
-        return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('Image too large. Maximum size is 5MB', 'error');
-        e.target.value = '';
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('previewImg');
-        
-        if (imagePreview && previewImg) {
-            previewImg.src = e.target.result;
-            imagePreview.style.display = 'block';
+    if (file) {
+        if (!file.type.includes('png')) {
+            showToast('Only PNG images are allowed', 'error');
+            e.target.value = '';
+            return;
         }
-    };
-    reader.readAsDataURL(file);
+        
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Image too large. Maximum size is 5MB', 'error');
+            e.target.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imagePreview && previewImg) {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+            }
+        };
+        reader.readAsDataURL(file);
+    } else {
+        removeImagePreview();
+    }
 }
 
 function removeImagePreview() {
@@ -982,7 +905,7 @@ function hideModal(modalId) {
 }
 
 // Toast notifications
-function showToast(message, type = 'info', duration = 4000) {
+function showToast(message, type = 'info') {
     const toastContainer = document.getElementById('toastContainer') || document.body;
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -998,7 +921,7 @@ function showToast(message, type = 'info', duration = 4000) {
     // Show toast
     setTimeout(() => toast.classList.add('show'), 100);
     
-    // Auto remove after duration
+    // Auto remove after 5 seconds
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => {
@@ -1006,5 +929,5 @@ function showToast(message, type = 'info', duration = 4000) {
                 toast.parentNode.removeChild(toast);
             }
         }, 300);
-    }, duration);
+    }, 5000);
 }
