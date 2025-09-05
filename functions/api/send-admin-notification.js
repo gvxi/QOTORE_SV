@@ -613,7 +613,7 @@ export async function onRequestGet(context) {
       '4. Set GMAIL_USER to your full Gmail address',
       '5. Set ADMIN_EMAIL to where you want to receive notifications'
     ],
-    note: 'Gmail App Passwords are required when using SMTP with 2FA enabled'
+    note: 'Gmail - App Passwords are required when using SMTP with 2FA enabled'
   }), { 
     headers: corsHeaders
   });
