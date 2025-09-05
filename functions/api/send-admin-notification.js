@@ -13,7 +13,7 @@ export async function onRequestPost(context) {
     const { env } = context;
     const ADMIN_EMAIL = env.ADMIN_EMAIL;
     const RESEND_API_KEY = env.RESEND_API_KEY;
-    const FROM_EMAIL = env.FROM_EMAIL || `Qotore Orders <orders@${env.RESEND_DOMAIN || 'yourdomain.com'}>`;
+    const FROM_EMAIL = env.FROM_EMAIL || 'Qotore Orders <orders@resend.dev>';
 
     // Validate required environment variables
     if (!ADMIN_EMAIL || !RESEND_API_KEY) {
