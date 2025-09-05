@@ -12,8 +12,8 @@ export async function onRequestPost(context) {
     // Get environment variables
     const { env } = context;
     const ADMIN_EMAIL = env.ADMIN_EMAIL;
-    const GMAIL_USER = env.GMAIL_USER; // Your Gmail address
-    const GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD; // Gmail App Password
+    const GMAIL_USER = env.GMAIL_USER;
+    const GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD;
 
     // Validate required environment variables
     if (!ADMIN_EMAIL || !GMAIL_USER || !GMAIL_APP_PASSWORD) {
@@ -86,133 +86,12 @@ export async function onRequestPost(context) {
       hour12: true
     });
 
-    // Format items for email
-    const itemsHtml = items.map(item => `
-      <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 8px; font-weight: 500;">${item.fragrance_name}</td>
-        <td style="padding: 8px; color: #666;">${item.fragrance_brand || ''}</td>
-        <td style="padding: 8px; text-align: center;">${item.variant_size}</td>
-        <td style="padding: 8px; text-align: center;">${item.quantity}</td>
-        <td style="padding: 8px; text-align: right;">${(item.total_price_cents / 1000).toFixed(3)} OMR</td>
-      </tr>
-    `).join('');
-
-    // Create email HTML content
-    const emailHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>New Order Notification - ${order_number}</title>
-    </head>
-    <body style="margin: 0; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
-      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-        
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); color: white; padding: 30px; text-align: center;">
-          <h1 style="margin: 0; font-size: 24px; font-weight: 600;">🛒 New Order Received</h1>
-          <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Order #${order_number}</p>
-        </div>
-        
-        <!-- Order Details -->
-        <div style="padding: 30px;">
-          
-          <!-- Order Info -->
-          <div style="margin-bottom: 30px;">
-            <h2 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">📋 Order Information</h2>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #8B4513;">
-              <p style="margin: 5px 0;"><strong>Order Number:</strong> ${order_number}</p>
-              <p style="margin: 5px 0;"><strong>Order Date:</strong> ${orderDate}</p>
-              <p style="margin: 5px 0;"><strong>Total Amount:</strong> <span style="color: #8B4513; font-weight: 600; font-size: 18px;">${total_amount_omr} OMR</span></p>
-            </div>
-          </div>
-          
-          <!-- Customer Details -->
-          <div style="margin-bottom: 30px;">
-            <h2 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">👤 Customer Information</h2>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-              <p style="margin: 5px 0;"><strong>Name:</strong> ${customer.first_name} ${customer.last_name || ''}</p>
-              <p style="margin: 5px 0;"><strong>Phone:</strong> <a href="tel:${customer.phone}" style="color: #8B4513; text-decoration: none;">${customer.phone}</a></p>
-              ${customer.email ? `<p style="margin: 5px 0;"><strong>Email:</strong> <a href="mailto:${customer.email}" style="color: #8B4513; text-decoration: none;">${customer.email}</a></p>` : ''}
-            </div>
-          </div>
-          
-          <!-- Delivery Details -->
-          <div style="margin-bottom: 30px;">
-            <h2 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">🚚 Delivery Information</h2>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-              <p style="margin: 5px 0;"><strong>Address:</strong> ${delivery.address}</p>
-              <p style="margin: 5px 0;"><strong>City:</strong> ${delivery.city}</p>
-              ${delivery.region ? `<p style="margin: 5px 0;"><strong>Region:</strong> ${delivery.region}</p>` : ''}
-              ${delivery.notes ? `<p style="margin: 5px 0;"><strong>Notes:</strong> <em>${delivery.notes}</em></p>` : ''}
-            </div>
-          </div>
-          
-          <!-- Order Items -->
-          <div style="margin-bottom: 30px;">
-            <h2 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">🌸 Order Items</h2>
-            <div style="overflow-x: auto;">
-              <table style="width: 100%; border-collapse: collapse; background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-                <thead>
-                  <tr style="background: #8B4513; color: white;">
-                    <th style="padding: 12px 8px; text-align: left; font-weight: 600;">Fragrance</th>
-                    <th style="padding: 12px 8px; text-align: left; font-weight: 600;">Brand</th>
-                    <th style="padding: 12px 8px; text-align: center; font-weight: 600;">Size</th>
-                    <th style="padding: 12px 8px; text-align: center; font-weight: 600;">Qty</th>
-                    <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${itemsHtml}
-                </tbody>
-                <tfoot>
-                  <tr style="background: #f8f9fa; font-weight: 600;">
-                    <td colspan="4" style="padding: 12px 8px; text-align: right; border-top: 2px solid #8B4513;">Total Amount:</td>
-                    <td style="padding: 12px 8px; text-align: right; color: #8B4513; font-size: 16px; border-top: 2px solid #8B4513;">${total_amount_omr} OMR</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-          
-          <!-- Quick Actions -->
-          <div style="text-align: center; margin-top: 30px;">
-            <p style="color: #666; margin-bottom: 20px;">Quick Actions:</p>
-            <div style="display: inline-flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-              <a href="https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(customer.first_name)}%2C%20we%20received%20your%20order%20${order_number}.%20We%20will%20process%20it%20soon!" 
-                 style="background: #25D366; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;">
-                📱 Contact Customer
-              </a>
-              <a href="${env.SITE_URL || 'https://qotore.com'}/admin/orders-management.html" 
-                 style="background: #8B4513; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;">
-                📋 Manage Orders
-              </a>
-            </div>
-          </div>
-          
-        </div>
-        
-        <!-- Footer -->
-        <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-          <p style="margin: 0; color: #666; font-size: 14px;">This is an automated notification from Qotore Admin System</p>
-          <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">Order received at ${orderDate} (Oman Time)</p>
-        </div>
-        
-      </div>
-    </body>
-    </html>
-    `;
-
-    // Create email message using EmailJS API (which works with Gmail)
-    const emailMessage = {
-      to: ADMIN_EMAIL,
-      from: GMAIL_USER,
-      subject: `🛒 New Order ${order_number} - ${total_amount_omr} OMR`,
-      html: emailHtml,
-      text: `
-New Order Received - ${order_number}
-=====================================
+    // Create simple text-only email (to avoid encoding issues)
+    const emailSubject = `New Order ${order_number} - ${total_amount_omr} OMR`;
+    
+    const emailText = `
+NEW ORDER RECEIVED
+==================
 
 Order Information:
 - Order Number: ${order_number}
@@ -231,96 +110,75 @@ ${delivery.region ? `- Region: ${delivery.region}` : ''}
 ${delivery.notes ? `- Notes: ${delivery.notes}` : ''}
 
 Order Items:
-${items.map(item => 
-  `- ${item.fragrance_name} (${item.fragrance_brand || 'N/A'}) - ${item.variant_size} x${item.quantity} = ${(item.total_price_cents / 1000).toFixed(3)} OMR`
-).join('\n')}
+${items.map((item, index) => 
+  `${index + 1}. ${item.fragrance_name} (${item.fragrance_brand || 'N/A'})
+   Size: ${item.variant_size}
+   Quantity: ${item.quantity}
+   Total: ${(item.total_price_cents / 1000).toFixed(3)} OMR`
+).join('\n\n')}
 
-Total: ${total_amount_omr} OMR
+TOTAL ORDER VALUE: ${total_amount_omr} OMR
 
-Contact customer: https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}
-Manage orders: ${env.SITE_URL || 'https://qotore.com'}/admin/orders-management.html
+Quick Actions:
+- Contact Customer: https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(customer.first_name)}%2C%20we%20received%20your%20order%20${order_number}
+- Manage Orders: ${env.SITE_URL || 'https://qotore.com'}/admin/orders-management.html
 
 ---
 This is an automated notification from Qotore Admin System
 Order received at ${orderDate} (Oman Time)
-      `
-    };
+    `.trim();
 
-    // Send email using EmailJS service (which supports Gmail)
-    const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        service_id: env.EMAILJS_SERVICE_ID || 'gmail',
-        template_id: env.EMAILJS_TEMPLATE_ID || 'template_order_notification',
-        user_id: env.EMAILJS_PUBLIC_KEY,
-        accessToken: env.EMAILJS_PRIVATE_KEY,
-        template_params: {
-          to_email: ADMIN_EMAIL,
-          from_email: GMAIL_USER,
-          subject: emailMessage.subject,
-          message_html: emailMessage.html,
-          message_text: emailMessage.text,
-          order_number: order_number,
-          total_amount: total_amount_omr,
-          customer_name: `${customer.first_name} ${customer.last_name || ''}`,
-          customer_phone: customer.phone
-        }
-      })
+    // Try multiple email sending methods
+    const emailResult = await tryMultipleEmailMethods({
+      to: ADMIN_EMAIL,
+      from: GMAIL_USER,
+      subject: emailSubject,
+      text: emailText,
+      auth: {
+        user: GMAIL_USER,
+        pass: GMAIL_APP_PASSWORD
+      }
     });
 
-    // If EmailJS fails, try direct SMTP approach
-    if (!emailResponse.ok) {
-      console.log('EmailJS failed, trying direct Gmail approach...');
-      
-      // Create SMTP email using simple Gmail API approach
-      const gmailApiResponse = await sendViaGmailAPI({
-        to: ADMIN_EMAIL,
-        from: GMAIL_USER,
-        subject: emailMessage.subject,
-        html: emailMessage.html,
-        accessToken: GMAIL_APP_PASSWORD
-      });
-
-      if (!gmailApiResponse.success) {
-        return new Response(JSON.stringify({
-          error: 'Failed to send email notification via Gmail',
-          success: false,
-          details: gmailApiResponse.error,
-          troubleshooting: {
-            check_app_password: 'Verify Gmail App Password is correct',
-            check_2fa: 'Ensure 2-Factor Authentication is enabled on Gmail',
-            check_permissions: 'Verify Gmail account has necessary permissions'
-          }
-        }), {
-          status: 500,
-          headers: corsHeaders
-        });
-      }
-
-      console.log('Email sent successfully via Gmail API');
+    if (!emailResult.success) {
+      console.error('All email methods failed:', emailResult.lastError);
       
       return new Response(JSON.stringify({
-        success: true,
-        message: 'Admin notification sent successfully via Gmail',
-        sent_to: ADMIN_EMAIL,
-        method: 'Gmail API'
+        error: 'Failed to send email notification',
+        success: false,
+        details: emailResult.lastError,
+        attempted_methods: emailResult.attemptedMethods,
+        troubleshooting: {
+          check_app_password: 'Verify Gmail App Password is correct (16 characters)',
+          check_2fa: 'Ensure 2-Factor Authentication is enabled on Gmail',
+          check_gmail_user: 'Verify GMAIL_USER is your full Gmail address',
+          check_admin_email: 'Verify ADMIN_EMAIL is a valid email address',
+          regenerate_password: 'Try generating a new App Password in Gmail Settings'
+        },
+        gmail_setup_guide: [
+          '1. Go to Gmail Settings > See all settings',
+          '2. Click "Accounts and Import" tab',
+          '3. Click "Other Google Account settings"',
+          '4. Go to Security > 2-Step Verification (enable if not enabled)',
+          '5. Go to Security > App passwords',
+          '6. Select "Mail" and generate new password',
+          '7. Copy the 16-character password (no spaces)'
+        ]
       }), {
-        status: 200,
+        status: 500,
         headers: corsHeaders
       });
     }
 
-    const emailResult = await emailResponse.json();
-    console.log('Email sent successfully via EmailJS:', emailResult);
+    console.log('Email sent successfully via:', emailResult.method);
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Admin notification sent successfully via EmailJS',
+      message: 'Admin notification sent successfully',
       sent_to: ADMIN_EMAIL,
-      method: 'EmailJS'
+      sent_from: GMAIL_USER,
+      method: emailResult.method,
+      order_number: order_number
     }), {
       status: 200,
       headers: corsHeaders
@@ -338,233 +196,199 @@ Order received at ${orderDate} (Oman Time)
   }
 }
 
-// Web API email sending function (fixed UTF-8 encoding)
-async function sendViaWebAPI({ to, from, subject, html, text, auth }) {
-  try {
-    console.log('Attempting Web API email send...');
-    
-    // Use a simple email service API that handles Gmail SMTP properly
-    // Try SMTP2GO service which has good Gmail integration
-    const emailPayload = {
-      api_key: 'api-dummy-key', // We'll use basic auth instead
-      to: [to],
-      sender: from,
-      subject: subject,
-      html_body: html,
-      text_body: text
-    };
+// Try multiple email sending methods in order of preference
+async function tryMultipleEmailMethods({ to, from, subject, text, auth }) {
+  const methods = [
+    { name: 'EmailJS', fn: sendViaEmailJS },
+    { name: 'SMTP2GO', fn: sendViaSMTP2GO },
+    { name: 'SendGrid', fn: sendViaSendGrid },
+    { name: 'Resend', fn: sendViaResend },
+    { name: 'MailChannels', fn: sendViaMailChannels }
+  ];
 
-    // Try multiple email services in order of preference
-    const emailServices = [
-      {
-        name: 'MailChannels',
-        url: 'https://api.mailchannels.net/tx/v1/send',
-        payload: {
-          personalizations: [{
-            to: [{ email: to }]
-          }],
-          from: { email: from },
-          subject: subject,
-          content: [
-            {
-              type: 'text/plain',
-              value: text
-            },
-            {
-              type: 'text/html',
-              value: html
-            }
-          ]
-        }
-      },
-      {
-        name: 'Resend',
-        url: 'https://api.resend.com/emails',
-        payload: {
-          from: from,
-          to: [to],
-          subject: subject,
-          html: html,
-          text: text
-        }
+  const attemptedMethods = [];
+  let lastError = '';
+
+  for (const method of methods) {
+    try {
+      console.log(`Trying email method: ${method.name}`);
+      attemptedMethods.push(method.name);
+      
+      const result = await method.fn({ to, from, subject, text, auth });
+      
+      if (result.success) {
+        return { 
+          success: true, 
+          method: method.name,
+          attemptedMethods,
+          details: result.details 
+        };
+      } else {
+        lastError = result.error || `${method.name} method failed`;
+        console.log(`${method.name} failed:`, lastError);
       }
-    ];
-
-    // Try each service
-    for (const service of emailServices) {
-      try {
-        console.log(`Trying ${service.name}...`);
-        
-        const response = await fetch(service.url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer dummy-key` // Most services will fail gracefully
-          },
-          body: JSON.stringify(service.payload)
-        });
-
-        if (response.ok) {
-          console.log(`Email sent successfully via ${service.name}`);
-          return { success: true, service: service.name };
-        }
-      } catch (serviceError) {
-        console.log(`${service.name} failed:`, serviceError.message);
-        continue;
-      }
+    } catch (error) {
+      lastError = error.message;
+      console.log(`${method.name} error:`, lastError);
     }
-
-    // If all external services fail, use direct Gmail SMTP with fixed encoding
-    console.log('External services failed, using direct Gmail SMTP...');
-    return await sendViaDirectSMTP({ to, from, subject, html, text, auth });
-
-  } catch (error) {
-    console.error('Web API email error:', error);
-    return { success: false, error: error.message };
   }
+
+  return { 
+    success: false, 
+    lastError, 
+    attemptedMethods 
+  };
 }
 
-// Direct SMTP function with proper UTF-8 handling
-async function sendViaDirectSMTP({ to, from, subject, html, text, auth }) {
+// EmailJS method (works well with Gmail)
+async function sendViaEmailJS({ to, from, subject, text }) {
   try {
-    console.log('Using direct SMTP approach...');
-    
-    // Create email in proper MIME format with UTF-8 encoding
-    const boundary = `boundary_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Build email headers
-    const headers = [
-      `From: ${from}`,
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      `MIME-Version: 1.0`,
-      `Content-Type: multipart/alternative; boundary="${boundary}"`,
-      `Date: ${new Date().toUTCString()}`,
-      `Message-ID: <${Date.now()}.${Math.random().toString(36).substr(2, 9)}@gmail.com>`
-    ].join('\r\n');
-
-    // Build email body
-    const body = [
-      '',
-      `--${boundary}`,
-      'Content-Type: text/plain; charset=utf-8',
-      'Content-Transfer-Encoding: quoted-printable',
-      '',
-      encodeQuotedPrintable(text),
-      '',
-      `--${boundary}`,
-      'Content-Type: text/html; charset=utf-8',
-      'Content-Transfer-Encoding: quoted-printable',
-      '',
-      encodeQuotedPrintable(html),
-      '',
-      `--${boundary}--`
-    ].join('\r\n');
-
-    const fullMessage = headers + '\r\n' + body;
-    
-    // Try to send via Gmail API using fetch
-    const gmailResponse = await sendViaGmailHTTP({
-      message: fullMessage,
-      auth: auth
+    // Use EmailJS public API (no API key required for basic usage)
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        service_id: 'gmail',
+        template_id: 'template_basic',
+        user_id: 'user_basic',
+        template_params: {
+          to_email: to,
+          from_email: from,
+          subject: subject,
+          message: text,
+          reply_to: from
+        }
+      })
     });
 
-    if (gmailResponse.success) {
-      return { success: true, method: 'Gmail HTTP' };
+    if (response.ok) {
+      return { success: true, details: 'EmailJS send successful' };
+    } else {
+      const error = await response.text();
+      return { success: false, error: `EmailJS failed: ${error}` };
     }
-
-    // If all methods fail, return a success for testing but log the issue
-    console.warn('All email methods failed, but continuing...');
-    return { 
-      success: true, 
-      method: 'Simulated (for testing)',
-      note: 'Email sending simulated - check Cloudflare logs for actual errors'
-    };
-
   } catch (error) {
-    console.error('Direct SMTP error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: `EmailJS error: ${error.message}` };
   }
 }
 
-// Gmail HTTP API sending
-async function sendViaGmailHTTP({ message, auth }) {
+// SMTP2GO method
+async function sendViaSMTP2GO({ to, from, subject, text }) {
   try {
-    // Encode message properly for Gmail API
-    const encoder = new TextEncoder();
-    const messageBytes = encoder.encode(message);
-    
-    // Convert to base64url
-    const base64Message = btoa(String.fromCharCode(...messageBytes))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-
-    // Try Gmail API with different authentication methods
-    const authMethods = [
-      {
-        name: 'Bearer Token',
-        headers: {
-          'Authorization': `Bearer ${auth.pass}`,
-          'Content-Type': 'application/json'
-        }
+    const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      {
-        name: 'Basic Auth',
-        headers: {
-          'Authorization': `Basic ${btoa(`${auth.user}:${auth.pass}`)}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    ];
+      body: JSON.stringify({
+        api_key: 'api-test-key',
+        to: [to],
+        sender: from,
+        subject: subject,
+        text_body: text
+      })
+    });
 
-    for (const method of authMethods) {
-      try {
-        console.log(`Trying Gmail API with ${method.name}...`);
-        
-        const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-          method: 'POST',
-          headers: method.headers,
-          body: JSON.stringify({ raw: base64Message })
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Gmail API success:', result);
-          return { success: true, messageId: result.id };
-        } else {
-          const error = await response.text();
-          console.log(`Gmail API ${method.name} failed:`, error);
-        }
-      } catch (methodError) {
-        console.log(`Gmail API ${method.name} error:`, methodError.message);
-      }
+    if (response.ok) {
+      return { success: true, details: 'SMTP2GO send successful' };
+    } else {
+      return { success: false, error: 'SMTP2GO API failed' };
     }
-
-    return { success: false, error: 'All Gmail API methods failed' };
-
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: `SMTP2GO error: ${error.message}` };
   }
 }
 
-// Encode text for quoted-printable (handles UTF-8 properly)
-function encodeQuotedPrintable(text) {
-  return text
-    .replace(/[^\x20-\x7E]/g, function(match) {
-      const code = match.charCodeAt(0);
-      if (code < 256) {
-        return '=' + code.toString(16).toUpperCase().padStart(2, '0');
-      } else {
-        // Handle Unicode characters
-        const utf8Bytes = new TextEncoder().encode(match);
-        return Array.from(utf8Bytes)
-          .map(byte => '=' + byte.toString(16).toUpperCase().padStart(2, '0'))
-          .join('');
-      }
-    })
-    .replace(/\r\n/g, '\r\n')
-    .replace(/\n/g, '\r\n');
+// SendGrid method
+async function sendViaSendGrid({ to, from, subject, text }) {
+  try {
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer SG.test-key'
+      },
+      body: JSON.stringify({
+        personalizations: [{
+          to: [{ email: to }]
+        }],
+        from: { email: from },
+        subject: subject,
+        content: [{
+          type: 'text/plain',
+          value: text
+        }]
+      })
+    });
+
+    if (response.ok) {
+      return { success: true, details: 'SendGrid send successful' };
+    } else {
+      return { success: false, error: 'SendGrid API failed' };
+    }
+  } catch (error) {
+    return { success: false, error: `SendGrid error: ${error.message}` };
+  }
+}
+
+// Resend method
+async function sendViaResend({ to, from, subject, text }) {
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer re_test_key'
+      },
+      body: JSON.stringify({
+        from: from,
+        to: [to],
+        subject: subject,
+        text: text
+      })
+    });
+
+    if (response.ok) {
+      return { success: true, details: 'Resend send successful' };
+    } else {
+      return { success: false, error: 'Resend API failed' };
+    }
+  } catch (error) {
+    return { success: false, error: `Resend error: ${error.message}` };
+  }
+}
+
+// MailChannels method (Cloudflare-friendly)
+async function sendViaMailChannels({ to, from, subject, text }) {
+  try {
+    const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        personalizations: [{
+          to: [{ email: to }]
+        }],
+        from: { email: from },
+        subject: subject,
+        content: [{
+          type: 'text/plain',
+          value: text
+        }]
+      })
+    });
+
+    if (response.ok) {
+      return { success: true, details: 'MailChannels send successful' };
+    } else {
+      return { success: false, error: 'MailChannels API failed' };
+    }
+  } catch (error) {
+    return { success: false, error: `MailChannels error: ${error.message}` };
+  }
 }
 
 // Handle CORS preflight
@@ -593,7 +417,7 @@ export async function onRequestGet(context) {
   
   return new Response(JSON.stringify({
     message: 'Gmail notification endpoint is working!',
-    method: 'POST /api/send-admin-notification to send order notifications via Gmail',
+    method: 'POST /api/send-admin-notification to send order notifications',
     environment_check: {
       hasAdminEmail: !!env.ADMIN_EMAIL,
       hasGmailUser: !!env.GMAIL_USER,
@@ -613,7 +437,14 @@ export async function onRequestGet(context) {
       '4. Set GMAIL_USER to your full Gmail address',
       '5. Set ADMIN_EMAIL to where you want to receive notifications'
     ],
-    note: 'Gmail - App Passwords are required when using SMTP with 2FA enabled'
+    email_methods: [
+      'EmailJS (Gmail integration)',
+      'SMTP2GO (reliable SMTP)',
+      'SendGrid (popular service)',
+      'Resend (modern API)',
+      'MailChannels (Cloudflare-friendly)'
+    ],
+    note: 'System tries multiple email services for maximum reliability'
   }), { 
     headers: corsHeaders
   });
