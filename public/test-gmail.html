@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gmail Configuration Test - Qotore</title>
+    <title>Email Configuration Test - Qotore</title>
     
     <style>
         :root {
@@ -36,7 +36,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: var(--border-radius);
@@ -58,6 +58,16 @@
 
         .header p {
             opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .service-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: 600;
         }
 
         .content {
@@ -75,6 +85,9 @@
             color: var(--primary);
             margin-bottom: 1rem;
             font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .status-check {
@@ -89,6 +102,11 @@
         .setup-guide {
             background: #fffbeb;
             border-color: var(--warning);
+        }
+
+        .features {
+            background: #f0fff4;
+            border-color: var(--success);
         }
 
         .btn {
@@ -120,6 +138,16 @@
             color: white;
         }
 
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -130,7 +158,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             border-bottom: 1px solid var(--border);
         }
 
@@ -253,13 +281,101 @@
         .back-link:hover {
             text-decoration: underline;
         }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .feature-item h4 {
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-item p {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            background: var(--light);
+            font-weight: 600;
+        }
+
+        .comparison-table .check {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .comparison-table .cross {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📧 Gmail Configuration Test</h1>
-            <p>Test your Gmail email notification setup for order alerts</p>
+            <h1>📧 Email Configuration Test</h1>
+            <p>Test your Resend email notification setup for order alerts</p>
+            <div class="service-badge">✨ Powered by Resend</div>
         </div>
 
         <div class="content">
@@ -282,42 +398,146 @@
             <!-- Test Email Section -->
             <div class="section test-email">
                 <h2>✉️ Send Test Email</h2>
-                <p>Send a test email to verify your Gmail configuration is working correctly.</p>
+                <p>Send a test email to verify your Resend configuration is working correctly.</p>
                 
-                <button id="sendTestBtn" class="btn btn-success" onclick="sendTestEmail()">
-                    <span>📧</span>
-                    <span>Send Test Email</span>
-                </button>
+                <div class="action-buttons">
+                    <button id="sendTestBtn" class="btn btn-success" onclick="sendTestEmail()">
+                        <span>📧</span>
+                        <span>Send Test Email</span>
+                    </button>
+                    <a href="https://resend.com/emails" target="_blank" class="btn btn-info">
+                        <span>📊</span>
+                        <span>View Resend Dashboard</span>
+                    </a>
+                </div>
 
                 <div id="testLoading" class="loading">
                     <div class="spinner"></div>
-                    <p>Sending test email...</p>
+                    <p>Sending test email via Resend...</p>
                 </div>
 
                 <div id="testResult" class="result"></div>
             </div>
 
+            <!-- Resend Features -->
+            <div class="section features">
+                <h2>🚀 Resend Features</h2>
+                <p>Why Resend is perfect for order notifications:</p>
+
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>🎯 High Deliverability</h4>
+                        <p>99.9% uptime with excellent inbox placement rates</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>💰 Cost Effective</h4>
+                        <p>3,000 free emails/month forever - perfect for small businesses</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>⚡ Lightning Fast</h4>
+                        <p>Emails delivered in under 1 second on average</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>🎨 Beautiful Emails</h4>
+                        <p>Professional HTML emails with responsive design</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>🔒 Secure & Reliable</h4>
+                        <p>Enterprise-grade security with detailed analytics</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>👨‍💻 Developer Friendly</h4>
+                        <p>Clean API with excellent documentation and error handling</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>💡 Pro Tip:</strong> Resend is built by developers for developers, offering the best email delivery experience with minimal setup required.
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="section">
+                <h2>📊 Email Service Comparison</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Resend</th>
+                            <th>Gmail SMTP</th>
+                            <th>Mailgun</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Setup Complexity</td>
+                            <td class="check">✅ Very Easy</td>
+                            <td class="cross">❌ Complex</td>
+                            <td class="cross">❌ Medium</td>
+                        </tr>
+                        <tr>
+                            <td>Free Tier</td>
+                            <td class="check">✅ 3,000/month</td>
+                            <td class="check">✅ Unlimited*</td>
+                            <td class="check">✅ 5,000/month</td>
+                        </tr>
+                        <tr>
+                            <td>Deliverability</td>
+                            <td class="check">✅ Excellent</td>
+                            <td class="cross">❌ Can be flagged</td>
+                            <td class="check">✅ Good</td>
+                        </tr>
+                        <tr>
+                            <td>HTML Emails</td>
+                            <td class="check">✅ Perfect</td>
+                            <td class="cross">❌ Encoding issues</td>
+                            <td class="check">✅ Good</td>
+                        </tr>
+                        <tr>
+                            <td>Analytics</td>
+                            <td class="check">✅ Detailed</td>
+                            <td class="cross">❌ None</td>
+                            <td class="check">✅ Basic</td>
+                        </tr>
+                        <tr>
+                            <td>Professional Look</td>
+                            <td class="check">✅ Domain verified</td>
+                            <td class="cross">❌ Personal email</td>
+                            <td class="check">✅ Domain verified</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size: 0.875rem; color: #666; margin-top: 0.5rem;">
+                    * Gmail has daily limits and may block automated emails
+                </p>
+            </div>
+
             <!-- Setup Guide -->
             <div class="section setup-guide">
-                <h2>🔧 Gmail Setup Guide</h2>
-                <p>Follow these steps to configure Gmail for order notifications:</p>
+                <h2>🔧 Resend Setup Guide</h2>
+                <p>Follow these steps to configure Resend for order notifications:</p>
 
                 <ol class="setup-steps">
                     <li>
-                        <strong>Enable 2-Factor Authentication</strong><br>
-                        Go to <a href="https://myaccount.google.com/security" target="_blank">Google Account Security</a> → 2-Step Verification
+                        <strong>Create Resend Account</strong><br>
+                        Go to <a href="https://resend.com" target="_blank">resend.com</a> and sign up for free
                     </li>
                     <li>
-                        <strong>Generate App Password</strong><br>
-                        In Security settings → App passwords → Select "Mail" → Generate
+                        <strong>Add Your Domain</strong><br>
+                        In Resend dashboard → Domains → Add Domain → Follow DNS verification steps
+                    </li>
+                    <li>
+                        <strong>Generate API Key</strong><br>
+                        Go to API Keys → Create API Key → Copy the key (starts with "re_")
                     </li>
                     <li>
                         <strong>Configure Environment Variables</strong><br>
                         Add these to your Cloudflare Workers dashboard:
                         <div class="code-block">
 ADMIN_EMAIL = your-admin@email.com<br>
-GMAIL_USER = your-gmail@gmail.com<br>
-GMAIL_APP_PASSWORD = your-16-character-app-password
+RESEND_API_KEY = re_your-resend-api-key<br>
+FROM_EMAIL = Qotore Orders &lt;orders@yourdomain.com&gt;<br>
+SITE_URL = https://yourdomain.com
                         </div>
                     </li>
                     <li>
@@ -325,6 +545,33 @@ GMAIL_APP_PASSWORD = your-16-character-app-password
                         Use the "Send Test Email" button above to verify everything works
                     </li>
                 </ol>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important:</strong> Make sure to verify your domain in Resend before sending emails. Unverified domains may have delivery issues.
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="section">
+                <h2>🔗 Quick Links</h2>
+                <div class="action-buttons">
+                    <a href="https://resend.com" target="_blank" class="btn btn-primary">
+                        <span>🌐</span>
+                        <span>Resend Website</span>
+                    </a>
+                    <a href="https://resend.com/docs" target="_blank" class="btn btn-info">
+                        <span>📚</span>
+                        <span>Documentation</span>
+                    </a>
+                    <a href="https://resend.com/pricing" target="_blank" class="btn btn-success">
+                        <span>💰</span>
+                        <span>Pricing</span>
+                    </a>
+                    <a href="/admin/orders-management.html" class="btn btn-primary">
+                        <span>📋</span>
+                        <span>Admin Dashboard</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -353,41 +600,45 @@ GMAIL_APP_PASSWORD = your-16-character-app-password
                 // Display configuration status
                 statusDiv.innerHTML = `
                     <div class="status-item">
-                        <span>Admin Email</span>
+                        <span><strong>Admin Email</strong></span>
                         <span class="status-badge ${result.environment_check?.hasAdminEmail ? 'status-success' : 'status-error'}">
                             ${result.environment_check?.hasAdminEmail ? '✅ Configured' : '❌ Missing'}
                         </span>
                     </div>
                     <div class="status-item">
-                        <span>Gmail User</span>
-                        <span class="status-badge ${result.environment_check?.hasGmailUser ? 'status-success' : 'status-error'}">
-                            ${result.environment_check?.hasGmailUser ? '✅ Configured' : '❌ Missing'}
+                        <span><strong>Resend API Key</strong></span>
+                        <span class="status-badge ${result.environment_check?.hasResendKey ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasResendKey ? '✅ Configured' : '❌ Missing'}
                         </span>
                     </div>
                     <div class="status-item">
-                        <span>Gmail App Password</span>
-                        <span class="status-badge ${result.environment_check?.hasGmailPassword ? 'status-success' : 'status-error'}">
-                            ${result.environment_check?.hasGmailPassword ? '✅ Configured' : '❌ Missing'}
+                        <span><strong>From Email</strong></span>
+                        <span class="status-badge ${result.environment_check?.hasFromEmail ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasFromEmail ? '✅ Configured' : '❌ Missing'}
                         </span>
                     </div>
                     ${result.environment_check?.adminEmail ? `
                     <div class="status-item">
-                        <span>Admin Email Address</span>
-                        <span style="font-family: monospace;">${result.environment_check.adminEmail}</span>
+                        <span><strong>Admin Email Address</strong></span>
+                        <span style="font-family: monospace; color: #666;">${result.environment_check.adminEmail}</span>
                     </div>
                     ` : ''}
-                    ${result.environment_check?.gmailUser ? `
+                    ${result.environment_check?.fromEmail ? `
                     <div class="status-item">
-                        <span>Gmail Account</span>
-                        <span style="font-family: monospace;">${result.environment_check.gmailUser}</span>
+                        <span><strong>Sender Email</strong></span>
+                        <span style="font-family: monospace; color: #666;">${result.environment_check.fromEmail}</span>
                     </div>
                     ` : ''}
+                    <div class="status-item">
+                        <span><strong>Email Service</strong></span>
+                        <span style="color: #17a2b8; font-weight: 600;">✨ Resend API</span>
+                    </div>
                 `;
 
                 // Enable/disable test button based on configuration
                 const allConfigured = result.environment_check?.hasAdminEmail && 
-                                    result.environment_check?.hasGmailUser && 
-                                    result.environment_check?.hasGmailPassword;
+                                    result.environment_check?.hasResendKey && 
+                                    result.environment_check?.hasFromEmail;
                 
                 const testBtn = document.getElementById('sendTestBtn');
                 testBtn.disabled = !allConfigured;
@@ -402,13 +653,17 @@ GMAIL_APP_PASSWORD = your-16-character-app-password
                 
                 statusDiv.innerHTML = `
                     <div class="status-item">
-                        <span>Configuration Check</span>
+                        <span><strong>Configuration Check</strong></span>
                         <span class="status-badge status-error">❌ Failed to check</span>
                     </div>
                     <p style="margin-top: 1rem; color: #dc3545; font-size: 0.875rem;">
                         Could not verify configuration. Please ensure your Cloudflare Worker is deployed correctly.
                     </p>
                 `;
+                
+                const testBtn = document.getElementById('sendTestBtn');
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<span>⚠️</span><span>Configuration Check Failed</span>';
             }
         }
 
@@ -426,19 +681,19 @@ GMAIL_APP_PASSWORD = your-16-character-app-password
                 // Create sample order data for testing
                 const testOrderData = {
                     order_number: 'TEST-' + Date.now(),
-                    total_amount_omr: '15.750',
+                    total_amount_omr: '25.750',
                     created_at: new Date().toISOString(),
                     customer: {
-                        first_name: 'Test',
-                        last_name: 'Customer',
+                        first_name: 'Ahmed',
+                        last_name: 'Al-Rashid',
                         phone: '96812345678',
-                        email: 'test@example.com'
+                        email: 'test.customer@example.com'
                     },
                     delivery: {
-                        address: '123 Test Street, Building 5, Apartment 10',
+                        address: 'Building 123, Way 4567, Block 89, Al Khuwair',
                         city: 'Muscat',
                         region: 'Qurum',
-                        notes: 'This is a test order notification'
+                        notes: 'Please call before delivery - this is a test order for email notification'
                     },
                     items: [
                         {
@@ -452,8 +707,15 @@ GMAIL_APP_PASSWORD = your-16-character-app-password
                             fragrance_name: 'Tom Ford Black Orchid',
                             fragrance_brand: 'Tom Ford',
                             variant_size: '5ml',
+                            quantity: 3,
+                            total_price_cents: 9000
+                        },
+                        {
+                            fragrance_name: 'Chanel No. 5',
+                            fragrance_brand: 'Chanel',
+                            variant_size: '30ml',
                             quantity: 1,
-                            total_price_cents: 6750
+                            total_price_cents: 7750
                         }
                     ]
                 };
@@ -476,35 +738,54 @@ GMAIL_APP_PASSWORD = your-16-character-app-password
                     resultDiv.className = 'result success';
                     resultDiv.innerHTML = `
                         <h3>✅ Test Email Sent Successfully!</h3>
-                        <p><strong>Sent to:</strong> ${result.sent_to}</p>
-                        <p><strong>Method:</strong> ${result.method || 'Gmail'}</p>
-                        <p style="margin-top: 1rem;">
-                            <strong>Next steps:</strong><br>
-                            1. Check your email inbox (and spam folder)<br>
-                            2. Look for an email with subject "🛒 New Order TEST-..."<br>
-                            3. If received, your Gmail configuration is working!<br>
-                            4. Place a real test order to verify the complete flow
-                        </p>
+                        <div style="margin: 1rem 0;">
+                            <p><strong>📧 Email ID:</strong> ${result.email_id}</p>
+                            <p><strong>📬 Sent to:</strong> ${result.sent_to}</p>
+                            <p><strong>📤 Sent from:</strong> ${result.sent_from}</p>
+                            <p><strong>🚀 Method:</strong> ${result.method}</p>
+                            <p><strong>📋 Order:</strong> ${result.order_number}</p>
+                        </div>
+                        <div style="background: rgba(40, 167, 69, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #155724;">🎉 Next steps:</h4>
+                            <ol style="margin: 0; padding-left: 1.5rem; color: #155724;">
+                                <li>Check your email inbox (and spam folder)</li>
+                                <li>Look for a professional email with Qotore branding</li>
+                                <li>Click the action buttons to test functionality</li>
+                                <li>Place a real test order to verify complete flow</li>
+                                <li>Monitor delivery in your <a href="https://resend.com/emails" target="_blank">Resend dashboard</a></li>
+                            </ol>
+                        </div>
                     `;
                 } else {
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `
                         <h3>❌ Test Email Failed</h3>
                         <p><strong>Error:</strong> ${result.error}</p>
+                        ${result.details ? `<p><strong>Details:</strong> ${result.details}</p>` : ''}
                         ${result.troubleshooting ? `
-                        <p style="margin-top: 1rem;"><strong>Troubleshooting:</strong></p>
-                        <ul style="margin-left: 1rem;">
-                            ${Object.entries(result.troubleshooting).map(([key, value]) => 
-                                `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</li>`
-                            ).join('')}
-                        </ul>
+                        <div style="margin-top: 1rem;">
+                            <h4>🔧 Troubleshooting:</h4>
+                            <ul style="margin-left: 1rem;">
+                                ${Object.entries(result.troubleshooting).map(([key, value]) => 
+                                    `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
                         ` : ''}
-                        ${result.gmail_setup_steps ? `
-                        <p style="margin-top: 1rem;"><strong>Gmail Setup Steps:</strong></p>
-                        <ol style="margin-left: 1rem;">
-                            ${result.gmail_setup_steps.map(step => `<li>${step}</li>`).join('')}
-                        </ol>
+                        ${result.resend_setup_guide ? `
+                        <div style="margin-top: 1rem;">
+                            <h4>📚 Resend Setup Guide:</h4>
+                            <ol style="margin-left: 1rem;">
+                                ${result.resend_setup_guide.map(step => `<li>${step}</li>`).join('')}
+                            </ol>
+                        </div>
                         ` : ''}
+                        <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-radius: 8px;">
+                            <p style="margin: 0; color: #856404;">
+                                <strong>💡 Need help?</strong> Check the <a href="https://resend.com/docs" target="_blank">Resend documentation</a> 
+                                or view your <a href="https://resend.com/emails" target="_blank">Resend dashboard</a> for more details.
+                            </p>
+                        </div>
                     `;
                 }
 
@@ -517,13 +798,16 @@ GMAIL_APP_PASSWORD = your-16-character-app-password
                 resultDiv.innerHTML = `
                     <h3>❌ Test Failed</h3>
                     <p><strong>Error:</strong> ${error.message}</p>
-                    <p style="margin-top: 1rem;">
-                        This could be due to network issues or missing configuration. 
-                        Please check your Cloudflare Worker logs for more details.
-                    </p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f8d7da; border-radius: 8px;">
+                        <p style="margin: 0; color: #721c24;">
+                            This could be due to network issues, missing configuration, or Cloudflare Worker problems. 
+                            Please check your Cloudflare Worker logs for more details.
+                        </p>
+                    </div>
                 `;
             } finally {
                 testBtn.disabled = false;
+                testBtn.innerHTML = '<span>📧</span><span>Send Test Email</span>';
             }
         }
     </script>

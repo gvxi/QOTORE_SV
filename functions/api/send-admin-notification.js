@@ -1,4 +1,4 @@
-// functions/api/send-admin-notification.js - Send email notification to admin using Gmail SMTP
+// functions/api/send-admin-notification.js - Send email notification to admin using Resend
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -12,21 +12,21 @@ export async function onRequestPost(context) {
     // Get environment variables
     const { env } = context;
     const ADMIN_EMAIL = env.ADMIN_EMAIL;
-    const GMAIL_USER = env.GMAIL_USER;
-    const GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD;
+    const RESEND_API_KEY = env.RESEND_API_KEY;
+    const FROM_EMAIL = env.FROM_EMAIL || `Qotore Orders <orders@${env.RESEND_DOMAIN || 'yourdomain.com'}>`;
 
     // Validate required environment variables
-    if (!ADMIN_EMAIL || !GMAIL_USER || !GMAIL_APP_PASSWORD) {
+    if (!ADMIN_EMAIL || !RESEND_API_KEY) {
       console.error('Missing required environment variables');
       return new Response(JSON.stringify({
         error: 'Email service not configured',
         success: false,
         debug: {
           hasAdminEmail: !!ADMIN_EMAIL,
-          hasGmailUser: !!GMAIL_USER,
-          hasGmailPassword: !!GMAIL_APP_PASSWORD,
+          hasResendKey: !!RESEND_API_KEY,
+          hasFromEmail: !!FROM_EMAIL,
           adminEmail: ADMIN_EMAIL ? ADMIN_EMAIL.replace(/@.+/, '@***') : 'Not set',
-          gmailUser: GMAIL_USER ? GMAIL_USER.replace(/@.+/, '@***') : 'Not set'
+          fromEmail: FROM_EMAIL ? FROM_EMAIL.replace(/@.+/, '@***') : 'Not set'
         }
       }), {
         status: 500,
@@ -86,83 +86,211 @@ export async function onRequestPost(context) {
       hour12: true
     });
 
-    // Create simple text-only email (to avoid encoding issues)
-    const emailSubject = `New Order ${order_number} - ${total_amount_omr} OMR`;
-    
+    // Format items for email
+    const itemsHtml = items.map(item => `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 12px 8px; font-weight: 500;">${item.fragrance_name}</td>
+        <td style="padding: 12px 8px; color: #666;">${item.fragrance_brand || ''}</td>
+        <td style="padding: 12px 8px; text-align: center;">${item.variant_size}</td>
+        <td style="padding: 12px 8px; text-align: center;">${item.quantity}</td>
+        <td style="padding: 12px 8px; text-align: right; font-weight: 500;">${(item.total_price_cents / 1000).toFixed(3)} OMR</td>
+      </tr>
+    `).join('');
+
+    // Create professional HTML email
+    const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>New Order ${order_number}</title>
+    </head>
+    <body style="margin: 0; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; line-height: 1.6;">
+      <div style="max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); color: white; padding: 30px; text-align: center;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 600;">🛒 New Order Received</h1>
+          <p style="margin: 15px 0 0 0; font-size: 18px; opacity: 0.9;">Order #${order_number}</p>
+        </div>
+        
+        <!-- Order Summary -->
+        <div style="padding: 30px;">
+          
+          <!-- Quick Stats -->
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #8B4513;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+              <div>
+                <h2 style="margin: 0; color: #8B4513; font-size: 20px;">Order #${order_number}</h2>
+                <p style="margin: 5px 0 0 0; color: #666;">${orderDate}</p>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 24px; font-weight: 700; color: #8B4513;">${total_amount_omr} OMR</div>
+                <div style="font-size: 14px; color: #666;">${items.length} item${items.length > 1 ? 's' : ''}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Customer Information -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">👤 Customer Information</h3>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+              <p style="margin: 8px 0;"><strong>Name:</strong> ${customer.first_name} ${customer.last_name || ''}</p>
+              <p style="margin: 8px 0;"><strong>Phone:</strong> <a href="tel:${customer.phone}" style="color: #8B4513; text-decoration: none; font-weight: 500;">${customer.phone}</a></p>
+              ${customer.email ? `<p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${customer.email}" style="color: #8B4513; text-decoration: none;">${customer.email}</a></p>` : ''}
+            </div>
+          </div>
+          
+          <!-- Delivery Information -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">🚚 Delivery Information</h3>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+              <p style="margin: 8px 0;"><strong>Address:</strong> ${delivery.address}</p>
+              <p style="margin: 8px 0;"><strong>City:</strong> ${delivery.city}</p>
+              ${delivery.region ? `<p style="margin: 8px 0;"><strong>Region:</strong> ${delivery.region}</p>` : ''}
+              ${delivery.notes ? `<p style="margin: 8px 0;"><strong>Special Notes:</strong> <em>${delivery.notes}</em></p>` : ''}
+            </div>
+          </div>
+          
+          <!-- Order Items -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #2d3748; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #8B4513; padding-bottom: 8px;">🌸 Order Items</h3>
+            <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #eee;">
+              <table style="width: 100%; border-collapse: collapse; background: white;">
+                <thead>
+                  <tr style="background: #8B4513; color: white;">
+                    <th style="padding: 15px 8px; text-align: left; font-weight: 600;">Fragrance</th>
+                    <th style="padding: 15px 8px; text-align: left; font-weight: 600;">Brand</th>
+                    <th style="padding: 15px 8px; text-align: center; font-weight: 600;">Size</th>
+                    <th style="padding: 15px 8px; text-align: center; font-weight: 600;">Qty</th>
+                    <th style="padding: 15px 8px; text-align: right; font-weight: 600;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHtml}
+                </tbody>
+                <tfoot>
+                  <tr style="background: #f8f9fa; font-weight: 600;">
+                    <td colspan="4" style="padding: 15px 8px; text-align: right; border-top: 2px solid #8B4513; font-size: 16px;">Total Amount:</td>
+                    <td style="padding: 15px 8px; text-align: right; color: #8B4513; font-size: 18px; border-top: 2px solid #8B4513; font-weight: 700;">${total_amount_omr} OMR</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          
+          <!-- Quick Actions -->
+          <div style="text-align: center; margin-top: 30px;">
+            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">Quick Actions:</p>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+              <a href="https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(customer.first_name)}%2C%20we%20received%20your%20order%20${order_number}.%20We%20will%20process%20it%20soon!" 
+                 style="background: #25D366; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                📱 Contact Customer
+              </a>
+              <a href="${env.SITE_URL || 'https://qotore.com'}/admin/orders-management.html" 
+                 style="background: #8B4513; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                📋 Manage Orders
+              </a>
+            </div>
+          </div>
+          
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #eee;">
+          <p style="margin: 0; color: #666; font-size: 14px; font-weight: 500;">Qotore Admin Notification System</p>
+          <p style="margin: 8px 0 0 0; color: #999; font-size: 12px;">Order received at ${orderDate} (Oman Time)</p>
+        </div>
+        
+      </div>
+    </body>
+    </html>
+    `;
+
+    // Create plain text version
     const emailText = `
-NEW ORDER RECEIVED
-==================
+NEW ORDER RECEIVED - ${order_number}
+${'='.repeat(50)}
 
 Order Information:
-- Order Number: ${order_number}
-- Order Date: ${orderDate}
-- Total Amount: ${total_amount_omr} OMR
+• Order Number: ${order_number}
+• Order Date: ${orderDate}
+• Total Amount: ${total_amount_omr} OMR
 
 Customer Information:
-- Name: ${customer.first_name} ${customer.last_name || ''}
-- Phone: ${customer.phone}
-${customer.email ? `- Email: ${customer.email}` : ''}
+• Name: ${customer.first_name} ${customer.last_name || ''}
+• Phone: ${customer.phone}
+${customer.email ? `• Email: ${customer.email}` : ''}
 
 Delivery Information:
-- Address: ${delivery.address}
-- City: ${delivery.city}
-${delivery.region ? `- Region: ${delivery.region}` : ''}
-${delivery.notes ? `- Notes: ${delivery.notes}` : ''}
+• Address: ${delivery.address}
+• City: ${delivery.city}
+${delivery.region ? `• Region: ${delivery.region}` : ''}
+${delivery.notes ? `• Notes: ${delivery.notes}` : ''}
 
 Order Items:
 ${items.map((item, index) => 
   `${index + 1}. ${item.fragrance_name} (${item.fragrance_brand || 'N/A'})
-   Size: ${item.variant_size}
-   Quantity: ${item.quantity}
-   Total: ${(item.total_price_cents / 1000).toFixed(3)} OMR`
+   Size: ${item.variant_size} | Quantity: ${item.quantity} | Total: ${(item.total_price_cents / 1000).toFixed(3)} OMR`
 ).join('\n\n')}
 
-TOTAL ORDER VALUE: ${total_amount_omr} OMR
+TOTAL: ${total_amount_omr} OMR
 
 Quick Actions:
-- Contact Customer: https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(customer.first_name)}%2C%20we%20received%20your%20order%20${order_number}
-- Manage Orders: ${env.SITE_URL || 'https://qotore.com'}/admin/orders-management.html
+• Contact Customer: https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}
+• Manage Orders: ${env.SITE_URL || 'https://qotore.com'}/admin/orders-management.html
 
 ---
 This is an automated notification from Qotore Admin System
 Order received at ${orderDate} (Oman Time)
-    `.trim();
+    `;
 
-    // Try multiple email sending methods
-    const emailResult = await tryMultipleEmailMethods({
-      to: ADMIN_EMAIL,
-      from: GMAIL_USER,
-      subject: emailSubject,
-      text: emailText,
-      auth: {
-        user: GMAIL_USER,
-        pass: GMAIL_APP_PASSWORD
-      }
+    // Send email using Resend
+    console.log('Sending email via Resend API...');
+    
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: [ADMIN_EMAIL],
+        subject: `🛒 New Order ${order_number} - ${total_amount_omr} OMR`,
+        html: emailHtml,
+        text: emailText,
+        tags: [
+          { name: 'category', value: 'order-notification' },
+          { name: 'order_number', value: order_number }
+        ]
+      })
     });
 
-    if (!emailResult.success) {
-      console.error('All email methods failed:', emailResult.lastError);
+    if (!resendResponse.ok) {
+      const errorData = await resendResponse.json().catch(() => ({}));
+      const errorText = await resendResponse.text().catch(() => 'Unknown error');
+      
+      console.error('Resend API error:', resendResponse.status, errorData, errorText);
       
       return new Response(JSON.stringify({
-        error: 'Failed to send email notification',
+        error: 'Failed to send email via Resend',
         success: false,
-        details: emailResult.lastError,
-        attempted_methods: emailResult.attemptedMethods,
+        details: errorData.message || errorText,
+        status: resendResponse.status,
         troubleshooting: {
-          check_app_password: 'Verify Gmail App Password is correct (16 characters)',
-          check_2fa: 'Ensure 2-Factor Authentication is enabled on Gmail',
-          check_gmail_user: 'Verify GMAIL_USER is your full Gmail address',
+          check_api_key: 'Verify RESEND_API_KEY is correct and active',
+          check_from_email: 'Verify FROM_EMAIL domain is verified in Resend',
           check_admin_email: 'Verify ADMIN_EMAIL is a valid email address',
-          regenerate_password: 'Try generating a new App Password in Gmail Settings'
+          resend_setup: 'Ensure your Resend account is properly configured'
         },
-        gmail_setup_guide: [
-          '1. Go to Gmail Settings > See all settings',
-          '2. Click "Accounts and Import" tab',
-          '3. Click "Other Google Account settings"',
-          '4. Go to Security > 2-Step Verification (enable if not enabled)',
-          '5. Go to Security > App passwords',
-          '6. Select "Mail" and generate new password',
-          '7. Copy the 16-character password (no spaces)'
+        resend_setup_guide: [
+          '1. Sign up at https://resend.com',
+          '2. Verify your sending domain',
+          '3. Generate an API key',
+          '4. Set RESEND_API_KEY environment variable',
+          '5. Set FROM_EMAIL to use your verified domain'
         ]
       }), {
         status: 500,
@@ -170,15 +298,17 @@ Order received at ${orderDate} (Oman Time)
       });
     }
 
-    console.log('Email sent successfully via:', emailResult.method);
+    const result = await resendResponse.json();
+    console.log('Email sent successfully via Resend:', result.id);
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Admin notification sent successfully',
+      message: 'Admin notification sent successfully via Resend',
+      email_id: result.id,
       sent_to: ADMIN_EMAIL,
-      sent_from: GMAIL_USER,
-      method: emailResult.method,
-      order_number: order_number
+      sent_from: FROM_EMAIL,
+      order_number: order_number,
+      method: 'Resend API'
     }), {
       status: 200,
       headers: corsHeaders
@@ -193,201 +323,6 @@ Order received at ${orderDate} (Oman Time)
       status: 500,
       headers: corsHeaders
     });
-  }
-}
-
-// Try multiple email sending methods in order of preference
-async function tryMultipleEmailMethods({ to, from, subject, text, auth }) {
-  const methods = [
-    { name: 'EmailJS', fn: sendViaEmailJS },
-    { name: 'SMTP2GO', fn: sendViaSMTP2GO },
-    { name: 'SendGrid', fn: sendViaSendGrid },
-    { name: 'Resend', fn: sendViaResend },
-    { name: 'MailChannels', fn: sendViaMailChannels }
-  ];
-
-  const attemptedMethods = [];
-  let lastError = '';
-
-  for (const method of methods) {
-    try {
-      console.log(`Trying email method: ${method.name}`);
-      attemptedMethods.push(method.name);
-      
-      const result = await method.fn({ to, from, subject, text, auth });
-      
-      if (result.success) {
-        return { 
-          success: true, 
-          method: method.name,
-          attemptedMethods,
-          details: result.details 
-        };
-      } else {
-        lastError = result.error || `${method.name} method failed`;
-        console.log(`${method.name} failed:`, lastError);
-      }
-    } catch (error) {
-      lastError = error.message;
-      console.log(`${method.name} error:`, lastError);
-    }
-  }
-
-  return { 
-    success: false, 
-    lastError, 
-    attemptedMethods 
-  };
-}
-
-// EmailJS method (works well with Gmail)
-async function sendViaEmailJS({ to, from, subject, text }) {
-  try {
-    // Use EmailJS public API (no API key required for basic usage)
-    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        service_id: 'gmail',
-        template_id: 'template_basic',
-        user_id: 'user_basic',
-        template_params: {
-          to_email: to,
-          from_email: from,
-          subject: subject,
-          message: text,
-          reply_to: from
-        }
-      })
-    });
-
-    if (response.ok) {
-      return { success: true, details: 'EmailJS send successful' };
-    } else {
-      const error = await response.text();
-      return { success: false, error: `EmailJS failed: ${error}` };
-    }
-  } catch (error) {
-    return { success: false, error: `EmailJS error: ${error.message}` };
-  }
-}
-
-// SMTP2GO method
-async function sendViaSMTP2GO({ to, from, subject, text }) {
-  try {
-    const response = await fetch('https://api.smtp2go.com/v3/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        api_key: 'api-test-key',
-        to: [to],
-        sender: from,
-        subject: subject,
-        text_body: text
-      })
-    });
-
-    if (response.ok) {
-      return { success: true, details: 'SMTP2GO send successful' };
-    } else {
-      return { success: false, error: 'SMTP2GO API failed' };
-    }
-  } catch (error) {
-    return { success: false, error: `SMTP2GO error: ${error.message}` };
-  }
-}
-
-// SendGrid method
-async function sendViaSendGrid({ to, from, subject, text }) {
-  try {
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer SG.test-key'
-      },
-      body: JSON.stringify({
-        personalizations: [{
-          to: [{ email: to }]
-        }],
-        from: { email: from },
-        subject: subject,
-        content: [{
-          type: 'text/plain',
-          value: text
-        }]
-      })
-    });
-
-    if (response.ok) {
-      return { success: true, details: 'SendGrid send successful' };
-    } else {
-      return { success: false, error: 'SendGrid API failed' };
-    }
-  } catch (error) {
-    return { success: false, error: `SendGrid error: ${error.message}` };
-  }
-}
-
-// Resend method
-async function sendViaResend({ to, from, subject, text }) {
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer re_test_key'
-      },
-      body: JSON.stringify({
-        from: from,
-        to: [to],
-        subject: subject,
-        text: text
-      })
-    });
-
-    if (response.ok) {
-      return { success: true, details: 'Resend send successful' };
-    } else {
-      return { success: false, error: 'Resend API failed' };
-    }
-  } catch (error) {
-    return { success: false, error: `Resend error: ${error.message}` };
-  }
-}
-
-// MailChannels method (Cloudflare-friendly)
-async function sendViaMailChannels({ to, from, subject, text }) {
-  try {
-    const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        personalizations: [{
-          to: [{ email: to }]
-        }],
-        from: { email: from },
-        subject: subject,
-        content: [{
-          type: 'text/plain',
-          value: text
-        }]
-      })
-    });
-
-    if (response.ok) {
-      return { success: true, details: 'MailChannels send successful' };
-    } else {
-      return { success: false, error: 'MailChannels API failed' };
-    }
-  } catch (error) {
-    return { success: false, error: `MailChannels error: ${error.message}` };
   }
 }
 
@@ -416,35 +351,38 @@ export async function onRequestGet(context) {
   const { env } = context;
   
   return new Response(JSON.stringify({
-    message: 'Gmail notification endpoint is working!',
-    method: 'POST /api/send-admin-notification to send order notifications',
+    message: 'Resend notification endpoint is working!',
+    method: 'POST /api/send-admin-notification to send order notifications via Resend',
     environment_check: {
       hasAdminEmail: !!env.ADMIN_EMAIL,
-      hasGmailUser: !!env.GMAIL_USER,
-      hasGmailPassword: !!env.GMAIL_APP_PASSWORD,
+      hasResendKey: !!env.RESEND_API_KEY,
+      hasFromEmail: !!env.FROM_EMAIL,
       adminEmail: env.ADMIN_EMAIL ? env.ADMIN_EMAIL.replace(/@.+/, '@***') : 'Not set',
-      gmailUser: env.GMAIL_USER ? env.GMAIL_USER.replace(/@.+/, '@***') : 'Not set'
+      fromEmail: env.FROM_EMAIL ? env.FROM_EMAIL.replace(/@.+/, '@***') : 'Not set'
     },
     required_env_vars: [
       'ADMIN_EMAIL - Email address to receive order notifications',
-      'GMAIL_USER - Your Gmail address (e.g., yourname@gmail.com)',
-      'GMAIL_APP_PASSWORD - Gmail App Password (not your regular password)'
+      'RESEND_API_KEY - Your Resend API key',
+      'FROM_EMAIL - Verified sender email (e.g., orders@yourdomain.com)'
+    ],
+    optional_env_vars: [
+      'RESEND_DOMAIN - Your verified domain (if using subdomain)',
+      'SITE_URL - Your website URL for admin panel links'
     ],
     setup_instructions: [
-      '1. Enable 2-Factor Authentication on your Gmail account',
-      '2. Generate an App Password in Gmail Settings > Security',
-      '3. Use the App Password (not your regular Gmail password)',
-      '4. Set GMAIL_USER to your full Gmail address',
-      '5. Set ADMIN_EMAIL to where you want to receive notifications'
+      '1. Create account at https://resend.com',
+      '2. Add and verify your domain',
+      '3. Generate API key in Resend dashboard',
+      '4. Set environment variables in Cloudflare Workers',
+      '5. Test using the test endpoint'
     ],
-    email_methods: [
-      'EmailJS (Gmail integration)',
-      'SMTP2GO (reliable SMTP)',
-      'SendGrid (popular service)',
-      'Resend (modern API)',
-      'MailChannels (Cloudflare-friendly)'
-    ],
-    note: 'System tries multiple email services for maximum reliability'
+    features: [
+      'Professional HTML emails with beautiful styling',
+      'Plain text fallback for all email clients',
+      'Order tracking with tags and metadata',
+      'High deliverability and reliability',
+      'Detailed error reporting and troubleshooting'
+    ]
   }), { 
     headers: corsHeaders
   });
