@@ -381,8 +381,14 @@ export async function onRequestOptions() {
   });
 }
 
-// Test endpoint
+// Test endpoint with CORS headers
 export async function onRequestGet(context) {
+  const corsHeaders = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Credentials': 'true'
+  };
+
   const { env } = context;
   
   return new Response(JSON.stringify({
@@ -409,6 +415,6 @@ export async function onRequestGet(context) {
     ],
     note: 'Gmail App Passwords are required when using SMTP with 2FA enabled'
   }), { 
-    headers: { 'Content-Type': 'application/json' } 
+    headers: corsHeaders
   });
 }

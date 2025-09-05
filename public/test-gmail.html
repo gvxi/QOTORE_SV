@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Configuration Test - Qotore</title>
+    
+    <style>
+        :root {
+            --primary: #8B4513;
+            --primary-dark: #A0522D;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #2d3748;
+            --border: #e9ecef;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 2px solid var(--border);
+        }
+
+        .section h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .status-check {
+            background: var(--light);
+        }
+
+        .test-email {
+            background: #f0f9ff;
+            border-color: var(--info);
+        }
+
+        .setup-guide {
+            background: #fffbeb;
+            border-color: var(--warning);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .status-error {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .status-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .result.error {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .setup-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .setup-steps li {
+            counter-increment: step-counter;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .setup-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--primary);
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Gmail Configuration Test</h1>
+            <p>Test your Gmail email notification setup for order alerts</p>
+        </div>
+
+        <div class="content">
+            <a href="/" class="back-link">
+                <span>←</span>
+                <span>Back to Main Site</span>
+            </a>
+
+            <!-- Configuration Status -->
+            <div class="section status-check">
+                <h2>📋 Configuration Status</h2>
+                <div id="configStatus">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Checking configuration...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Email Section -->
+            <div class="section test-email">
+                <h2>✉️ Send Test Email</h2>
+                <p>Send a test email to verify your Gmail configuration is working correctly.</p>
+                
+                <button id="sendTestBtn" class="btn btn-success" onclick="sendTestEmail()">
+                    <span>📧</span>
+                    <span>Send Test Email</span>
+                </button>
+
+                <div id="testLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Sending test email...</p>
+                </div>
+
+                <div id="testResult" class="result"></div>
+            </div>
+
+            <!-- Setup Guide -->
+            <div class="section setup-guide">
+                <h2>🔧 Gmail Setup Guide</h2>
+                <p>Follow these steps to configure Gmail for order notifications:</p>
+
+                <ol class="setup-steps">
+                    <li>
+                        <strong>Enable 2-Factor Authentication</strong><br>
+                        Go to <a href="https://myaccount.google.com/security" target="_blank">Google Account Security</a> → 2-Step Verification
+                    </li>
+                    <li>
+                        <strong>Generate App Password</strong><br>
+                        In Security settings → App passwords → Select "Mail" → Generate
+                    </li>
+                    <li>
+                        <strong>Configure Environment Variables</strong><br>
+                        Add these to your Cloudflare Workers dashboard:
+                        <div class="code-block">
+ADMIN_EMAIL = your-admin@email.com<br>
+GMAIL_USER = your-gmail@gmail.com<br>
+GMAIL_APP_PASSWORD = your-16-character-app-password
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Test Configuration</strong><br>
+                        Use the "Send Test Email" button above to verify everything works
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check configuration status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkConfiguration();
+        });
+
+        async function checkConfiguration() {
+            const statusDiv = document.getElementById('configStatus');
+            const loadingDiv = statusDiv.querySelector('.loading');
+            loadingDiv.style.display = 'block';
+
+            try {
+                // Try to get configuration status from the notification endpoint
+                const response = await fetch('/api/send-admin-notification', {
+                    method: 'GET'
+                });
+
+                const result = await response.json();
+                
+                loadingDiv.style.display = 'none';
+                
+                // Display configuration status
+                statusDiv.innerHTML = `
+                    <div class="status-item">
+                        <span>Admin Email</span>
+                        <span class="status-badge ${result.environment_check?.hasAdminEmail ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasAdminEmail ? '✅ Configured' : '❌ Missing'}
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span>Gmail User</span>
+                        <span class="status-badge ${result.environment_check?.hasGmailUser ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasGmailUser ? '✅ Configured' : '❌ Missing'}
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span>Gmail App Password</span>
+                        <span class="status-badge ${result.environment_check?.hasGmailPassword ? 'status-success' : 'status-error'}">
+                            ${result.environment_check?.hasGmailPassword ? '✅ Configured' : '❌ Missing'}
+                        </span>
+                    </div>
+                    ${result.environment_check?.adminEmail ? `
+                    <div class="status-item">
+                        <span>Admin Email Address</span>
+                        <span style="font-family: monospace;">${result.environment_check.adminEmail}</span>
+                    </div>
+                    ` : ''}
+                    ${result.environment_check?.gmailUser ? `
+                    <div class="status-item">
+                        <span>Gmail Account</span>
+                        <span style="font-family: monospace;">${result.environment_check.gmailUser}</span>
+                    </div>
+                    ` : ''}
+                `;
+
+                // Enable/disable test button based on configuration
+                const allConfigured = result.environment_check?.hasAdminEmail && 
+                                    result.environment_check?.hasGmailUser && 
+                                    result.environment_check?.hasGmailPassword;
+                
+                const testBtn = document.getElementById('sendTestBtn');
+                testBtn.disabled = !allConfigured;
+                
+                if (!allConfigured) {
+                    testBtn.innerHTML = '<span>⚠️</span><span>Configuration Required</span>';
+                }
+
+            } catch (error) {
+                console.error('Configuration check failed:', error);
+                loadingDiv.style.display = 'none';
+                
+                statusDiv.innerHTML = `
+                    <div class="status-item">
+                        <span>Configuration Check</span>
+                        <span class="status-badge status-error">❌ Failed to check</span>
+                    </div>
+                    <p style="margin-top: 1rem; color: #dc3545; font-size: 0.875rem;">
+                        Could not verify configuration. Please ensure your Cloudflare Worker is deployed correctly.
+                    </p>
+                `;
+            }
+        }
+
+        async function sendTestEmail() {
+            const testBtn = document.getElementById('sendTestBtn');
+            const loadingDiv = document.getElementById('testLoading');
+            const resultDiv = document.getElementById('testResult');
+
+            // Show loading
+            testBtn.disabled = true;
+            loadingDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+
+            try {
+                // Create sample order data for testing
+                const testOrderData = {
+                    order_number: 'TEST-' + Date.now(),
+                    total_amount_omr: '15.750',
+                    created_at: new Date().toISOString(),
+                    customer: {
+                        first_name: 'Test',
+                        last_name: 'Customer',
+                        phone: '96812345678',
+                        email: 'test@example.com'
+                    },
+                    delivery: {
+                        address: '123 Test Street, Building 5, Apartment 10',
+                        city: 'Muscat',
+                        region: 'Qurum',
+                        notes: 'This is a test order notification'
+                    },
+                    items: [
+                        {
+                            fragrance_name: 'Creed Aventus',
+                            fragrance_brand: 'Creed',
+                            variant_size: '10ml',
+                            quantity: 2,
+                            total_price_cents: 9000
+                        },
+                        {
+                            fragrance_name: 'Tom Ford Black Orchid',
+                            fragrance_brand: 'Tom Ford',
+                            variant_size: '5ml',
+                            quantity: 1,
+                            total_price_cents: 6750
+                        }
+                    ]
+                };
+
+                const response = await fetch('/api/send-admin-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testOrderData)
+                });
+
+                const result = await response.json();
+                
+                // Hide loading
+                loadingDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Test Email Sent Successfully!</h3>
+                        <p><strong>Sent to:</strong> ${result.sent_to}</p>
+                        <p><strong>Method:</strong> ${result.method || 'Gmail'}</p>
+                        <p style="margin-top: 1rem;">
+                            <strong>Next steps:</strong><br>
+                            1. Check your email inbox (and spam folder)<br>
+                            2. Look for an email with subject "🛒 New Order TEST-..."<br>
+                            3. If received, your Gmail configuration is working!<br>
+                            4. Place a real test order to verify the complete flow
+                        </p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Test Email Failed</h3>
+                        <p><strong>Error:</strong> ${result.error}</p>
+                        ${result.troubleshooting ? `
+                        <p style="margin-top: 1rem;"><strong>Troubleshooting:</strong></p>
+                        <ul style="margin-left: 1rem;">
+                            ${Object.entries(result.troubleshooting).map(([key, value]) => 
+                                `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</li>`
+                            ).join('')}
+                        </ul>
+                        ` : ''}
+                        ${result.gmail_setup_steps ? `
+                        <p style="margin-top: 1rem;"><strong>Gmail Setup Steps:</strong></p>
+                        <ol style="margin-left: 1rem;">
+                            ${result.gmail_setup_steps.map(step => `<li>${step}</li>`).join('')}
+                        </ol>
+                        ` : ''}
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Test email failed:', error);
+                
+                loadingDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Test Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p style="margin-top: 1rem;">
+                        This could be due to network issues or missing configuration. 
+                        Please check your Cloudflare Worker logs for more details.
+                    </p>
+                `;
+            } finally {
+                testBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
