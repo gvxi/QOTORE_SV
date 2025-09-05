@@ -1,4 +1,4 @@
-// Items Management Script - FIXED VERSION
+// Items Management Script - COMPLETELY FIXED VERSION
 let items = [];
 let filteredItems = [];
 let currentPage = 1;
@@ -48,7 +48,7 @@ function setupEventListeners() {
         imageInput.addEventListener('change', handleImagePreview);
     }
     
-    // FIXED: Add variant checkbox event listeners
+    // Setup variant checkbox listeners
     setupVariantCheckboxListeners();
     
     // Modal close handlers
@@ -79,7 +79,7 @@ function setupEventListeners() {
     updatePreviews(); // Initial preview
 }
 
-// FIXED: Setup variant checkbox listeners
+// Setup variant checkbox listeners
 function setupVariantCheckboxListeners() {
     const variantCheckboxes = [
         { checkbox: 'enable5ml', priceField: 'price5ml' },
@@ -120,8 +120,11 @@ function updatePreviews() {
     const itemName = document.getElementById('itemName').value || 'creed-aventus';
     const slug = generateSlug(itemName);
     
-    document.getElementById('slugPreview').textContent = slug;
-    document.getElementById('imageNamePreview').textContent = `${slug}.png`;
+    const slugPreview = document.getElementById('slugPreview');
+    const imageNamePreview = document.getElementById('imageNamePreview');
+    
+    if (slugPreview) slugPreview.textContent = slug;
+    if (imageNamePreview) imageNamePreview.textContent = `${slug}.png`;
 }
 
 function generateSlug(text) {
@@ -135,7 +138,6 @@ function generateSlug(text) {
 
 // Data loading functions
 async function loadItems() {
-    const itemsList = document.getElementById('itemsList');
     const loadingSpinner = document.getElementById('loadingSpinner');
     
     if (loadingSpinner) loadingSpinner.style.display = 'flex';
@@ -245,146 +247,88 @@ function renderItems(pageItems) {
     
     if (pageItems.length === 0) {
         itemsList.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📦</div>
-                <div class="empty-title">No items found</div>
-                <div class="empty-subtitle">
-                    ${currentSearchTerm ? 'Try different search terms' : 'Add your first fragrance to get started'}
-                </div>
-                ${!currentSearchTerm ? '<button class="btn-primary" onclick="openAddItemModal()">Add First Item</button>' : ''}
-            </div>
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 3rem;">
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-title">No items found</div>
+                        <div class="empty-subtitle">
+                            ${currentSearchTerm ? 'Try different search terms' : 'Add your first fragrance to get started'}
+                        </div>
+                        ${!currentSearchTerm ? '<button class="btn-primary" onclick="openAddItemModal()">Add First Item</button>' : ''}
+                    </div>
+                </td>
+            </tr>
         `;
         return;
     }
     
-    const isMobile = window.innerWidth <= 768;
-    
-    if (isMobile) {
-        renderMobileItems(pageItems);
-    } else {
-        renderDesktopItems(pageItems);
-    }
+    // FIXED: Only render table rows, not complete table
+    renderTableRows(pageItems);
 }
 
-function renderDesktopItems(pageItems) {
+// FIXED: Separate function to render only table rows
+function renderTableRows(pageItems) {
     const itemsList = document.getElementById('itemsList');
-    
-    // Add cache buster timestamp for images
     const cacheBuster = Date.now();
     
-    itemsList.innerHTML = `
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Item Details</th>
-                    <th>Variants</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${pageItems.map(item => `
-                    <tr class="item-row ${item.hidden ? 'hidden-item' : ''}">
-                        <td>
-                            <div class="item-image">
-                                ${item.image_path ? 
-                                    `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
-                                    '<div class="no-image">No Image</div>'
-                                }
-                            </div>
-                        </td>
-                        <td>
-                            <div class="item-details">
-                                <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
-                                <p class="item-brand">${item.brand || 'No brand'}</p>
-                                <p class="item-description">${(item.description || 'No description').substring(0, 100)}${(item.description && item.description.length > 100) ? '...' : ''}</p>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="variants-info">
-                                ${getVariantsDisplay(item.variants)}
-                            </div>
-                        </td>
-                        <td>
-                            <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
-                                ${item.hidden ? 'Hidden' : 'Visible'}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="table-actions">
-                                <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
-                                <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                                        onclick="toggleItemVisibility('${item.id}', ${item.hidden})">
-                                    ${item.hidden ? 'Show' : 'Hide'}
-                                </button>
-                                <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-}
-
-function renderMobileItems(pageItems) {
-    const itemsList = document.getElementById('itemsList');
-    
-    // Add cache buster timestamp for images
-    const cacheBuster = Date.now();
-    
-    const cards = pageItems.map(item => createItemCard(item, cacheBuster)).join('');
-    itemsList.innerHTML = `<div class="items-grid mobile">${cards}</div>`;
-}
-
-function createItemCard(item, cacheBuster = Date.now()) {
-    const card = `
-        <div class="item-card ${item.hidden ? 'hidden-item' : ''}">
-            <div class="item-image">
-                ${item.image_path ? 
-                    `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
-                    '<div class="no-image">No Image</div>'
-                }
-            </div>
-            <div class="item-details">
-                <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
-                <p class="item-brand">${item.brand || 'No brand'}</p>
+    itemsList.innerHTML = pageItems.map(item => `
+        <tr class="item-row ${item.hidden ? 'hidden-item' : ''}">
+            <td>
+                <div class="item-image">
+                    ${item.image_path ? 
+                        `<img src="/api/image/${item.image_path}?v=${cacheBuster}" alt="${item.name}" loading="lazy">` :
+                        '<div class="no-image">No Image</div>'
+                    }
+                </div>
+            </td>
+            <td>
+                <div class="item-details">
+                    <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
+                    <p class="item-brand">${item.brand || 'No brand'}</p>
+                    <p class="item-description">${(item.description || 'No description').substring(0, 100)}${(item.description && item.description.length > 100) ? '...' : ''}</p>
+                </div>
+            </td>
+            <td>
                 <div class="variants-info">
                     ${getVariantsDisplay(item.variants)}
                 </div>
+            </td>
+            <td>
                 <span class="status-badge ${item.hidden ? 'status-hidden' : 'status-visible'}">
                     ${item.hidden ? 'Hidden' : 'Visible'}
                 </span>
-            </div>
-            <div class="card-actions">
-                <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
-                <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                        onclick="toggleItemVisibility('${item.id}', ${item.hidden})">
-                    ${item.hidden ? 'Show' : 'Hide'}
-                </button>
-                <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
-            </div>
-        </div>
-    `;
-    
-    return card;
+            </td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn-small btn-edit" onclick="editItem(${item.id})">Edit</button>
+                    <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
+                            onclick="toggleItemVisibility(${item.id}, ${!item.hidden})">
+                        ${item.hidden ? 'Show' : 'Hide'}
+                    </button>
+                    <button class="btn-small btn-delete" onclick="deleteItem(${item.id})">Delete</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
 }
 
 function getVariantsDisplay(variants) {
     if (!variants || variants.length === 0) {
-        return '<span style="color: #999;">No variants</span>';
+        return '<span class="no-variants">No variants</span>';
     }
     
-    const variantTexts = variants.map(variant => {
+    return variants.map(variant => {
         if (variant.is_whole_bottle) {
-            return 'Full Bottle (Contact)';
+            return '<span class="variant-tag whole-bottle">Full Bottle (Contact)</span>';
+        } else {
+            const size = variant.size_ml ? `${variant.size_ml}ml` : (variant.size || 'Unknown');
+            const price = variant.price_cents ? 
+                `${(variant.price_cents / 1000).toFixed(3)} OMR` : 
+                (variant.price ? `${variant.price.toFixed(3)} OMR` : 'Contact');
+            return `<span class="variant-tag">${size} - ${price}</span>`;
         }
-        const price = variant.price ? `${variant.price.toFixed(3)} OMR` : 'No price';
-        return `${variant.size} - ${price}`;
-    });
-    
-    return variantTexts.join('<br>');
+    }).join(' ');
 }
 
 function renderPagination(totalPages) {
@@ -431,21 +375,7 @@ async function toggleItemVisibility(itemId, newVisibility) {
             itemId, 
             newVisibility, 
             willBeHidden: !newVisibility,
-            action: newVisibility ? 'SHOW item' : 'HIDE item'
-        });
-        
-        // Find current item to check its current state
-        const currentItem = items.find(item => item.id == itemId);
-        if (!currentItem) {
-            throw new Error('Item not found in local data');
-        }
-        
-        console.log('📋 Current item state:', {
-            id: currentItem.id,
-            name: currentItem.name,
-            currentlyHidden: currentItem.hidden,
-            newVisibility: newVisibility,
-            shouldSetHiddenTo: !newVisibility
+            action: newVisibility ? 'hide' : 'show'
         });
         
         const response = await fetch('/admin/toggle-fragrance', {
@@ -454,39 +384,27 @@ async function toggleItemVisibility(itemId, newVisibility) {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({
+            body: JSON.stringify({ 
                 id: parseInt(itemId),
-                hidden: !newVisibility // if newVisibility=true (show), hidden=false
+                hidden: newVisibility
             })
         });
         
-        console.log('🌐 Toggle response status:', response.status);
-        
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Toggle response error:', errorText);
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
-        console.log('📨 Toggle response data:', result);
+        console.log('✅ Toggle response:', result);
         
         if (result.success) {
-            // Update local data with the actual returned state
+            // Update local data
             const itemIndex = items.findIndex(item => item.id == itemId);
             if (itemIndex !== -1) {
-                const oldHidden = items[itemIndex].hidden;
-                items[itemIndex].hidden = result.data.hidden; // Use server response
-                console.log('💾 Updated local item:', {
-                    id: itemId,
-                    oldHidden: oldHidden,
-                    newHidden: items[itemIndex].hidden,
-                    serverConfirmedHidden: result.data.hidden
-                });
+                items[itemIndex].hidden = newVisibility;
             }
             
-            // Show success message based on actual result
-            const actionPerformed = result.data.hidden ? 'hidden' : 'shown';
+            const actionPerformed = newVisibility ? 'hidden' : 'shown';
             showToast(`Item ${actionPerformed} successfully`, 'success');
             
             // Force re-render to update button states and styling
@@ -526,7 +444,7 @@ function editItem(itemId) {
     showModal('itemModalOverlay');
 }
 
-// FIXED populateForm function - prevent variant duplication
+// Populate form function
 function populateForm(item) {
     console.log('Populating form with item:', item);
     
@@ -536,23 +454,21 @@ function populateForm(item) {
     document.getElementById('itemDescription').value = item.description || '';
     document.getElementById('itemHidden').checked = item.hidden || false;
     
-    // FIXED: Reset ALL variant checkboxes and price fields first
+    // Reset ALL variant checkboxes and price fields first
     resetVariantFields();
     
-    // FIXED: Populate variants from database using correct field names
+    // Populate variants from database
     if (item.variants && item.variants.length > 0) {
         item.variants.forEach(variant => {
             if (variant.is_whole_bottle) {
                 document.getElementById('enableFullBottle').checked = true;
             } else if (variant.size_ml || variant.size) {
-                // Handle both size_ml (database) and size (processed) fields
                 const sizeValue = variant.size_ml || parseInt(variant.size);
                 
                 switch (sizeValue) {
                     case 5:
                         document.getElementById('enable5ml').checked = true;
                         document.getElementById('price5ml').disabled = false;
-                        // Use price_cents if available, otherwise use processed price
                         const price5 = variant.price_cents ? (variant.price_cents / 1000) : variant.price;
                         document.getElementById('price5ml').value = price5.toFixed(3);
                         break;
@@ -592,7 +508,31 @@ function populateForm(item) {
     console.log('Form populated successfully');
 }
 
-// FIXED: Updated resetForm function
+// Reset variant fields function
+function resetVariantFields() {
+    const variants = [
+        { checkbox: 'enable5ml', priceField: 'price5ml' },
+        { checkbox: 'enable10ml', priceField: 'price10ml' },
+        { checkbox: 'enable30ml', priceField: 'price30ml' },
+        { checkbox: 'enableFullBottle', priceField: null }
+    ];
+    
+    variants.forEach(({ checkbox, priceField }) => {
+        const checkboxEl = document.getElementById(checkbox);
+        const priceFieldEl = priceField ? document.getElementById(priceField) : null;
+        
+        if (checkboxEl) {
+            checkboxEl.checked = false;
+        }
+        
+        if (priceFieldEl) {
+            priceFieldEl.value = '';
+            priceFieldEl.disabled = true;
+        }
+    });
+}
+
+// Reset form function
 function resetForm() {
     const form = document.getElementById('itemForm');
     if (form) form.reset();
@@ -644,7 +584,7 @@ function deleteItem(itemId) {
 async function confirmDelete() {
     if (!deleteItemId) return;
     
-    const deleteButton = document.querySelector('#deleteModalOverlay .btn-delete');
+    const deleteButton = document.querySelector('#deleteModalOverlay .btn-danger');
     const originalText = deleteButton.textContent;
     
     deleteButton.disabled = true;
@@ -654,7 +594,7 @@ async function confirmDelete() {
         console.log('🗑️ Deleting item with ID:', deleteItemId);
         
         const response = await fetch('/admin/delete-fragrance', {
-            method: 'POST', // Changed to POST to match the endpoint 
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -699,7 +639,8 @@ function closeDeleteModal() {
     hideModal('deleteModalOverlay');
     deleteItemId = null;
 }
-// FIXED: Updated handleFormSubmit to properly handle variants
+
+// FIXED: Form submission with proper image upload
 async function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -729,7 +670,7 @@ async function handleFormSubmit(e) {
             brand: document.getElementById('itemBrand').value.trim(),
             description: document.getElementById('itemDescription').value.trim(),
             hidden: document.getElementById('itemHidden').checked,
-            variants: [] // FIXED: Always start with empty array
+            variants: [] // Always start with empty array
         };
         
         if (currentEditingId) {
@@ -737,7 +678,50 @@ async function handleFormSubmit(e) {
             formData.slug = generateSlug(formData.name);
         }
         
-        // FIXED: Only add variants that are actually checked
+        // FIXED: Handle image upload if file is selected
+        const imageInput = document.getElementById('itemImage');
+        if (imageInput && imageInput.files && imageInput.files.length > 0) {
+            const imageFile = imageInput.files[0];
+            
+            // Validate image
+            if (!imageFile.type.includes('png')) {
+                throw new Error('Only PNG images are allowed');
+            }
+            
+            if (imageFile.size > 5 * 1024 * 1024) {
+                throw new Error('Image too large. Maximum size is 5MB.');
+            }
+            
+            // Upload image first
+            const slug = generateSlug(formData.name);
+            const imageFormData = new FormData();
+            imageFormData.append('image', imageFile);
+            imageFormData.append('slug', slug);
+            
+            console.log('🖼️ Uploading image...');
+            saveButtonText.innerHTML = '<div class="loading-spinner"></div> Uploading image...';
+            
+            const imageResponse = await fetch('/admin/upload-image', {
+                method: 'POST',
+                credentials: 'include',
+                body: imageFormData
+            });
+            
+            if (!imageResponse.ok) {
+                const imageError = await imageResponse.json();
+                throw new Error(`Image upload failed: ${imageError.error || 'Unknown error'}`);
+            }
+            
+            const imageResult = await imageResponse.json();
+            if (imageResult.success) {
+                formData.image_path = imageResult.data.path; // Use the path from upload response
+                console.log('✅ Image uploaded successfully:', imageResult.data.path);
+            } else {
+                throw new Error('Image upload failed');
+            }
+        }
+        
+        // Only add variants that are actually checked
         if (document.getElementById('enable5ml').checked) {
             const price5ml = parseFloat(document.getElementById('price5ml').value);
             if (!isNaN(price5ml) && price5ml > 0) {
@@ -779,7 +763,8 @@ async function handleFormSubmit(e) {
             });
         }
         
-        console.log('Submitting form data:', formData);
+        console.log('📤 Submitting form data:', formData);
+        saveButtonText.innerHTML = '<div class="loading-spinner"></div> Saving item...';
         
         // Submit the form
         let endpoint, method;
@@ -811,7 +796,7 @@ async function handleFormSubmit(e) {
         }
         
     } catch (error) {
-        console.error('Form submission error:', error);
+        console.error('💥 Form submission error:', error);
         showToast('Failed to save item: ' + error.message, 'error');
     } finally {
         // Re-enable button
@@ -834,6 +819,43 @@ async function saveItem() {
     } else {
         console.error('Form not found');
         showToast('Internal error: Form not found', 'error');
+    }
+}
+
+// Toggle variant price function
+function toggleVariantPrice(variant) {
+    let checkboxId, priceId;
+    
+    switch(variant) {
+        case '5ml':
+            checkboxId = 'enable5ml';
+            priceId = 'price5ml';
+            break;
+        case '10ml':
+            checkboxId = 'enable10ml';
+            priceId = 'price10ml';
+            break;
+        case '30ml':
+            checkboxId = 'enable30ml';
+            priceId = 'price30ml';
+            break;
+        case 'full':
+            checkboxId = 'enableFullBottle';
+            priceId = null; // Full bottle doesn't have price input
+            break;
+        default:
+            console.error('Unknown variant:', variant);
+            return;
+    }
+    
+    const checkbox = document.getElementById(checkboxId);
+    const priceInput = priceId ? document.getElementById(priceId) : null;
+    
+    if (checkbox && priceInput) {
+        priceInput.disabled = !checkbox.checked;
+        if (!checkbox.checked) {
+            priceInput.value = '';
+        }
     }
 }
 
@@ -905,29 +927,63 @@ function hideModal(modalId) {
 }
 
 // Toast notifications
-function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toastContainer') || document.body;
+function showToast(message, type = 'info', duration = 5000) {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container';
+        toastContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+        `;
+        document.body.appendChild(toastContainer);
+    }
+    
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
+    toast.style.cssText = `
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 1rem 1.5rem;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        max-width: 100%;
+        word-wrap: break-word;
+    `;
+    
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
     toast.innerHTML = `
-        <div class="toast-content">
-            <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
-            <span class="toast-message">${message}</span>
-        </div>
+        <span>${icon}</span>
+        <span>${message}</span>
     `;
     
     toastContainer.appendChild(toast);
     
     // Show toast
-    setTimeout(() => toast.classList.add('show'), 100);
-    
-    // Auto remove after 5 seconds
     setTimeout(() => {
-        toast.classList.remove('show');
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Auto remove
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.parentNode.removeChild(toast);
             }
         }, 300);
-    }, 5000);
+    }, duration);
 }
+
+console.log('✅ Items management script loaded successfully');
