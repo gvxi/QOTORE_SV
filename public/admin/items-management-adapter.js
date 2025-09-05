@@ -469,11 +469,29 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Debug function to check function overrides
+function debugFunctionOverrides() {
+    console.log('🔍 Function Override Debug:', {
+        showModal: typeof window.showModal,
+        hideModal: typeof window.hideModal,
+        openAddItemModal: typeof window.openAddItemModal,
+        editItem: typeof window.editItem,
+        closeItemModal: typeof window.closeItemModal,
+        items: window.items ? window.items.length : 'Not loaded'
+    });
+}
+
 // Export functions for global access
 if (typeof window !== 'undefined') {
     window.createItemRow = createItemRow;
     window.handleImagePreview = handleImagePreview;
     window.removeImagePreview = removeImagePreview;
+    window.debugFunctionOverrides = debugFunctionOverrides;
 }
 
 console.log('✅ Items management adapter script loaded');
+
+// Auto-debug after a short delay
+setTimeout(() => {
+    debugFunctionOverrides();
+}, 2000);
