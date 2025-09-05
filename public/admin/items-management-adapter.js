@@ -7,10 +7,21 @@ let isAdapterInitialized = false;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔌 Items management adapter loaded');
     
-    // Small delay to ensure other scripts are loaded first
+    // Multiple attempts to ensure override
     setTimeout(() => {
+        console.log('🔄 First initialization attempt...');
         initializeAdapter();
-    }, 500);
+    }, 100);
+    
+    setTimeout(() => {
+        console.log('🔄 Second initialization attempt...');
+        initializeAdapter();
+    }, 1000);
+    
+    setTimeout(() => {
+        console.log('🔄 Final initialization attempt...');
+        initializeAdapter();
+    }, 2000);
 });
 
 function initializeAdapter() {
