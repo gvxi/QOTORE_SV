@@ -40,45 +40,105 @@ function initializeNewDesignFeatures() {
             }, 300);
         });
     }
-// Override the problematic updatePreviews function
-window.originalUpdatePreviews = window.updatePreviews;
-window.updatePreviews = function() {
-    const itemNameInput = document.getElementById('itemName');
-    if (!itemNameInput) return;
-    
-    const itemName = itemNameInput.value || 'creed-aventus';
-    const slug = generateSlug(itemName);
-    
-    // Check if preview elements exist (from old HTML structure)
-    const slugPreview = document.getElementById('slugPreview');
-    const imageNamePreview = document.getElementById('imageNamePreview');
-    
-    if (slugPreview) {
-        slugPreview.textContent = slug;
-    } else {
-        console.log('📝 Slug preview element not found (this is normal with new design)');
-    }
-    
-    if (imageNamePreview) {
-        imageNamePreview.textContent = `${slug}.png`;
-    } else {
-        console.log('🖼️ Image name preview element not found (this is normal with new design)');
-    }
-    
-    // For the new design, we could show the slug in the form title or elsewhere
-    // but it's not critical functionality
-    console.log('Generated slug:', slug);
-};
+}
 
-// Override generateSlug to make sure it exists
-window.generateSlug = function(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-};
+// MISSING FUNCTION ADDED: Override functions for new design compatibility
+function overrideFunctionsForNewDesign() {
+    console.log('🔧 Overriding functions for new design...');
+    
+    // Override the original loadItems function to use correct API endpoint
+    window.originalLoadItems = window.loadItems;
+    window.loadItems = async function() {
+        console.log('📦 Loading items...');
+        const loadingEl = document.getElementById('loadingState');
+        const contentEl = document.getElementById('contentContainer');
+        
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (contentEl) contentEl.style.display = 'none';
+        
+        try {
+            // Use the correct admin API endpoint
+            const response = await fetch('/api/admin/items', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    showToast('Authentication failed. Please log in again.', 'error');
+                    window.location.href = '/admin/login.html';
+                    return;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && Array.isArray(result.data)) {
+                items = result.data;
+                console.log(`✅ Loaded ${items.length} items`);
+                
+                updateStats();
+                applyFiltersAndPagination();
+            } else {
+                throw new Error(result.error || 'Invalid response format');
+            }
+            
+        } catch (error) {
+            console.error('💥 Load items error:', error);
+            showToast('Failed to load items: ' + error.message, 'error');
+            items = [];
+            applyFiltersAndPagination();
+        } finally {
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (contentEl) contentEl.style.display = 'block';
+        }
+    };
+
+    // Override the problematic updatePreviews function
+    window.originalUpdatePreviews = window.updatePreviews;
+    window.updatePreviews = function() {
+        const itemNameInput = document.getElementById('itemName');
+        if (!itemNameInput) return;
+        
+        const itemName = itemNameInput.value || 'creed-aventus';
+        const slug = generateSlug(itemName);
+        
+        // Check if preview elements exist (from old HTML structure)
+        const slugPreview = document.getElementById('slugPreview');
+        const imageNamePreview = document.getElementById('imageNamePreview');
+        
+        if (slugPreview) {
+            slugPreview.textContent = slug;
+        } else {
+            console.log('📝 Slug preview element not found (this is normal with new design)');
+        }
+        
+        if (imageNamePreview) {
+            imageNamePreview.textContent = `${slug}.png`;
+        } else {
+            console.log('🖼️ Image name preview element not found (this is normal with new design)');
+        }
+        
+        // For the new design, we could show the slug in the form title or elsewhere
+        // but it's not critical functionality
+        console.log('Generated slug:', slug);
+    };
+
+    // Override generateSlug to make sure it exists
+    window.generateSlug = function(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^a-z0-9 -]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+    };
+    
     // Override updateStats function to work with new design
     window.originalUpdateStats = window.updateStats;
     window.updateStats = function() {
@@ -98,43 +158,15 @@ window.generateSlug = function(text) {
     
     // Override renderItems function for new table design
     window.originalRenderItems = window.renderItems;
-    window.renderItems = function(itemsToRender) {
-        const itemsList = document.getElementById('itemsList');
-        const emptyState = document.getElementById('emptyState');
-        const table = document.getElementById('itemsTable');
-        
-        if (!itemsList) {
-            console.error('Items list container not found');
-            return;
+    window.renderItems = function(pageItems) {
+        if (window.innerWidth <= 768) {
+            renderMobileItems(pageItems);
+        } else {
+            renderTableItems(pageItems);
         }
-        
-        // Show/hide empty state
-        if (!itemsToRender || itemsToRender.length === 0) {
-            if (emptyState) emptyState.style.display = 'block';
-            if (table) table.style.display = 'none';
-            itemsList.innerHTML = '';
-            updatePaginationInfo(0, 0, 0);
-            return;
-        }
-        
-        if (emptyState) emptyState.style.display = 'none';
-        if (table) table.style.display = 'table';
-        
-        // Generate table rows
-        itemsList.innerHTML = itemsToRender.map(item => createItemRow(item)).join('');
-        
-        // Update pagination info
-        const startIndex = (currentPage - 1) * itemsPerPage + 1;
-        const endIndex = Math.min(startIndex + itemsToRender.length - 1, filteredItems.length);
-        updatePaginationInfo(startIndex, endIndex, filteredItems.length);
-        
-        // Update stats
-        updateStats();
-        
-        console.log(`📋 Rendered ${itemsToRender.length} items for page ${currentPage}`);
     };
     
-    // Override pagination function for new design
+    // Override renderPagination function for enhanced pagination
     window.originalRenderPagination = window.renderPagination;
     window.renderPagination = function(totalPages) {
         const paginationContainer = document.getElementById('paginationContainer');
@@ -143,7 +175,7 @@ window.generateSlug = function(text) {
             return;
         }
         
-        let paginationHTML = '';
+        let paginationHTML = '<div class="pagination">';
         
         // Previous button
         const prevDisabled = currentPage <= 1 ? 'disabled' : '';
@@ -153,25 +185,18 @@ window.generateSlug = function(text) {
             </button>
         `;
         
-        // Page numbers with smart ellipsis
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-        
-        // Adjust start if we're near the end
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-        
         // First page + ellipsis
-        if (startPage > 1) {
+        if (currentPage > 3) {
             paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
-            if (startPage > 2) {
+            if (currentPage > 4) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
         }
         
-        // Page numbers
+        // Page numbers around current page
+        const startPage = Math.max(1, currentPage - 1);
+        const endPage = Math.min(totalPages, currentPage + 1);
+        
         for (let i = startPage; i <= endPage; i++) {
             const activeClass = i === currentPage ? 'active' : '';
             paginationHTML += `
@@ -227,6 +252,70 @@ window.generateSlug = function(text) {
         }
     };
     
+    // Enhanced openAddItemModal with debugging
+    window.openAddItemModal = function() {
+        console.log('🔧 Opening add item modal...');
+        
+        // Debug modal elements
+        const elements = debugModalElements();
+        
+        if (!elements.modalOverlay) {
+            console.error('❌ Modal overlay not found! Make sure the HTML has id="itemModalOverlay"');
+            showToast('Modal error: Overlay not found', 'error');
+            return;
+        }
+        
+        currentEditingId = null;
+        
+        // Update modal title and button text
+        if (elements.modalTitle) elements.modalTitle.textContent = 'Add New Item';
+        if (elements.saveButtonText) elements.saveButtonText.textContent = 'Save Item';
+        
+        // Reset form
+        if (typeof resetForm === 'function') {
+            resetForm();
+        } else {
+            console.warn('⚠️ resetForm function not found');
+        }
+        
+        // Show modal with extra debugging
+        console.log('📱 Showing modal...');
+        elements.modalOverlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Verify modal is visible
+        setTimeout(() => {
+            const isVisible = elements.modalOverlay.style.display === 'flex';
+            console.log('👁️ Modal visibility check:', isVisible ? 'VISIBLE' : 'HIDDEN');
+            
+            if (!isVisible) {
+                console.error('❌ Modal failed to show!');
+                showToast('Modal failed to open', 'error');
+            } else {
+                // Focus first input
+                const firstInput = elements.modalOverlay.querySelector('input[type="text"], textarea, select');
+                if (firstInput) {
+                    firstInput.focus();
+                    console.log('🎯 Focused first input');
+                }
+            }
+        }, 100);
+    };
+        
+    // Override closeItemModal function
+    window.closeItemModal = function() {
+        hideModal('itemModalOverlay');
+        resetForm();
+        currentEditingId = null;
+    };
+    
+    // Override closeDeleteModal function  
+    window.closeDeleteModal = function() {
+        hideModal('deleteModalOverlay');
+        window.deleteItemId = null;
+    };
+}
+
 // Debug function to check modal elements
 function debugModalElements() {
     const modalOverlay = document.getElementById('itemModalOverlay');
@@ -250,70 +339,6 @@ function debugModalElements() {
     };
 }
 
-// Enhanced openAddItemModal with debugging
-window.openAddItemModal = function() {
-    console.log('🔧 Opening add item modal...');
-    
-    // Debug modal elements
-    const elements = debugModalElements();
-    
-    if (!elements.modalOverlay) {
-        console.error('❌ Modal overlay not found! Make sure the HTML has id="itemModalOverlay"');
-        showToast('Modal error: Overlay not found', 'error');
-        return;
-    }
-    
-    currentEditingId = null;
-    
-    // Update modal title and button text
-    if (elements.modalTitle) elements.modalTitle.textContent = 'Add New Item';
-    if (elements.saveButtonText) elements.saveButtonText.textContent = 'Save Item';
-    
-    // Reset form
-    if (typeof resetForm === 'function') {
-        resetForm();
-    } else {
-        console.warn('⚠️ resetForm function not found');
-    }
-    
-    // Show modal with extra debugging
-    console.log('📱 Showing modal...');
-    elements.modalOverlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    
-    // Verify modal is visible
-    setTimeout(() => {
-        const isVisible = elements.modalOverlay.style.display === 'flex';
-        console.log('👁️ Modal visibility check:', isVisible ? 'VISIBLE' : 'HIDDEN');
-        
-        if (!isVisible) {
-            console.error('❌ Modal failed to show!');
-            showToast('Modal failed to open', 'error');
-        } else {
-            // Focus first input
-            const firstInput = elements.modalOverlay.querySelector('input[type="text"], textarea, select');
-            if (firstInput) {
-                firstInput.focus();
-                console.log('🎯 Focused first input');
-            }
-        }
-    }, 100);
-};
-    
-    // Override closeItemModal function
-    window.closeItemModal = function() {
-        hideModal('itemModalOverlay');
-        resetForm();
-        currentEditingId = null;
-    };
-    
-    // Override closeDeleteModal function  
-    window.closeDeleteModal = function() {
-        hideModal('deleteModalOverlay');
-        window.deleteItemId = null;
-    };
-}
-
 // New design specific functions
 function createItemRow(item) {
     const imageUrl = item.image_path ? `/api/image/${item.image_path}?v=${Date.now()}` : null;
@@ -325,21 +350,21 @@ function createItemRow(item) {
             <td>
                 <div class="item-image">
                     ${imageUrl ? 
-                        `<img src="${imageUrl}" alt="${item.name || 'Item'}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-image\\'>No Image</div>'">` :
+                        `<img src="${imageUrl}" alt="${item.name}" loading="lazy">` :
                         '<div class="no-image">No Image</div>'
                     }
                 </div>
             </td>
             <td>
                 <div class="item-details">
-                    <h4>${item.name || 'Unnamed Item'}</h4>
-                    ${item.brand ? `<div class="item-brand">${item.brand}</div>` : ''}
-                    ${item.description ? `<div class="item-description" title="${item.description}">${item.description}</div>` : ''}
+                    <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
+                    <p class="item-brand">${item.brand || 'No brand'}</p>
+                    <p class="item-description">${(item.description || 'No description').substring(0, 100)}${item.description && item.description.length > 100 ? '...' : ''}</p>
                 </div>
             </td>
             <td>
                 <div class="variants-info">
-                    ${getVariantsDisplayForTable(item.variants)}
+                    ${getVariantsDisplayHTML(item.variants)}
                 </div>
             </td>
             <td>
@@ -348,33 +373,25 @@ function createItemRow(item) {
                 </span>
             </td>
             <td>
-                <div class="action-buttons">
-                    <button class="btn-small btn-edit" onclick="editItem('${item.id}')" title="Edit Item">
-                        Edit
-                    </button>
+                <div class="table-actions">
+                    <button class="btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
                     <button class="btn-small ${item.hidden ? 'btn-show' : 'btn-hide'}" 
-                            onclick="toggleItemVisibility('${item.id}', ${item.hidden})"
-                            title="${item.hidden ? 'Show Item' : 'Hide Item'}">
+                            onclick="toggleItemVisibility('${item.id}', ${item.hidden})">
                         ${item.hidden ? 'Show' : 'Hide'}
                     </button>
-                    <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')" title="Delete Item">
-                        Delete
-                    </button>
+                    <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
                 </div>
             </td>
         </tr>
     `;
 }
 
-function getVariantsDisplayForTable(variants) {
+function getVariantsDisplayHTML(variants) {
     if (!variants || variants.length === 0) {
-        return '<span style="color: #999; font-style: italic;">No variants</span>';
+        return '<span style="color: #999;">No variants</span>';
     }
     
     return variants.map(variant => {
-        if (variant.is_whole_bottle) {
-            return '<div class="variant-item">Full Bottle (Contact)</div>';
-        }
         const size = variant.size_ml ? `${variant.size_ml}ml` : (variant.size || 'Unknown size');
         const price = variant.price_cents ? 
             `${(variant.price_cents / 1000).toFixed(3)} OMR` : 
@@ -548,234 +565,46 @@ function showToast(message, type = 'info', duration = 4000) {
     toast.addEventListener('click', () => {
         toast.style.animation = 'slideOut 0.3s ease forwards';
         setTimeout(() => {
-            toast.remove();
+            if (toast.parentElement) {
+                toast.remove();
+            }
         }, 300);
     });
 }
 
 function getToastIcon(type) {
-    const icons = {
-        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#28a745"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>',
-        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#dc3545"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
-        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#ffc107"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
-        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#17a2b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
-    };
-    return icons[type] || icons.info;
-}
-
-// Enhanced form validation with visual feedback
-function validateItemForm() {
-    const form = document.getElementById('itemForm');
-    if (!form) return false;
-    
-    let isValid = true;
-    const errors = [];
-    
-    // Required fields validation
-    const itemName = document.getElementById('itemName');
-    const itemImage = document.getElementById('itemImage');
-    
-    if (!itemName || !itemName.value.trim()) {
-        errors.push('Item name is required');
-        if (itemName) addFieldError(itemName);
-        isValid = false;
-    } else {
-        if (itemName) removeFieldError(itemName);
-    }
-    
-    // Image validation for new items
-    if (!currentEditingId && (!itemImage || !itemImage.files.length)) {
-        errors.push('Item image is required');
-        if (itemImage) addFieldError(itemImage);
-        isValid = false;
-    } else {
-        if (itemImage) removeFieldError(itemImage);
-    }
-    
-    // Variants validation
-    const hasVariants = document.getElementById('enable5ml').checked ||
-                       document.getElementById('enable10ml').checked ||
-                       document.getElementById('enable30ml').checked ||
-                       document.getElementById('enableFullBottle').checked;
-    
-    if (!hasVariants) {
-        errors.push('At least one variant must be selected');
-        isValid = false;
-    }
-    
-    // Price validation for enabled variants
-    const variants = [
-        { checkbox: 'enable5ml', price: 'price5ml', name: '5ml' },
-        { checkbox: 'enable10ml', price: 'price10ml', name: '10ml' },
-        { checkbox: 'enable30ml', price: 'price30ml', name: '30ml' }
-    ];
-    
-    variants.forEach(variant => {
-        const checkbox = document.getElementById(variant.checkbox);
-        const priceInput = document.getElementById(variant.price);
-        
-        if (checkbox && checkbox.checked && priceInput) {
-            const price = parseFloat(priceInput.value);
-            if (!price || price <= 0) {
-                errors.push(`${variant.name} price must be greater than 0`);
-                addFieldError(priceInput);
-                isValid = false;
-            } else {
-                removeFieldError(priceInput);
-            }
-        }
-    });
-    
-    // Show errors if any
-    if (errors.length > 0) {
-        showToast(errors.join('. '), 'error', 6000);
-    }
-    
-    return isValid;
-}
-
-function addFieldError(field) {
-    field.style.borderColor = '#dc3545';
-    field.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.1)';
-}
-
-function removeFieldError(field) {
-    field.style.borderColor = '#e9ecef';
-    field.style.boxShadow = 'none';
-}
-
-// Enhanced image preview functionality
-function handleImagePreview(e) {
-    const file = e.target.files[0];
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-    
-    if (!file) {
-        if (imagePreview) imagePreview.style.display = 'none';
-        return;
-    }
-    
-    // Validation
-    if (!file.type.includes('png')) {
-        showToast('Only PNG images are allowed', 'error');
-        e.target.value = '';
-        return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('Image too large. Please choose an image under 5MB.', 'error');
-        e.target.value = '';
-        return;
-    }
-    
-    // Show preview
-    if (imagePreview && previewImg) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            imagePreview.style.display = 'block';
-            
-            // Add loading animation
-            previewImg.style.opacity = '0';
-            previewImg.onload = function() {
-                previewImg.style.transition = 'opacity 0.3s ease';
-                previewImg.style.opacity = '1';
-            };
-        };
-        reader.readAsDataURL(file);
+    switch(type) {
+        case 'success': return '✅';
+        case 'error': return '❌';
+        case 'warning': return '⚠️';
+        default: return 'ℹ️';
     }
 }
 
-function removeImagePreview() {
-    const imagePreview = document.getElementById('imagePreview');
-    const imageInput = document.getElementById('itemImage');
-    
-    if (imagePreview) imagePreview.style.display = 'none';
-    if (imageInput) imageInput.value = '';
-}
-
-// Enhanced search functionality with highlighting
-function highlightSearchTerms(text, searchTerm) {
-    if (!searchTerm) return text;
-
-    // Escape regex special characters in the search term
-    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedTerm})`, 'gi');
-
-    return text.replace(regex, '<mark style="background: yellow; padding: 0 2px;">$1</mark>');
-}
-
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    // Ctrl/Cmd + N: Add new item
-    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        openAddItemModal();
-    }
-    
-    // Ctrl/Cmd + R: Refresh
-    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-        e.preventDefault();
-        refreshData();
-    }
-    
-    // Escape: Close modals
-    if (e.key === 'Escape') {
-        const modals = document.querySelectorAll('.modal-overlay[style*="flex"]');
-        modals.forEach(modal => {
-            if (modal.id === 'itemModalOverlay') {
-                closeItemModal();
-            } else if (modal.id === 'deleteModalOverlay') {
-                closeDeleteModal();
-            }
-        });
-    }
-    
-    // Enter: Submit forms
-    if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.form) {
-        const form = e.target.form;
-        if (form.id === 'itemForm') {
-            e.preventDefault();
-            handleFormSubmit({ preventDefault: () => {}, target: form });
-        }
-    }
-});
-
-// Enhanced delete confirmation with item details
-function deleteItem(itemId) {
-    const item = items.find(i => i.id == itemId);
-    if (!item) {
-        showToast('Item not found', 'error');
-        return;
-    }
-    
-    deleteItemId = itemId;
-    
-    // Populate enhanced delete preview
+// Enhanced delete preview with better styling
+function createDeletePreview(item) {
     const preview = document.getElementById('deleteItemPreview');
-    if (preview) {
-        const imageUrl = item.image_path ? `/api/image/${item.image_path}?v=${Date.now()}` : null;
-        
-        preview.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: white; border-radius: 12px; border: 2px solid #dc3545;">
-                <div class="item-image" style="flex-shrink: 0;">
-                    ${imageUrl ? 
-                        `<img src="${imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">` :
-                        '<div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.75rem;">No Image</div>'
-                    }
-                </div>
-                <div style="flex: 1;">
-                    <h5 style="margin: 0 0 0.5rem 0; font-weight: 700; color: #2d3748;">${item.name || 'Unnamed Item'}</h5>
-                    ${item.brand ? `<p style="margin: 0 0 0.5rem 0; color: #6c757d; font-size: 0.9rem;"><strong>Brand:</strong> ${item.brand}</p>` : ''}
-                    <div style="color: #6c757d; font-size: 0.85rem;">
-                        <strong>Variants:</strong> ${getVariantsDisplayText(item.variants)}
-                    </div>
+    if (!preview) return;
+    
+    const imageUrl = item.image_path ? `/api/image/${item.image_path}?v=${Date.now()}` : null;
+    
+    preview.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: white; border-radius: 12px; border: 2px solid #dc3545;">
+            <div class="item-image" style="flex-shrink: 0;">
+                ${imageUrl ? 
+                    `<img src="${imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">` :
+                    '<div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.75rem;">No Image</div>'
+                }
+            </div>
+            <div style="flex: 1;">
+                <h5 style="margin: 0 0 0.5rem 0; font-weight: 700; color: #2d3748;">${item.name || 'Unnamed Item'}</h5>
+                ${item.brand ? `<p style="margin: 0 0 0.5rem 0; color: #6c757d; font-size: 0.9rem;"><strong>Brand:</strong> ${item.brand}</p>` : ''}
+                <div style="color: #6c757d; font-size: 0.85rem;">
+                    <strong>Variants:</strong> ${getVariantsDisplayText(item.variants)}
                 </div>
             </div>
-        `;
-    }
-    
-    showModal('deleteModalOverlay');
+        </div>
+    `;
 }
 
 function getVariantsDisplayText(variants) {
@@ -816,275 +645,3 @@ function optimizeTableRendering() {
         console.log(`📊 Large dataset detected (${items.length} items). Consider implementing virtual scrolling for better performance.`);
     }
 }
-
-// Auto-save draft functionality (for edit mode)
-function setupAutoSave() {
-    const form = document.getElementById('itemForm');
-    if (!form) return;
-    
-    const inputs = form.querySelectorAll('input, textarea, select');
-    let saveTimeout;
-    
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                if (currentEditingId) {
-                    saveDraft();
-                }
-            }, 2000); // Auto-save after 2 seconds of inactivity
-        });
-    });
-}
-
-function saveDraft() {
-    const formData = {
-        name: document.getElementById('itemName').value,
-        brand: document.getElementById('itemBrand').value,
-        description: document.getElementById('itemDescription').value,
-        hidden: document.getElementById('itemHidden').checked,
-        variants: {
-            '5ml': {
-                enabled: document.getElementById('enable5ml').checked,
-                price: document.getElementById('price5ml').value
-            },
-            '10ml': {
-                enabled: document.getElementById('enable10ml').checked,
-                price: document.getElementById('price10ml').value
-            },
-            '30ml': {
-                enabled: document.getElementById('enable30ml').checked,
-                price: document.getElementById('price30ml').value
-            },
-            'full': {
-                enabled: document.getElementById('enableFullBottle').checked
-            }
-        }
-    };
-    
-    localStorage.setItem(`qotore_item_draft_${currentEditingId}`, JSON.stringify(formData));
-    console.log('💾 Draft saved automatically');
-}
-
-function loadDraft(itemId) {
-    const draftKey = `qotore_item_draft_${itemId}`;
-    const draft = localStorage.getItem(draftKey);
-    
-    if (draft) {
-        try {
-            const formData = JSON.parse(draft);
-            // Apply draft data to form
-            // This would be implemented if auto-save is needed
-            console.log('📄 Draft loaded for item', itemId);
-        } catch (error) {
-            console.error('Failed to load draft:', error);
-            localStorage.removeItem(draftKey);
-        }
-    }
-}
-
-function clearDraft(itemId) {
-    const draftKey = `qotore_item_draft_${itemId}`;
-    localStorage.removeItem(draftKey);
-}
-
-// Initialize new features when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up auto-save for forms
-    setTimeout(setupAutoSave, 1000);
-    
-    // Add smooth scrolling to pagination
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('pagination-btn') && !e.target.disabled) {
-            setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
-        }
-    });
-    
-    // Add loading states to action buttons
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-small')) {
-            const originalText = e.target.textContent;
-            e.target.style.opacity = '0.7';
-            e.target.disabled = true;
-            
-            setTimeout(() => {
-                e.target.style.opacity = '1';
-                e.target.disabled = false;
-            }, 1000);
-        }
-    });
-});
-
-// Enhanced logout function with proper cookie clearing
-async function handleLogout() {
-    try {
-        console.log('🚪 Logging out...');
-        
-        // Show loading state
-        const logoutBtn = document.querySelector('a[href="../login.html"]');
-        if (logoutBtn) {
-            const originalContent = logoutBtn.innerHTML;
-            logoutBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                <span>Logging out...</span>
-            `;
-            logoutBtn.style.pointerEvents = 'none';
-            logoutBtn.style.opacity = '0.7';
-        }
-        
-        // Call logout endpoint to clear server-side session
-        const response = await fetch('/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Logout request failed: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('Logout response:', result);
-        
-        // Clear client-side cookies as backup
-        clearAllAdminCookies();
-        
-        // Clear any stored admin data
-        clearAdminStorage();
-        
-        // Show success message
-        showToast('Logged out successfully', 'success');
-        
-        // Redirect after short delay
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 1000);
-        
-    } catch (error) {
-        console.error('❌ Logout error:', error);
-        
-        // Even if server logout fails, clear client-side data
-        clearAllAdminCookies();
-        clearAdminStorage();
-        
-        showToast('Logout completed (with errors)', 'warning');
-        
-        // Redirect anyway
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 1500);
-    }
-}
-
-function clearAllAdminCookies() {
-    // Clear admin session cookie with multiple approaches to ensure it's removed
-    const cookieOptions = [
-        'admin_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; Secure; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0; SameSite=Lax',
-        'admin_session=; Path=/; Max-Age=0',
-        'admin_session=; Max-Age=0'
-    ];
-    
-    cookieOptions.forEach(cookieString => {
-        document.cookie = cookieString;
-    });
-    
-    // Also clear any other potential admin cookies
-    const adminCookies = ['admin_token', 'admin_auth', 'qotore_admin'];
-    adminCookies.forEach(cookieName => {
-        document.cookie = `${cookieName}=; Path=/; Max-Age=0`;
-    });
-    
-    console.log('🧹 Client-side admin cookies cleared');
-}
-
-function clearAdminStorage() {
-    // Clear localStorage items that might contain admin data
-    const adminKeys = [
-        'admin_session',
-        'admin_data',
-        'qotore_admin',
-        'items_cache',
-        'orders_cache'
-    ];
-    
-    adminKeys.forEach(key => {
-        localStorage.removeItem(key);
-    });
-    
-    // Clear sessionStorage
-    try {
-        sessionStorage.clear();
-    } catch (error) {
-        console.warn('Could not clear sessionStorage:', error);
-    }
-    
-    console.log('🧹 Admin storage cleared');
-}
-
-// Override the logout link behavior
-function setupLogoutHandler() {
-    const logoutLink = document.querySelector('a[href="../login.html"]');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            handleLogout();
-        });
-        
-        // Also handle if it's a button
-        logoutLink.style.cursor = 'pointer';
-        console.log('🔗 Logout handler attached');
-    } else {
-        console.warn('⚠️ Logout link not found');
-    }
-}
-
-// Authentication check function
-function checkAuthentication() {
-    const cookies = document.cookie.split(';');
-    const hasAdminSession = cookies.some(cookie => 
-        cookie.trim().startsWith('admin_session=') && 
-        cookie.trim().split('=')[1] !== ''
-    );
-    
-    if (!hasAdminSession) {
-        console.warn('⚠️ No valid admin session found');
-        showToast('Session expired. Please login again.', 'warning');
-        
-        setTimeout(() => {
-            window.location.href = '/login.html';
-        }, 2000);
-        
-        return false;
-    }
-    
-    return true;
-}
-
-// Periodic authentication check (every 5 minutes)
-function startAuthenticationMonitoring() {
-    setInterval(() => {
-        console.log('🔍 Checking authentication status...');
-        checkAuthentication();
-    }, 5 * 60 * 1000); // 5 minutes
-}
-
-// Initialize authentication features
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up logout handler
-    setTimeout(setupLogoutHandler, 500);
-    
-    // Start authentication monitoring
-    startAuthenticationMonitoring();
-    
-    // Initial auth check
-    checkAuthentication();
-});
