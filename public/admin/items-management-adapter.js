@@ -25,7 +25,7 @@ function initializeAdapter() {
     // Fix modal functions if needed
     fixModalFunctions();
     
-    // Add event listeners for new features
+    // Add event listeners for new features and fix table rendering
     addEnhancedFeatures();
     
     console.log('✅ Adapter initialization complete');
