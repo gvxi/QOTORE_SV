@@ -1325,6 +1325,146 @@
             return div.innerHTML;
         }
 
+        // Order submission with email notification
+        async function submitOrder(event) {
+            event.preventDefault();
+            
+            if (cart.length === 0) {
+                showToast('Your cart is empty', 'warning');
+                return;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const orderData = {
+                customer_ip: customerIP,
+                customer_first_name: formData.get('firstName'),
+                customer_last_name: formData.get('lastName') || '',
+                customer_phone: formData.get('phone'),
+                customer_email: formData.get('email') || '',
+                delivery_address: formData.get('address'),
+                delivery_city: formData.get('city'),
+                delivery_region: formData.get('region') || '',
+                notes: formData.get('notes') || '',
+                items: cart.map(item => ({
+                    fragrance_id: item.fragranceId,
+                    variant_id: item.variant.id,
+                    quantity: item.quantity
+                }))
+            };
+
+            showLoading();
+
+            try {
+                // Step 1: Place the order
+                const response = await fetch('/api/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Step 2: Send admin notification email (don't block on email failure)
+                    sendAdminNotification(result.data, orderData)
+                        .catch(emailError => {
+                            console.warn('Failed to send admin notification email:', emailError);
+                            // Email failure shouldn't affect order success
+                        });
+                    
+                    // Clear cart
+                    cart = [];
+                    localStorage.removeItem('qotore_cart');
+                    
+                    // Set current order
+                    currentOrder = result.data;
+                    
+                    showToast('Order placed successfully! 🎉', 'success');
+                    
+                    // Refresh page to show order status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error(result.error || 'Failed to place order');
+                }
+            } catch (error) {
+                console.error('Order submission failed:', error);
+                let errorMessage = 'Failed to place order: ' + error.message;
+                
+                // Provide helpful error messages
+                if (error.message.includes('Invalid variant ID')) {
+                    errorMessage = 'Some items in your cart are no longer available. Please refresh and try again.';
+                } else if (error.message.includes('Phone number')) {
+                    errorMessage = 'Please enter a valid phone number.';
+                } else if (error.message.includes('Address')) {
+                    errorMessage = 'Please enter a complete delivery address.';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                }
+                
+                showToast(errorMessage, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Send admin notification email (async, non-blocking)
+        async function sendAdminNotification(orderResult, originalOrderData) {
+            try {
+                console.log('Sending admin notification email...');
+                
+                // Prepare notification data
+                const notificationData = {
+                    order_number: orderResult.order_number,
+                    total_amount_omr: orderResult.total_amount_omr,
+                    created_at: orderResult.created_at,
+                    customer: {
+                        first_name: originalOrderData.customer_first_name,
+                        last_name: originalOrderData.customer_last_name,
+                        phone: originalOrderData.customer_phone,
+                        email: originalOrderData.customer_email
+                    },
+                    delivery: {
+                        address: originalOrderData.delivery_address,
+                        city: originalOrderData.delivery_city,
+                        region: originalOrderData.delivery_region,
+                        notes: originalOrderData.notes
+                    },
+                    items: cart.map(item => ({
+                        fragrance_name: item.fragranceName,
+                        fragrance_brand: item.fragranceBrand,
+                        variant_size: item.variant.size,
+                        quantity: item.quantity,
+                        total_price_cents: Math.round(item.variant.price * item.quantity * 1000)
+                    }))
+                };
+
+                const emailResponse = await fetch('/api/send-admin-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(notificationData)
+                });
+
+                const emailResult = await emailResponse.json();
+                
+                if (emailResult.success) {
+                    console.log('✅ Admin notification email sent successfully');
+                } else {
+                    console.warn('⚠️ Admin notification email failed:', emailResult.error);
+                }
+                
+            } catch (emailError) {
+                console.warn('⚠️ Failed to send admin notification:', emailError.message);
+            }
+        }
+
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
             if (countdownInterval) {
