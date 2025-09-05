@@ -486,6 +486,7 @@ if (typeof window !== 'undefined') {
     window.createItemRow = createItemRow;
     window.handleImagePreview = handleImagePreview;
     window.removeImagePreview = removeImagePreview;
+    window.resetVariantFields = resetVariantFields;
     window.debugFunctionOverrides = debugFunctionOverrides;
 }
 
