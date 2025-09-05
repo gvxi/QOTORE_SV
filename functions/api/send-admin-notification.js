@@ -423,12 +423,15 @@ async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
   }
 }
 
-// Helper function to escape HTML
+// Helper function to escape HTML (fixed for Workers environment)
 function escapeHtml(text) {
   if (!text) return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // Handle CORS preflight
