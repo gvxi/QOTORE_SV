@@ -1,523 +1,545 @@
-// Qotore Checkout JavaScript
-let cart = [];
+let currentCart = [];
 let customerInfo = null;
-let currentOrder = null;
-let hasActiveOrder = false;
-let customerIP = '';
+let activeOrder = null;
+let orderHistory = [];
+let isProcessingOrder = false;
 
-// Initialize checkout page
 document.addEventListener('DOMContentLoaded', function() {
-    initializeCheckout();
+    console.log('🚀 Checkout page initializing...');
+    
+    loadCartFromStorage();
+    loadCustomerInfo();
+    checkForActiveOrder();
+    loadOrderHistory();
+    
+    setupEventListeners();
+    
+    updateCartDisplay();
+    updateCheckoutVisibility();
+    
+    console.log('✅ Checkout page initialized');
 });
 
-async function initializeCheckout() {
-    try {
-        // Get customer IP
-        customerIP = await getCustomerIP();
-        
-        // Load cart from storage
-        loadCartFromStorage();
-        
-        // Load saved customer info
-        loadCustomerInfo();
-        
-        // Check for active orders
-        await checkForActiveOrder();
-        
-        // Display cart contents
-        displayCartItems();
-        
-        // Show appropriate sidebar content
-        showSidebarContent();
-        
-    } catch (error) {
-        console.error('Initialization error:', error);
-        showToast('Failed to initialize checkout page', 'error');
+function setupEventListeners() {
+    document.getElementById('clearCartBtn')?.addEventListener('click', clearCart);
+    document.getElementById('placeOrderBtn')?.addEventListener('click', handlePlaceOrder);
+    
+    const form = document.getElementById('checkoutForm');
+    if (form) {
+        form.addEventListener('input', validateForm);
+        form.addEventListener('change', validateForm);
     }
+    
+    document.getElementById('editInfoBtn')?.addEventListener('click', editCustomerInfo);
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 }
 
-// Get customer IP address
-async function getCustomerIP() {
-    try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        return data.ip;
-    } catch (error) {
-        console.warn('Could not get IP address:', error);
-        return 'unknown';
-    }
-}
-
-// Load cart from localStorage
 function loadCartFromStorage() {
     try {
         const savedCart = localStorage.getItem('qotore_cart');
-        cart = savedCart ? JSON.parse(savedCart) : [];
+        currentCart = savedCart ? JSON.parse(savedCart) : [];
+        console.log('📦 Cart loaded:', currentCart.length, 'items');
     } catch (error) {
-        console.error('Error loading cart:', error);
-        cart = [];
+        console.error('❌ Error loading cart:', error);
+        currentCart = [];
     }
 }
 
-// Save cart to localStorage
 function saveCartToStorage() {
     try {
-        localStorage.setItem('qotore_cart', JSON.stringify(cart));
+        localStorage.setItem('qotore_cart', JSON.stringify(currentCart));
+        console.log('💾 Cart saved to storage');
     } catch (error) {
-        console.error('Error saving cart:', error);
+        console.error('❌ Error saving cart:', error);
     }
 }
 
-// Load customer info from localStorage
+function updateCartDisplay() {
+    const cartItems = document.getElementById('cartItems');
+    const cartEmpty = document.getElementById('cartEmpty');
+    const clearCartBtn = document.getElementById('clearCartBtn');
+    const checkoutSection = document.getElementById('checkoutSection');
+    
+    if (currentCart.length === 0) {
+        cartItems.style.display = 'none';
+        cartEmpty.style.display = 'block';
+        clearCartBtn.style.display = 'none';
+        checkoutSection.style.display = 'none';
+    } else {
+        cartItems.style.display = 'block';
+        cartEmpty.style.display = 'none';
+        clearCartBtn.style.display = 'flex';
+        checkoutSection.style.display = 'block';
+        
+        renderCartItems();
+        updateOrderSummary();
+    }
+}
+
+function renderCartItems() {
+    const cartItems = document.getElementById('cartItems');
+    if (!cartItems) return;
+    
+    cartItems.innerHTML = currentCart.map((item, index) => `
+        <div class="cart-item" data-index="${index}">
+            <div class="cart-item-content">
+                <div class="cart-item-info">
+                    <h4>${escapeHtml(item.name)}</h4>
+                    <div class="cart-item-brand">${escapeHtml(item.brand || '')}</div>
+                    <span class="cart-item-size">${escapeHtml(item.size)}</span>
+                </div>
+                <div class="cart-item-controls">
+                    <div class="cart-item-price">${formatPrice(item.price * item.quantity)}</div>
+                    <div class="quantity-controls">
+                        ${item.quantity === 1 ? 
+                            `<button class="qty-btn remove-item-btn" onclick="removeFromCart(${index})" title="Remove item">🗑️</button>` :
+                            `<button class="qty-btn" onclick="decreaseQuantity(${index})" title="Decrease quantity">−</button>`
+                        }
+                        <input type="number" class="qty-input" value="${item.quantity}" min="1" max="50" 
+                               onchange="updateQuantity(${index}, this.value)" readonly>
+                        <button class="qty-btn" onclick="increaseQuantity(${index})" 
+                                ${item.quantity >= 50 ? 'disabled' : ''} title="Increase quantity">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateQuantity(index, newQuantity) {
+    const quantity = parseInt(newQuantity);
+    if (quantity < 1 || quantity > 50) return;
+    
+    currentCart[index].quantity = quantity;
+    saveCartToStorage();
+    updateCartDisplay();
+    showToast('Quantity updated', 'success');
+}
+
+function increaseQuantity(index) {
+    if (currentCart[index].quantity < 50) {
+        currentCart[index].quantity++;
+        saveCartToStorage();
+        updateCartDisplay();
+        showToast('Quantity increased', 'success');
+    }
+}
+
+function decreaseQuantity(index) {
+    if (currentCart[index].quantity > 1) {
+        currentCart[index].quantity--;
+        saveCartToStorage();
+        updateCartDisplay();
+        showToast('Quantity decreased', 'success');
+    }
+}
+
+function removeFromCart(index) {
+    const item = currentCart[index];
+    currentCart.splice(index, 1);
+    saveCartToStorage();
+    updateCartDisplay();
+    showToast(`${item.name} removed from cart`, 'info');
+}
+
+function clearCart() {
+    if (currentCart.length === 0) return;
+    
+    if (confirm('Are you sure you want to clear your cart?')) {
+        currentCart = [];
+        saveCartToStorage();
+        updateCartDisplay();
+        showToast('Cart cleared', 'info');
+    }
+}
+
+function updateOrderSummary() {
+    const summaryDetails = document.getElementById('orderSummary');
+    const subtotalAmount = document.getElementById('subtotalAmount');
+    const totalAmount = document.getElementById('totalAmount');
+    
+    if (!summaryDetails) return;
+    
+    const subtotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    summaryDetails.innerHTML = currentCart.map(item => `
+        <div class="summary-item">
+            <div class="summary-item-info">
+                <div class="summary-item-name">${escapeHtml(item.name)}</div>
+                <div class="summary-item-details">${escapeHtml(item.size)} × ${item.quantity}</div>
+            </div>
+            <div class="summary-item-price">${formatPrice(item.price * item.quantity)}</div>
+        </div>
+    `).join('');
+    
+    if (subtotalAmount) subtotalAmount.textContent = formatPrice(subtotal);
+    if (totalAmount) totalAmount.textContent = formatPrice(subtotal);
+}
+
 function loadCustomerInfo() {
     try {
-        const savedInfo = localStorage.getItem('qotore_customer_info');
-        customerInfo = savedInfo ? JSON.parse(savedInfo) : null;
+        const saved = localStorage.getItem('qotore_customer_info');
+        if (saved) {
+            customerInfo = JSON.parse(saved);
+            console.log('👤 Customer info loaded');
+            
+            if (isReturningCustomer()) {
+                showSavedInfoNotice();
+            }
+        }
     } catch (error) {
-        console.error('Error loading customer info:', error);
+        console.error('❌ Error loading customer info:', error);
         customerInfo = null;
     }
 }
 
-// Save customer info to localStorage
 function saveCustomerInfo(info) {
     try {
-        localStorage.setItem('qotore_customer_info', JSON.stringify(info));
-        customerInfo = info;
+        customerInfo = { ...info, lastUsed: Date.now() };
+        localStorage.setItem('qotore_customer_info', JSON.stringify(customerInfo));
+        console.log('💾 Customer info saved');
     } catch (error) {
-        console.error('Error saving customer info:', error);
+        console.error('❌ Error saving customer info:', error);
     }
 }
 
-// Check for active orders
+function isReturningCustomer() {
+    return customerInfo && customerInfo.name && customerInfo.phone;
+}
+
+function showSavedInfoNotice() {
+    const notice = document.getElementById('savedInfoNotice');
+    if (notice && isReturningCustomer()) {
+        notice.style.display = 'block';
+        fillFormWithSavedInfo();
+    }
+}
+
+function fillFormWithSavedInfo() {
+    if (!customerInfo) return;
+    
+    const form = document.getElementById('checkoutForm');
+    if (!form) return;
+    
+    setFieldValue('customerName', customerInfo.name);
+    setFieldValue('customerPhone', customerInfo.phone);
+    setFieldValue('customerEmail', customerInfo.email);
+    setFieldValue('wilaya', customerInfo.wilaya);
+    setFieldValue('city', customerInfo.city);
+    setFieldValue('address', customerInfo.address);
+    setFieldValue('notes', customerInfo.notes);
+    
+    if (customerInfo.deliveryType) {
+        const deliveryRadio = form.querySelector(`input[name="deliveryType"][value="${customerInfo.deliveryType}"]`);
+        if (deliveryRadio) deliveryRadio.checked = true;
+    }
+    
+    toggleFormEditing(false);
+}
+
+function setFieldValue(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    if (field && value) {
+        field.value = value;
+    }
+}
+
+function editCustomerInfo() {
+    toggleFormEditing(true);
+    document.getElementById('savedInfoNotice').style.display = 'none';
+    showToast('You can now edit your information', 'info');
+}
+
+function toggleFormEditing(enabled) {
+    const form = document.getElementById('checkoutForm');
+    if (!form) return;
+    
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.disabled = !enabled;
+    });
+}
+
 async function checkForActiveOrder() {
     try {
-        const response = await fetch('/api/check-order-status', {
-            method: 'POST',
+        const customerIdentifier = getCustomerIdentifier();
+        if (!customerIdentifier) return;
+        
+        const response = await fetch('/functions/admin/orders', {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ customer_ip: customerIP })
+            }
         });
-
+        
         if (response.ok) {
-            const result = await response.json();
-            if (result.has_active_order) {
-                hasActiveOrder = true;
-                currentOrder = result.order_data;
+            const orders = await response.json();
+            
+            const active = orders.find(order => 
+                order.status === 'pending' && 
+                (order.customer_phone === customerIdentifier)
+            );
+            
+            if (active) {
+                activeOrder = active;
+                showActiveOrder();
             }
         }
     } catch (error) {
-        console.warn('Could not check order status:', error);
+        console.error('❌ Error checking for active order:', error);
     }
 }
 
-// Display cart items
-function displayCartItems() {
-    const cartContent = document.getElementById('cartContent');
-    const cartSummary = document.getElementById('cartSummary');
-    const clearCartBtn = document.getElementById('clearCartBtn');
-
-    if (cart.length === 0) {
-        cartContent.innerHTML = `
-            <div class="empty-cart">
-                <div class="empty-icon">🛒</div>
-                <h3 class="empty-title">Your cart is empty</h3>
-                <p class="empty-subtitle">Add some fragrances to get started!</p>
-                <a href="/" class="btn btn-primary">
-                    <span>🌸</span>
-                    <span>Browse Fragrances</span>
-                </a>
-            </div>
-        `;
-        cartSummary.style.display = 'none';
-        clearCartBtn.style.display = 'none';
-        return;
-    }
-
-    clearCartBtn.style.display = 'flex';
+function showActiveOrder() {
+    if (!activeOrder) return;
     
-    let subtotal = 0;
-    let itemsHtml = '<div class="cart-items">';
-
-    cart.forEach((item, index) => {
-        const itemTotal = item.variant.price * item.quantity;
-        subtotal += itemTotal;
-
-        const canDecrease = item.quantity > 1;
-        const isLastItem = item.quantity === 1;
-
-        itemsHtml += `
-            <div class="cart-item">
-                <div class="item-header">
-                    <div class="item-info">
-                        <h4>${escapeHtml(item.fragranceName)}</h4>
-                        ${item.fragranceBrand ? `<div class="item-brand">${escapeHtml(item.fragranceBrand)}</div>` : ''}
-                        <div class="item-variant">${escapeHtml(item.variant.size)}</div>
-                    </div>
-                    <div class="item-price">${itemTotal.toFixed(3)} OMR</div>
+    const section = document.getElementById('activeOrderSection');
+    const content = document.getElementById('activeOrderContent');
+    
+    if (!section || !content) return;
+    
+    section.style.display = 'block';
+    
+    const orderDate = new Date(activeOrder.created_at);
+    const canCancel = (Date.now() - orderDate.getTime()) < (60 * 60 * 1000);
+    
+    content.innerHTML = `
+        <div class="active-order-details">
+            <div class="order-info-grid">
+                <div class="order-info-item">
+                    <div class="order-info-label">Order Number</div>
+                    <div class="order-info-value">${activeOrder.order_number || `ORD-${String(activeOrder.id).padStart(5, '0')}`}</div>
                 </div>
-                <div class="item-controls">
-                    <div class="quantity-controls">
-                        <button class="qty-btn ${isLastItem ? 'danger' : ''}" 
-                                onclick="updateQuantity(${index}, -1)"
-                                title="${isLastItem ? 'Remove item' : 'Decrease quantity'}">
-                            ${isLastItem ? '🗑️' : '−'}
-                        </button>
-                        <input type="number" class="qty-input" value="${item.quantity}" 
-                               min="1" max="50" readonly>
-                        <button class="qty-btn" onclick="updateQuantity(${index}, 1)" 
-                                ${item.quantity >= 50 ? 'disabled' : ''}
-                                title="Increase quantity">
-                            +
-                        </button>
-                    </div>
-                    <button class="remove-btn" onclick="removeFromCart(${index})" title="Remove from cart">
-                        Remove
-                    </button>
+                <div class="order-info-item">
+                    <div class="order-info-label">Total Amount</div>
+                    <div class="order-info-value">${formatPrice(activeOrder.total_amount / 1000)}</div>
+                </div>
+                <div class="order-info-item">
+                    <div class="order-info-label">Order Date</div>
+                    <div class="order-info-value">${orderDate.toLocaleDateString()} ${orderDate.toLocaleTimeString()}</div>
+                </div>
+                <div class="order-info-item">
+                    <div class="order-info-label">Status</div>
+                    <div class="order-info-value">${activeOrder.status}</div>
                 </div>
             </div>
-        `;
-    });
-
-    itemsHtml += '</div>';
-    cartContent.innerHTML = itemsHtml;
-
-    // Update summary
-    document.getElementById('subtotalAmount').textContent = `${subtotal.toFixed(3)} OMR`;
-    document.getElementById('totalAmount').textContent = `${subtotal.toFixed(3)} OMR`;
-    cartSummary.style.display = 'block';
-}
-
-// Update item quantity
-function updateQuantity(index, delta) {
-    if (index < 0 || index >= cart.length) return;
-
-    const newQuantity = cart[index].quantity + delta;
-    
-    if (newQuantity <= 0) {
-        removeFromCart(index);
-        return;
-    }
-    
-    if (newQuantity > 50) {
-        showToast('Maximum quantity is 50', 'warning');
-        return;
-    }
-
-    cart[index].quantity = newQuantity;
-    saveCartToStorage();
-    displayCartItems();
-    showSidebarContent();
-}
-
-// Remove item from cart
-function removeFromCart(index) {
-    if (index < 0 || index >= cart.length) return;
-
-    const item = cart[index];
-    const confirmation = confirm(`Remove ${item.fragranceName} from cart?`);
-    
-    if (confirmation) {
-        cart.splice(index, 1);
-        saveCartToStorage();
-        displayCartItems();
-        showSidebarContent();
-        showToast('Item removed from cart', 'success');
-    }
-}
-
-// Clear entire cart
-function clearCart() {
-    if (cart.length === 0) return;
-
-    const confirmation = confirm('Are you sure you want to clear your entire cart?');
-    
-    if (confirmation) {
-        cart = [];
-        saveCartToStorage();
-        displayCartItems();
-        showSidebarContent();
-        showToast('Cart cleared', 'success');
-    }
-}
-
-// Show appropriate sidebar content
-function showSidebarContent() {
-    const sidebar = document.getElementById('sidebarContent');
-
-    if (hasActiveOrder) {
-        showOrderStatus(sidebar);
-    } else if (cart.length === 0) {
-        sidebar.innerHTML = `
-            <div class="checkout-form">
-                <div class="form-header">
-                    <h2 class="form-title">🛒 Ready to Order?</h2>
-                    <p>Add some fragrances to your cart first!</p>
-                </div>
-            </div>
-        `;
-    } else {
-        showCheckoutSection(sidebar);
-    }
-}
-
-// Show checkout section
-function showCheckoutSection(sidebar) {
-    let content = `
-        <div class="checkout-form">
-            <div class="form-header">
-                <h2 class="form-title">📝 Ready to Checkout</h2>
-            </div>
-    `;
-
-    if (customerInfo) {
-        content += `
-            <div class="customer-info-summary">
-                <h3>
-                    Your Information
-                    <button class="edit-btn" onclick="showCustomerInfoModal()">Edit</button>
-                </h3>
-                <div class="info-item">
-                    <span>Name:</span>
-                    <strong>${escapeHtml(customerInfo.name)}</strong>
-                </div>
-                <div class="info-item">
-                    <span>Phone:</span>
-                    <strong>${escapeHtml(customerInfo.phone)}</strong>
-                </div>
-                ${customerInfo.email ? `
-                <div class="info-item">
-                    <span>Email:</span>
-                    <strong>${escapeHtml(customerInfo.email)}</strong>
-                </div>
-                ` : ''}
-                <div class="info-item">
-                    <span>Location:</span>
-                    <strong>${escapeHtml(customerInfo.wilaya)}${customerInfo.city ? `, ${customerInfo.city}` : ''}</strong>
-                </div>
-                <div class="info-item">
-                    <span>Delivery:</span>
-                    <strong>${customerInfo.deliveryMethod === 'home' ? '🏠 Home Delivery' : '📦 Delivery Service'}</strong>
-                </div>
-            </div>
-        `;
-    }
-
-    content += `
-            <div class="checkout-actions">
-                <button class="btn btn-primary btn-full" onclick="proceedToOrder()">
-                    <span>🛒</span>
-                    <span>${customerInfo ? 'Place Order' : 'Proceed to Checkout'}</span>
+            ${canCancel ? `
+                <button class="cancel-order-btn" onclick="cancelActiveOrder()">
+                    Cancel Order (${Math.ceil((3600000 - (Date.now() - orderDate.getTime())) / 60000)} min left)
                 </button>
-            </div>
-        </div>
-    `;
-
-    sidebar.innerHTML = content;
-}
-
-// Show order status
-function showOrderStatus(sidebar) {
-    sidebar.innerHTML = `
-        <div class="checkout-form">
-            <div class="form-header">
-                <h2 class="form-title">📋 Order Status</h2>
-                <p>Order #${currentOrder.order_number}</p>
-            </div>
-            <div class="customer-info-summary">
-                <h3>Current Order</h3>
-                <div class="info-item">
-                    <span>Status:</span>
-                    <strong style="color: var(--warning);">${currentOrder.order_status}</strong>
-                </div>
-                <div class="info-item">
-                    <span>Total:</span>
-                    <strong>${(currentOrder.total_amount / 1000).toFixed(3)} OMR</strong>
-                </div>
-                <div class="info-item">
-                    <span>Items:</span>
-                    <strong>${currentOrder.order_items?.length || 0}</strong>
-                </div>
-            </div>
-            <div class="checkout-actions">
-                <a href="/admin/orders-management.html" class="btn btn-primary btn-full">
-                    <span>📋</span>
-                    <span>View Order Details</span>
-                </a>
-            </div>
-        </div>
-    `;
-}
-
-// Proceed to order (show customer info modal or order confirmation)
-function proceedToOrder() {
-    if (!customerInfo) {
-        showCustomerInfoModal();
-    } else {
-        showOrderConfirmationModal();
-    }
-}
-
-// Show customer info modal
-function showCustomerInfoModal() {
-    const modal = document.getElementById('customerInfoModal');
-    
-    // Pre-fill form if customer info exists
-    if (customerInfo) {
-        document.getElementById('customerName').value = customerInfo.name || '';
-        document.getElementById('customerPhone').value = customerInfo.phone || '';
-        document.getElementById('customerEmail').value = customerInfo.email || '';
-        document.getElementById('customerWilaya').value = customerInfo.wilaya || '';
-        document.getElementById('customerCity').value = customerInfo.city || '';
-        document.getElementById('customerNotes').value = customerInfo.notes || '';
-        
-        const deliveryMethod = customerInfo.deliveryMethod || 'home';
-        document.querySelector(`input[name="deliveryMethod"][value="${deliveryMethod}"]`).checked = true;
-    }
-    
-    modal.style.display = 'flex';
-    
-    // Focus on first input
-    setTimeout(() => {
-        document.getElementById('customerName').focus();
-    }, 100);
-}
-
-// Close customer info modal
-function closeCustomerModal() {
-    document.getElementById('customerInfoModal').style.display = 'none';
-}
-
-// Handle customer info form submission
-document.getElementById('customerInfoForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const info = {
-        name: formData.get('customerName').trim(),
-        phone: formData.get('customerPhone').trim(),
-        email: formData.get('customerEmail').trim(),
-        wilaya: formData.get('customerWilaya').trim(),
-        city: formData.get('customerCity').trim(),
-        deliveryMethod: formData.get('deliveryMethod'),
-        notes: formData.get('customerNotes').trim()
-    };
-    
-    // Validation
-    if (!info.name) {
-        showToast('Please enter your full name', 'error');
-        return;
-    }
-    
-    if (!info.phone) {
-        showToast('Please enter your phone number', 'error');
-        return;
-    }
-    
-    // Phone validation (Oman format)
-    const phoneRegex = /^(\+968|968|00968)?[0-9]{8}$/;
-    if (!phoneRegex.test(info.phone.replace(/\s/g, ''))) {
-        showToast('Please enter a valid Oman phone number', 'error');
-        return;
-    }
-    
-    // Email validation (if provided)
-    if (info.email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(info.email)) {
-            showToast('Please enter a valid email address', 'error');
-            return;
-        }
-    }
-    
-    // Save customer info
-    saveCustomerInfo(info);
-    closeCustomerModal();
-    showSidebarContent();
-    showToast('Information saved successfully', 'success');
-});
-
-// Show order confirmation modal
-function showOrderConfirmationModal() {
-    const modal = document.getElementById('orderConfirmModal');
-    const summaryDiv = document.getElementById('orderSummary');
-    
-    let total = 0;
-    let itemsHtml = '<div style="margin-bottom: 1.5rem;"><h4>Order Summary</h4></div>';
-    
-    cart.forEach(item => {
-        const itemTotal = item.variant.price * item.quantity;
-        total += itemTotal;
-        
-        itemsHtml += `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                <div>
-                    <strong>${escapeHtml(item.fragranceName)}</strong><br>
-                    <small>${escapeHtml(item.variant.size)} × ${item.quantity}</small>
-                </div>
-                <div style="font-weight: 600;">${itemTotal.toFixed(3)} OMR</div>
-            </div>
-        `;
-    });
-    
-    itemsHtml += `
-        <div style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 2px solid var(--primary); font-size: 1.2rem; font-weight: 700; color: var(--primary);">
-            <span>Total:</span>
-            <span>${total.toFixed(3)} OMR</span>
+            ` : `
+                <p style="color: #dc3545; font-weight: 600; margin-top: 1rem;">
+                    ⚠️ Cancellation period expired (1 hour limit)
+                </p>
+            `}
         </div>
     `;
     
-    itemsHtml += `
-        <div style="margin-top: 1.5rem; padding: 1rem; background: var(--light); border-radius: 8px;">
-            <h5 style="margin-bottom: 0.5rem;">Delivery Information:</h5>
-            <p style="margin: 0.25rem 0;"><strong>Name:</strong> ${escapeHtml(customerInfo.name)}</p>
-            <p style="margin: 0.25rem 0;"><strong>Phone:</strong> ${escapeHtml(customerInfo.phone)}</p>
-            ${customerInfo.email ? `<p style="margin: 0.25rem 0;"><strong>Email:</strong> ${escapeHtml(customerInfo.email)}</p>` : ''}
-            <p style="margin: 0.25rem 0;"><strong>Location:</strong> ${escapeHtml(customerInfo.wilaya)}${customerInfo.city ? `, ${customerInfo.city}` : ''}</p>
-            <p style="margin: 0.25rem 0;"><strong>Method:</strong> ${customerInfo.deliveryMethod === 'home' ? '🏠 Home Delivery' : '📦 Delivery Service'}</p>
-            ${customerInfo.notes ? `<p style="margin: 0.25rem 0;"><strong>Notes:</strong> ${escapeHtml(customerInfo.notes)}</p>` : ''}
-        </div>
-    `;
-    
-    summaryDiv.innerHTML = itemsHtml;
-    modal.style.display = 'flex';
+    document.getElementById('cartSection').style.display = 'none';
+    document.getElementById('checkoutSection').style.display = 'none';
 }
 
-// Close order confirmation modal
-function closeOrderModal() {
-    document.getElementById('orderConfirmModal').style.display = 'none';
-}
-
-// Confirm and place order
-async function confirmOrder() {
-    if (cart.length === 0 || !customerInfo) {
-        showToast('Cannot place order: missing information', 'error');
-        return;
-    }
+async function cancelActiveOrder() {
+    if (!activeOrder) return;
     
-    closeOrderModal();
-    showLoading();
-    
-    const orderData = {
-        customer_ip: customerIP,
-        customer_first_name: customerInfo.name,
-        customer_last_name: '',
-        customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email || '',
-        delivery_address: customerInfo.deliveryMethod === 'home' ? 'Home Delivery' : 'Delivery Service',
-        delivery_city: customerInfo.city || 'Not specified',
-        delivery_region: customerInfo.wilaya || 'Not specified',
-        notes: customerInfo.notes || '',
-        items: cart.map(item => ({
-            fragrance_id: item.fragranceId,
-            variant_id: item.variant.id,
-            quantity: item.quantity
-        }))
-    };
+    if (!confirm('Are you sure you want to cancel this order?')) return;
     
     try {
-        const response = await fetch('/api/place-order', {
+        showLoading(true);
+        
+        const response = await fetch('/functions/admin/orders', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ orderId: activeOrder.id })
+        });
+        
+        if (response.ok) {
+            activeOrder = null;
+            document.getElementById('activeOrderSection').style.display = 'none';
+            document.getElementById('cartSection').style.display = 'block';
+            updateCheckoutVisibility();
+            showToast('Order cancelled successfully', 'success');
+        } else {
+            throw new Error('Failed to cancel order');
+        }
+    } catch (error) {
+        console.error('❌ Error cancelling order:', error);
+        showToast('Failed to cancel order. Please contact support.', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function loadOrderHistory() {
+    try {
+        const customerIdentifier = getCustomerIdentifier();
+        if (!customerIdentifier) return;
+        
+        const response = await fetch('/functions/admin/orders', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const allOrders = await response.json();
+            
+            orderHistory = allOrders.filter(order => 
+                (order.customer_phone === customerIdentifier) &&
+                !(order.status === 'pending' && order.id === activeOrder?.id)
+            ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            displayOrderHistory();
+        }
+    } catch (error) {
+        console.error('❌ Error loading order history:', error);
+    }
+}
+
+function displayOrderHistory() {
+    const content = document.getElementById('orderHistoryContent');
+    if (!content) return;
+    
+    if (orderHistory.length === 0) {
+        content.innerHTML = `
+            <div class="no-history">
+                <div class="no-history-icon">📦</div>
+                <p>No previous orders found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    content.innerHTML = orderHistory.map(order => {
+        const orderDate = new Date(order.created_at);
+        const items = order.items || [];
+        
+        return `
+            <div class="history-order">
+                <div class="history-order-header">
+                    <div class="history-order-info">
+                        <h4>${order.order_number || `ORD-${String(order.id).padStart(5, '0')}`}</h4>
+                        <div class="history-order-date">${orderDate.toLocaleDateString()} ${orderDate.toLocaleTimeString()}</div>
+                    </div>
+                    <div class="history-order-status status-${order.status}">${order.status}</div>
+                    <div class="history-order-total">${formatPrice((order.total_amount || 0) / 1000)}</div>
+                </div>
+                <div class="history-order-items">
+                    ${items.map(item => `
+                        <div class="history-item">
+                            <div class="history-item-name">${escapeHtml(item.fragrance_name || item.name || 'Unknown Item')}</div>
+                            <div class="history-item-details">
+                                ${escapeHtml(item.variant_size || item.size || 'Unknown Size')} × ${item.quantity || 1}
+                                ${item.fragrance_brand || item.brand ? ` - ${escapeHtml(item.fragrance_brand || item.brand)}` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function validateForm() {
+    const form = document.getElementById('checkoutForm');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    
+    if (!form || !placeOrderBtn) return;
+    
+    const requiredFields = [
+        'customerName',
+        'customerPhone', 
+        'wilaya',
+        'city',
+        'address'
+    ];
+    
+    const isValid = requiredFields.every(fieldId => {
+        const field = document.getElementById(fieldId);
+        return field && field.value.trim() !== '';
+    });
+    
+    const deliveryType = form.querySelector('input[name="deliveryType"]:checked');
+    const hasDeliveryType = !!deliveryType;
+    
+    placeOrderBtn.disabled = !isValid || !hasDeliveryType || currentCart.length === 0 || isProcessingOrder;
+}
+
+function updateCheckoutVisibility() {
+    const checkoutSection = document.getElementById('checkoutSection');
+    if (!checkoutSection) return;
+    
+    const shouldShow = currentCart.length > 0 && !activeOrder;
+    checkoutSection.style.display = shouldShow ? 'block' : 'none';
+    
+    if (shouldShow) {
+        validateForm();
+    }
+}
+
+async function handlePlaceOrder() {
+    if (isProcessingOrder || currentCart.length === 0) return;
+    
+    const form = document.getElementById('checkoutForm');
+    if (!form) return;
+    
+    const formData = new FormData(form);
+    const customerData = Object.fromEntries(formData.entries());
+    
+    const requiredFields = ['customerName', 'customerPhone', 'wilaya', 'city', 'address', 'deliveryType'];
+    const missingFields = requiredFields.filter(field => !customerData[field] || customerData[field].trim() === '');
+    
+    if (missingFields.length > 0) {
+        showToast(`Please fill in all required fields: ${missingFields.join(', ')}`, 'error');
+        return;
+    }
+    
+    await checkForActiveOrder();
+    if (activeOrder) {
+        showToast('You already have an active order. Please complete or cancel it first.', 'warning');
+        return;
+    }
+    
+    try {
+        isProcessingOrder = true;
+        showLoading(true);
+        validateForm();
+        
+        const orderData = {
+            customer: {
+                firstName: customerData.customerName.trim(),
+                lastName: '',
+                phone: customerData.customerPhone.trim(),
+                email: customerData.customerEmail?.trim() || ''
+            },
+            delivery: {
+                address: customerData.address.trim(),
+                city: customerData.city.trim(),
+                region: customerData.wilaya,
+                type: customerData.deliveryType
+            },
+            items: currentCart.map(item => ({
+                fragrance_id: item.fragrance_id || null,
+                variant_id: item.variant_id || null,
+                name: item.name,
+                brand: item.brand || '',
+                size: item.size,
+                price: item.price,
+                quantity: item.quantity,
+                is_whole_bottle: item.is_whole_bottle || false
+            })),
+            total: currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            notes: customerData.notes?.trim() || ''
+        };
+        
+        console.log('📤 Submitting order:', orderData);
+        
+        const response = await fetch('/functions/admin/add-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -527,24 +549,25 @@ async function confirmOrder() {
         
         const result = await response.json();
         
-        if (result.success) {
-            // Send admin notification
-            sendAdminNotification(result.data, orderData).catch(error => {
-                console.warn('Failed to send admin notification:', error);
+        if (response.ok && result.success) {
+            console.log('✅ Order placed successfully:', result);
+            
+            saveCustomerInfo({
+                name: customerData.customerName,
+                phone: customerData.customerPhone,
+                email: customerData.customerEmail || '',
+                wilaya: customerData.wilaya,
+                city: customerData.city,
+                address: customerData.address,
+                deliveryType: customerData.deliveryType,
+                notes: customerData.notes || ''
             });
             
-            // Clear cart and update UI
-            cart = [];
+            currentCart = [];
             saveCartToStorage();
-            hasActiveOrder = true;
-            currentOrder = result.data;
-            
-            displayCartItems();
-            showSidebarContent();
             
             showToast('Order placed successfully! 🎉', 'success');
             
-            // Redirect to thank you or refresh
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
@@ -554,55 +577,88 @@ async function confirmOrder() {
         }
         
     } catch (error) {
-        console.error('Order placement failed:', error);
-        showToast(`Failed to place order: ${error.message}`, 'error');
+        console.error('❌ Error placing order:', error);
+        showToast('Failed to place order. Please try again.', 'error');
     } finally {
-        hideLoading();
+        isProcessingOrder = false;
+        showLoading(false);
+        validateForm();
     }
 }
 
-// Send admin notification
-async function sendAdminNotification(orderResult, originalOrderData) {
-    try {
-        const notificationData = {
-            order_number: orderResult.order_number,
-            total_amount_omr: orderResult.total_amount_omr,
-            created_at: orderResult.created_at,
-            customer: {
-                first_name: originalOrderData.customer_first_name,
-                last_name: originalOrderData.customer_last_name,
-                phone: originalOrderData.customer_phone,
-                email: originalOrderData.customer_email
-            },
-            delivery: {
-                address: originalOrderData.delivery_address,
-                city: originalOrderData.delivery_city,
-                region: originalOrderData.delivery_region,
-                notes: originalOrderData.notes
-            },
-            items: cart.map(item => ({
-                fragrance_name: item.fragranceName,
-                fragrance_brand: item.fragranceBrand,
-                variant_size: item.variant.size,
-                quantity: item.quantity,
-                total_price_cents: Math.round(item.variant.price * item.quantity * 1000)
-            }))
-        };
-
-        await fetch('/api/send-admin-notification', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(notificationData)
-        });
-        
-    } catch (error) {
-        console.warn('Failed to send admin notification:', error);
-    }
+function showCustomerInfoModal() {
+    if (!isReturningCustomer()) return;
+    
+    const modal = document.getElementById('customerInfoModal');
+    const savedInfo = document.getElementById('savedCustomerInfo');
+    
+    if (!modal || !savedInfo) return;
+    
+    savedInfo.innerHTML = `
+        <div class="customer-info-row">
+            <span class="customer-info-label">Name:</span>
+            <span class="customer-info-value">${escapeHtml(customerInfo.name)}</span>
+        </div>
+        <div class="customer-info-row">
+            <span class="customer-info-label">Phone:</span>
+            <span class="customer-info-value">${escapeHtml(customerInfo.phone)}</span>
+        </div>
+        ${customerInfo.email ? `
+            <div class="customer-info-row">
+                <span class="customer-info-label">Email:</span>
+                <span class="customer-info-value">${escapeHtml(customerInfo.email)}</span>
+            </div>
+        ` : ''}
+        <div class="customer-info-row">
+            <span class="customer-info-label">Address:</span>
+            <span class="customer-info-value">${escapeHtml(customerInfo.address || 'Not provided')}</span>
+        </div>
+    `;
+    
+    modal.style.display = 'block';
 }
 
-// Utility functions
+function closeCustomerInfoModal() {
+    const modal = document.getElementById('customerInfoModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function useSavedInfo() {
+    fillFormWithSavedInfo();
+    showSavedInfoNotice();
+    closeCustomerInfoModal();
+    showToast('Using saved customer information', 'info');
+}
+
+function useNewInfo() {
+    const form = document.getElementById('checkoutForm');
+    if (form) form.reset();
+    
+    document.getElementById('savedInfoNotice').style.display = 'none';
+    
+    toggleFormEditing(true);
+    
+    closeCustomerInfoModal();
+    showToast('Please enter your information', 'info');
+}
+
+function getCustomerIdentifier() {
+    if (customerInfo && customerInfo.phone) {
+        return customerInfo.phone;
+    }
+    
+    const phoneField = document.getElementById('customerPhone');
+    if (phoneField && phoneField.value.trim()) {
+        return phoneField.value.trim();
+    }
+    
+    return null;
+}
+
+function formatPrice(price) {
+    return `${Number(price).toFixed(3)} OMR`;
+}
+
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -610,43 +666,92 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function showLoading() {
-    document.getElementById('loadingOverlay').style.display = 'flex';
-}
-
-function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
+function showLoading(show) {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = show ? 'flex' : 'none';
+    }
 }
 
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.textContent = message;
+    toast.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>${getToastIcon(type)}</span>
+            <span>${escapeHtml(message)}</span>
+        </div>
+    `;
     
     container.appendChild(toast);
     
     setTimeout(() => {
-        toast.remove();
+        if (toast.parentNode) {
+            toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 300);
+        }
     }, 5000);
 }
 
-// Close modals when clicking outside
-document.addEventListener('click', function(e) {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-});
+function getToastIcon(type) {
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    return icons[type] || icons.info;
+}
 
-// Handle escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const visibleModals = document.querySelectorAll('.modal[style*="flex"]');
-        visibleModals.forEach(modal => {
-            modal.style.display = 'none';
-        });
+function handleStorageChange(e) {
+    if (e.key === 'qotore_cart') {
+        loadCartFromStorage();
+        updateCartDisplay();
+    } else if (e.key === 'qotore_customer_info') {
+        loadCustomerInfo();
     }
-});
+}
+
+function handleBeforeUnload(e) {
+    if (isProcessingOrder) {
+        e.preventDefault();
+        e.returnValue = 'Your order is being processed. Are you sure you want to leave?';
+        return e.returnValue;
+    }
+}
+
+window.updateQuantity = updateQuantity;
+window.increaseQuantity = increaseQuantity;
+window.decreaseQuantity = decreaseQuantity;
+window.removeFromCart = removeFromCart;
+window.clearCart = clearCart;
+window.handlePlaceOrder = handlePlaceOrder;
+window.editCustomerInfo = editCustomerInfo;
+window.cancelActiveOrder = cancelActiveOrder;
+window.closeCustomerInfoModal = closeCustomerInfoModal;
+window.useSavedInfo = useSavedInfo;
+window.useNewInfo = useNewInfo;
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes toastSlideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+`;
+document.head.appendChild(style);
+
+console.log('🎉 Checkout script loaded successfully');
