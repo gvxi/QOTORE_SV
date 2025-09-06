@@ -598,7 +598,7 @@ function displayOrderDetails(order) {
                 <div class="detail-item">
                     <div class="detail-label">${t('phone_number')}</div>
                     <div class="detail-value">
-                        ${order.customer_phone ? `<a href="tel:${order.customer_phone}">${order.customer_phone}</a>` : t('not_provided')}
+                        ${order.customer_phone ? `<a href="https://wa.me/${order.customer_phone}">${order.customer_phone}</a>` : t('not_provided')}
                     </div>
                 </div>
                 <div class="detail-item">
