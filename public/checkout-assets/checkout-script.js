@@ -121,7 +121,7 @@ async function checkActiveOrder() {
             params.append('phone', customerInfo.phone);
         }
         
-        const response = await fetch(`/functions/api/check-active-order?${params}`);
+        const response = await fetch(`/api/check-active-order?${params}`);
         const data = await response.json();
         
         if (data.success && data.order) {
@@ -150,7 +150,7 @@ async function loadPreviousOrders() {
             params.append('phone', customerInfo.phone);
         }
         
-        const response = await fetch(`/functions/api/get-customer-orders?${params}`);
+        const response = await fetch(`/api/get-customer-orders?${params}`);
         const data = await response.json();
         
         if (data.success && data.orders) {
