@@ -728,22 +728,25 @@ function showToast(message, type = 'success') {
         position: fixed !important;
         bottom: 2rem !important;
         left: 50% !important;
+        right: auto !important;
+        top: auto !important;
         transform: translateX(-50%) !important;
         background: white !important;
         color: #333 !important;
         padding: 1rem 1.5rem !important;
         border-radius: 12px !important;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-        z-index: 3000 !important;
-        border-left: 4px solid ${type === 'error' ? '#dc3545' : '#28a745'} !important;
+        z-index: 9999 !important;
+        border-left: 4px solid ${type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#28a745'} !important;
         max-width: 350px !important;
         word-wrap: break-word !important;
         text-align: center !important;
+        font-weight: 600 !important;
         animation: slideInUp 0.3s ease !important;
     `;
     
     document.body.appendChild(toast);
-    console.log('✅ Toast displayed');
+    console.log('✅ Toast displayed at bottom center');
     
     // Auto-remove after 4 seconds
     setTimeout(() => {
@@ -753,7 +756,170 @@ function showToast(message, type = 'success') {
     }, 4000);
 }
 
-// Debug function - add to window for testing
+// Invoice Modal Functions
+function showInvoiceModal() {
+    if (!activeOrder) {
+        showToast('No active order to display', 'error');
+        return;
+    }
+    
+    console.log('📄 Showing invoice modal for order:', activeOrder.order_number);
+    
+    const modal = document.createElement('div');
+    modal.className = 'invoice-modal';
+    modal.innerHTML = generateInvoiceHTML();
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // Close on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeInvoiceModal();
+        }
+    });
+}
+
+function closeInvoiceModal() {
+    const modal = document.querySelector('.invoice-modal');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function printInvoice() {
+    console.log('🖨️ Printing invoice...');
+    window.print();
+}
+
+function generateInvoiceHTML() {
+    const orderDate = new Date(activeOrder.created_at).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    const totalItems = activeOrder.items ? activeOrder.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
+    const totalAmount = (activeOrder.total_amount || 0) / 1000;
+    
+    let itemsHTML = '';
+    if (activeOrder.items && activeOrder.items.length > 0) {
+        activeOrder.items.forEach(item => {
+            const unitPrice = item.unit_price || 0;
+            const total = item.total || 0;
+            
+            itemsHTML += `
+                <tr>
+                    <td>
+                        <div class="item-name">${item.fragrance_name}</div>
+                        ${item.fragrance_brand ? `<div class="item-brand">${item.fragrance_brand}</div>` : ''}
+                    </td>
+                    <td>${item.variant_size}</td>
+                    <td class="quantity-cell">${item.quantity}</td>
+                    <td class="price-cell">${unitPrice.toFixed(3)} OMR</td>
+                    <td class="price-cell">${total.toFixed(3)} OMR</td>
+                </tr>
+            `;
+        });
+    }
+    
+    return `
+        <div class="invoice-content">
+            <div class="invoice-header">
+                <h2>📄 Order Invoice</h2>
+                <div class="invoice-actions">
+                    <button class="print-btn" onclick="printInvoice()">
+                        🖨️ Print
+                    </button>
+                    <button class="invoice-close" onclick="closeInvoiceModal()">&times;</button>
+                </div>
+            </div>
+            
+            <div class="invoice-body">
+                <div class="invoice-info">
+                    <div class="invoice-section">
+                        <h3>Order Information</h3>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Order Number:</span>
+                            <span class="invoice-value order-number-large">${activeOrder.order_number}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Order Date:</span>
+                            <span class="invoice-value">${orderDate}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Status:</span>
+                            <span class="invoice-value">
+                                <span class="status-badge status-${activeOrder.status}">${activeOrder.status_display}</span>
+                            </span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Total Items:</span>
+                            <span class="invoice-value">${totalItems} item(s)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-section">
+                        <h3>Company Information</h3>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Company:</span>
+                            <span class="invoice-value">Qotore</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Business:</span>
+                            <span class="invoice-value">Premium Fragrances</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Location:</span>
+                            <span class="invoice-value">Muscat, Oman</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Contact:</span>
+                            <span class="invoice-value">WhatsApp: +968 1234 5678</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="invoice-items">
+                    <h3>Order Items</h3>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Size</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHTML}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="invoice-total">
+                    <div class="total-row">
+                        <span class="total-label">Subtotal:</span>
+                        <span class="total-value">${totalAmount.toFixed(3)} OMR</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="total-label">Total Amount:</span>
+                        <span class="total-value">${totalAmount.toFixed(3)} OMR</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e9ecef; color: #6c757d; font-size: 0.9rem;">
+                    <p>Thank you for choosing Qotore!</p>
+                    <p>For support, contact us via WhatsApp at +968 1234 5678</p>
+                </div>
+            </div>
+        </div>
+    `;
+}// Debug function - add to window for testing
 window.debugCheckout = function() {
     console.log('=== CHECKOUT DEBUG ===');
     console.log('Active Order:', activeOrder);
@@ -776,10 +942,11 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Handle escape key for modal
+// Handle escape key for modals
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeCustomerModal();
+        closeInvoiceModal();
     }
 });
 
@@ -796,7 +963,7 @@ setInterval(async () => {
     if (activeOrder && activeOrder.status === 'pending') {
         try {
             await checkActiveOrder();
-            renderSidebar();
+            renderPage();
         } catch (error) {
             console.error('Auto-refresh failed:', error);
         }

@@ -208,14 +208,21 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="/checkout-assets/cart-adapter.js?v=2.0"></script>
-    <script src="/checkout-assets/checkout-script.js?v=2.0"></script>
+    <script src="/checkout-assets/cart-adapter.js?v=3.0"></script>
+    <script src="/checkout-assets/checkout-script.js?v=3.0"></script>
     
     <!-- Debug Script -->
     <script>
         // Force layout on load
         window.addEventListener('load', function() {
-            console.log('🎯 Forcing layout update...');
+            console.log('🎯 v3.0 - Forcing layout update with invoice modal...');
+            
+            // Test toast positioning
+            setTimeout(() => {
+                if (window.showToast) {
+                    showToast('Toast test - should be at bottom center!', 'success');
+                }
+            }, 2000);
             
             // Add debug button
             const debugBtn = document.createElement('button');
