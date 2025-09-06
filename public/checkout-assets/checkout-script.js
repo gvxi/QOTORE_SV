@@ -45,8 +45,6 @@ async function getCustomerIP() {
         if (!customerIP) {
             customerIP = 'guest_' + Date.now();
         }
-        
-        console.log('Customer IP:', customerIP);
     } catch (error) {
         console.error('Error getting IP:', error);
         customerIP = 'guest_' + Date.now();
@@ -59,7 +57,7 @@ function loadCustomerInfo() {
         const saved = localStorage.getItem('qotore_customer_info');
         if (saved) {
             customerInfo = JSON.parse(saved);
-            console.log('Loaded customer info:', customerInfo);
+            // console.log('Loaded customer info:', customerInfo);
         }
     } catch (error) {
         console.error('Error loading customer info:', error);
@@ -72,7 +70,7 @@ function saveCustomerInfo(info) {
     try {
         customerInfo = info;
         localStorage.setItem('qotore_customer_info', JSON.stringify(info));
-        console.log('Saved customer info:', info);
+        // console.log('Saved customer info:', info);
     } catch (error) {
         console.error('Error saving customer info:', error);
     }
@@ -90,7 +88,7 @@ function loadCart() {
                        typeof item.variant.id === 'number' && 
                        item.variant.size && typeof item.quantity === 'number';
             });
-            console.log('Loaded cart:', cart);
+            // console.log('Loaded cart:', cart);
         }
     } catch (error) {
         console.error('Error loading cart:', error);
@@ -102,7 +100,7 @@ function loadCart() {
 function saveCart() {
     try {
         localStorage.setItem('qotore_cart', JSON.stringify(cart));
-        console.log('Saved cart:', cart);
+        // console.log('Saved cart:', cart);
     } catch (error) {
         console.error('Error saving cart:', error);
     }

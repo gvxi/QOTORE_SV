@@ -297,13 +297,13 @@
             }
         });
         
-        showToastFixed('📄 Invoice opened successfully!', 'success');
+        // showToastFixed('📄 Invoice opened successfully!', 'success');
     };
 
     document.addEventListener('DOMContentLoaded', function() {
         getCustomerIP().then(() => {
             setTimeout(() => {
-                showToastFixed('🔥 HOTFIX v3.1 - Enhanced order detection!', 'success');
+                // showToastFixed('🔥 HOTFIX v3.1 - Enhanced order detection!', 'success');
             }, 1000);
             
             setTimeout(() => {
@@ -322,7 +322,7 @@
     window.addEventListener('load', function() {
         setTimeout(async () => {
             await applyHotfixes();
-            showToastFixed('🔥 HOTFIX v3.1 Applied - Enhanced order detection!', 'success');
+            // showToastFixed('🔥 HOTFIX v3.1 Applied - Enhanced order detection!', 'success');
         }, 1000);
     });
 })();
