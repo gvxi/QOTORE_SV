@@ -247,7 +247,7 @@ export async function onRequestPost(context) {
           type: 'new_order',
           order: {
             id: createdOrder.id,
-            order_number: createdOrder.order_number || `ORD-${String(createdOrder.id).padStart(5, '0')}`,
+            order_number: orderNumber,
             customer_name: `${orderData.customer_first_name} ${orderData.customer_last_name || ''}`.trim(),
             customer_phone: orderData.customer_phone,
             customer_email: orderData.customer_email,

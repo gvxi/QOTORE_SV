@@ -634,9 +634,13 @@ async function placeOrder() {
             body: JSON.stringify(orderData)
         });
         
+        console.log('Place order response status:', response.status);
         const result = await response.json();
+        console.log('Place order result:', result);
         
         if (result.success) {
+            console.log('Order placed successfully:', result.order);
+            
             // Clear cart and reload page state
             cart = [];
             saveCart();
@@ -646,6 +650,7 @@ async function placeOrder() {
             
             showToast('Order placed successfully! 🎉');
         } else {
+            console.error('Order placement failed:', result);
             throw new Error(result.error || 'Failed to place order');
         }
         
