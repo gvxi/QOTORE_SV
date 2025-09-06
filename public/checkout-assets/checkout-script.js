@@ -868,7 +868,7 @@ setInterval(async () => {
     }
 }, 30000);
 
-// Export functions for debugging
+// Export functions for debugging.
 window.checkoutDebug = {
     cart,
     customerInfo,
