@@ -288,11 +288,15 @@ function renderOrderStatus() {
         minute: '2-digit'
     });
     
+    // Calculate items summary
+    const itemsCount = activeOrder.items ? activeOrder.items.length : 0;
+    const totalItems = activeOrder.items ? activeOrder.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
+    
     let actionButtons = '';
     if (canCancel) {
         actionButtons = `
             <button class="btn btn-danger btn-full" onclick="cancelOrder()">
-                Cancel Order
+                ❌ Cancel Order
             </button>
             <p style="font-size: 0.8rem; color: #6c757d; text-align: center; margin-top: 0.5rem;">
                 You can cancel within 1 hour of placing the order
@@ -322,22 +326,22 @@ function renderOrderStatus() {
                     <span class="order-detail-value">${((activeOrder.total_amount || 0) / 1000).toFixed(3)} OMR</span>
                 </div>
                 <div class="order-detail-row">
+                    <span class="order-detail-label">Items:</span>
+                    <span class="order-detail-value">${totalItems} item(s) - ${itemsCount} type(s)</span>
+                </div>
+                <div class="order-detail-row">
                     <span class="order-detail-label">Order Date:</span>
                     <span class="order-detail-value">${orderDate}</span>
                 </div>
-                ${activeOrder.items && activeOrder.items.length > 0 ? `
-                <div class="order-detail-row">
-                    <span class="order-detail-label">Items:</span>
-                    <span class="order-detail-value">${activeOrder.items.length} item(s)</span>
-                </div>
-                ` : ''}
             </div>
             
             ${actionButtons}
             
             <button class="btn btn-outline btn-full" onclick="refreshOrderStatus()">
-                Refresh Status
+                🔄 Refresh Status
             </button>
+            
+            ${previousOrders.length > 0 ? renderPreviousOrders() : ''}
         </div>
     `;
 }
