@@ -1,20 +1,16 @@
-// HOTFIX: Direct implementation without relying on other files
 (function() {
     'use strict';
-    console.log('🔥 HOTFIX v3.0 Loading...');
+    
+    let activeOrderData = null;
+    let customerIP = null;
 
-    // Force toast at bottom center
     window.showToastFixed = function(message, type = 'success') {
-        console.log('🔔 HOTFIX Toast:', message);
-        
-        // Remove existing toasts
         document.querySelectorAll('.toast, .toast-fixed').forEach(t => t.remove());
         
         const toast = document.createElement('div');
         toast.className = 'toast-fixed';
         toast.textContent = message;
         
-        // Force styles directly
         Object.assign(toast.style, {
             position: 'fixed',
             bottom: '2rem',
@@ -37,13 +33,11 @@
         
         document.body.appendChild(toast);
         
-        // Animate in
         setTimeout(() => {
             toast.style.opacity = '1';
             toast.style.transform = 'translateX(-50%) translateY(0)';
         }, 10);
         
-        // Auto remove
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.style.opacity = '0';
@@ -51,36 +45,59 @@
                 setTimeout(() => toast.remove(), 300);
             }
         }, 4000);
-        
-        console.log('✅ HOTFIX Toast displayed');
     };
 
-    // Force layout changes
-    window.applyHotfixes = function() {
-        console.log('🔧 Applying layout hotfixes...');
-        
-        // Check if we have an active order
-        const hasActiveOrder = window.activeOrder && window.activeOrder.id;
-        console.log('Has active order:', hasActiveOrder);
+    async function getCustomerIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            customerIP = data.ip;
+            return customerIP;
+        } catch (error) {
+            customerIP = 'guest_' + Date.now();
+            return customerIP;
+        }
+    }
+
+    async function checkActiveOrderDirect() {
+        if (!customerIP) {
+            await getCustomerIP();
+        }
+
+        try {
+            const response = await fetch(`/api/check-active-order?ip=${customerIP}`);
+            const data = await response.json();
+            
+            if (data.success && data.has_active_order && data.order) {
+                activeOrderData = data.order;
+                window.activeOrder = activeOrderData;
+                return true;
+            } else {
+                activeOrderData = null;
+                window.activeOrder = null;
+                return false;
+            }
+        } catch (error) {
+            return false;
+        }
+    }
+
+    window.applyHotfixes = async function() {
+        const hasActiveOrder = await checkActiveOrderDirect();
         
         const mainContent = document.querySelector('.main-content');
         const cartSection = document.querySelector('.cart-section');
         const sidebarContent = document.getElementById('sidebarContent');
         
         if (hasActiveOrder && cartSection && mainContent) {
-            // Hide cart and make sidebar full width
             cartSection.style.display = 'none';
             mainContent.style.gridTemplateColumns = '1fr';
             if (sidebarContent) {
                 sidebarContent.style.maxWidth = '800px';
                 sidebarContent.style.margin = '0 auto';
             }
-            console.log('✅ Applied order mode layout');
-            
-            // Add invoice button if not exists
-            addInvoiceButton();
+            setTimeout(() => addInvoiceButton(), 500);
         } else if (cartSection && mainContent) {
-            // Show cart and restore 50/50
             cartSection.style.display = 'block';
             if (window.innerWidth >= 768) {
                 mainContent.style.gridTemplateColumns = '1fr 1fr';
@@ -89,42 +106,77 @@
                 sidebarContent.style.maxWidth = 'none';
                 sidebarContent.style.margin = '0';
             }
-            console.log('✅ Applied cart mode layout');
         }
     };
 
-    // Add invoice button
     function addInvoiceButton() {
         const existingBtn = document.getElementById('invoiceBtn');
-        if (existingBtn) return;
+        if (existingBtn) existingBtn.remove();
         
+        const cancelButton = document.querySelector('button[onclick*="cancelOrder"], button[onclick*="cancel"]');
+        const orderDetailsCard = document.querySelector('.order-details-card');
         const orderStatusSection = document.querySelector('.order-status-section');
-        if (!orderStatusSection) return;
         
-        const detailsCard = orderStatusSection.querySelector('.order-details-card');
-        if (!detailsCard) return;
+        let insertLocation = null;
+        
+        if (cancelButton) {
+            insertLocation = cancelButton;
+        } else if (orderDetailsCard) {
+            insertLocation = orderDetailsCard;
+        } else if (orderStatusSection) {
+            insertLocation = orderStatusSection.lastElementChild;
+        }
+        
+        if (!insertLocation) {
+            return;
+        }
         
         const invoiceBtn = document.createElement('button');
         invoiceBtn.id = 'invoiceBtn';
-        invoiceBtn.className = 'btn btn-primary btn-full';
         invoiceBtn.innerHTML = '📄 View Order Invoice';
-        invoiceBtn.style.marginBottom = '1rem';
+        invoiceBtn.style.cssText = `
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+        `;
+        
+        invoiceBtn.onmouseover = function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 25px rgba(139, 69, 19, 0.4)';
+        };
+        
+        invoiceBtn.onmouseout = function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 15px rgba(139, 69, 19, 0.3)';
+        };
+        
         invoiceBtn.onclick = function() {
             showInvoiceModalHotfix();
         };
         
-        detailsCard.insertAdjacentElement('afterend', invoiceBtn);
-        console.log('✅ Added invoice button');
+        if (cancelButton) {
+            cancelButton.parentNode.insertBefore(invoiceBtn, cancelButton);
+        } else {
+            insertLocation.insertAdjacentElement('afterend', invoiceBtn);
+        }
     }
 
-    // Invoice modal
     window.showInvoiceModalHotfix = function() {
-        if (!window.activeOrder) {
+        if (!activeOrderData) {
             showToastFixed('No active order to display', 'error');
             return;
         }
-        
-        console.log('📄 Showing invoice modal...');
         
         const modal = document.createElement('div');
         modal.id = 'invoiceModalHotfix';
@@ -142,7 +194,7 @@
             padding: 1rem;
         `;
         
-        const order = window.activeOrder;
+        const order = activeOrderData;
         const orderDate = new Date(order.created_at).toLocaleDateString('en-GB', {
             day: '2-digit',
             month: '2-digit',
@@ -152,8 +204,11 @@
         });
         
         let itemsHTML = '';
+        let totalItems = 0;
+        
         if (order.items && order.items.length > 0) {
             order.items.forEach(item => {
+                totalItems += item.quantity || 1;
                 itemsHTML += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 1rem; border-bottom: 1px solid #f0f0f0;">
@@ -167,6 +222,8 @@
                     </tr>
                 `;
             });
+        } else {
+            itemsHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #666;">No items found</td></tr>';
         }
         
         modal.innerHTML = `
@@ -186,12 +243,14 @@
                             <div style="margin-bottom: 0.5rem;"><strong>Order Number:</strong> <span style="color: #8B4513; font-weight: 700;">${order.order_number}</span></div>
                             <div style="margin-bottom: 0.5rem;"><strong>Date:</strong> ${orderDate}</div>
                             <div style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem;">${order.status_display}</span></div>
+                            <div style="margin-bottom: 0.5rem;"><strong>Total Items:</strong> ${totalItems}</div>
                         </div>
                         <div>
                             <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: #2d3748;">Company Information</h3>
                             <div style="margin-bottom: 0.5rem;"><strong>Company:</strong> Qotore</div>
                             <div style="margin-bottom: 0.5rem;"><strong>Business:</strong> Premium Fragrances</div>
                             <div style="margin-bottom: 0.5rem;"><strong>Location:</strong> Muscat, Oman</div>
+                            <div style="margin-bottom: 0.5rem;"><strong>Contact:</strong> WhatsApp Support</div>
                         </div>
                     </div>
                     
@@ -231,52 +290,39 @@
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
         
-        // Close on background click
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 modal.remove();
                 document.body.style.overflow = 'auto';
             }
         });
+        
+        showToastFixed('📄 Invoice opened successfully!', 'success');
     };
 
-    // Auto-apply fixes when page loads
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('🔥 HOTFIX: DOM loaded, applying fixes...');
+        getCustomerIP().then(() => {
+            setTimeout(() => {
+                showToastFixed('🔥 HOTFIX v3.1 - Enhanced order detection!', 'success');
+            }, 1000);
+            
+            setTimeout(() => {
+                applyHotfixes();
+            }, 2000);
+        });
         
-        // Test toast immediately
-        setTimeout(() => {
-            showToastFixed('🔥 HOTFIX v3.0 - Toast should be at bottom center!', 'success');
-        }, 1000);
-        
-        // Apply layout fixes
-        setTimeout(() => {
-            applyHotfixes();
-        }, 2000);
-        
-        // Re-apply fixes when window resizes
         window.addEventListener('resize', applyHotfixes);
         
-        // Monitor for order changes
-        let lastOrderCheck = null;
-        setInterval(() => {
-            const currentOrder = window.activeOrder;
-            if (JSON.stringify(currentOrder) !== JSON.stringify(lastOrderCheck)) {
-                console.log('🔄 Order state changed, re-applying fixes...');
-                lastOrderCheck = currentOrder;
-                setTimeout(applyHotfixes, 100);
-            }
+        setInterval(async () => {
+            await checkActiveOrderDirect();
+            applyHotfixes();
+        }, 5000);
+    });
+
+    window.addEventListener('load', function() {
+        setTimeout(async () => {
+            await applyHotfixes();
+            showToastFixed('🔥 HOTFIX v3.1 Applied - Enhanced order detection!', 'success');
         }, 1000);
     });
-
-    // Also apply when window loads
-    window.addEventListener('load', function() {
-        console.log('🔥 HOTFIX: Window loaded, final fixes...');
-        setTimeout(() => {
-            applyHotfixes();
-            showToastFixed('🔥 HOTFIX Applied - Layout should now work correctly!', 'success');
-        }, 500);
-    });
-
-    console.log('✅ HOTFIX loaded successfully');
 })();

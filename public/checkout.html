@@ -208,16 +208,16 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="/checkout-assets/cart-adapter.js?v=3.0"></script>
-    <script src="/checkout-assets/checkout-script.js?v=3.0"></script>
+    <script src="/checkout-assets/cart-adapter.js?v=3.1"></script>
+    <script src="/checkout-assets/checkout-script.js?v=3.1"></script>
     <!-- HOTFIX: Direct implementation -->
-    <script src="/checkout-assets/checkout-hotfix.js?v=3.0"></script>
+    <script src="/checkout-assets/checkout-hotfix.js?v=3.1"></script>
     
     <!-- Debug Script -->
     <script>
         // Force layout on load
         window.addEventListener('load', function() {
-            console.log('🎯 v3.0 + HOTFIX - Loading...');
+            console.log('🎯 v3.1 + HOTFIX - Enhanced order detection...');
             
             // Add test buttons
             const testContainer = document.createElement('div');
@@ -292,15 +292,39 @@
                 }
             };
             
+            // Debug info button
+            const debugBtn = document.createElement('button');
+            debugBtn.innerHTML = '🔍 Debug Info';
+            debugBtn.style.cssText = `
+                background: #6f42c1;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 12px;
+            `;
+            debugBtn.onclick = function() {
+                console.log('=== DEBUG INFO ===');
+                console.log('window.activeOrder:', window.activeOrder);
+                console.log('window.activeOrderData:', window.activeOrderData);
+                console.log('Order elements found:');
+                console.log('- .order-status-section:', !!document.querySelector('.order-status-section'));
+                console.log('- .order-details-card:', !!document.querySelector('.order-details-card'));
+                console.log('- cancel button:', !!document.querySelector('button[onclick*="cancel"]'));
+                alert('Check console for debug info');
+            };
+            
             testContainer.appendChild(toastBtn);
             testContainer.appendChild(layoutBtn);
             testContainer.appendChild(invoiceBtn);
+            testContainer.appendChild(debugBtn);
             document.body.appendChild(testContainer);
             
-            // Hide after 10 seconds
+            // Hide after 15 seconds
             setTimeout(() => {
                 testContainer.style.display = 'none';
-            }, 10000);
+            }, 15000);
         });
     </script>
 </body>
