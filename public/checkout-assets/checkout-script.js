@@ -593,7 +593,7 @@ async function placeOrder() {
                 fragrance_name: item.fragranceName,
                 fragrance_brand: item.fragranceBrand || null,
                 variant_size: item.variant.size,
-                variant_price_cents: item.variant.price_cents,
+                variant_price_cents: item.variant.price_cents || Math.round((item.variant.price || 0) * 1000),
                 is_whole_bottle: item.variant.is_whole_bottle || false
             }))
         };
