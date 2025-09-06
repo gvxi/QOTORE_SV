@@ -575,7 +575,7 @@ async function placeOrder() {
     showLoading(true);
     
     try {
-        // Prepare order data
+        // Prepare order data - match the API expectation
         const orderData = {
             customer_ip: customerIP,
             customer_first_name: customerInfo.name.split(' ')[0],
@@ -593,7 +593,7 @@ async function placeOrder() {
                 fragrance_name: item.fragranceName,
                 fragrance_brand: item.fragranceBrand || null,
                 variant_size: item.variant.size,
-                variant_price_cents: item.variant.price_cents || Math.round((item.variant.price || 0) * 1000),
+                variant_price_cents: Math.round((item.price || item.variant.price || 0) * 1000), // Convert to cents
                 is_whole_bottle: item.variant.is_whole_bottle || false
             }))
         };
@@ -649,6 +649,7 @@ async function cancelOrder() {
     showLoading(true);
     
     try {
+        // Use the correct Cloudflare Pages Functions path  
         const response = await fetch('/functions/api/cancel-order', {
             method: 'POST',
             headers: {
@@ -660,7 +661,23 @@ async function cancelOrder() {
             })
         });
         
-        const result = await response.json();
+        // Handle different response types
+        let result;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            result = await response.json();
+        } else {
+            // If not JSON, get text and try to parse error
+            const textResponse = await response.text();
+            console.error('Non-JSON response:', textResponse);
+            
+            if (response.status === 404) {
+                throw new Error('Cancel order service not available. Please contact support.');
+            } else {
+                throw new Error(`Server error (${response.status}). Please try again.`);
+            }
+        }
         
         if (result.success) {
             showToast('Order cancelled successfully', 'success');

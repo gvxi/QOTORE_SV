@@ -49,12 +49,12 @@ export async function onRequestPost(context) {
         headers: corsHeaders
       });
     }
-
+    
     // Validate required fields
     const { order_id, customer_ip } = requestData;
     
     if (!order_id || !customer_ip) {
-      return new Response(JSON.stringify({
+      return new Response(JSON.stringify({ 
         error: 'Missing required fields: order_id, customer_ip',
         success: false
       }), {
@@ -63,7 +63,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    console.log('Attempting to cancel order:', order_id, 'for IP:', customer_ip);
+    console.log(`Attempting to cancel order ${order_id} for IP ${customer_ip}`);
 
     // Step 1: Verify order exists and belongs to customer
     const orderQuery = `${SUPABASE_URL}/rest/v1/orders?id=eq.${order_id}&customer_ip=eq.${customer_ip}&select=*`;
@@ -108,10 +108,11 @@ export async function onRequestPost(context) {
     // Order can be cancelled only if:
     // 1. Status is 'pending'
     // 2. Not reviewed by admin yet
-    // 3. Still within review deadline
+    // 3. Still within review deadline (1 hour)
     if (order.status !== 'pending') {
       return new Response(JSON.stringify({
         error: `Cannot cancel order with status: ${order.status}`,
+        current_status: order.status,
         success: false
       }), {
         status: 400,
@@ -130,8 +131,11 @@ export async function onRequestPost(context) {
     }
 
     if (reviewDeadline && now > reviewDeadline) {
+      const timePassed = Math.round((now - reviewDeadline) / 1000 / 60); // minutes
       return new Response(JSON.stringify({
-        error: 'Order cancellation deadline has passed',
+        error: `Order cancellation deadline has passed ${timePassed} minutes ago`,
+        deadline_passed: reviewDeadline.toISOString(),
+        current_time: now.toISOString(),
         success: false
       }), {
         status: 400,
@@ -160,7 +164,7 @@ export async function onRequestPost(context) {
 
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text();
-      console.error('Failed to cancel order:', errorText);
+      console.error('Failed to update order status:', errorText);
       return new Response(JSON.stringify({
         error: 'Failed to cancel order',
         details: errorText,
@@ -172,7 +176,7 @@ export async function onRequestPost(context) {
     }
 
     const updatedOrders = await updateResponse.json();
-    const cancelledOrder = updatedOrders[0];
+    const updatedOrder = updatedOrders[0];
 
     console.log(`✅ Order ${order.order_number} cancelled successfully`);
 
@@ -181,11 +185,12 @@ export async function onRequestPost(context) {
       success: true,
       message: 'Order cancelled successfully',
       data: {
-        order_id: cancelledOrder.id,
-        order_number: order.order_number,
-        status: cancelledOrder.status,
-        cancelled_at: cancelledOrder.updated_at,
-        customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim()
+        order_id: updatedOrder.id,
+        order_number: updatedOrder.order_number || order.order_number,
+        status: updatedOrder.status,
+        cancelled_at: updatedOrder.updated_at,
+        total_amount: order.total_amount,
+        total_amount_omr: (order.total_amount / 1000).toFixed(3)
       }
     }), {
       status: 200,
@@ -215,5 +220,30 @@ export async function onRequestOptions() {
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400'
     }
+  });
+}
+
+// Test endpoint
+export async function onRequestGet(context) {
+  return new Response(JSON.stringify({
+    message: 'Cancel order API is working!',
+    method: 'POST /functions/api/cancel-order to cancel an order',
+    requiredFields: ['order_id', 'customer_ip'],
+    cancellationRules: [
+      'Order status must be "pending"',
+      'Order must not be reviewed by admin yet',
+      'Must be within 1 hour of order creation (review_deadline)',
+      'Order must belong to the requesting customer IP'
+    ],
+    supabaseConfig: {
+      hasUrl: !!context.env.SUPABASE_URL,
+      hasServiceKey: !!context.env.SUPABASE_SERVICE_ROLE_KEY
+    },
+    note: 'No authentication required - verified by customer IP and order ownership'
+  }), { 
+    headers: { 
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    } 
   });
 }
