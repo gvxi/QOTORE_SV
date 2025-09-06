@@ -186,11 +186,11 @@ function displayCart() {
     if (!cart || cart.length === 0) {
         cartContent.innerHTML = `
             <div class="cart-empty">
-                <div class="cart-empty-icon">🛒</div>
+                <div class="cart-empty-icon">${icons.cart}</div>
                 <h3>Your cart is empty</h3>
                 <p>Add some beautiful fragrances to get started!</p>
                 <a href="/" class="btn btn-primary">
-                    <span>🌸</span>
+                    ${icons.cart}
                     <span>Browse Fragrances</span>
                 </a>
             </div>
@@ -200,33 +200,48 @@ function displayCart() {
         return;
     }
     
-    // Display cart items
+    // Display cart items with proper price parsing
     let cartHTML = '';
     let totalAmount = 0;
     
     cart.forEach((item, index) => {
-        const itemTotal = (item.variant.price_cents / 1000) * item.quantity;
+        // Parse price from different possible formats
+        let itemPrice = 0;
+        if (item.variant.price_cents) {
+            itemPrice = item.variant.price_cents / 1000; // Convert fils to OMR
+        } else if (item.variant.price_display) {
+            // Extract price from display string like "2.500 OMR"
+            const priceMatch = item.variant.price_display.match(/(\d+\.?\d*)/);
+            itemPrice = priceMatch ? parseFloat(priceMatch[1]) : 0;
+        } else if (item.variant.price) {
+            itemPrice = parseFloat(item.variant.price);
+        }
+        
+        const itemTotal = itemPrice * item.quantity;
         totalAmount += itemTotal;
         
         cartHTML += `
             <div class="cart-item">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
-                    <div class="cart-item-details">${item.variant.size} - ${(item.variant.price_cents / 1000).toFixed(3)} OMR each</div>
+                    <div class="cart-item-details">${item.variant.size} - ${itemPrice.toFixed(3)} OMR each</div>
                 </div>
                 <div class="cart-item-controls">
                     <div class="cart-item-price">${itemTotal.toFixed(3)} OMR</div>
                     <div class="cart-qty-controls">
                         <button class="cart-qty-btn ${item.quantity === 1 ? 'trash-btn' : ''}" 
                                 onclick="updateCartQuantity(${index}, ${item.quantity - 1})">
-                            ${item.quantity === 1 ? '🗑️' : '−'}
+                            ${item.quantity === 1 ? icons.trash : icons.minus}
                         </button>
                         <input type="number" class="cart-qty-input" value="${item.quantity}" 
                                min="1" max="50" 
                                onchange="updateCartQuantity(${index}, parseInt(this.value))">
-                        <button class="cart-qty-btn" onclick="updateCartQuantity(${index}, ${item.quantity + 1})">+</button>
+                        <button class="cart-qty-btn" onclick="updateCartQuantity(${index}, ${item.quantity + 1})">${icons.plus}</button>
                     </div>
-                    <button class="cart-remove-btn" onclick="removeFromCart(${index})">Remove</button>
+                    <button class="cart-remove-btn" onclick="removeFromCart(${index})">
+                        ${icons.remove}
+                        <span>Remove</span>
+                    </button>
                 </div>
             </div>
         `;
@@ -238,7 +253,14 @@ function displayCart() {
     document.getElementById('subtotalAmount').textContent = `${totalAmount.toFixed(3)} OMR`;
     document.getElementById('totalAmount').textContent = `${totalAmount.toFixed(3)} OMR`;
     
+    // Update checkout button with icon
+    const checkoutBtn = document.getElementById('proceedCheckoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.innerHTML = `${icons.checkout}<span>Proceed to Checkout</span>`;
+    }
+    
     cartSummary.style.display = 'block';
+    clearCartBtn.innerHTML = `${icons.clear}<span>Clear Cart</span>`;
     clearCartBtn.style.display = 'inline-flex';
 }
 
@@ -259,6 +281,83 @@ function updateCartQuantity(index, newQuantity) {
     displayCart();
     showToast('Quantity updated', 'success');
 }
+
+// Remove item from cart
+function removeFromCart(index) {
+    const item = cart[index];
+    cart.splice(index, 1);
+    saveCartToStorage();
+    displayCart();
+    showToast(`${item.fragranceName} removed from cart`, 'success');
+}
+
+// Clear entire cart
+function clearCart() {
+    if (cart.length === 0) return;
+    
+    if (confirm('Are you sure you want to clear your entire cart?')) {
+        cart = [];
+        saveCartToStorage();
+        displayCart();
+        showToast('Cart cleared', 'success');
+    }
+}
+
+// Proceed to checkout
+function proceedToCheckout() {
+    if (!cart || cart.length === 0) {
+        showToast('Your cart is empty', 'warning');
+        return;
+    }
+    
+    if (activeOrder) {
+        showToast('You already have an active order. Please complete or cancel it first.', 'warning');
+        return;
+    }
+    
+    // Check if customer info exists, if not show modal
+    if (!customerInfo) {
+        showCustomerModal();
+    } else {
+        showOrderConfirmModal();
+    }
+}
+
+// Show customer information modal
+function showCustomerModal() {
+    const modal = document.getElementById('customerInfoModal');
+    const form = document.getElementById('customerInfoForm');
+    
+    // Pre-fill form if customer info exists
+    if (customerInfo) {
+        document.getElementById('customerName').value = customerInfo.name || '';
+        document.getElementById('customerPhone').value = customerInfo.phone || '';
+        document.getElementById('customerEmail').value = customerInfo.email || '';
+        document.getElementById('customerWilaya').value = customerInfo.wilaya || '';
+        document.getElementById('customerCity').value = customerInfo.city || '';
+        document.getElementById('customerNotes').value = customerInfo.notes || '';
+        
+        const deliveryMethod = customerInfo.deliveryMethod || 'home';
+        document.querySelector(`input[name="deliveryMethod"][value="${deliveryMethod}"]`).checked = true;
+    }
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+    if (newQuantity < 1) {
+        removeFromCart(index);
+        return;
+    }
+    
+    if (newQuantity > 50) {
+        showToast('Maximum quantity is 50 per item', 'warning');
+        return;
+    }
+    
+    cart[index].quantity = newQuantity;
+    saveCartToStorage();
+    displayCart();
+    showToast('Quantity updated', 'success');
 
 // Remove item from cart
 function removeFromCart(index) {
@@ -805,15 +904,15 @@ function setupEventListeners() {
     }
 }
 
-// Utility function to get status text with icon
+// Utility function to get status text with SVG icon
 function getStatusText(status) {
     const statusMap = {
-        pending: '⏳ Pending',
-        reviewed: '👀 Reviewed',
-        completed: '✅ Completed',
-        cancelled: '❌ Cancelled'
+        pending: 'Pending',
+        reviewed: 'Reviewed', 
+        completed: 'Completed',
+        cancelled: 'Cancelled'
     };
-    return statusMap[status] || '❓ Unknown';
+    return statusMap[status] || 'Unknown';
 }
 
 // Utility function to format date

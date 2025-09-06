@@ -839,7 +839,7 @@ body {
 }
 
 .toast.error {
-    border-left-color: #dc3545;
+    border-left-color: #cc1f1f;
 }
 
 .toast.warning {
