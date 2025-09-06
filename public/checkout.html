@@ -207,8 +207,101 @@
         </div>
     </footer>
 
-    <!-- Scripts  ?v=3.0 -->
-    <script src="/checkout-assets/cart-adapter.js"></script>
-    <script src="/checkout-assets/checkout-script.js"></script>
+    <!-- Scripts -->
+    <script src="/checkout-assets/cart-adapter.js?v=3.0"></script>
+    <script src="/checkout-assets/checkout-script.js?v=3.0"></script>
+    <!-- HOTFIX: Direct implementation -->
+    <script src="/checkout-assets/checkout-hotfix.js?v=3.0"></script>
+    
+    <!-- Debug Script -->
+    <script>
+        // Force layout on load
+        window.addEventListener('load', function() {
+            console.log('🎯 v3.0 + HOTFIX - Loading...');
+            
+            // Add test buttons
+            const testContainer = document.createElement('div');
+            testContainer.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                z-index: 1000;
+            `;
+            
+            // Toast test button
+            const toastBtn = document.createElement('button');
+            toastBtn.innerHTML = '🔔 Test Toast';
+            toastBtn.style.cssText = `
+                background: #28a745;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 12px;
+            `;
+            toastBtn.onclick = function() {
+                if (window.showToastFixed) {
+                    showToastFixed('Test toast - bottom center!', 'success');
+                } else {
+                    alert('Hotfix not loaded');
+                }
+            };
+            
+            // Layout test button
+            const layoutBtn = document.createElement('button');
+            layoutBtn.innerHTML = '🔧 Fix Layout';
+            layoutBtn.style.cssText = `
+                background: #8B4513;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 12px;
+            `;
+            layoutBtn.onclick = function() {
+                if (window.applyHotfixes) {
+                    applyHotfixes();
+                    showToastFixed('Layout fixes applied!', 'success');
+                } else {
+                    alert('Hotfix not loaded');
+                }
+            };
+            
+            // Invoice test button
+            const invoiceBtn = document.createElement('button');
+            invoiceBtn.innerHTML = '📄 Test Invoice';
+            invoiceBtn.style.cssText = `
+                background: #17a2b8;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 12px;
+            `;
+            invoiceBtn.onclick = function() {
+                if (window.showInvoiceModalHotfix) {
+                    showInvoiceModalHotfix();
+                } else {
+                    alert('Hotfix not loaded');
+                }
+            };
+            
+            testContainer.appendChild(toastBtn);
+            testContainer.appendChild(layoutBtn);
+            testContainer.appendChild(invoiceBtn);
+            document.body.appendChild(testContainer);
+            
+            // Hide after 10 seconds
+            setTimeout(() => {
+                testContainer.style.display = 'none';
+            }, 10000);
+        });
+    </script>
 </body>
 </html>
