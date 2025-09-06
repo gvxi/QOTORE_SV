@@ -586,16 +586,37 @@ async function placeOrder() {
             delivery_city: customerInfo.city,
             delivery_region: customerInfo.wilaya,
             notes: customerInfo.notes || null,
-            items: cart.map(item => ({
-                fragrance_id: item.fragranceId,
-                variant_id: item.variant.id,
-                quantity: item.quantity,
-                fragrance_name: item.fragranceName,
-                fragrance_brand: item.fragranceBrand || null,
-                variant_size: item.variant.size,
-                variant_price_cents: Math.round((item.price || item.variant.price || 0) * 1000), // Convert to cents
-                is_whole_bottle: item.variant.is_whole_bottle || false
-            }))
+            items: cart.map(item => {
+                // Use the same price calculation logic
+                let itemPrice = 0;
+                
+                // First try item.price (this is set in addToCart function)
+                if (typeof item.price === 'number' && !isNaN(item.price)) {
+                    itemPrice = item.price;
+                }
+                // Fallback to variant.price
+                else if (typeof item.variant.price === 'number' && !isNaN(item.variant.price)) {
+                    itemPrice = item.variant.price;
+                }
+                // Fallback to parsing price_display
+                else if (item.variant.price_display && typeof item.variant.price_display === 'string') {
+                    const priceMatch = item.variant.price_display.match(/(\d+\.?\d*)/);
+                    if (priceMatch) {
+                        itemPrice = parseFloat(priceMatch[1]);
+                    }
+                }
+                
+                return {
+                    fragrance_id: item.fragranceId,
+                    variant_id: item.variant.id,
+                    quantity: item.quantity,
+                    fragrance_name: item.fragranceName,
+                    fragrance_brand: item.fragranceBrand || null,
+                    variant_size: item.variant.size,
+                    variant_price_cents: Math.round(itemPrice * 1000), // Convert to cents
+                    is_whole_bottle: item.variant.is_whole_bottle || false
+                };
+            })
         };
         
         console.log('Placing order:', orderData);
