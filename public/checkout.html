@@ -1,10 +1,4 @@
-<!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/96812345678?text=Hello%20Qotore%2C%20I%20need%20help%20with%20my%20order" 
-       target="_blank" 
-       class="whatsapp-float" 
-       title="Need help?">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -37,7 +31,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="/checkout-assets/checkout-styles.css">
 </head>
-<body class="light-mode">
+<body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
@@ -54,29 +48,8 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Active Order Status -->
-        <section id="activeOrderSection" class="active-order-section" style="display: none;">
-            <div class="order-status-card">
-                <div class="order-status-header">
-                    <h2>📋 Your Current Order</h2>
-                    <span id="orderStatusBadge" class="status-badge"></span>
-                </div>
-                <div class="order-status-details" id="orderStatusDetails">
-                    <!-- Order details will be populated here -->
-                </div>
-                <div class="order-status-actions">
-                    <button id="cancelOrderBtn" class="btn btn-outline" style="display: none;">
-                        Cancel Order
-                    </button>
-                    <button id="viewOrderBtn" class="btn btn-primary">
-                        View Details
-                    </button>
-                </div>
-            </div>
-        </section>
-
         <!-- Cart Section -->
-        <section class="cart-section" id="cartSection">
+        <section class="cart-section">
             <div class="cart-header">
                 <div class="cart-title-section">
                     <h1 class="cart-title">🛒 Your Cart</h1>
@@ -101,25 +74,13 @@
                     <span>Total:</span>
                     <span id="totalAmount">0.000 OMR</span>
                 </div>
-                <div class="checkout-button-wrapper">
-                    <button id="proceedCheckoutBtn" class="btn btn-primary btn-large" onclick="proceedToCheckout()">
-                        <span>✅</span>
-                        <span>Proceed to Checkout</span>
-                    </button>
-                </div>
             </div>
         </section>
 
-        <!-- Order History -->
-        <section class="order-history-section" id="orderHistorySection">
-            <div class="section-header">
-                <h2>📋 Your Previous Orders</h2>
-                <p class="section-subtitle">Review your order history</p>
-            </div>
-            <div class="order-history-content" id="orderHistoryContent">
-                <!-- Order history will be populated here -->
-            </div>
-        </section>
+        <!-- Order Status / Checkout Form -->
+        <aside id="sidebarContent">
+            <!-- This will be populated based on order status -->
+        </aside>
     </main>
 
     <!-- Customer Information Modal -->
@@ -142,82 +103,59 @@
                             <input type="tel" id="customerPhone" name="customerPhone" required placeholder="968XXXXXXXX">
                         </div>
                         <div class="form-group">
-                            <label for="customerEmail">Email (Optional)</label>
+                            <label for="customerEmail">Email</label>
                             <input type="email" id="customerEmail" name="customerEmail" placeholder="your@email.com">
                         </div>
                     </div>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="customerWilaya">Wilaya *</label>
-                            <input type="text" id="customerWilaya" name="customerWilaya" required placeholder="e.g., Muscat, Sur, Nizwa">
+                            <select id="customerWilaya" name="customerWilaya" required>
+                                <option value="">Select Wilaya</option>
+                                <option value="Muscat">Muscat</option>
+                                <option value="Dhofar">Dhofar</option>
+                                <option value="Musandam">Musandam</option>
+                                <option value="Al Buraimi">Al Buraimi</option>
+                                <option value="Ad Dakhiliyah">Ad Dakhiliyah</option>
+                                <option value="Al Batinah North">Al Batinah North</option>
+                                <option value="Al Batinah South">Al Batinah South</option>
+                                <option value="Ash Sharqiyah North">Ash Sharqiyah North</option>
+                                <option value="Ash Sharqiyah South">Ash Sharqiyah South</option>
+                                <option value="Al Wusta">Al Wusta</option>
+                                <option value="Az Zahirah">Az Zahirah</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="customerCity">City/Area *</label>
-                            <input type="text" id="customerCity" name="customerCity" required placeholder="e.g., Qurum, Ruwi, Al Khuwair">
+                            <label for="customerCity">City *</label>
+                            <input type="text" id="customerCity" name="customerCity" required placeholder="Enter your city">
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label>Delivery Method *</label>
+                        <label>Delivery Option *</label>
                         <div class="delivery-options">
-                            <label class="radio-option">
-                                <input type="radio" name="deliveryMethod" value="home" checked>
-                                <span class="radio-custom"></span>
-                                <span class="radio-label">🏠 Home Delivery</span>
+                            <label class="delivery-option">
+                                <input type="radio" name="deliveryOption" value="home" required>
+                                <span class="delivery-text">🏠 Deliver to Home</span>
                             </label>
-                            <label class="radio-option">
-                                <input type="radio" name="deliveryMethod" value="service">
-                                <span class="radio-custom"></span>
-                                <span class="radio-label">📦 Delivery Service</span>
+                            <label class="delivery-option">
+                                <input type="radio" name="deliveryOption" value="delivery_service" required>
+                                <span class="delivery-text">📦 Use Delivery Service</span>
                             </label>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="customerNotes">Notes (Optional)</label>
-                        <textarea id="customerNotes" name="customerNotes" placeholder="Any special instructions or notes..."></textarea>
+                        <textarea id="customerNotes" name="customerNotes" rows="3" placeholder="Any special instructions or notes..."></textarea>
                     </div>
-                    
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-outline" onclick="closeCustomerModal()">Cancel</button>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save & Continue</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Order Confirmation Modal -->
-    <div id="orderConfirmModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🛒 Confirm Your Order</h2>
-            </div>
-            <div class="modal-body">
-                <div id="orderSummary">
-                    <!-- Order summary will be populated here -->
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-outline" onclick="closeOrderModal()">Review Cart</button>
-                    <button type="button" class="btn btn-success" onclick="confirmOrder()">
-                        <span>✅</span>
-                        <span>Place Order</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Order Details Modal -->
-    <div id="orderDetailsModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📋 Order Details</h2>
-                <button class="modal-close" onclick="closeOrderDetailsModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="orderDetailsContent">
-                <!-- Order details will be populated here -->
             </div>
         </div>
     </div>
@@ -230,42 +168,52 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="toast-container"></div>
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/96800000000" target="_blank" class="whatsapp-float" title="Contact us on WhatsApp">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.525 3.687"/>
+        </svg>
+    </a>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
-                <h4>Qotore</h4>
-                <p>Premium fragrances for discerning tastes</p>
+                <h3>🌸 Qotore</h3>
+                <p>Premium fragrances delivered to your door</p>
             </div>
+            
             <div class="footer-section">
                 <h4>Contact Us</h4>
                 <div class="social-links">
-                    <a href="https://wa.me/96812345678" target="_blank" class="social-link whatsapp">📱</a>
-                    <a href="https://instagram.com/qotore" target="_blank" class="social-link instagram">📷</a>
-                    <a href="https://snapchat.com/add/qotore" target="_blank" class="social-link snapchat">👻</a>
+                    <a href="https://instagram.com/qotore" target="_blank" title="Instagram">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                        <span>Instagram</span>
+                    </a>
+                    <a href="https://snapchat.com/add/qotore" target="_blank" title="Snapchat">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.120.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z"/>
+                        </svg>
+                        <span>Snapchat</span>
+                    </a>
+                    <a href="https://wa.me/96800000000" target="_blank" title="WhatsApp">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.525 3.687"/>
+                        </svg>
+                        <span>WhatsApp</span>
+                    </a>
                 </div>
             </div>
         </div>
+        
         <div class="footer-bottom">
             <p>&copy; 2025 Qotore. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/96812345678?text=Hello%20Qotore%2C%20I%20need%20help%20with%20my%20order" 
-       target="_blank" 
-       class="whatsapp-float" 
-       title="Need help?">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.525 3.488"/>
-        </svg>
-    </a>
-
     <!-- Scripts -->
     <script src="/checkout-assets/checkout-script.js"></script>
-    <script src="/index-assets/cart-adapter.js"></script>
 </body>
 </html>
