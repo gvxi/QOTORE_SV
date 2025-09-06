@@ -121,7 +121,7 @@ async function checkActiveOrder() {
             params.append('phone', customerInfo.phone);
         }
         
-        const response = await fetch(`/api/check-active-order?${params}`);
+        const response = await fetch(`/functions/api/check-active-order?${params}`);
         const data = await response.json();
         
         if (data.success && data.order) {
@@ -150,7 +150,7 @@ async function loadPreviousOrders() {
             params.append('phone', customerInfo.phone);
         }
         
-        const response = await fetch(`/api/get-customer-orders?${params}`);
+        const response = await fetch(`/functions/api/get-customer-orders?${params}`);
         const data = await response.json();
         
         if (data.success && data.orders) {
@@ -596,7 +596,8 @@ async function placeOrder() {
     placeOrderBtn.classList.add('loading');
     
     try {
-        const total = cart.reduce((sum, item) => sum + (item.variant.price_cents / 1000) * item.quantity, 0);
+        const total = window.calculateCartTotal ? window.calculateCartTotal(cart) : 
+                      cart.reduce((sum, item) => sum + ((item.variant.price_cents || 0) / 1000) * item.quantity, 0);
         
         const orderData = {
             customer_ip: customerIP,
@@ -615,17 +616,17 @@ async function placeOrder() {
                 fragrance_name: item.fragranceName,
                 fragrance_brand: item.fragranceBrand || null,
                 variant_size: item.variant.size,
-                variant_price_cents: item.variant.price_cents,
+                variant_price_cents: item.variant.price_cents || 0,
                 quantity: item.quantity,
-                unit_price_cents: item.variant.price_cents,
-                total_price_cents: item.variant.price_cents * item.quantity,
+                unit_price_cents: item.variant.price_cents || 0,
+                total_price_cents: (item.variant.price_cents || 0) * item.quantity,
                 is_whole_bottle: item.variant.is_whole_bottle || false
             }))
         };
         
         console.log('Placing order:', orderData);
         
-        const response = await fetch('/functions/api/place-order', {
+        const response = await fetch('/api/place-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -663,7 +664,7 @@ async function cancelOrder() {
     }
     
     try {
-        const response = await fetch('/functions/api/cancel-order', {
+        const response = await fetch('/api/cancel-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

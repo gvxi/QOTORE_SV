@@ -238,7 +238,7 @@ export async function onRequestPost(context) {
     
     // Step 5: Send admin notification
     try {
-      const notificationResponse = await fetch(`${context.request.url.split('/functions')[0]}/functions/api/send-admin-notification`, {
+      const notificationResponse = await fetch(`${context.request.url.split('/api')[0]}/api/send-admin-notification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
