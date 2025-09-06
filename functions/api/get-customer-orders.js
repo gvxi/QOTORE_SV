@@ -1,4 +1,4 @@
-// functions/api/check-active-order.js - Updated to use customer_order_status view
+// functions/api/get-customer-orders.js - Get customer's order history
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -7,10 +7,12 @@ export async function onRequestGet(context) {
   };
 
   try {
-    // Get customer IP from query parameters
+    // Get query parameters
     const url = new URL(context.request.url);
     const customerIP = url.searchParams.get('ip');
-    const customerPhone = url.searchParams.get('phone'); // Optional
+    const customerPhone = url.searchParams.get('phone');
+    const completedOnly = url.searchParams.get('completed_only') === 'true';
+    const limit = parseInt(url.searchParams.get('limit')) || 10;
 
     if (!customerIP) {
       return new Response(JSON.stringify({
@@ -38,15 +40,23 @@ export async function onRequestGet(context) {
       });
     }
 
-    console.log('Checking active order for IP:', customerIP);
+    console.log('Fetching orders for customer:', customerIP);
 
-    // Query for active orders using the customer_order_status view
-    let query = `${SUPABASE_URL}/rest/v1/customer_order_status?customer_ip=eq.${customerIP}&status=in.(pending,reviewed)&order=created_at.desc&limit=1`;
+    // Build query
+    let query = `${SUPABASE_URL}/rest/v1/customer_order_status?customer_ip=eq.${customerIP}`;
     
     // Add phone filter if provided
     if (customerPhone) {
       query += `&customer_phone=eq.${customerPhone}`;
     }
+    
+    // Add status filter if only completed orders requested
+    if (completedOnly) {
+      query += `&status=eq.completed`;
+    }
+    
+    // Add ordering and limit
+    query += `&order=created_at.desc&limit=${limit}`;
 
     const response = await fetch(query, {
       headers: {
@@ -71,12 +81,12 @@ export async function onRequestGet(context) {
 
     const orders = await response.json();
     
+    // If we have orders, fetch their items
     if (orders.length > 0) {
-      const order = orders[0];
+      const orderIds = orders.map(order => order.id);
       
-      // Get order items for the active order
       const itemsResponse = await fetch(
-        `${SUPABASE_URL}/rest/v1/order_items?order_id=eq.${order.id}&select=*`,
+        `${SUPABASE_URL}/rest/v1/order_items?order_id=in.(${orderIds.join(',')})&select=*`,
         {
           headers: {
             'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -86,53 +96,47 @@ export async function onRequestGet(context) {
         }
       );
       
-      let items = [];
       if (itemsResponse.ok) {
-        const itemsData = await itemsResponse.json();
-        items = itemsData.map(item => ({
-          fragrance_name: item.fragrance_name,
-          fragrance_brand: item.fragrance_brand,
-          variant_size: item.variant_size,
-          quantity: item.quantity,
-          unit_price: item.unit_price_cents ? (item.unit_price_cents / 1000) : null,
-          total: item.total_price_cents ? (item.total_price_cents / 1000) : null
-        }));
+        const allItems = await itemsResponse.json();
+        
+        // Group items by order_id
+        const itemsByOrder = {};
+        allItems.forEach(item => {
+          if (!itemsByOrder[item.order_id]) {
+            itemsByOrder[item.order_id] = [];
+          }
+          itemsByOrder[item.order_id].push({
+            fragrance_name: item.fragrance_name,
+            fragrance_brand: item.fragrance_brand,
+            variant_size: item.variant_size,
+            quantity: item.quantity,
+            unit_price: item.unit_price_cents ? (item.unit_price_cents / 1000) : null,
+            total: item.total_price_cents ? (item.total_price_cents / 1000) : null
+          });
+        });
+        
+        // Add items to orders
+        orders.forEach(order => {
+          order.items = itemsByOrder[order.id] || [];
+          order.items_count = order.items.length;
+        });
       }
-      
-      return new Response(JSON.stringify({
-        success: true,
-        has_active_order: true,
-        order: {
-          id: order.id,
-          order_number: order.order_number,
-          status: order.status,
-          status_display: order.status_display,
-          reviewed: order.reviewed,
-          total_amount: order.total_amount,
-          created_at: order.created_at,
-          review_deadline: order.review_deadline,
-          can_cancel: order.can_cancel,
-          items: items
-        }
-      }), {
-        status: 200,
-        headers: corsHeaders
-      });
-    } else {
-      return new Response(JSON.stringify({
-        success: true,
-        has_active_order: false,
-        order: null
-      }), {
-        status: 200,
-        headers: corsHeaders
-      });
     }
     
-  } catch (error) {
-    console.error('Error checking active order:', error);
     return new Response(JSON.stringify({
-      error: 'Internal server error while checking active order',
+      success: true,
+      orders: orders,
+      count: orders.length,
+      customer_ip: customerIP
+    }), {
+      status: 200,
+      headers: corsHeaders
+    });
+    
+  } catch (error) {
+    console.error('Error fetching customer orders:', error);
+    return new Response(JSON.stringify({
+      error: 'Internal server error while fetching orders',
       details: error.message,
       success: false
     }), {

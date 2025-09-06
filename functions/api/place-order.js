@@ -1,4 +1,4 @@
-// functions/api/place-order.js - Place new order (customer endpoint)
+// functions/api/place-order.js - Place new order with customer_sessions integration
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -29,45 +29,32 @@ export async function onRequestPost(context) {
     let orderData;
     try {
       const text = await context.request.text();
-      if (!text || text.trim() === '') {
-        return new Response(JSON.stringify({ 
-          error: 'No order data provided',
-          success: false
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
       orderData = JSON.parse(text);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      return new Response(JSON.stringify({ 
-        error: 'Invalid order data format',
+      return new Response(JSON.stringify({
+        error: 'Invalid request data format',
         success: false
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
-
-    // Validate required fields
-    const requiredFields = [
-      'customer_ip', 'customer_first_name', 'customer_phone', 
-      'delivery_address', 'delivery_city', 'items'
-    ];
     
-    for (const field of requiredFields) {
-      if (!orderData[field]) {
-        return new Response(JSON.stringify({
-          error: `Missing required field: ${field}`,
-          success: false
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
+    // Validate required fields
+    const required = ['customer_ip', 'customer_first_name', 'customer_phone', 'delivery_city', 'delivery_region', 'total_amount', 'items'];
+    const missing = required.filter(field => !orderData[field]);
+    
+    if (missing.length > 0) {
+      return new Response(JSON.stringify({
+        error: `Missing required fields: ${missing.join(', ')}`,
+        success: false
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
     }
-
+    
     if (!Array.isArray(orderData.items) || orderData.items.length === 0) {
       return new Response(JSON.stringify({
         error: 'Order must contain at least one item',
@@ -77,12 +64,12 @@ export async function onRequestPost(context) {
         headers: corsHeaders
       });
     }
-
-    console.log('Placing order for IP:', orderData.customer_ip);
-
+    
+    console.log('Creating order for customer:', orderData.customer_ip);
+    
     // Step 1: Check if customer already has an active order
     const activeOrderCheck = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?customer_ip=eq.${orderData.customer_ip}&status=in.(pending,reviewed)&select=id,order_number,status&limit=1`,
+      `${SUPABASE_URL}/rest/v1/orders?customer_ip=eq.${orderData.customer_ip}&status=in.(pending,reviewed)&select=id,order_number,status`,
       {
         headers: {
           'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -90,133 +77,45 @@ export async function onRequestPost(context) {
         }
       }
     );
-
+    
     if (activeOrderCheck.ok) {
-      const existingOrders = await activeOrderCheck.json();
-      if (existingOrders.length > 0) {
+      const activeOrders = await activeOrderCheck.json();
+      if (activeOrders.length > 0) {
         return new Response(JSON.stringify({
           error: 'You already have an active order. Please complete or cancel it before placing a new order.',
-          existing_order: existingOrders[0].order_number,
+          active_order: activeOrders[0],
           success: false
         }), {
-          status: 409, // Conflict
+          status: 400,
           headers: corsHeaders
         });
       }
     }
-
-    // Step 2: Fetch variant details and calculate totals
-    const variantIds = orderData.items.map(item => item.variant_id);
-    const variantsQuery = `${SUPABASE_URL}/rest/v1/variants?id=in.(${variantIds.join(',')})&select=*,fragrances(name,brand)`;
     
-    const variantsResponse = await fetch(variantsQuery, {
-      headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
-      }
-    });
-
-    if (!variantsResponse.ok) {
-      const errorText = await variantsResponse.text();
-      console.error('Failed to fetch variants:', errorText);
-      return new Response(JSON.stringify({
-        error: 'Failed to validate order items',
-        success: false
-      }), {
-        status: 500,
-        headers: corsHeaders
-      });
-    }
-
-    const variants = await variantsResponse.json();
+    // Step 2: Create the order
+    const now = new Date().toISOString();
+    const reviewDeadline = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
     
-    // Validate all variants exist and calculate total
-    let totalAmount = 0;
-    const orderItems = [];
-
-    for (const item of orderData.items) {
-      const variant = variants.find(v => v.id === item.variant_id);
-      
-      if (!variant) {
-        console.error('Variant not found:', item.variant_id, 'Available variants:', variants.map(v => v.id));
-        return new Response(JSON.stringify({
-          error: `Invalid variant ID: ${item.variant_id}. This variant may have been removed or doesn't exist.`,
-          available_variants: variants.map(v => ({ id: v.id, size: `${v.size_ml}ml`, fragrance: v.fragrances?.name })),
-          success: false
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
-
-      if (variant.is_whole_bottle) {
-        return new Response(JSON.stringify({
-          error: 'Whole bottle variants cannot be ordered online. Please contact us directly.',
-          success: false
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
-
-      if (!variant.in_stock) {
-        return new Response(JSON.stringify({
-          error: `Item is out of stock: ${variant.fragrances?.name} ${variant.size_ml}ml`,
-          success: false
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
-
-      // Validate quantity
-      const quantity = parseInt(item.quantity);
-      if (quantity < 1 || quantity > (variant.max_quantity || 50)) {
-        return new Response(JSON.stringify({
-          error: `Invalid quantity for ${variant.fragrances?.name}: must be between 1 and ${variant.max_quantity || 50}`,
-          success: false
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
-      }
-
-      const itemTotal = variant.price_cents * quantity;
-      totalAmount += itemTotal;
-
-      orderItems.push({
-        fragrance_id: variant.fragrance_id,
-        variant_id: variant.id,
-        fragrance_name: variant.fragrances?.name || 'Unknown',
-        fragrance_brand: variant.fragrances?.brand || '',
-        variant_size: `${variant.size_ml}ml`,
-        variant_price_cents: variant.price_cents,
-        quantity: quantity,
-        unit_price_cents: variant.price_cents,
-        total_price_cents: itemTotal,
-        is_whole_bottle: false
-      });
-    }
-
-    // Step 3: Create order record
-    const newOrder = {
+    const orderPayload = {
       customer_ip: orderData.customer_ip,
       customer_first_name: orderData.customer_first_name,
       customer_last_name: orderData.customer_last_name || '',
       customer_phone: orderData.customer_phone,
-      customer_email: orderData.customer_email || '',
+      customer_email: orderData.customer_email || null,
       delivery_address: orderData.delivery_address,
       delivery_city: orderData.delivery_city,
-      delivery_region: orderData.delivery_region || '',
-      notes: orderData.notes || '',
-      total_amount: totalAmount,
+      delivery_region: orderData.delivery_region,
+      notes: orderData.notes || null,
+      total_amount: orderData.total_amount,
       status: 'pending',
-      reviewed: false
-      // review_deadline will be set by database trigger
+      reviewed: false,
+      review_deadline: reviewDeadline,
+      created_at: now,
+      updated_at: now
     };
-
-    console.log('Creating order with total:', totalAmount, 'fils');
-
+    
+    console.log('Creating order with payload:', orderPayload);
+    
     const orderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
       method: 'POST',
       headers: {
@@ -225,9 +124,9 @@ export async function onRequestPost(context) {
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         'Prefer': 'return=representation'
       },
-      body: JSON.stringify(newOrder)
+      body: JSON.stringify(orderPayload)
     });
-
+    
     if (!orderResponse.ok) {
       const errorText = await orderResponse.text();
       console.error('Failed to create order:', errorText);
@@ -240,34 +139,44 @@ export async function onRequestPost(context) {
         headers: corsHeaders
       });
     }
-
+    
     const createdOrders = await orderResponse.json();
     const createdOrder = createdOrders[0];
-
-    console.log('Order created with ID:', createdOrder.id);
-
-    // Step 4: Create order items
-    const itemsWithOrderId = orderItems.map(item => ({
-      ...item,
-      order_id: createdOrder.id
+    console.log('Order created:', createdOrder.id);
+    
+    // Step 3: Create order items
+    const orderItems = orderData.items.map(item => ({
+      order_id: createdOrder.id,
+      fragrance_id: item.fragrance_id,
+      variant_id: item.variant_id,
+      fragrance_name: item.fragrance_name,
+      fragrance_brand: item.fragrance_brand || null,
+      variant_size: item.variant_size,
+      variant_price_cents: item.variant_price_cents,
+      quantity: item.quantity,
+      unit_price_cents: item.unit_price_cents,
+      total_price_cents: item.total_price_cents,
+      is_whole_bottle: item.is_whole_bottle || false,
+      created_at: now
     }));
-
+    
+    console.log('Creating order items:', orderItems.length);
+    
     const itemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Prefer': 'return=representation'
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       },
-      body: JSON.stringify(itemsWithOrderId)
+      body: JSON.stringify(orderItems)
     });
-
+    
     if (!itemsResponse.ok) {
       const errorText = await itemsResponse.text();
       console.error('Failed to create order items:', errorText);
       
-      // Rollback: delete the order
+      // Try to clean up the order since items failed
       await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${createdOrder.id}`, {
         method: 'DELETE',
         headers: {
@@ -275,7 +184,7 @@ export async function onRequestPost(context) {
           'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
         }
       });
-
+      
       return new Response(JSON.stringify({
         error: 'Failed to create order items',
         details: errorText,
@@ -285,35 +194,101 @@ export async function onRequestPost(context) {
         headers: corsHeaders
       });
     }
-
-    const createdItems = await itemsResponse.json();
     
-    console.log(`✅ Order ${createdOrder.order_number} placed successfully with ${createdItems.length} items`);
-
-    // Success response
+    // Step 4: Update or create customer session
+    const sessionPayload = {
+      customer_ip: orderData.customer_ip,
+      customer_phone: orderData.customer_phone,
+      customer_email: orderData.customer_email || null,
+      active_order_id: createdOrder.id,
+      last_order_at: now,
+      updated_at: now
+    };
+    
+    // Try to update existing session first
+    const updateSessionResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/customer_sessions?customer_ip=eq.${orderData.customer_ip}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(sessionPayload)
+      }
+    );
+    
+    if (!updateSessionResponse.ok || (await updateSessionResponse.clone().json()).length === 0) {
+      // Create new session if update failed or no existing session
+      sessionPayload.created_at = now;
+      await fetch(`${SUPABASE_URL}/rest/v1/customer_sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        },
+        body: JSON.stringify(sessionPayload)
+      });
+    }
+    
+    console.log('Customer session updated/created');
+    
+    // Step 5: Send admin notification
+    try {
+      const notificationResponse = await fetch(`${context.request.url.split('/functions')[0]}/functions/api/send-admin-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: 'new_order',
+          order: {
+            id: createdOrder.id,
+            order_number: createdOrder.order_number || `ORD-${String(createdOrder.id).padStart(5, '0')}`,
+            customer_name: `${orderData.customer_first_name} ${orderData.customer_last_name || ''}`.trim(),
+            customer_phone: orderData.customer_phone,
+            customer_email: orderData.customer_email,
+            total_amount: orderData.total_amount,
+            items: orderData.items
+          }
+        })
+      });
+      
+      if (notificationResponse.ok) {
+        console.log('Admin notification sent successfully');
+      } else {
+        console.warn('Failed to send admin notification');
+      }
+    } catch (notificationError) {
+      console.warn('Error sending admin notification:', notificationError);
+      // Don't fail the order if notification fails
+    }
+    
+    // Step 6: Return success response
     return new Response(JSON.stringify({
       success: true,
-      message: 'Order placed successfully!',
-      data: {
-        order_id: createdOrder.id,
-        order_number: createdOrder.order_number,
-        total_amount: totalAmount,
-        total_amount_omr: (totalAmount / 1000).toFixed(3),
-        status: createdOrder.status,
-        reviewed: createdOrder.reviewed,
-        review_deadline: createdOrder.review_deadline,
+      order: {
+        id: createdOrder.id,
+        order_number: createdOrder.order_number || `ORD-${String(createdOrder.id).padStart(5, '0')}`,
+        status: 'pending',
+        total_amount: orderData.total_amount,
         created_at: createdOrder.created_at,
-        items_count: createdItems.length
-      }
+        review_deadline: reviewDeadline
+      },
+      message: 'Order placed successfully! You will receive admin notification soon.'
     }), {
-      status: 201,
+      status: 200,
       headers: corsHeaders
     });
-
+    
   } catch (error) {
-    console.error('Place order error:', error);
+    console.error('Error placing order:', error);
     return new Response(JSON.stringify({
-      error: 'Failed to place order: ' + error.message,
+      error: 'Internal server error while placing order',
+      details: error.message,
       success: false
     }), {
       status: 500,
@@ -322,15 +297,14 @@ export async function onRequestPost(context) {
   }
 }
 
-// Handle CORS preflight
-export async function onRequestOptions() {
+// Handle OPTIONS requests for CORS
+export async function onRequestOptions(context) {
   return new Response(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400'
     }
   });
