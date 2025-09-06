@@ -714,6 +714,8 @@ async function refreshOrderStatus() {
 
 // Utility functions
 function showToast(message, type = 'success') {
+    console.log(`🔔 Toast: ${message} (${type})`);
+    
     // Remove existing toasts
     document.querySelectorAll('.toast').forEach(toast => toast.remove());
     
@@ -721,7 +723,27 @@ function showToast(message, type = 'success') {
     toast.className = `toast ${type}`;
     toast.textContent = message;
     
+    // Force bottom center positioning with inline styles
+    toast.style.cssText = `
+        position: fixed !important;
+        bottom: 2rem !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        background: white !important;
+        color: #333 !important;
+        padding: 1rem 1.5rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+        z-index: 3000 !important;
+        border-left: 4px solid ${type === 'error' ? '#dc3545' : '#28a745'} !important;
+        max-width: 350px !important;
+        word-wrap: break-word !important;
+        text-align: center !important;
+        animation: slideInUp 0.3s ease !important;
+    `;
+    
     document.body.appendChild(toast);
+    console.log('✅ Toast displayed');
     
     // Auto-remove after 4 seconds
     setTimeout(() => {
@@ -730,6 +752,21 @@ function showToast(message, type = 'success') {
         }
     }, 4000);
 }
+
+// Debug function - add to window for testing
+window.debugCheckout = function() {
+    console.log('=== CHECKOUT DEBUG ===');
+    console.log('Active Order:', activeOrder);
+    console.log('Cart:', cart);
+    console.log('Customer Info:', customerInfo);
+    console.log('Previous Orders:', previousOrders);
+    
+    // Force test toast
+    showToast('Debug toast - bottom center!', 'success');
+    
+    // Force re-render
+    renderPage();
+};
 
 // Close modal when clicking outside
 document.addEventListener('click', function(e) {

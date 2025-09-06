@@ -208,7 +208,46 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="/checkout-assets/cart-adapter.js"></script>
-    <script src="/checkout-assets/checkout-script.js"></script>
+    <script src="/checkout-assets/cart-adapter.js?v=2.0"></script>
+    <script src="/checkout-assets/checkout-script.js?v=2.0"></script>
+    
+    <!-- Debug Script -->
+    <script>
+        // Force layout on load
+        window.addEventListener('load', function() {
+            console.log('🎯 Forcing layout update...');
+            
+            // Add debug button
+            const debugBtn = document.createElement('button');
+            debugBtn.innerHTML = '🔧 Debug';
+            debugBtn.style.cssText = `
+                position: fixed;
+                top: 120px;
+                right: 10px;
+                background: #8B4513;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 5px;
+                cursor: pointer;
+                z-index: 1000;
+                font-size: 12px;
+            `;
+            debugBtn.onclick = function() {
+                if (window.debugCheckout) {
+                    window.debugCheckout();
+                } else {
+                    alert('Debug function not loaded yet');
+                }
+            };
+            document.body.appendChild(debugBtn);
+            
+            // Hide version after 5 seconds
+            setTimeout(() => {
+                const version = document.getElementById('version-debug');
+                if (version) version.style.display = 'none';
+            }, 5000);
+        });
+    </script>
 </body>
 </html>
