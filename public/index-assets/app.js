@@ -742,6 +742,6 @@ function closeCustomModal() {
         }, 100);
     });
     
-    console.log('✅ MIB');
+    console.log('✅ MIB0');
     
 })();
