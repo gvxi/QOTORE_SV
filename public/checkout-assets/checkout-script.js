@@ -919,20 +919,7 @@ function generateInvoiceHTML() {
             </div>
         </div>
     `;
-}// Debug function - add to window for testing
-window.debugCheckout = function() {
-    console.log('=== CHECKOUT DEBUG ===');
-    console.log('Active Order:', activeOrder);
-    console.log('Cart:', cart);
-    console.log('Customer Info:', customerInfo);
-    console.log('Previous Orders:', previousOrders);
-    
-    // Force test toast
-    showToast('Debug toast - bottom center!', 'success');
-    
-    // Force re-render
-    renderPage();
-};
+}
 
 // Close modal when clicking outside
 document.addEventListener('click', function(e) {
