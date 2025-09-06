@@ -634,13 +634,346 @@ function showActiveOrderSection() {
     cartSection.style.display = 'none';
 }
 
-// Hide active order section
-function hideActiveOrderSection() {
-    const section = document.getElementById('activeOrderSection');
-    const cartSection = document.getElementById('cartSection');
+// Cancel active order
+async function cancelActiveOrder() {
+    if (!activeOrder || !confirm('Are you sure you want to cancel this order?')) {
+        return;
+    }
     
-    section.style.display = 'none';
-    cartSection.style.display = 'block';
+    showLoading('Cancelling your order...');
+    
+    try {
+        const response = await fetch('/api/cancel-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                order_id: activeOrder.id,
+                customer_ip: customerIP
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('✅ Order cancelled successfully');
+            showToast('Order cancelled successfully', 'success');
+            
+            // Refresh page to update status
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+            
+        } else {
+            throw new Error(result.error || 'Failed to cancel order');
+        }
+        
+    } catch (error) {
+        console.error('❌ Failed to cancel order:', error);
+        showToast('Failed to cancel order: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Display order history
+function displayOrderHistory() {
+    const section = document.getElementById('orderHistorySection');
+    const content = document.getElementById('orderHistoryContent');
+    
+    if (!orderHistory || orderHistory.length === 0) {
+        content.innerHTML = `
+            <div class="order-history-empty">
+                <div class="empty-icon">${icons.order}</div>
+                <h3>No Previous Orders</h3>
+                <p>Your order history will appear here after you make your first purchase.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let historyHTML = '';
+    
+    orderHistory.forEach(order => {
+        const itemCount = order.items ? order.items.length : 0;
+        const totalItems = order.items ? order.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+        
+        historyHTML += `
+            <div class="order-history-item" onclick="showOrderDetails(${order.id})">
+                <div class="order-history-header">
+                    <div class="order-number">${order.order_number}</div>
+                    <div class="status-badge status-${order.status}">${getStatusText(order.status)}</div>
+                </div>
+                <div class="order-summary-info">
+                    <div class="order-info-item">
+                        <div class="order-info-label">Date</div>
+                        <div class="order-info-value">${formatDate(order.created_at)}</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Items</div>
+                        <div class="order-info-value">${totalItems} item(s)</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Total</div>
+                        <div class="order-info-value">${(order.total_amount / 1000).toFixed(3)} OMR</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Status</div>
+                        <div class="order-info-value">${getStatusText(order.status)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    content.innerHTML = historyHTML;
+}
+
+// Show order details modal
+async function showOrderDetails(orderId) {
+    const modal = document.getElementById('orderDetailsModal');
+    const content = document.getElementById('orderDetailsContent');
+    
+    // Find order in history or use active order
+    let order = orderHistory.find(o => o.id === orderId);
+    if (!order && activeOrder && activeOrder.id === orderId) {
+        order = activeOrder;
+    }
+    
+    if (!order) {
+        showToast('Order not found', 'error');
+        return;
+    }
+    
+    // Build order details HTML
+    const itemsHTML = order.items ? order.items.map(item => `
+        <div class="order-item-detail">
+            <div class="item-info">
+                <div class="item-name">${item.fragrance_brand ? item.fragrance_brand + ' ' : ''}${item.fragrance_name}</div>
+                <div class="item-variant">${item.variant_size}</div>
+            </div>
+            <div class="item-quantity">Qty: ${item.quantity}</div>
+            <div class="item-price">${(item.total_price_cents / 1000).toFixed(3)} OMR</div>
+        </div>
+    `).join('') : '<p>No items found</p>';
+    
+    content.innerHTML = `
+        <div class="order-details-content">
+            <div class="order-header">
+                <h3>Order ${order.order_number}</h3>
+                <div class="status-badge status-${order.status}">${getStatusText(order.status)}</div>
+            </div>
+            
+            <div class="order-section">
+                <h4>${icons.order} Order Information</h4>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Order Date:</span>
+                        <span class="detail-value">${formatDate(order.created_at)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Total Amount:</span>
+                        <span class="detail-value">${(order.total_amount / 1000).toFixed(3)} OMR</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">${getStatusText(order.status)}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="order-section">
+                <h4>${icons.info} Customer Information</h4>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value">${order.customer_first_name} ${order.customer_last_name || ''}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">${icons.phone} Phone:</span>
+                        <span class="detail-value">${order.customer_phone}</span>
+                    </div>
+                    ${order.customer_email ? `
+                        <div class="detail-item">
+                            <span class="detail-label">${icons.email} Email:</span>
+                            <span class="detail-value">${order.customer_email}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <div class="order-section">
+                <h4>${icons.location} Delivery Information</h4>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Method:</span>
+                        <span class="detail-value">${order.delivery_address}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Location:</span>
+                        <span class="detail-value">${order.delivery_region}, ${order.delivery_city}</span>
+                    </div>
+                    ${order.notes ? `
+                        <div class="detail-item">
+                            <span class="detail-label">${icons.notes} Notes:</span>
+                            <span class="detail-value">${order.notes}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <div class="order-section">
+                <h4>${icons.cart} Order Items</h4>
+                <div class="order-items-detail">
+                    ${itemsHTML}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// Close order details modal
+function closeOrderDetailsModal() {
+    const modal = document.getElementById('orderDetailsModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    // Customer info form submission
+    const customerForm = document.getElementById('customerInfoForm');
+    customerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const info = {
+            name: formData.get('customerName'),
+            phone: formData.get('customerPhone'),
+            email: formData.get('customerEmail'),
+            wilaya: formData.get('customerWilaya'),
+            city: formData.get('customerCity'),
+            deliveryMethod: formData.get('deliveryMethod'),
+            notes: formData.get('customerNotes')
+        };
+        
+        // Validate required fields
+        if (!info.name || !info.phone || !info.wilaya || !info.city) {
+            showToast('Please fill in all required fields', 'warning');
+            return;
+        }
+        
+        // Save customer info
+        saveCustomerInfo(info);
+        
+        // Close modal and show order confirmation
+        closeCustomerModal();
+        showOrderConfirmModal();
+    });
+    
+    // Close modals when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            const modal = e.target;
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // View order details button for active order
+    const viewOrderBtn = document.getElementById('viewOrderBtn');
+    if (viewOrderBtn) {
+        viewOrderBtn.addEventListener('click', function() {
+            if (activeOrder) {
+                showOrderDetails(activeOrder.id);
+            }
+        });
+    }
+    
+    // Prevent cart-adapter from interfering on checkout page
+    if (window.updateCartButton) {
+        // Override cart adapter's updateCartButton to do nothing on checkout page
+        window.updateCartButton = function() {
+            console.log('Cart adapter updateCartButton disabled on checkout page');
+        };
+    }
+}
+
+// Load customer info from localStorage
+function loadCustomerInfo() {
+    try {
+        const savedInfo = localStorage.getItem('qotore_customer_info');
+        if (savedInfo) {
+            customerInfo = JSON.parse(savedInfo);
+            console.log('👤 Customer info loaded for:', customerInfo.name);
+        }
+    } catch (error) {
+        console.error('Failed to load customer info:', error);
+        customerInfo = null;
+    }
+}
+
+// Save customer info to localStorage
+function saveCustomerInfo(info) {
+    try {
+        customerInfo = info;
+        localStorage.setItem('qotore_customer_info', JSON.stringify(info));
+        console.log('💾 Customer info saved');
+    } catch (error) {
+        console.error('Failed to save customer info:', error);
+    }
+}
+
+// Check for active orders
+async function checkActiveOrder() {
+    if (!customerIP) return;
+    
+    try {
+        console.log('🔍 Checking for active orders...');
+        
+        const response = await fetch(`/api/check-active-order?ip=${encodeURIComponent(customerIP)}`);
+        const result = await response.json();
+        
+        if (result.success && result.has_active_order) {
+            activeOrder = result.order;
+            console.log('📋 Active order found:', activeOrder.order_number);
+            showActiveOrderSection();
+        } else {
+            console.log('✅ No active orders');
+            hideActiveOrderSection();
+        }
+    } catch (error) {
+        console.error('Failed to check active orders:', error);
+        hideActiveOrderSection();
+    }
+}
+
+// Load order history
+async function loadOrderHistory() {
+    if (!customerIP) return;
+    
+    try {
+        console.log('📚 Loading order history...');
+        
+        const response = await fetch(`/api/customer-orders?ip=${encodeURIComponent(customerIP)}`);
+        const result = await response.json();
+        
+        if (result.success && result.orders) {
+            orderHistory = result.orders.filter(order => 
+                !activeOrder || order.id !== activeOrder.id
+            );
+            console.log('📋 Order history loaded:', orderHistory.length, 'orders');
+            displayOrderHistory();
+        }
+    } catch (error) {
+        console.error('Failed to load order history:', error);
+        orderHistory = [];
+        displayOrderHistory();
+    }
 }
 
 // Cancel active order
