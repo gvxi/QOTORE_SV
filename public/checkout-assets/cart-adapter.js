@@ -75,7 +75,7 @@
             
             // Log API calls for debugging
             if (url.includes('/api/')) {
-                console.log('API call:', url, options?.method || 'GET');
+                // console.log('API call:', url, options?.method || 'GET');
             }
         }
         return originalFetch(url, options);
@@ -136,15 +136,15 @@
     // Debug helpers
     window.debugCart = function() {
         const cart = JSON.parse(localStorage.getItem('qotore_cart') || '[]');
-        console.log('Current cart:', cart);
-        console.log('Cart total:', window.formatPrice(window.calculateCartTotal(cart)));
+        // console.log('Current cart:', cart);
+        // console.log('Cart total:', window.formatPrice(window.calculateCartTotal(cart)));
         cart.forEach((item, index) => {
             console.log(`Item ${index}:`, {
-                name: item.fragranceName,
-                variant: item.variant.size,
-                quantity: item.quantity,
-                price_cents: item.variant.price_cents,
-                total: window.formatPrice(window.calculateItemTotal(item))
+                // name: item.fragranceName,
+                // variant: item.variant.size,
+                // quantity: item.quantity,
+                // price_cents: item.variant.price_cents,
+                // total: window.formatPrice(window.calculateItemTotal(item))
             });
         });
     };
@@ -160,7 +160,7 @@
                 // Only save back if changes were made
                 if (JSON.stringify(cart) !== JSON.stringify(cleanedCart)) {
                     localStorage.setItem('qotore_cart', JSON.stringify(cleanedCart));
-                    console.log('Cart updated and cleaned on load');
+                    // console.log('Cart updated and cleaned on load');
                 }
             }
         } catch (error) {
@@ -170,5 +170,5 @@
         }
     });
 
-    console.log('Cart adapter loaded successfully');
+    // console.log('Cart adapter loaded successfully');
 })();
