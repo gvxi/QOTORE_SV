@@ -1,63 +1,3 @@
-// TRANSLATION SUPPORT ADDED - START
-let currentLanguage = 'en';
-let translations = {};
-
-async function loadTranslations() {
-    try {
-        const response = await fetch('/checkout-assets/checkout-translations.json');
-        translations = await response.json();
-        console.log('✅ Checkout translations loaded');
-    } catch (error) {
-        console.error('❌ Failed to load checkout translations:', error);
-        translations = { en: {}, ar: {} };
-    }
-}
-
-function t(key) {
-    return translations[currentLanguage]?.[key] || key;
-}
-
-function updateTranslations() {
-    document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.getAttribute('data-translate');
-        const translation = t(key);
-        if (translation !== key) {
-            element.textContent = translation;
-        }
-    });
-    
-    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-translate-placeholder');
-        const translation = t(key);
-        if (translation !== key) {
-            element.placeholder = translation;
-        }
-    });
-    
-    const titleElement = document.querySelector('title');
-    if (titleElement) {
-        const titleKey = titleElement.getAttribute('data-translate');
-        if (titleKey) {
-            const translation = t(titleKey);
-            if (translation !== titleKey) {
-                titleElement.textContent = translation;
-            }
-        }
-    }
-}
-
-function loadLanguagePreference() {
-    const mainPageLanguage = localStorage.getItem('qotore_language');
-    const savedLanguage = mainPageLanguage || 'en';
-    
-    currentLanguage = savedLanguage;
-    document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
-    document.documentElement.setAttribute('lang', currentLanguage);
-    
-    updateTranslations();
-}
-// TRANSLATION SUPPORT ADDED - END
-
 // Checkout Script - Mobile-friendly, Supabase integration
 let cart = [];
 let customerInfo = null;
@@ -67,10 +7,6 @@ let customerIP = null;
 
 // Initialize the checkout page
 document.addEventListener('DOMContentLoaded', async function() {
-    // ADDED FOR TRANSLATION SUPPORT
-    await loadTranslations();
-    loadLanguagePreference();
-    
     try {
         await getCustomerIP();
         await loadCustomerInfo();
@@ -164,6 +100,7 @@ function loadCart() {
 function saveCart() {
     try {
         localStorage.setItem('qotore_cart', JSON.stringify(cart));
+        // console.log('Saved cart:', cart);
     } catch (error) {
         console.error('Error saving cart:', error);
     }
@@ -172,27 +109,27 @@ function saveCart() {
 // Check for active order
 async function checkActiveOrder() {
     if (!customerIP) return;
-
+    
     try {
-        const response = await fetch(`/api/check-active-order?ip=${customerIP}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+        const params = new URLSearchParams({
+            ip: customerIP
         });
-
-        if (response.ok) {
-            const result = await response.json();
-            
-            if (result.success && result.data && result.data.has_order) {
-                activeOrder = result.data;
-                console.log('Active order found:', activeOrder.order_number);
-            } else {
-                activeOrder = null;
-            }
+        
+        if (customerInfo?.phone) {
+            params.append('phone', customerInfo.phone);
+        }
+        
+        const response = await fetch(`/functions/api/check-active-order?${params}`);
+        const data = await response.json();
+        
+        if (data.success && data.order) {
+            activeOrder = data.order;
+            console.log('Found active order:', activeOrder);
+        } else {
+            activeOrder = null;
         }
     } catch (error) {
-        console.error('Error checking for active order:', error);
+        console.error('Error checking active order:', error);
         activeOrder = null;
     }
 }
@@ -200,14 +137,23 @@ async function checkActiveOrder() {
 // Load previous orders
 async function loadPreviousOrders() {
     if (!customerIP) return;
-
+    
     try {
-        const response = await fetch(`/api/get-orders?ip=${customerIP}&status=completed,cancelled&limit=5`);
+        const params = new URLSearchParams({
+            ip: customerIP,
+            completed_only: 'true'
+        });
         
-        if (response.ok) {
-            const result = await response.json();
-            previousOrders = result.success ? result.data : [];
-          console.log('Loaded previous orders:', previousOrders);
+        if (customerInfo?.phone) {
+            params.append('phone', customerInfo.phone);
+        }
+        
+        const response = await fetch(`/functions/api/get-customer-orders?${params}`);
+        const data = await response.json();
+        
+        if (data.success && data.orders) {
+            previousOrders = data.orders.slice(0, 5); // Show last 5 orders
+            console.log('Loaded previous orders:', previousOrders);
         }
     } catch (error) {
         console.error('Error loading previous orders:', error);
@@ -231,9 +177,9 @@ function renderCart() {
         cartContent.innerHTML = `
             <div class="empty-cart">
                 <div class="empty-cart-icon">🛒</div>
-                <h2 class="empty-cart-title">${t('cart_empty')}</h2>
-                <p class="empty-cart-message">${t('cart_empty_subtitle')}</p>
-                <a href="/" class="btn btn-primary">${t('continue_shopping')}</a>
+                <h2 class="empty-cart-title">Your cart is empty</h2>
+                <p class="empty-cart-message">Add some fragrances to get started</p>
+                <a href="/" class="btn btn-primary">Continue Shopping</a>
             </div>
         `;
         cartSummary.style.display = 'none';
@@ -257,7 +203,7 @@ function renderCart() {
                         ${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}
                     </div>
                     <div class="cart-item-details">
-                        ${item.variant.size} - ${item.variant.price_display || (item.variant.price_cents / 1000).toFixed(3) + ' ' + t('omr')}
+                        ${item.variant.size} - ${item.variant.price_display || (item.variant.price_cents / 1000).toFixed(3) + ' OMR'}
                     </div>
                     <div class="cart-item-controls">
                         <div class="cart-qty-controls">
@@ -268,12 +214,12 @@ function renderCart() {
                                    min="1" max="10" onchange="setQuantity(${index}, this.value)">
                             <button class="cart-qty-btn" onclick="updateQuantity(${index}, 1)" ${item.quantity >= 10 ? 'disabled' : ''}>+</button>
                         </div>
-                        <button class="cart-remove-btn" onclick="removeFromCart(${index})">${t('remove')}</button>
+                        <button class="cart-remove-btn" onclick="removeFromCart(${index})">Remove</button>
                     </div>
                 </div>
                 <div class="cart-item-price-section">
-                    <div class="cart-item-price">${itemTotal.toFixed(3)} ${t('omr')}</div>
-                    <div class="cart-item-unit-price">${(item.variant.price_cents / 1000).toFixed(3)} ${t('omr')} ${t('each')}</div>
+                    <div class="cart-item-price">${itemTotal.toFixed(3)} OMR</div>
+                    <div class="cart-item-unit-price">${(item.variant.price_cents / 1000).toFixed(3)} OMR each</div>
                 </div>
             </div>
         `;
@@ -282,8 +228,8 @@ function renderCart() {
     cartContent.innerHTML = cartHTML;
     
     // Update summary
-    document.getElementById('subtotalAmount').textContent = `${total.toFixed(3)} ${t('omr')}`;
-    document.getElementById('totalAmount').textContent = `${total.toFixed(3)} ${t('omr')}`;
+    document.getElementById('subtotalAmount').textContent = `${total.toFixed(3)} OMR`;
+    document.getElementById('totalAmount').textContent = `${total.toFixed(3)} OMR`;
     cartSummary.style.display = 'block';
 }
 
@@ -299,9 +245,9 @@ function renderSidebar() {
         sidebarContent.innerHTML = `
             <div class="order-status-section">
                 <div class="order-status-icon">🛍️</div>
-                <h2 class="order-status-title">${t('start_shopping')}</h2>
-                <p class="order-status-message">${t('cart_empty_subtitle')}</p>
-                <a href="/" class="btn btn-primary btn-full">${t('continue_shopping')}</a>
+                <h2 class="order-status-title">Start Shopping</h2>
+                <p class="order-status-message">Add items to your cart to proceed with checkout</p>
+                <a href="/" class="btn btn-primary btn-full">Browse Fragrances</a>
             </div>
         `;
     }
@@ -341,42 +287,60 @@ function renderOrderStatus() {
     });
     
     // Calculate items summary
-    const itemsCount = activeOrder.items ? activeOrder.items.length : (activeOrder.items_count || 0);
-    const itemsText = activeOrder.items && activeOrder.items.length > 0 
-        ? activeOrder.items.map(item => `${item.fragrance_name} (${item.variant_size})`).join(', ')
-        : `${itemsCount} item(s)`;
+    const itemsCount = activeOrder.items ? activeOrder.items.length : 0;
+    const totalItems = activeOrder.items ? activeOrder.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
+    
+    let actionButtons = '';
+    if (canCancel) {
+        actionButtons = `
+            <button class="btn btn-danger btn-full" onclick="cancelOrder()">
+                ❌ Cancel Order
+            </button>
+            <p style="font-size: 0.8rem; color: #6c757d; text-align: center; margin-top: 0.5rem;">
+                You can cancel within 1 hour of placing the order
+            </p>
+        `;
+    }
     
     sidebarContent.innerHTML = `
         <div class="order-status-section">
-            <div class="order-status-icon">${statusIcons[activeOrder.status] || '📋'}</div>
-            <h2 class="order-status-title">${t('order')} ${activeOrder.order_number}</h2>
-            <p class="order-status-message">${statusMessages[activeOrder.status] || t(activeOrder.status)}</p>
+            <div class="order-status-icon">${statusIcons[activeOrder.status] || '📦'}</div>
+            <h2 class="order-status-title">${activeOrder.status_display || 'Order Status'}</h2>
+            <p class="order-status-message">${statusMessages[activeOrder.status] || 'Order in progress'}</p>
             
-            <div class="order-details-summary">
+            <div class="order-details-card">
                 <div class="order-detail-row">
-                    <span class="order-detail-label">${t('order_date')}:</span>
+                    <span class="order-detail-label">Order Number:</span>
+                    <span class="order-detail-value order-number">${activeOrder.order_number}</span>
+                </div>
+                <div class="order-detail-row">
+                    <span class="order-detail-label">Status:</span>
+                    <span class="order-detail-value">
+                        <span class="status-badge status-${activeOrder.status}">${activeOrder.status_display}</span>
+                    </span>
+                </div>
+                <div class="order-detail-row">
+                    <span class="order-detail-label">Total:</span>
+                    <span class="order-detail-value">${((activeOrder.total_amount || 0) / 1000).toFixed(3)} OMR</span>
+                </div>
+                <div class="order-detail-row">
+                    <span class="order-detail-label">Items:</span>
+                    <span class="order-detail-value">${totalItems} item(s) - ${itemsCount} type(s)</span>
+                </div>
+                <div class="order-detail-row">
+                    <span class="order-detail-label">Order Date:</span>
                     <span class="order-detail-value">${orderDate}</span>
                 </div>
-                <div class="order-detail-row">
-                    <span class="order-detail-label">${t('status')}:</span>
-                    <span class="order-detail-value">${t(activeOrder.status)}</span>
-                </div>
-                <div class="order-detail-row">
-                    <span class="order-detail-label">${t('order_items')}:</span>
-                    <span class="order-detail-value">${itemsText}</span>
-                </div>
-                <div class="order-detail-row">
-                    <span class="order-detail-label">${t('total')}:</span>
-                    <span class="order-detail-value">${((activeOrder.total_amount || 0) / 1000).toFixed(3)} ${t('omr')}</span>
-                </div>
             </div>
             
-            <div class="order-actions">
-                <button class="btn btn-secondary btn-full" onclick="refreshOrderStatus()">${t('refresh')}</button>
-                ${canCancel ? `<button class="btn btn-danger btn-full" onclick="cancelOrder()">${t('cancel_order')}</button>` : ''}
-            </div>
+            ${actionButtons}
+            
+            <button class="btn btn-outline btn-full" onclick="refreshOrderStatus()">
+                🔄 Refresh Status
+            </button>
+            
+            ${previousOrders.length > 0 ? renderPreviousOrders() : ''}
         </div>
-        ${renderPreviousOrders()}
     `;
 }
 
@@ -390,38 +354,38 @@ function renderCheckoutForm() {
         // Show customer info with edit option
         sidebarContent.innerHTML = `
             <div class="checkout-form">
-                <h2 class="checkout-title">${t('place_order')}</h2>
+                <h2 class="checkout-title">Place Order</h2>
                 
                 <div class="customer-info-display">
                     <div class="customer-info-title">
-                        <span>📋 ${t('your_information')}</span>
-                        <button class="edit-info-btn" onclick="editCustomerInfo()">${t('edit')}</button>
+                        <span>📋 Your Information</span>
+                        <button class="edit-info-btn" onclick="editCustomerInfo()">Edit</button>
                     </div>
                     <div class="customer-detail">
-                        <span class="customer-detail-label">${t('name')}:</span>
+                        <span class="customer-detail-label">Name:</span>
                         <span class="customer-detail-value">${customerInfo.name}</span>
                     </div>
                     <div class="customer-detail">
-                        <span class="customer-detail-label">${t('phone')}:</span>
+                        <span class="customer-detail-label">Phone:</span>
                         <span class="customer-detail-value">${customerInfo.phone}</span>
                     </div>
                     ${customerInfo.email ? `
                     <div class="customer-detail">
-                        <span class="customer-detail-label">${t('email')}:</span>
+                        <span class="customer-detail-label">Email:</span>
                         <span class="customer-detail-value">${customerInfo.email}</span>
                     </div>
                     ` : ''}
                     <div class="customer-detail">
-                        <span class="customer-detail-label">${t('location')}:</span>
+                        <span class="customer-detail-label">Location:</span>
                         <span class="customer-detail-value">${customerInfo.city}, ${customerInfo.wilaya}</span>
                     </div>
                     <div class="customer-detail">
-                        <span class="customer-detail-label">${t('delivery')}:</span>
-                        <span class="customer-detail-value">${customerInfo.deliveryOption === 'home' ? t('deliver_to_home') : t('use_delivery_service')}</span>
+                        <span class="customer-detail-label">Delivery:</span>
+                        <span class="customer-detail-value">${customerInfo.deliveryOption === 'home' ? '🏠 Deliver to Home' : '🚛 Use Delivery Service'}</span>
                     </div>
                     ${customerInfo.notes ? `
                     <div class="customer-detail">
-                        <span class="customer-detail-label">${t('additional_notes')}:</span>
+                        <span class="customer-detail-label">Notes:</span>
                         <span class="customer-detail-value">${customerInfo.notes}</span>
                     </div>
                     ` : ''}
@@ -429,13 +393,13 @@ function renderCheckoutForm() {
                 
                 <div class="order-summary-section">
                     <div class="order-detail-row">
-                        <span class="order-detail-label">${t('total')}:</span>
-                        <span class="order-detail-value" style="font-size: 1.2rem; font-weight: 700; color: #28a745;">${total.toFixed(3)} ${t('omr')}</span>
+                        <span class="order-detail-label">Total:</span>
+                        <span class="order-detail-value" style="font-size: 1.2rem; font-weight: 700; color: #28a745;">${total.toFixed(3)} OMR</span>
                     </div>
                 </div>
                 
                 <button class="btn btn-success btn-full" onclick="placeOrder()" id="placeOrderBtn">
-                    🛒 ${t('place_order')}
+                    🛒 Place Order
                 </button>
                 
                 <p style="font-size: 0.8rem; color: #6c757d; text-align: center; margin-top: 1rem;">
@@ -447,17 +411,17 @@ function renderCheckoutForm() {
         // Show button to add customer info
         sidebarContent.innerHTML = `
             <div class="checkout-form">
-                <h2 class="checkout-title">${t('checkout_form_title')}</h2>
+                <h2 class="checkout-title">Complete Your Order</h2>
                 
                 <div class="order-summary-section">
                     <div class="order-detail-row">
-                        <span class="order-detail-label">${t('total')}:</span>
-                        <span class="order-detail-value" style="font-size: 1.2rem; font-weight: 700; color: #28a745;">${total.toFixed(3)} ${t('omr')}</span>
+                        <span class="order-detail-label">Total:</span>
+                        <span class="order-detail-value" style="font-size: 1.2rem; font-weight: 700; color: #28a745;">${total.toFixed(3)} OMR</span>
                     </div>
                 </div>
                 
                 <button class="btn btn-primary btn-full" onclick="showCustomerInfoModal()">
-                    📝 ${t('customer_information')}
+                    📝 Add Your Information
                 </button>
                 
                 <p style="font-size: 0.9rem; color: #6c757d; text-align: center; margin-top: 1rem; line-height: 1.5;">
@@ -473,8 +437,8 @@ function renderPreviousOrders() {
     if (previousOrders.length === 0) {
         return `
             <div class="previous-orders-section">
-                <h3 class="previous-orders-title">📚 ${t('previous_orders')}</h3>
-                <div class="no-previous-orders">${t('no_previous_orders')}</div>
+                <h3 class="previous-orders-title">📚 Previous Orders</h3>
+                <div class="no-previous-orders">No previous orders found</div>
             </div>
         `;
     }
@@ -498,14 +462,14 @@ function renderPreviousOrders() {
                     <span class="previous-order-date">${orderDate}</span>
                 </div>
                 <div class="previous-order-items">${itemsText}</div>
-                <div class="previous-order-total">${((order.total_amount || 0) / 1000).toFixed(3)} ${t('omr')}</div>
+                <div class="previous-order-total">${((order.total_amount || 0) / 1000).toFixed(3)} OMR</div>
             </div>
         `;
     });
     
     return `
         <div class="previous-orders-section">
-            <h3 class="previous-orders-title">📚 ${t('previous_orders')}</h3>
+            <h3 class="previous-orders-title">📚 Previous Orders</h3>
             ${ordersHTML}
         </div>
     `;
@@ -551,11 +515,11 @@ function removeFromCart(index) {
 }
 
 function clearCart() {
-    if (confirm(t('clear_cart') + '?')) {
+    if (confirm('Are you sure you want to clear your cart?')) {
         cart = [];
         saveCart();
         renderPage();
-        showToast(t('clear_cart') + ' successfully');
+        showToast('Cart cleared successfully');
     }
 }
 
@@ -605,7 +569,7 @@ document.getElementById('customerInfoForm').addEventListener('submit', function(
     
     // Validate required fields
     if (!info.name || !info.phone || !info.wilaya || !info.city) {
-        showToast(t('fill_required_fields'), 'error');
+        showToast('Please fill in all required fields', 'error');
         return;
     }
     
@@ -634,33 +598,36 @@ async function placeOrder() {
     placeOrderBtn.classList.add('loading');
     
     try {
-        const total = window.calculateCartTotal ? window.calculateCartTotal() : cart.reduce((sum, item) => sum + (item.variant.price_cents / 1000) * item.quantity, 0);
+        const total = window.calculateCartTotal ? window.calculateCartTotal(cart) : 
+                      cart.reduce((sum, item) => sum + ((item.variant.price_cents || 0) / 1000) * item.quantity, 0);
         
         const orderData = {
             customer_ip: customerIP,
-            customer_first_name: customerInfo.name.split(' ')[0] || customerInfo.name,
-            customer_last_name: customerInfo.name.split(' ').slice(1).join(' ') || '',
+            customer_first_name: customerInfo.name.split(' ')[0],
+            customer_last_name: customerInfo.name.split(' ').slice(1).join(' '),
             customer_phone: customerInfo.phone,
             customer_email: customerInfo.email || null,
-            delivery_address: `${customerInfo.deliveryOption === 'home' ? 'Home delivery' : 'Use delivery service'}`,
+            delivery_address: customerInfo.deliveryOption === 'home' ? 'Deliver to home address' : 'Use delivery service',
             delivery_city: customerInfo.city,
             delivery_region: customerInfo.wilaya,
             notes: customerInfo.notes || null,
-            total_amount: Math.round(total * 1000),
+            total_amount: Math.round(total * 1000), // Convert to fils
             items: cart.map(item => ({
                 fragrance_id: item.fragranceId,
                 variant_id: item.variant.id,
                 fragrance_name: item.fragranceName,
-                fragrance_brand: item.fragranceBrand || '',
+                fragrance_brand: item.fragranceBrand || null,
                 variant_size: item.variant.size,
-                variant_price_cents: item.variant.price_cents,
+                variant_price_cents: item.variant.price_cents || 0,
                 quantity: item.quantity,
-                unit_price_cents: item.variant.price_cents,
-                total_price_cents: item.variant.price_cents * item.quantity,
+                unit_price_cents: item.variant.price_cents || 0,
+                total_price_cents: (item.variant.price_cents || 0) * item.quantity,
                 is_whole_bottle: item.variant.is_whole_bottle || false
             }))
         };
-
+        
+        console.log('Placing order:', orderData);
+        
         const response = await fetch('/api/place-order', {
             method: 'POST',
             headers: {
@@ -668,17 +635,22 @@ async function placeOrder() {
             },
             body: JSON.stringify(orderData)
         });
-
+        
+        console.log('Place order response status:', response.status);
         const result = await response.json();
+        console.log('Place order result:', result);
         
         if (result.success) {
-            // Clear cart and refresh page
+            console.log('Order placed successfully:', result.order);
+            
+            // Clear cart and reload page state
             cart = [];
             saveCart();
             await checkActiveOrder();
             await loadPreviousOrders();
             renderPage();
-            showToast(t('order_success') + ' 🎉');
+            
+            showToast('Order placed successfully! 🎉');
         } else {
             console.error('Order placement failed:', result);
             throw new Error(result.error || 'Failed to place order');
@@ -686,7 +658,7 @@ async function placeOrder() {
         
     } catch (error) {
         console.error('Error placing order:', error);
-        showToast(error.message || t('order_error'), 'error');
+        showToast(error.message || 'Failed to place order', 'error');
     } finally {
         placeOrderBtn.disabled = false;
         placeOrderBtn.classList.remove('loading');
@@ -764,52 +736,221 @@ function showToast(message, type = 'success') {
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
         z-index: 9999 !important;
         border-left: 4px solid ${type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#28a745'} !important;
+        max-width: 350px !important;
+        word-wrap: break-word !important;
+        text-align: center !important;
         font-weight: 600 !important;
-        animation: slideUpToast 0.3s ease !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
+        animation: slideInUp 0.3s ease !important;
     `;
     
     document.body.appendChild(toast);
+    console.log('✅ Toast displayed at bottom center');
     
-    // Auto-hide after 5 seconds
+    // Auto-remove after 4 seconds
     setTimeout(() => {
-        if (toast && toast.parentNode) {
-            toast.style.animation = 'slideDownToast 0.3s ease forwards';
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
+        if (toast.parentNode) {
+            toast.remove();
         }
-    }, 5000);
+    }, 4000);
 }
 
-// Add CSS animations for toasts
-if (!document.querySelector('#toastStyles')) {
-    const style = document.createElement('style');
-    style.id = 'toastStyles';
-    style.textContent = `
-        @keyframes slideUpToast {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+// Invoice Modal Functions
+function showInvoiceModal() {
+    if (!activeOrder) {
+        showToast('No active order to display', 'error');
+        return;
+    }
+    
+    console.log('📄 Showing invoice modal for order:', activeOrder.order_number);
+    
+    const modal = document.createElement('div');
+    modal.className = 'invoice-modal';
+    modal.innerHTML = generateInvoiceHTML();
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // Close on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeInvoiceModal();
         }
-        
-        @keyframes slideDownToast {
-            from {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-        }
-    `;
-    document.head.appendChild(style);
+    });
 }
+
+function closeInvoiceModal() {
+    const modal = document.querySelector('.invoice-modal');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function printInvoice() {
+    console.log('🖨️ Printing invoice...');
+    window.print();
+}
+
+function generateInvoiceHTML() {
+    const orderDate = new Date(activeOrder.created_at).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    const totalItems = activeOrder.items ? activeOrder.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
+    const totalAmount = (activeOrder.total_amount || 0) / 1000;
+    
+    let itemsHTML = '';
+    if (activeOrder.items && activeOrder.items.length > 0) {
+        activeOrder.items.forEach(item => {
+            const unitPrice = item.unit_price || 0;
+            const total = item.total || 0;
+            
+            itemsHTML += `
+                <tr>
+                    <td>
+                        <div class="item-name">${item.fragrance_name}</div>
+                        ${item.fragrance_brand ? `<div class="item-brand">${item.fragrance_brand}</div>` : ''}
+                    </td>
+                    <td>${item.variant_size}</td>
+                    <td class="quantity-cell">${item.quantity}</td>
+                    <td class="price-cell">${unitPrice.toFixed(3)} OMR</td>
+                    <td class="price-cell">${total.toFixed(3)} OMR</td>
+                </tr>
+            `;
+        });
+    }
+    
+    return `
+        <div class="invoice-content">
+            <div class="invoice-header">
+                <h2>📄 Order Invoice</h2>
+                <div class="invoice-actions">
+                    <button class="print-btn" onclick="printInvoice()">
+                        🖨️ Print
+                    </button>
+                    <button class="invoice-close" onclick="closeInvoiceModal()">&times;</button>
+                </div>
+            </div>
+            
+            <div class="invoice-body">
+                <div class="invoice-info">
+                    <div class="invoice-section">
+                        <h3>Order Information</h3>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Order Number:</span>
+                            <span class="invoice-value order-number-large">${activeOrder.order_number}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Order Date:</span>
+                            <span class="invoice-value">${orderDate}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Status:</span>
+                            <span class="invoice-value">
+                                <span class="status-badge status-${activeOrder.status}">${activeOrder.status_display}</span>
+                            </span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Total Items:</span>
+                            <span class="invoice-value">${totalItems} item(s)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-section">
+                        <h3>Company Information</h3>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Company:</span>
+                            <span class="invoice-value">Qotore</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Business:</span>
+                            <span class="invoice-value">Premium Fragrances</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Location:</span>
+                            <span class="invoice-value">Muscat, Oman</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Contact:</span>
+                            <span class="invoice-value">WhatsApp: +968 1234 5678</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="invoice-items">
+                    <h3>Order Items</h3>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Size</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHTML}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="invoice-total">
+                    <div class="total-row">
+                        <span class="total-label">Subtotal:</span>
+                        <span class="total-value">${totalAmount.toFixed(3)} OMR</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="total-label">Total Amount:</span>
+                        <span class="total-value">${totalAmount.toFixed(3)} OMR</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e9ecef; color: #6c757d; font-size: 0.9rem;">
+                    <p>Thank you for choosing Qotore!</p>
+                    <p>For support, contact us via WhatsApp at +968 1234 5678</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('customerInfoModal');
+    if (e.target === modal) {
+        closeCustomerModal();
+    }
+});
+
+// Handle escape key for modals
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCustomerModal();
+        closeInvoiceModal();
+    }
+});
+
+// Prevent form submission on enter in quantity inputs
+document.addEventListener('keydown', function(e) {
+    if (e.target.classList.contains('cart-qty-input') && e.key === 'Enter') {
+        e.preventDefault();
+        e.target.blur();
+    }
+});
+
+// Auto-refresh order status every 30 seconds if there's an active order
+setInterval(async () => {
+    if (activeOrder && activeOrder.status === 'pending') {
+        try {
+            await checkActiveOrder();
+            renderPage();
+        } catch (error) {
+            console.error('Auto-refresh failed:', error);
+        }
+    }
+}, 30000);
