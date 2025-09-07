@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart & Checkout - Qotore</title>
+    <title data-translate="page_title">Cart & Checkout - Qotore</title>
     
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -37,11 +37,11 @@
         <div class="header-content">
             <a href="/" class="logo">
                 <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>Qotore</span>
+                <span data-translate="qotore">Qotore</span>
             </a>
             <a href="/" class="back-btn">
                 <span>←</span>
-                <span>Continue Shopping</span>
+                <span data-translate="continue_shopping">Continue Shopping</span>
             </a>
         </div>
     </header>
@@ -52,152 +52,63 @@
         <section class="cart-section">
             <div class="cart-header">
                 <div class="cart-title-section">
-                    <h1 class="cart-title">🛒 Your Cart</h1>
-                    <p class="cart-subtitle">Review your fragrances</p>
+                    <h1 class="cart-title">🛒 <span data-translate="your_cart">Your Cart</span></h1>
+                    <p class="cart-subtitle" data-translate="review_fragrances">Review your fragrances</p>
                 </div>
-                <button id="clearCartBtn" class="btn btn-danger clear-cart-btn" onclick="clearCart()" style="display: none;">
-                    <span>🗑️</span>
-                    <span>Clear Cart</span>
-                </button>
-            </div>
-
-            <div class="cart-content" id="cartContent">
-                <!-- Cart items will be populated by JavaScript -->
-            </div>
-
-            <div class="cart-summary" id="cartSummary" style="display: none;">
-                <div class="summary-row">
-                    <span>Subtotal:</span>
-                    <span id="subtotalAmount">0.000 OMR</span>
+                <div class="cart-actions">
+                    <button class="clear-cart-btn" onclick="clearCart()" data-translate="clear_cart">Clear Cart</button>
                 </div>
-                <div class="summary-row total">
-                    <span>Total:</span>
-                    <span id="totalAmount">0.000 OMR</span>
+            </div>
+            
+            <!-- Cart Items Container -->
+            <div id="cartItems" class="cart-items">
+                <!-- Cart items will be rendered here by JavaScript -->
+            </div>
+            
+            <!-- Cart Footer -->
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span class="total-label" data-translate="total">Total:</span>
+                    <span class="total-amount">
+                        <span id="cartTotal">0.000</span> 
+                        <span data-translate="omr">OMR</span>
+                    </span>
                 </div>
             </div>
         </section>
 
-        <!-- Order Status / Checkout Form -->
-        <aside id="sidebarContent">
-            <!-- This will be populated based on order status -->
-        </aside>
+        <!-- Checkout/Sidebar Section -->
+        <section class="checkout-section">
+            <div id="sidebarContent" class="sidebar-content">
+                <!-- Content will be rendered here by JavaScript -->
+            </div>
+        </section>
     </main>
-
-    <!-- Customer Information Modal -->
-    <div id="customerInfoModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📝 Your Information</h2>
-                <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="customerInfoForm">
-                    <div class="form-group">
-                        <label for="customerName">Full Name *</label>
-                        <input type="text" id="customerName" name="customerName" required placeholder="Enter your full name">
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="customerPhone">Phone Number *</label>
-                            <input type="tel" id="customerPhone" name="customerPhone" required placeholder="968XXXXXXXX">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerEmail">Email</label>
-                            <input type="email" id="customerEmail" name="customerEmail" placeholder="your@email.com">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="customerWilaya">Wilaya *</label>
-                            <select id="customerWilaya" name="customerWilaya" required>
-                                <option value="">Select Wilaya</option>
-                                <option value="Muscat">Muscat</option>
-                                <option value="Dhofar">Dhofar</option>
-                                <option value="Musandam">Musandam</option>
-                                <option value="Al Buraimi">Al Buraimi</option>
-                                <option value="Ad Dakhiliyah">Ad Dakhiliyah</option>
-                                <option value="Al Batinah North">Al Batinah North</option>
-                                <option value="Al Batinah South">Al Batinah South</option>
-                                <option value="Ash Sharqiyah North">Ash Sharqiyah North</option>
-                                <option value="Ash Sharqiyah South">Ash Sharqiyah South</option>
-                                <option value="Al Wusta">Al Wusta</option>
-                                <option value="Adh Dhahirah">Adh Dhahirah</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="customerCity">City *</label>
-                            <input type="text" id="customerCity" name="customerCity" required placeholder="Enter your city">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="deliveryOption">Delivery Option *</label>
-                        <div class="delivery-options">
-                            <label class="delivery-option">
-                                <input type="radio" name="deliveryOption" value="home" checked>
-                                <span class="delivery-label">🏠 Deliver to Home</span>
-                            </label>
-                            <label class="delivery-option">
-                                <input type="radio" name="deliveryOption" value="service">
-                                <span class="delivery-label">🚛 Use Delivery Service</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customerNotes">Notes (Optional)</label>
-                        <textarea id="customerNotes" name="customerNotes" rows="3" placeholder="Any special instructions or notes for your order..."></textarea>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Information</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/96812345678" class="whatsapp-float" target="_blank" title="Contact us on WhatsApp">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.9 3.515"/>
-        </svg>
-    </a>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
-                <div class="footer-logo">
-                    <img src="/icons/icon-32x32.png" alt="Qotore" class="footer-logo-icon">
-                    <span>Qotore</span>
-                </div>
-                <p class="footer-description">Premium fragrances delivered to your door</p>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Contact Us</h3>
+                <h3 data-translate="contact_us">Contact Us</h3>
+                <p data-translate="help_support">Help & Support</p>
                 <div class="social-links">
-                    <a href="https://instagram.com/qotore_official" target="_blank" class="social-link">
+                    <a href="https://instagram.com/qotore" target="_blank" class="social-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                         </svg>
-                        <span>Instagram</span>
+                        <span data-translate="instagram">Instagram</span>
                     </a>
-                    <a href="https://snapchat.com/add/qotore_official" target="_blank" class="social-link">
+                    <a href="https://snapchat.com/add/qotore" target="_blank" class="social-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.405.042-3.441.219-.937 1.404-5.965 1.404-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.888-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z"/>
+                            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.404-5.967 1.404-5.967s-.359-.72-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.888-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z"/>
                         </svg>
-                        <span>Snapchat</span>
+                        <span data-translate="snapchat">Snapchat</span>
                     </a>
                     <a href="https://wa.me/96812345678" target="_blank" class="social-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.9 3.515"/>
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
                         </svg>
-                        <span>WhatsApp</span>
+                        <span data-translate="whatsapp">WhatsApp</span>
                     </a>
                 </div>
             </div>
@@ -206,6 +117,29 @@
             <p>&copy; 2024 Qotore. All rights reserved.</p>
         </div>
     </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/96812345678" target="_blank" class="whatsapp-float" data-translate="whatsapp" title="WhatsApp Support">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+        </svg>
+    </a>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-translate="order_details">Order Details</h2>
+                <button class="close-btn" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div id="orderModalContent" class="modal-body">
+                <div class="loading" data-translate="loading_order_details">Loading order details...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeOrderModal()" data-translate="close">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="/checkout-assets/cart-adapter.js?v=3.1"></script>
