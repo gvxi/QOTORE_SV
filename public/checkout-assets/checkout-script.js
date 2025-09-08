@@ -790,6 +790,7 @@ async function sendAdminEmailNotification(orderData, customerInfo) {
         // Log error but don't let it affect the order process
         console.error('Email notification error:', error);
     }
+}
 
 async function cancelOrder() {
     if (!activeOrder || !confirm(t('confirm_cancel_order'))) {
@@ -1088,4 +1089,4 @@ function hideLoadingSplash() {
         splash.classList.add('hidden');
         setTimeout(() => splash.remove(), 500);
     }
-}}
+}
