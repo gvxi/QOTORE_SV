@@ -239,26 +239,13 @@ function createProductCard(fragrance) {
     const card = document.createElement('div');
     card.className = 'product-card slide-up';
     card.onclick = () => openProductModal(fragrance);
-    
-    // Get price range
-    const sampleVariants = fragrance.variants.filter(v => !v.is_whole_bottle);
-    let priceDisplay = t('contact_pricing') || 'Contact for pricing';
-    
-    if (sampleVariants.length > 0) {
-        const prices = sampleVariants.map(v => v.price).filter(p => p > 0);
-        if (prices.length > 0) {
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-            priceDisplay = minPrice === maxPrice 
-                ? `${minPrice.toFixed(3)} OMR`
-                : `${minPrice.toFixed(3)} - ${maxPrice.toFixed(3)} OMR`;
-        }
-    }
-    
+
+    const bustParam = `cb=${Math.floor(Date.now() / 60000)}`;
+
     card.innerHTML = `
         <div class="product-image">
             ${fragrance.image_path ? 
-                `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}" alt="${fragrance.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='🌸';">` :
+                `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}?${bustParam}" alt="${fragrance.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='🌸';">` :
                 '🌸'
             }
         </div>
@@ -272,6 +259,7 @@ function createProductCard(fragrance) {
     
     return card;
 }
+
 
 function renderPagination(totalPages) {
     const container = document.getElementById('paginationContainer');
@@ -368,16 +356,18 @@ function openProductModal(fragrance) {
     modalDescription.textContent = fragrance.description || '';
     
     // Set image
-    if (fragrance.image_path) {
-        modalImage.src = `/api/image/${fragrance.image_path.replace('fragrance-images/', '')}`;
-        modalImage.alt = fragrance.name;
-        modalImage.style.display = 'block';
-        modalImage.onerror = () => {
-            modalImage.style.display = 'none';
-        };
-    } else {
+if (fragrance.image_path) {
+    const bustParam = `cb=${Math.floor(Date.now() / 60000)}`;
+    modalImage.src = `/api/image/${fragrance.image_path.replace('fragrance-images/', '')}?${bustParam}`;
+    modalImage.alt = fragrance.name;
+    modalImage.style.display = 'block';
+    modalImage.onerror = () => {
         modalImage.style.display = 'none';
-    }
+    };
+} else {
+    modalImage.style.display = 'none';
+}
+
     
     // Create variant buttons
     variantButtons.innerHTML = '';
@@ -600,41 +590,39 @@ function renderCartSidebar() {
     footer.style.display = 'block';
     
     let total = 0;
-    content.innerHTML = cart.map((item, index) => {
-        const itemTotal = (item.variant.price) * item.quantity;
-        total += itemTotal;
-        
-        return `
-    <div class="cart-item">
-        <div class="cart-item-image">
-            ${item.image_path ? 
-                `<img src="/api/image/${item.image_path.replace('fragrance-images/', '')}" alt="${item.fragranceName}">` :
-                '🌸'
-            }
-        </div>
-        <div class="cart-item-details">
-            <div class="cart-item-header">
-                <div class="cart-item-name">
-                    ${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}
-                </div>
-                <button class="remove-item-btn" onclick="removeFromCart(${index})">✕</button>
-            </div>
-            <div class="cart-item-variant">${item.variant.size}</div>
-            <div class="cart-item-controls">
-                <button class="qty-btn" onclick="updateCartQuantity(${index}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
-                    ${item.quantity <= 1 ? '×' : '−'}
-                </button>
-                <input type="number" class="qty-input" value="${item.quantity}" 
-                       min="1" max="10" onchange="setCartQuantity(${index}, this.value)">
-                <button class="qty-btn" onclick="updateCartQuantity(${index}, 1)" ${item.quantity >= 10 ? 'disabled' : ''}>+</button>
-            </div>
-        </div>
-        <div class="cart-item-price">${itemTotal.toFixed(3)} OMR</div>
-    </div>
-`;
+content.innerHTML = cart.map((item, index) => {
+    const itemTotal = (item.variant.price) * item.quantity; // already fixed NaN bug
+    total += itemTotal;
 
-    }).join('');
-    
+    const bustParam = `cb=${Math.floor(Date.now() / 60000)}`;
+
+    return `
+        <div class="cart-item">
+            <div class="cart-item-image">
+                ${item.image_path ? 
+                    `<img src="/api/image/${item.image_path.replace('fragrance-images/', '')}?${bustParam}" alt="${item.fragranceName}">` :
+                    '🌸'
+                }
+            </div>
+            <div class="cart-item-details">
+                <div class="cart-item-header">
+                    <div class="cart-item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
+                    <button class="remove-item-btn" onclick="removeFromCart(${index})">✕</button>
+                </div>
+                <div class="cart-item-variant">${item.variant.size}</div>
+                <div class="cart-item-controls">
+                    <button class="qty-btn" onclick="updateCartQuantity(${index}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
+                        ${item.quantity <= 1 ? '×' : '−'}
+                    </button>
+                    <input type="number" class="qty-input" value="${item.quantity}" 
+                           min="1" max="10" onchange="setCartQuantity(${index}, this.value)">
+                    <button class="qty-btn" onclick="updateCartQuantity(${index}, 1)" ${item.quantity >= 10 ? 'disabled' : ''}>+</button>
+                </div>
+            </div>
+            <div class="cart-item-price">${itemTotal.toFixed(3)} OMR</div>
+        </div>
+    `;
+}).join('');
     totalElement.textContent = `${total.toFixed(3)} OMR`;
 }
 
