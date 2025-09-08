@@ -1,4 +1,4 @@
-let currentLanguage = 'ar';
+let currentLanguage = 'en';
 let translations = {};
 
 // Translation Functions
@@ -46,15 +46,34 @@ function updateTranslations() {
 }
 
 function loadLanguagePreference() {
+    // Automatically detect language from main page
     const mainPageLanguage = localStorage.getItem('qotore_language');
-    const savedLanguage = mainPageLanguage || 'en';
+    const savedLanguage = mainPageLanguage || 'en'; // Default to English if no selection
     
     currentLanguage = savedLanguage;
     document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
     document.documentElement.setAttribute('lang', currentLanguage);
     
     updateTranslations();
+    
+    console.log('Checkout page language set to:', currentLanguage, '(from main page)');
 }
+
+// Listen for language changes from main page
+window.addEventListener('storage', function(e) {
+    if (e.key === 'qotore_language') {
+        console.log('Language changed on main page to:', e.newValue);
+        currentLanguage = e.newValue || 'en';
+        document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
+        document.documentElement.setAttribute('lang', currentLanguage);
+        updateTranslations();
+        
+        // Re-render page content with new language
+        if (typeof renderPage === 'function') {
+            renderPage();
+        }
+    }
+});
 
 //==============================================================
 function toggleLanguage() {
