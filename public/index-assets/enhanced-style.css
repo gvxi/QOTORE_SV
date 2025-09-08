@@ -791,6 +791,7 @@ body {
 
 .quantity-input[type=number] {
     appearance: textfield;
+    -moz-appearance: textfield;
 }
 
 .add-to-cart-btn {
@@ -1158,20 +1159,38 @@ body {
         gap: 1.5rem;
     }
 
+    .modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        max-height: calc(100vh - 2rem);
+    }
+
     .modal-body {
         grid-template-columns: 1fr;
+        min-height: auto;
     }
 
     .product-image-modal {
-        height: 250px;
+        min-height: 250px;
+        padding: 1rem;
     }
 
     .product-details {
         padding: 1.5rem;
+        gap: 1rem;
+    }
+
+    .product-details h2 {
+        font-size: 1.5rem;
     }
 
     .variant-buttons {
         grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .quantity-controls {
+        gap: 0.75rem;
     }
 
     .cart-sidebar {
