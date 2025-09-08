@@ -255,10 +255,12 @@ function createProductCard(fragrance) {
         }
     }
     
-    card.innerHTML = `
+    const bustParam = `cb=${Math.floor(Date.now() / 60000)}`;
+
+       card.innerHTML = `
         <div class="product-image">
             ${fragrance.image_path ? 
-                `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}" alt="${fragrance.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='🌸';">` :
+                `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}?${bustParam}" alt="${fragrance.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='🌸';">` :
                 '🌸'
             }
         </div>
@@ -369,7 +371,8 @@ function openProductModal(fragrance) {
     
     // Set image
     if (fragrance.image_path) {
-        modalImage.src = `/api/image/${fragrance.image_path.replace('fragrance-images/', '')}`;
+        const bustParam = `cb=${Math.floor(Date.now() / 60000)}`;
+        modalImage.src = `/api/image/${fragrance.image_path.replace('fragrance-images/', '')}?${bustParam}`;
         modalImage.alt = fragrance.name;
         modalImage.style.display = 'block';
         modalImage.onerror = () => {
@@ -604,11 +607,13 @@ function renderCartSidebar() {
         const itemTotal = (item.variant.price) * item.quantity;
         total += itemTotal;
         
+        const bustParam = `cb=${Math.floor(Date.now() / 60000)}`;
+
         return `
     <div class="cart-item">
         <div class="cart-item-image">
             ${item.image_path ? 
-                `<img src="/api/image/${item.image_path.replace('fragrance-images/', '')}" alt="${item.fragranceName}">` :
+                `<img src="/api/image/${item.image_path.replace('fragrance-images/', '')}?${bustParam}" alt="${item.fragranceName}">` :
                 '🌸'
             }
         </div>
