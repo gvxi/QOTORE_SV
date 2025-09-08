@@ -45,9 +45,11 @@ body {
 }
 
 .loading-logo {
-    font-size: 4rem;
     margin-bottom: 1rem;
     animation: pulse 2s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .loading-spinner {
@@ -468,9 +470,11 @@ body {
 }
 
 .empty-icon {
-    font-size: 4rem;
     margin-bottom: 1rem;
     opacity: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .empty-state h3 {
@@ -1329,4 +1333,56 @@ body {
 
 .remove-item-btn:hover {
     color: red;
+}
+
+/* Logo Image Styles */
+.loading-logo-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: brightness(0) invert(1); /* Makes it white for dark background */
+}
+
+.header-logo-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.empty-icon-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    opacity: 0.5;
+}
+
+.footer-logo-img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+    filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(25deg); /* Makes it brown */
+}
+
+/* Additional Logo Styles for JavaScript-generated content */
+.cart-empty-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    opacity: 0.5;
+}
+
+.fallback-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.product-fallback-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
