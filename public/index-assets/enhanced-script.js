@@ -22,6 +22,7 @@ async function initializeApp() {
         await loadTranslations();
         loadLanguagePreference();
         loadCart();
+        initializeUserSection();
         await loadFragrances();
         initializeEventListeners();
         setupScrollEffects();
@@ -979,109 +980,119 @@ function updateTranslations() {
     });
 }
 
-//Auth
-// User Authentication Functions
-function initUserAuth() {
-    checkUserAuthStatus();
-    setupUserAuthEvents();
+//USER AUTH
+// Add to your enhanced-script.js
+let currentUser = null;
+let isLoggedIn = false;
+
+// Initialize user section
+function initializeUserSection() {
+    checkUserAuthentication();
+    renderUserSection();
 }
 
-function checkUserAuthStatus() {
-    const user = getCurrentUser();
-    const loginBtn = document.getElementById('loginBtn');
-    const userProfile = document.getElementById('userProfile');
-    
-    if (user) {
-        // User is logged in
-        showUserProfile(user);
-        if (loginBtn) loginBtn.style.display = 'none';
-        if (userProfile) userProfile.style.display = 'flex';
-    } else {
-        // User is not logged in
-        hideUserProfile();
-        if (loginBtn) loginBtn.style.display = 'flex';
-        if (userProfile) userProfile.style.display = 'none';
-    }
-}
-
-function getCurrentUser() {
+// Check if user is authenticated
+async function checkUserAuthentication() {
     try {
-        const userData = localStorage.getItem('qotore_user');
-        return userData ? JSON.parse(userData) : null;
-    } catch (error) {
-        console.error('Error getting user data:', error);
-        return null;
-    }
-}
-
-function showUserProfile(user) {
-    const userAvatar = document.getElementById('userAvatar');
-    const userName = document.getElementById('userName');
-    
-    if (userAvatar && user.picture) {
-        userAvatar.src = user.picture;
-        userAvatar.alt = user.name || 'User Avatar';
-    }
-    
-    if (userName && user.name) {
-        userName.textContent = user.given_name || user.name.split(' ')[0];
-    }
-}
-
-function hideUserProfile() {
-    const userAvatar = document.getElementById('userAvatar');
-    const userName = document.getElementById('userName');
-    
-    if (userAvatar) userAvatar.src = '';
-    if (userName) userName.textContent = '';
-}
-
-function setupUserAuthEvents() {
-    // User menu dropdown
-    const userMenuBtn = document.getElementById('userMenuBtn');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userMenuBtn && userDropdown) {
-        userMenuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userDropdown.classList.toggle('show');
-        });
+        // Check for stored user session
+        const userSession = localStorage.getItem('qotore_user_session');
+        const userInfo = localStorage.getItem('qotore_user_info');
         
-        // Close dropdown when clicking outside
-        document.addEventListener('click', () => {
-            userDropdown.classList.remove('show');
-        });
-    }
-    
-    // Logout functionality
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
+        if (userSession && userInfo) {
+            currentUser = JSON.parse(userInfo);
+            isLoggedIn = true;
+            
+            // Verify session is still valid (optional API call)
+            // await verifyUserSession(userSession);
+        }
+    } catch (error) {
+        console.error('Error checking user authentication:', error);
+        clearUserSession();
     }
 }
 
-function handleLogout() {
-    // Clear user data
-    localStorage.removeItem('qotore_user');
-    localStorage.removeItem('google_access_token');
+// Render user section based on login status
+function renderUserSection() {
+    const userSection = document.getElementById('userSection');
     
-    // Clear any Google auth session
-    if (typeof google !== 'undefined' && google.accounts) {
-        google.accounts.id.disableAutoSelect();
+    if (isLoggedIn && currentUser) {
+        // Show user profile
+        userSection.innerHTML = `
+            <div class="user-profile-dropdown">
+                <button class="nav-btn user-profile-btn" onclick="toggleUserDropdown()">
+                    <img src="${currentUser.picture || '/assets/default-avatar.png'}" 
+                         alt="${currentUser.name}" 
+                         class="user-avatar">
+                    <span class="user-name">${currentUser.given_name || currentUser.name}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="dropdown-arrow">
+                        <path d="M7,10L12,15L17,10H7Z"/>
+                    </svg>
+                </button>
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="/user/profile.html" class="dropdown-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                        </svg>
+                        <span data-translate="profile">Profile</span>
+                    </a>
+                    <a href="/user/orders.html" class="dropdown-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19,7H16V6A4,4 0 0,0 8,6V7H5A1,1 0 0,0 4,8V19A3,3 0 0,0 7,22H17A3,3 0 0,0 20,19V8A1,1 0 0,0 19,7M10,6A2,2 0 0,1 14,6V7H10V6Z"/>
+                        </svg>
+                        <span data-translate="my_orders">My Orders</span>
+                    </a>
+                    <button class="dropdown-item logout-btn" onclick="logoutUser()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
+                        </svg>
+                        <span data-translate="logout">Logout</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        // Show login button
+        userSection.innerHTML = `
+            <a href="/user/login.html" class="nav-btn login-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z"/>
+                </svg>
+                <span data-translate="login">Login</span>
+            </a>
+        `;
     }
-    
-    // Refresh auth status
-    checkUserAuthStatus();
-    
-    // Optional: Show logout message
-    showNotification('Logged out successfully', 'success');
 }
 
-// Initialize user auth when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait a bit for other scripts to load
-    setTimeout(initUserAuth, 500);
+// Toggle user dropdown
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdownMenu');
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const userDropdown = document.querySelector('.user-profile-dropdown');
+    if (userDropdown && !userDropdown.contains(event.target)) {
+        const dropdown = document.getElementById('userDropdownMenu');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    }
 });
+
+// Logout user
+function logoutUser() {
+    clearUserSession();
+    location.reload();
+}
+
+// Clear user session
+function clearUserSession() {
+    localStorage.removeItem('qotore_user_session');
+    localStorage.removeItem('qotore_user_info');
+    currentUser = null;
+    isLoggedIn = false;
+}
 
 // Global functions for external access
 window.openCartSidebar = openCartSidebar;
