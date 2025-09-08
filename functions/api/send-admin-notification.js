@@ -108,7 +108,7 @@ export async function onRequestPost(context) {
     
     <!-- Header with Logo -->
     <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); padding: 32px 24px; text-align: center;">
-      <img src="https://qotore.com/icons/icon-192x192.png" alt="Qotore" style="width: 56px; height: 56px; border-radius: 12px; margin-bottom: 16px; background: rgba(255,255,255,0.1); padding: 8px;">
+      <img src="https://qotore.com/icons/icon-32x32.png" alt="Qotore" style="width: 56px; height: 56px; border-radius: 12px; margin-bottom: 16px; background: rgba(255,255,255,0.1); padding: 8px;">
       <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600; letter-spacing: -0.025em;">New Order Received</h1>
       <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Order ${order_number}</p>
     </div>
