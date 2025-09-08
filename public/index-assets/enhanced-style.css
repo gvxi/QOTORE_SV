@@ -644,16 +644,19 @@ body {
 .product-image-modal {
     width: 100%;
     height: 400px;
-    background: #f8f9fa;
+    background: #ffffff; 
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 15px;
+    overflow: hidden; 
 }
 
 .product-image-modal img {
-    width: auto;
-    height: 100%;
-    object-fit: contain;
+    max-width: 100%; 
+    max-height: 100%; 
+    object-fit: contain; 
+    border-radius: 15px; 
 }
 
 .product-details {
