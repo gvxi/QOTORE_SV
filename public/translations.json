@@ -64,6 +64,7 @@
     "footer_terms": "Terms & Conditions",
     "footer_privacy": "Privacy Policy", 
     "footer_rights": "All rights reserved.",
+
     "nav": {
       "products": "Products",
       "language": "Language",
@@ -163,8 +164,12 @@
     "full_bottle": "الزجاجة الكاملة",
     
     "modal_choose_size": "اختر الحجم:",
+    "modal_quantity": "الكمية:",
     "modal_add_to_cart": "أضف إلى السلة",
+    "contact_full_bottle": "اتصل للزجاجة الكاملة",
     "please_select_variant": "يرجى اختيار الحجم أولاً",
+    "invalid_quantity": "يرجى اختيار كمية بين 1 و 10",
+    "quantity_limit": "الحد الأقصى 10 قطع لكل نوع عطر",
     "added_to_cart": "تم إضافته إلى السلة!",
     
     "cart_title": "سلة التسوق",

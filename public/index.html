@@ -212,6 +212,16 @@
                         </div>
                     </div>
                     
+                    <!-- Quantity Selector -->
+                    <div id="quantitySection" class="quantity-section" style="display: none;">
+                        <h3 data-translate="modal_quantity">Quantity:</h3>
+                        <div class="quantity-controls">
+                            <button type="button" class="quantity-btn" onclick="changeQuantity(-1)">−</button>
+                            <input type="number" id="quantityInput" value="1" min="1" max="10" class="quantity-input">
+                            <button type="button" class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                        </div>
+                    </div>
+                    
                     <button id="addToCartBtn" class="add-to-cart-btn" data-translate="modal_add_to_cart">
                         Add to Cart
                     </button>
@@ -294,7 +304,7 @@
                     <h4 data-translate="footer_legal_title">Legal</h4>
                     <div class="footer-links">
                         <a href="/terms.html" data-translate="footer_terms">Terms & Conditions</a>
-                        <a href="/privacy.html" data-translate="footer_privacy">Privacy Policy</a>
+                        <a href="/privacy-policy.html" data-translate="footer_privacy">Privacy Policy</a>
                     </div>
                 </div>
             </div>

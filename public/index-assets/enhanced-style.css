@@ -402,6 +402,7 @@ body {
     margin-bottom: 1rem;
     line-height: 1.5;
     display: -webkit-box;
+    -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -714,6 +715,83 @@ body {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     color: #666;
     border-style: dashed;
+}
+
+/* Quantity Section */
+.quantity-section {
+    margin: 1.5rem 0;
+}
+
+.quantity-section h3 {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 0.75rem;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.quantity-btn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #8B4513;
+    background: white;
+    color: #8B4513;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.quantity-btn:hover {
+    background: #8B4513;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.quantity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.quantity-input {
+    width: 80px;
+    height: 40px;
+    text-align: center;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: #8B4513;
+    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+}
+
+/* Remove spinner arrows */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input[type=number] {
+    appearance: textfield;
+    -moz-appearance: textfield;
 }
 
 .add-to-cart-btn {

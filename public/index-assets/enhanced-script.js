@@ -661,6 +661,28 @@ function initializeEventListeners() {
         });
     }
     
+    // Quantity input change handler
+    const quantityInput = document.getElementById('quantityInput');
+    if (quantityInput) {
+        quantityInput.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            if (value < 1) e.target.value = 1;
+            if (value > 10) e.target.value = 10;
+            
+            // Update button states
+            const decreaseBtn = e.target.previousElementSibling;
+            const increaseBtn = e.target.nextElementSibling;
+            
+            if (decreaseBtn) {
+                decreaseBtn.disabled = parseInt(e.target.value) <= 1;
+            }
+            
+            if (increaseBtn) {
+                increaseBtn.disabled = parseInt(e.target.value) >= 10;
+            }
+        });
+    }
+    
     // Add to cart button
     const addToCartBtn = document.getElementById('addToCartBtn');
     if (addToCartBtn) {
