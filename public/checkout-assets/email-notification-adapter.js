@@ -17,18 +17,18 @@ class EmailNotificationAdapter {
      */
     async sendOrderNotification(orderData, customerInfo) {
         if (!this.isEnabled) {
-            console.log('Email notifications are disabled');
+            // console.log('Email notifications are disabled');
             return { success: false, reason: 'disabled' };
         }
 
         try {
-            console.log('📧 Sending order notification email for order:', orderData.order_number);
+            // console.log('📧 Sending order notification email for order:', orderData.order_number);
             
             const emailPayload = this.buildEmailPayload(orderData, customerInfo);
             const result = await this.sendWithRetry(emailPayload);
             
             if (result.success) {
-                console.log('✅ Order notification email sent successfully');
+                // console.log('✅ Order notification email sent successfully');
             } else {
                 console.error('❌ Failed to send order notification email:', result.error);
             }
@@ -84,15 +84,15 @@ class EmailNotificationAdapter {
         };
 
         // Log the payload for debugging
-        console.log('📧 Email payload being sent:');
-        console.log('- Order Number:', payload.order_number);
-        console.log('- Customer:', payload.customer.first_name, payload.customer.last_name);
-        console.log('- Phone:', payload.customer.phone);
-        console.log('- Email:', payload.customer.email);
-        console.log('- Delivery Address:', payload.delivery.address);
-        console.log('- Location:', payload.delivery.city, payload.delivery.region);
-        console.log('- Items Count:', payload.items.length);
-        console.log('- Total:', payload.total_amount_omr, 'OMR');
+        // console.log('📧 Email payload being sent:');
+        // console.log('- Order Number:', payload.order_number);
+        // console.log('- Customer:', payload.customer.first_name, payload.customer.last_name);
+        // console.log('- Phone:', payload.customer.phone);
+        // console.log('- Email:', payload.customer.email);
+        // console.log('- Delivery Address:', payload.delivery.address);
+        // console.log('- Location:', payload.delivery.city, payload.delivery.region);
+        // console.log('- Items Count:', payload.items.length);
+        // console.log('- Total:', payload.total_amount_omr, 'OMR');
         
         return payload;
     }
@@ -107,7 +107,7 @@ class EmailNotificationAdapter {
 
         for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
             try {
-                console.log(`📨 Email attempt ${attempt}/${this.retryAttempts}`);
+                // console.log(`📨 Email attempt ${attempt}/${this.retryAttempts}`);
                 
                 const response = await fetch(this.apiEndpoint, {
                     method: 'POST',
@@ -249,4 +249,4 @@ window.sendOrderNotification = sendOrderNotification;
 window.testEmailConfiguration = testEmailConfiguration;
 window.emailNotifier = emailNotifier;
 
-console.log('📧 ENA');
+// console.log('📧 ENA');

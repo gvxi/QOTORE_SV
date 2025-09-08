@@ -18,7 +18,7 @@ export async function onRequestPost(context) {
   };
 
   try {
-    console.log('Admin notification request received');
+    // console.log('Admin notification request received');
 
     const { env } = context;
     const ADMIN_EMAIL = env.ADMIN_EMAIL;
@@ -76,7 +76,7 @@ export async function onRequestPost(context) {
   const orderIdFromNumber = order_number ? order_number.replace(/\D/g, '') : 'unknown';
   const orderId = orderData.orderId || orderData.id || orderIdFromNumber || 'unknown';
 
-  console.log('Final orderId used:', orderId);
+  // console.log('Final orderId used:', orderId);
 
     if (!order_number || !customer || !delivery || !items || !total_amount_omr) {
       return new Response(JSON.stringify({
@@ -89,7 +89,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    console.log('Preparing email for order:', order_number);
+    // console.log('Preparing email for order:', order_number);
 
     const orderDate = new Date(created_at).toLocaleString('en-GB', {
       timeZone: 'Asia/Muscat',
@@ -260,14 +260,14 @@ TOTAL: ${total_amount_omr} OMR
 
 Quick Actions:
 • Contact Customer: https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}
-• Manage Orders: ${env.SITE_URL || 'https://qotore.uk'}/admin/orders-management.html
+• Manage Orders: ${env.SITE_URL || 'https://qotore.uk'}/admin/
 
 ---
 This is an automated notification from Qotore Admin System
 Order received at ${orderDate} (Oman Time)
     `;
 
-    console.log('Sending email via Gmail API...');
+    // console.log('Sending email via Gmail API...');
     
     const emailResult = await sendViaGmailAPI({
       to: ADMIN_EMAIL,
@@ -345,7 +345,7 @@ Order received at ${orderDate} (Oman Time)
       });
     }
 
-    console.log('Email sent successfully via Gmail API:', emailResult.messageId);
+    // console.log('Email sent successfully via Gmail API:', emailResult.messageId);
 
     return new Response(JSON.stringify({
       success: true,
@@ -378,7 +378,7 @@ async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
 
   while (retryCount <= maxRetries) {
     try {
-      console.log(`Gmail API attempt ${retryCount + 1}/${maxRetries + 1}`);
+      // console.log(`Gmail API attempt ${retryCount + 1}/${maxRetries + 1}`);
       
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -407,7 +407,7 @@ async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
         }
         
         if (retryCount < maxRetries) {
-          console.log('Temporary token error, retrying...');
+          // console.log('Temporary token error, retrying...');
           retryCount++;
           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           continue;
@@ -419,7 +419,7 @@ async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
       const tokenData = await tokenResponse.json();
       const accessToken = tokenData.access_token;
       
-      console.log('Access token obtained successfully');
+      // console.log('Access token obtained successfully');
 
       const boundary = `boundary_${Math.random().toString(36).substr(2, 9)}`;
       
@@ -461,7 +461,7 @@ async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
         .replace(/\//g, '_')
         .replace(/=+$/, '');
 
-      console.log('Sending email via Gmail API...');
+      // console.log('Sending email via Gmail API...');
 
       const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
         method: 'POST',
@@ -480,7 +480,7 @@ async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
         
         if (gmailError.error?.code === 401 || gmailError.error?.status === 'UNAUTHENTICATED') {
           if (retryCount < maxRetries) {
-            console.log('Access token expired, retrying with new token...');
+            // console.log('Access token expired, retrying with new token...');
             retryCount++;
             await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             continue;
@@ -491,7 +491,7 @@ async function sendViaGmailAPI({ to, from, subject, html, text, credentials }) {
       }
 
       const result = await gmailResponse.json();
-      console.log('Gmail API send successful:', result.id);
+      // console.log('Gmail API send successful:', result.id);
       
       return { success: true, messageId: result.id, attempts: retryCount + 1 };
 

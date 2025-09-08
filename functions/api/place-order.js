@@ -7,7 +7,7 @@ export async function onRequestPost(context) {
   };
 
   try {
-    console.log('Place order request received');
+    // console.log('Place order request received');
 
     // Get Supabase credentials
     const { env } = context;
@@ -65,7 +65,7 @@ export async function onRequestPost(context) {
       });
     }
     
-    console.log('Creating order for customer:', orderData.customer_ip);
+    // console.log('Creating order for customer:', orderData.customer_ip);
     
     // Step 1: Check if customer already has an active order
     const activeOrderCheck = await fetch(
@@ -114,7 +114,7 @@ export async function onRequestPost(context) {
       updated_at: now
     };
     
-    console.log('Creating order with payload:', orderPayload);
+    // console.log('Creating order with payload:', orderPayload);
     
     const orderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
       method: 'POST',
@@ -142,7 +142,7 @@ export async function onRequestPost(context) {
     
     const createdOrders = await orderResponse.json();
     const createdOrder = createdOrders[0];
-    console.log('Order created:', createdOrder.id);
+    // console.log('Order created:', createdOrder.id);
     
     // Step 3: Create order items
     const orderItems = orderData.items.map(item => ({
@@ -160,7 +160,7 @@ export async function onRequestPost(context) {
       created_at: now
     }));
     
-    console.log('Creating order items:', orderItems.length);
+    // console.log('Creating order items:', orderItems.length);
     
     const itemsResponse = await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
       method: 'POST',
@@ -234,7 +234,7 @@ export async function onRequestPost(context) {
       });
     }
     
-    console.log('Customer session updated/created');
+    // console.log('Customer session updated/created');
     
     // Step 5: Send admin notification
     try {
@@ -259,7 +259,7 @@ export async function onRequestPost(context) {
       });
       
       if (notificationResponse.ok) {
-        console.log('Admin notification sent successfully');
+        // console.log('Admin notification sent successfully');
       } else {
         console.warn('Failed to send admin notification');
       }

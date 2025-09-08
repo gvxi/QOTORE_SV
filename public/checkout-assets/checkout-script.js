@@ -56,13 +56,13 @@ function loadLanguagePreference() {
     
     updateTranslations();
     
-    console.log('Checkout page language set to:', currentLanguage, '(from main page)');
+    // console.log('Checkout page language set to:', currentLanguage, '(from main page)');
 }
 
 // Listen for language changes from main page
 window.addEventListener('storage', function(e) {
     if (e.key === 'qotore_language') {
-        console.log('Language changed on main page to:', e.newValue);
+        // console.log('Language changed on main page to:', e.newValue);
         currentLanguage = e.newValue || 'en';
         document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
         document.documentElement.setAttribute('lang', currentLanguage);
@@ -210,7 +210,7 @@ async function checkActiveOrder() {
         
         if (data.success && data.order) {
             activeOrder = data.order;
-            console.log('Found active order:', activeOrder);
+            // console.log('Found active order:', activeOrder);
         } else {
             activeOrder = null;
         }
@@ -239,7 +239,7 @@ async function loadPreviousOrders() {
         
         if (data.success && data.orders) {
             previousOrders = data.orders.slice(0, 5); // Show last 5 orders
-            console.log('Loaded previous orders:', previousOrders);
+            // console.log('Loaded previous orders:', previousOrders);
         }
     } catch (error) {
         console.error('Error loading previous orders:', error);
@@ -715,7 +715,7 @@ async function placeOrder() {
             }))
         };
         
-        console.log('Placing order:', orderData);
+        // console.log('Placing order:', orderData);
         
         // Step 1: Place the order
         const response = await fetch('/api/place-order', {
@@ -729,7 +729,7 @@ async function placeOrder() {
         const result = await response.json();
         
         if (result.success) {
-            console.log('Order placed successfully:', result.order);
+            // console.log('Order placed successfully:', result.order);
             
             // Step 2: ALWAYS send admin email notification
             // Use the original orderData (not result.order) + the order number from response
@@ -767,19 +767,19 @@ async function placeOrder() {
 // Separate function to handle admin email notification (always runs)
 async function sendAdminEmailNotification(orderData, customerInfo) {
     try {
-        console.log('Sending admin email notification for order:', orderData.order_number);
-        console.log('Order data for email:', {
-            customer_first_name: orderData.customer_first_name,
-            customer_phone: orderData.customer_phone,
-            delivery_city: orderData.delivery_city,
-            items_count: orderData.items?.length || 0
-        });
+        // console.log('Sending admin email notification for order:', orderData.order_number);
+        // console.log('Order data for email:', {
+        //     customer_first_name: orderData.customer_first_name,
+        //     customer_phone: orderData.customer_phone,
+        //     delivery_city: orderData.delivery_city,
+        //     items_count: orderData.items?.length || 0
+        // });
         
         if (window.sendOrderNotification) {
             const emailResult = await window.sendOrderNotification(orderData, customerInfo);
             
             if (emailResult.success) {
-                console.log('Admin email notification sent successfully');
+                // console.log('Admin email notification sent successfully');
             } else {
                 console.error('Failed to send admin email notification:', emailResult.error);
             }
@@ -839,7 +839,7 @@ async function refreshOrderStatus() {
 
 // Utility functions
 function showToast(message, type = 'success') {
-    console.log(`🔔 Toast: ${message} (${type})`);
+    // console.log(`🔔 Toast: ${message} (${type})`);
     
     // Remove existing toasts
     document.querySelectorAll('.toast').forEach(toast => toast.remove());
@@ -871,7 +871,7 @@ function showToast(message, type = 'success') {
     `;
     
     document.body.appendChild(toast);
-    console.log('✅ Toast displayed at bottom center');
+    // console.log('✅ Toast displayed at bottom center');
     
     // Auto-remove after 4 seconds
     setTimeout(() => {
@@ -888,7 +888,7 @@ function showInvoiceModal() {
         return;
     }
     
-    console.log('📄 Showing invoice modal for order:', activeOrder.order_number);
+    // console.log('📄 Showing invoice modal for order:', activeOrder.order_number);
     
     const modal = document.createElement('div');
     modal.className = 'invoice-modal';
@@ -914,8 +914,7 @@ function closeInvoiceModal() {
 }
 
 function printInvoice() {
-    console.log('🖨️ Printing invoice...');
-    window.print();
+    modal.print();
 }
 
 function generateInvoiceHTML() {
