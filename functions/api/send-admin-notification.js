@@ -1,3 +1,15 @@
+
+function generateReviewToken(orderId, timestamp) {
+  const data = `${orderId}-${timestamp}`;
+  return btoa(data).replace(/[+=\/]/g, '').substring(0, 32);
+}
+
+function generateReviewUrl(baseUrl, orderId) {
+  const timestamp = Date.now();
+  const token = generateReviewToken(orderId, timestamp);
+  return `${baseUrl}/api/review-order?order=${orderId}&token=${token}`;
+}
+
 export async function onRequestPost(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -94,7 +106,11 @@ export async function onRequestPost(context) {
       </tr>
     `).join('');
 
-  const emailHtml = `
+const orderId = orderData.orderId || orderData.id || 'unknown';
+
+// Then replace your emailHtml section with this updated template:
+
+const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -108,7 +124,7 @@ export async function onRequestPost(context) {
     
     <!-- Header with Logo -->
     <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); padding: 32px 24px; text-align: center;">
-      <img src="https://qotore.com/icons/icon-32x32.png" alt="Qotore" style="width: 56px; height: 56px; border-radius: 12px; margin-bottom: 16px; background: rgba(255,255,255,0.1); padding: 8px;">
+      <img src="https://qotore.uk/icons/icon-32x32.png" alt="Qotore" style="width: 56px; height: 56px; border-radius: 12px; margin-bottom: 16px; background: rgba(255,255,255,0.1); padding: 8px;">
       <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600; letter-spacing: -0.025em;">New Order Received</h1>
       <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Order ${order_number}</p>
     </div>
@@ -172,15 +188,33 @@ export async function onRequestPost(context) {
         </div>
       </div>
       
-      <!-- Action Button -->
-      <div style="text-align: center;">
-        <a href="https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(customer.first_name)}%2C%20we%20received%20your%20order%20${order_number}.%20We%20will%20process%20it%20soon!" 
-           style="display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.9 3.515"/>
-          </svg>
-          Contact Customer
-        </a>
+      <!-- Action Buttons -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="margin-bottom: 16px;">
+          <a href="${generateReviewUrl(env.SITE_URL || 'https://qotore.uk', orderId)}" 
+             style="display: inline-flex; align-items: center; gap: 8px; background: #059669; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; margin-bottom: 12px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+            </svg>
+            Mark as Reviewed (24h link)
+          </a>
+        </div>
+        <div>
+          <a href="https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(customer.first_name)}%2C%20we%20received%20your%20order%20${order_number}.%20We%20will%20process%20it%20soon!" 
+             style="display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.9 3.515"/>
+            </svg>
+            Contact Customer
+          </a>
+        </div>
+      </div>
+      
+      <!-- Security Notice -->
+      <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+        <p style="margin: 0; font-size: 13px; color: #92400e;">
+          🔒 The review link expires in 24 hours for security. After that, use the admin dashboard to manage orders.
+        </p>
       </div>
       
     </div>
@@ -225,7 +259,7 @@ TOTAL: ${total_amount_omr} OMR
 
 Quick Actions:
 • Contact Customer: https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}
-• Manage Orders: ${env.SITE_URL || 'https://qotore.com'}/admin/orders-management.html
+• Manage Orders: ${env.SITE_URL || 'https://qotore.uk'}/admin/orders-management.html
 
 ---
 This is an automated notification from Qotore Admin System

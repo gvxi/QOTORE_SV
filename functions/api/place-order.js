@@ -247,6 +247,7 @@ export async function onRequestPost(context) {
           type: 'new_order',
           order: {
             id: createdOrder.id,
+            orderId: createdOrder.id,
             order_number: orderNumber,
             customer_name: `${orderData.customer_first_name} ${orderData.customer_last_name || ''}`.trim(),
             customer_phone: orderData.customer_phone,
