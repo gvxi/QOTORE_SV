@@ -54,16 +54,16 @@ class EmailNotificationAdapter {
     buildEmailPayload(orderData, customerInfo) {
         const totalAmount = orderData.total_amount ? (orderData.total_amount / 1000).toFixed(3) : '0.000';
 
-        // Build items array - ensure all required fields are present
+        // Build items array - ensure all required fields match the email template expectations
         const items = orderData.items && orderData.items.length > 0 ? orderData.items.map(item => ({
             fragrance_name: item.fragrance_name || 'Unknown Fragrance',
             fragrance_brand: item.fragrance_brand || '',
             variant_size: item.variant_size || 'Unknown Size',
             quantity: item.quantity || 1,
-            total_price_cents: item.total_price_cents || 0
+            total_price_cents: item.total_price_cents || 0  // Email template uses this field
         })) : [];
 
-        // Ensure all required fields are present with fallbacks
+        // Build the payload exactly as the email template expects
         const payload = {
             order_number: orderData.order_number || 'UNKNOWN-ORDER',
             total_amount_omr: totalAmount,
@@ -84,7 +84,15 @@ class EmailNotificationAdapter {
         };
 
         // Log the payload for debugging
-        console.log('Email payload being sent:', JSON.stringify(payload, null, 2));
+        console.log('📧 Email payload being sent:');
+        console.log('- Order Number:', payload.order_number);
+        console.log('- Customer:', payload.customer.first_name, payload.customer.last_name);
+        console.log('- Phone:', payload.customer.phone);
+        console.log('- Email:', payload.customer.email);
+        console.log('- Delivery Address:', payload.delivery.address);
+        console.log('- Location:', payload.delivery.city, payload.delivery.region);
+        console.log('- Items Count:', payload.items.length);
+        console.log('- Total:', payload.total_amount_omr, 'OMR');
         
         return payload;
     }
