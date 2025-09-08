@@ -731,27 +731,8 @@ async function placeOrder() {
         if (result.success) {
             console.log('Order placed successfully:', result.order);
             
-            // Step 2: Send email notification (non-blocking)
-            try {
-                console.log('Sending admin email notification...');
-                
-                // Check if email adapter is available
-                if (window.sendOrderNotification) {
-                    const emailResult = await window.sendOrderNotification(result.order, customerInfo);
-                    
-                    if (emailResult.success) {
-                        console.log('Admin email notification sent successfully');
-                    } else {
-                        console.warn('Failed to send admin email notification:', emailResult.error);
-                        // Don't show error to user - order was successful
-                    }
-                } else {
-                    console.warn('Email notification adapter not loaded');
-                }
-            } catch (emailError) {
-                // Email failure shouldn't affect order success
-                console.error('Email notification error (non-critical):', emailError);
-            }
+            // Step 2: ALWAYS send admin email notification
+            sendAdminEmailNotification(result.order, customerInfo);
             
             // Step 3: Clear cart and update UI
             cart = [];
@@ -773,6 +754,28 @@ async function placeOrder() {
     } finally {
         placeOrderBtn.disabled = false;
         placeOrderBtn.classList.remove('loading');
+    }
+}
+
+// Separate function to handle admin email notification (always runs)
+async function sendAdminEmailNotification(orderData, customerInfo) {
+    try {
+        console.log('Sending admin email notification for order:', orderData.order_number);
+        
+        if (window.sendOrderNotification) {
+            const emailResult = await window.sendOrderNotification(orderData, customerInfo);
+            
+            if (emailResult.success) {
+                console.log('Admin email notification sent successfully');
+            } else {
+                console.error('Failed to send admin email notification:', emailResult.error);
+            }
+        } else {
+            console.error('Email notification adapter not loaded');
+        }
+    } catch (error) {
+        // Log error but don't let it affect the order process
+        console.error('Email notification error:', error);
     }
 }
 

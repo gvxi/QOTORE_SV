@@ -192,27 +192,25 @@ class EmailNotificationAdapter {
     }
 
     /**
-     * Enable email notifications
+     * Enable email notifications (always enabled)
      */
     enable() {
-        this.isEnabled = true;
-        console.log('📧 EMA ON');
+        console.log('Email notifications are always enabled');
     }
 
     /**
-     * Disable email notifications
+     * Disable email notifications (not allowed - always enabled)
      */
     disable() {
-        this.isEnabled = false;
-        console.log('📧 EMA OFF');
+        console.log('Email notifications cannot be disabled - always enabled for admin');
     }
 
     /**
-     * Check if email notifications are enabled
+     * Check if email notifications are enabled (always true)
      * @returns {boolean}
      */
     isEmailEnabled() {
-        return this.isEnabled;
+        return true;
     }
 
     /**
@@ -263,4 +261,4 @@ window.sendOrderNotification = sendOrderNotification;
 window.testEmailConfiguration = testEmailConfiguration;
 window.emailNotifier = emailNotifier;
 
-console.log('📧 EMA');
+console.log('📧 ENA');
