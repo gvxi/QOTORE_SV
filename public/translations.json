@@ -71,7 +71,9 @@
     "per_page_24": "24 per page", 
     "per_page_48": "48 per page",
 
-        "nav_language": "Change language",
+    "nav_language": "Change language",
+    "switching_to_arabic": "Switching to Arabic...",
+    "switching_language": "Switching language...",
 
     "nav": {
       "products": "Products",
@@ -223,6 +225,8 @@
     "per_page_48": "عرض 48 لكل صفحة",
     
     "nav_language": "تغيير اللغة",
+    "switching_to_english": "التبديل إلى الإنجليزية...",
+    "switching_language": "تبديل اللغة...",
 
     "nav": {
       "products": "المنتجات",

@@ -90,6 +90,18 @@ function loadLanguagePreference() {
 }
 
 function toggleLanguage() {
+    // Show custom language splash
+    const restoreText = showLanguageSplash();
+    
+    // switching animation
+    if (languageBtn) {
+        languageBtn.classList.add('switching');
+        setTimeout(() => {
+            languageBtn.classList.remove('switching');
+        }, 300);
+    }
+
+    // Change language
     currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
     
     localStorage.setItem('qotore_language', currentLanguage);
@@ -102,7 +114,52 @@ function toggleLanguage() {
         langButton.textContent = currentLanguage.toUpperCase();
     }
     
-    updateTranslations();
+    // Update translations after a short delay
+    setTimeout(() => {
+        updateTranslations();
+        
+        // Re-render current page content with new language
+        if (filteredFragrances.length > 0) {
+            displayFragrances();
+        }
+        
+        // Update cart sidebar if it's open
+        const cartSidebar = document.getElementById('cartSidebar');
+        if (cartSidebar && cartSidebar.classList.contains('open')) {
+            renderCartSidebar();
+        }
+        
+        // Restore original text and hide splash
+        setTimeout(() => {
+            restoreText();
+            hideLoadingSplash();
+        }, 500);
+        
+    }, 300);
+}
+
+function showLanguageSplash() {
+    const splash = document.getElementById('loadingSplash');
+    const loadingText = splash.querySelector('[data-translate="loading_text"]');
+    
+    if (splash && loadingText) {
+        // Store original text
+        const originalText = loadingText.textContent;
+        
+        // Show language switching message
+        loadingText.textContent = currentLanguage === 'en' ? 
+            'Switching to Arabic...' : 
+            'التبديل إلى الإنجليزية...';
+        
+        splash.classList.remove('hidden');
+        
+        // Return function to restore original text
+        return () => {
+            loadingText.textContent = originalText;
+        };
+    }
+    
+    return () => {}; // Empty function if elements not found
 }
 
 // Loading Management

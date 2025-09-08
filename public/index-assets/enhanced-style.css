@@ -175,6 +175,16 @@ body {
     left: -5px;
 }
 
+.language-btn.switching {
+    animation: languageSwitch 0.3s ease;
+}
+
+@keyframes languageSwitch {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.1) rotate(180deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}
+
 .cart-count {
     position: absolute;
     top: -5px;
