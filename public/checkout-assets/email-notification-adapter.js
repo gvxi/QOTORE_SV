@@ -52,49 +52,41 @@ class EmailNotificationAdapter {
      * @returns {Object} - Formatted email payload matching API expectations
      */
     buildEmailPayload(orderData, customerInfo) {
-        const orderDate = new Date().toLocaleString('en-GB', {
-            timeZone: 'Asia/Muscat',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
         const totalAmount = orderData.total_amount ? (orderData.total_amount / 1000).toFixed(3) : '0.000';
 
-        // Build items array matching the API structure
-        const items = orderData.items ? orderData.items.map(item => ({
-            fragrance_name: item.fragrance_name,
+        // Build items array - ensure all required fields are present
+        const items = orderData.items && orderData.items.length > 0 ? orderData.items.map(item => ({
+            fragrance_name: item.fragrance_name || 'Unknown Fragrance',
             fragrance_brand: item.fragrance_brand || '',
-            variant_size: item.variant_size,
-            quantity: item.quantity,
+            variant_size: item.variant_size || 'Unknown Size',
+            quantity: item.quantity || 1,
             total_price_cents: item.total_price_cents || 0
         })) : [];
 
-        // Build customer info matching API structure
-        const customerName = orderData.customer_first_name + 
-            (orderData.customer_last_name ? ' ' + orderData.customer_last_name : '');
-
-        // Return payload structure that matches the working test implementation
-        return {
-            order_number: orderData.order_number,
+        // Ensure all required fields are present with fallbacks
+        const payload = {
+            order_number: orderData.order_number || 'UNKNOWN-ORDER',
             total_amount_omr: totalAmount,
             created_at: orderData.created_at || new Date().toISOString(),
             customer: {
-                first_name: orderData.customer_first_name,
+                first_name: orderData.customer_first_name || 'Unknown',
                 last_name: orderData.customer_last_name || '',
-                phone: orderData.customer_phone,
+                phone: orderData.customer_phone || 'Not provided',
                 email: orderData.customer_email || ''
             },
             delivery: {
                 address: orderData.delivery_address || 'Not provided',
                 city: orderData.delivery_city || 'Unknown',
                 region: orderData.delivery_region || 'Unknown',
-                notes: orderData.notes || 'No special notes'
+                notes: orderData.notes || ''
             },
             items: items
         };
+
+        // Log the payload for debugging
+        console.log('Email payload being sent:', JSON.stringify(payload, null, 2));
+        
+        return payload;
     }
 
     /**
