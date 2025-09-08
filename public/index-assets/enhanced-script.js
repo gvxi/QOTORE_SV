@@ -360,6 +360,7 @@ function openProductModal(fragrance) {
     const modalDescription = document.getElementById('modalDescription');
     const variantButtons = document.getElementById('variantButtons');
     const addToCartBtn = document.getElementById('addToCartBtn');
+    const quantitySection = document.getElementById('quantitySection');
     
     // Set basic info
     modalTitle.textContent = fragrance.name;
@@ -370,6 +371,7 @@ function openProductModal(fragrance) {
     if (fragrance.image_path) {
         modalImage.src = `/api/image/${fragrance.image_path.replace('fragrance-images/', '')}`;
         modalImage.alt = fragrance.name;
+        modalImage.style.display = 'block';
         modalImage.onerror = () => {
             modalImage.style.display = 'none';
         };
@@ -387,6 +389,7 @@ function openProductModal(fragrance) {
             btn.classList.add('whole-bottle');
             btn.innerHTML = `<div>${t('full_bottle') || 'Full Bottle'}</div><div>${t('contact_pricing') || 'Contact for pricing'}</div>`;
             btn.onclick = () => {
+                // For whole bottles, just redirect to WhatsApp
                 window.open('https://wa.me/96812345678', '_blank');
             };
         } else {
@@ -397,9 +400,17 @@ function openProductModal(fragrance) {
         variantButtons.appendChild(btn);
     });
     
-    // Reset add to cart button
+    // Reset modal state
+    quantitySection.style.display = 'none';
     addToCartBtn.disabled = true;
     addToCartBtn.textContent = t('modal_choose_size') || 'Choose Size';
+    addToCartBtn.onclick = null;
+    
+    // Reset quantity input
+    const quantityInput = document.getElementById('quantityInput');
+    if (quantityInput) {
+        quantityInput.value = 1;
+    }
     
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';

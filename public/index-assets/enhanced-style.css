@@ -791,7 +791,6 @@ body {
 
 .quantity-input[type=number] {
     appearance: textfield;
-    -moz-appearance: textfield;
 }
 
 .add-to-cart-btn {
@@ -1160,17 +1159,15 @@ body {
     }
 
     .modal-body {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 
     .product-image-modal {
-        width: 100%;
         height: 250px;
     }
 
     .product-details {
-        width: 100%;
-        height: auto;
+        padding: 1.5rem;
     }
 
     .variant-buttons {
