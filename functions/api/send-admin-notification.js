@@ -106,7 +106,7 @@ export async function onRequestPost(context) {
       </tr>
     `).join('');
 
-const orderId = orderData.orderId || orderData.id || 'unknown';
+const orderId = orderData.orderId || orderData.id || orderData.order_id || 'unknown';
 
 // Then replace your emailHtml section with this updated template:
 
