@@ -90,52 +90,63 @@ function loadLanguagePreference() {
 }
 
 function toggleLanguage() {
-    // Show custom language splash
-    const restoreText = showLanguageSplash();
+    console.log('Language toggle started, current language:', currentLanguage);
     
-    // switching animation
-    if (languageBtn) {
-        languageBtn.classList.add('switching');
-        setTimeout(() => {
-            languageBtn.classList.remove('switching');
-        }, 300);
-    }
-
+    // Show splash screen
+    showLoadingSplash();
+    
     // Change language
-    currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+    const newLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+    currentLanguage = newLanguage;
     
+    console.log('Switching to:', currentLanguage);
+    
+    // Save to localStorage
     localStorage.setItem('qotore_language', currentLanguage);
     
+    // Update document attributes
     document.documentElement.lang = currentLanguage;
     document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
     
+    // Update language button indicator
     const langButton = document.getElementById('currentLang');
     if (langButton) {
         langButton.textContent = currentLanguage.toUpperCase();
+        console.log('Updated language button to:', currentLanguage.toUpperCase());
     }
     
-    // Update translations after a short delay
+    // Update all translations after a brief delay
     setTimeout(() => {
-        updateTranslations();
-        
-        // Re-render current page content with new language
-        if (filteredFragrances.length > 0) {
-            displayFragrances();
+        try {
+            console.log('Updating translations...');
+            updateTranslations();
+            
+            // Re-render products if they exist
+            if (filteredFragrances && filteredFragrances.length > 0) {
+                console.log('Re-rendering products...');
+                displayFragrances();
+            }
+            
+            // Update cart sidebar if open
+            const cartSidebar = document.getElementById('cartSidebar');
+            if (cartSidebar && cartSidebar.classList.contains('open')) {
+                console.log('Updating cart sidebar...');
+                renderCartSidebar();
+            }
+            
+            console.log('Language switch completed successfully');
+            
+        } catch (error) {
+            console.error('Error during language switch:', error);
         }
         
-        // Update cart sidebar if it's open
-        const cartSidebar = document.getElementById('cartSidebar');
-        if (cartSidebar && cartSidebar.classList.contains('open')) {
-            renderCartSidebar();
-        }
-        
-        // Restore original text and hide splash
+        // Always hide splash screen after processing
         setTimeout(() => {
-            restoreText();
+            console.log('Hiding splash screen...');
             hideLoadingSplash();
-        }, 500);
+        }, 300);
         
-    }, 300);
+    }, 200);
 }
 
 function showLanguageSplash() {
