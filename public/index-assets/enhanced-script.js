@@ -645,14 +645,56 @@ function renderCartSidebar() {
 
 // Event Listeners
 function initializeEventListeners() {
-    // Search
+    // Search Toggle Functionality - NEW
+    const searchToggleBtn = document.getElementById('searchToggleBtn');
+    const searchInputContainer = document.getElementById('searchInputContainer');
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
+    const searchCloseBtn = document.getElementById('searchCloseBtn');
+    
+    if (searchToggleBtn && searchInputContainer && searchInput && searchCloseBtn) {
+        // Show search input when toggle button is clicked
+        searchToggleBtn.addEventListener('click', () => {
+            searchToggleBtn.style.display = 'none';
+            searchInputContainer.style.display = 'flex';
+            searchInputContainer.classList.add('show');
+            searchInput.focus();
+        });
+        
+        // Hide search input when close button is clicked
+        searchCloseBtn.addEventListener('click', () => {
+            searchInputContainer.style.display = 'none';
+            searchInputContainer.classList.remove('show');
+            searchToggleBtn.style.display = 'flex';
+            searchInput.value = '';
+            // Clear search when closing
+            searchTerm = '';
+            currentPage = 1;
+            applyFiltersAndSort();
+        });
+        
+        // Hide search when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchToggleBtn.contains(e.target) && !searchInputContainer.contains(e.target)) {
+                searchInputContainer.style.display = 'none';
+                searchInputContainer.classList.remove('show');
+                searchToggleBtn.style.display = 'flex';
+            }
+        });
+        
+        // Search functionality
         searchInput.addEventListener('input', debounce((e) => {
             searchTerm = e.target.value;
             currentPage = 1;
             applyFiltersAndSort();
         }, 300));
+        
+        // Handle Enter key to search
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchInput.blur();
+            }
+        });
     }
     
     // Sort

@@ -1386,3 +1386,104 @@ body {
     height: 40px;
     object-fit: contain;
 }
+
+/* Search Container - Updated for Toggle Functionality */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-input-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: white;
+    border-radius: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    min-width: 300px;
+    z-index: 1001;
+    animation: searchExpand 0.3s ease;
+}
+
+.search-input-container.show {
+    display: flex;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    background: transparent;
+    outline: none;
+}
+
+.search-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: #666;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    margin-right: 0.5rem;
+}
+
+.search-close-btn:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+@keyframes searchExpand {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .search-input-container {
+        position: fixed;
+        top: 70px;
+        left: 1rem;
+        right: 1rem;
+        min-width: auto;
+        width: calc(100% - 2rem);
+        z-index: 1002;
+    }
+    
+    .search-container {
+        order: 2;
+        margin: 0;
+    }
+}
+
+/* RTL Support - UPDATE */
+[dir="rtl"] .search-input-container {
+    right: auto;
+    left: 0;
+}
+
+@media (max-width: 768px) {
+    [dir="rtl"] .search-input-container {
+        left: 1rem;
+        right: 1rem;
+    }
+}
