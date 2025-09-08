@@ -1337,30 +1337,30 @@ body {
 
 /* Logo Image Styles */
 .loading-logo-img {
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
     object-fit: contain;
     filter: brightness(0) invert(1); /* Makes it white for dark background */
 }
 
 .header-logo-img {
-    width: 30px;
-    height: 30px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     margin-right: 0.5rem;
     vertical-align: middle;
 }
 
 .empty-icon-img {
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
     object-fit: contain;
     opacity: 0.5;
 }
 
 .footer-logo-img {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     object-fit: contain;
     margin-right: 0.5rem;
     vertical-align: middle;
@@ -1369,20 +1369,20 @@ body {
 
 /* Additional Logo Styles for JavaScript-generated content */
 .cart-empty-logo {
-    width: 48px;
-    height: 48px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     opacity: 0.5;
 }
 
 .fallback-logo {
-    width: 40px;
-    height: 40px;
+    width: 24px;
+    height: 24px;
     object-fit: contain;
 }
 
 .product-fallback-logo {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
 }
