@@ -4,7 +4,6 @@
     
     "page_title": "Qotore - Premium Fragrances",
     "loading_text": "Loading premium fragrances...",
-    "nav_language": "Language",
     "admin_login": "Admin Login",
     "whatsapp_contact": "Contact us on WhatsApp",
     "scroll_to_top": "Scroll to top",
@@ -71,6 +70,8 @@
     "per_page_12": "12 per page",
     "per_page_24": "24 per page", 
     "per_page_48": "48 per page",
+
+        "nav_language": "Change language",
 
     "nav": {
       "products": "Products",
@@ -150,7 +151,6 @@
     
     "page_title": "قطور - عطور فاخرة",
     "loading_text": "جار تحميل العطور الفاخرة...",
-    "nav_language": "اللغة",
     "admin_login": "دخول الإدارة",
     "whatsapp_contact": "تواصل معنا عبر واتساب",
     "scroll_to_top": "العودة للأعلى",
@@ -221,6 +221,8 @@
     "per_page_12": "عرض 12 لكل صفحة",
     "per_page_24": "عرض 24 لكل صفحة",
     "per_page_48": "عرض 48 لكل صفحة",
+    
+    "nav_language": "تغيير اللغة",
 
     "nav": {
       "products": "المنتجات",

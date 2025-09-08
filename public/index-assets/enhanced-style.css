@@ -138,8 +138,41 @@ body {
 }
 
 .language-btn span {
-    font-size: 0.8rem;
+    position: relative;
+    min-width: 50px;
+}
+
+.language-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.language-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #8B4513;
+    color: white;
+    font-size: 0.6rem;
     font-weight: 600;
+    padding: 2px 4px;
+    border-radius: 6px;
+    min-width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.language-btn:hover .language-indicator {
+    background: #A0522D;
+}
+
+[dir="rtl"] .language-indicator {
+    right: auto;
+    left: -5px;
 }
 
 .cart-count {
@@ -796,6 +829,7 @@ body {
 }
 
 .close-sidebar {
+    width: 43px;
     background: none;
     border: none;
     font-size: 1.5rem;
