@@ -1308,3 +1308,22 @@ body {
         transform: translateY(0);
     }
 }
+
+/* Additional Styles for Cart Items */
+.cart-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.remove-item-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.remove-item-btn:hover {
+    color: red;
+}

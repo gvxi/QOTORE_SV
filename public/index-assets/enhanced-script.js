@@ -605,28 +605,34 @@ function renderCartSidebar() {
         total += itemTotal;
         
         return `
-            <div class="cart-item">
-                <div class="cart-item-image">
-                    ${item.image_path ? 
-                        `<img src="/api/image/${item.image_path.replace('fragrance-images/', '')}" alt="${item.fragranceName}">` :
-                        '🌸'
-                    }
+    <div class="cart-item">
+        <div class="cart-item-image">
+            ${item.image_path ? 
+                `<img src="/api/image/${item.image_path.replace('fragrance-images/', '')}" alt="${item.fragranceName}">` :
+                '🌸'
+            }
+        </div>
+        <div class="cart-item-details">
+            <div class="cart-item-header">
+                <div class="cart-item-name">
+                    ${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}
                 </div>
-                <div class="cart-item-details">
-                    <div class="cart-item-name">${item.fragranceBrand ? item.fragranceBrand + ' ' : ''}${item.fragranceName}</div>
-                    <div class="cart-item-variant">${item.variant.size}</div>
-                    <div class="cart-item-controls">
-                        <button class="qty-btn" onclick="updateCartQuantity(${index}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
-                            ${item.quantity <= 1 ? '×' : '−'}
-                        </button>
-                        <input type="number" class="qty-input" value="${item.quantity}" 
-                               min="1" max="10" onchange="setCartQuantity(${index}, this.value)">
-                        <button class="qty-btn" onclick="updateCartQuantity(${index}, 1)" ${item.quantity >= 10 ? 'disabled' : ''}>+</button>
-                    </div>
-                </div>
-                <div class="cart-item-price">${itemTotal.toFixed(3)} OMR</div>
+                <button class="remove-item-btn" onclick="removeFromCart(${index})">✕</button>
             </div>
-        `;
+            <div class="cart-item-variant">${item.variant.size}</div>
+            <div class="cart-item-controls">
+                <button class="qty-btn" onclick="updateCartQuantity(${index}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
+                    ${item.quantity <= 1 ? '×' : '−'}
+                </button>
+                <input type="number" class="qty-input" value="${item.quantity}" 
+                       min="1" max="10" onchange="setCartQuantity(${index}, this.value)">
+                <button class="qty-btn" onclick="updateCartQuantity(${index}, 1)" ${item.quantity >= 10 ? 'disabled' : ''}>+</button>
+            </div>
+        </div>
+        <div class="cart-item-price">${itemTotal.toFixed(3)} OMR</div>
+    </div>
+`;
+
     }).join('');
     
     totalElement.textContent = `${total.toFixed(3)} OMR`;
