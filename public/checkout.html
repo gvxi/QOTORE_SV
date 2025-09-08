@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>t('page_title')</title>
-
+    <title data-translate="page_title">Cart & Checkout - Qotore</title>
+    
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -37,11 +37,11 @@
         <div class="header-content">
             <a href="/" class="logo">
                 <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>t('qotore')</span>
+                <span data-translate="qotore">Qotore</span>
             </a>
             <a href="/" class="back-btn">
                 <span>←</span>
-                <span>t('continue_shopping')</span>
+                <span data-translate="continue_shopping">Continue Shopping</span>
             </a>
         </div>
     </header>
@@ -52,12 +52,12 @@
         <section class="cart-section">
             <div class="cart-header">
                 <div class="cart-title-section">
-                    <h1 class="cart-title">🛒 t('your_cart')</h1>
-                    <p class="cart-subtitle">t('review_fragrances')</p>
+                    <h1 class="cart-title" data-translate="your_cart">🛒 Your Cart</h1>
+                    <p class="cart-subtitle" data-translate="review_fragrances">Review your fragrances</p>
                 </div>
                 <button id="clearCartBtn" class="btn btn-danger clear-cart-btn" onclick="clearCart()" style="display: none;">
                     <span>🗑️</span>
-                    <span>t('clear_cart')</span>
+                    <span data-translate="clear_cart">Clear Cart</span>
                 </button>
             </div>
 
@@ -67,11 +67,11 @@
 
             <div class="cart-summary" id="cartSummary" style="display: none;">
                 <div class="summary-row">
-                    <span>Subtotal:</span>
+                    <span data-translate="subtotal">Subtotal:</span>
                     <span id="subtotalAmount">0.000 OMR</span>
                 </div>
                 <div class="summary-row total">
-                    <span>Total:</span>
+                    <span data-translate="total">Total:</span>
                     <span id="totalAmount">0.000 OMR</span>
                 </div>
             </div>
@@ -87,73 +87,73 @@
     <div id="customerInfoModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📝 t('your_information')</h2>
+                <h2 data-translate="your_information">📝 Your Information</h2>
                 <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="customerInfoForm">
                     <div class="form-group">
-                        <label for="customerName">t('Name') *</label>
+                        <label for="customerName" data-translate="full_name">Full Name *</label>
                         <input type="text" id="customerName" name="customerName" required placeholder="Enter your full name">
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="customerPhone">Phone Number *</label>
+                            <label for="customerPhone" data-translate="phone_number">Phone Number *</label>
                             <input type="tel" id="customerPhone" name="customerPhone" required placeholder="968XXXXXXXX">
                         </div>
                         <div class="form-group">
-                            <label for="customerEmail">Email</label>
+                            <label for="customerEmail" data-translate="email_address">Email</label>
                             <input type="email" id="customerEmail" name="customerEmail" placeholder="your@email.com">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="customerWilaya">Wilaya *</label>
+                            <label for="customerWilaya" data-translate="region_wilayat">Wilaya *</label>
                             <select id="customerWilaya" name="customerWilaya" required>
-                                <option value="">Select Wilaya</option>
-                                <option value="Muscat">Muscat</option>
-                                <option value="Dhofar">Dhofar</option>
-                                <option value="Musandam">Musandam</option>
-                                <option value="Al Buraimi">Al Buraimi</option>
-                                <option value="Ad Dakhiliyah">Ad Dakhiliyah</option>
-                                <option value="Al Batinah North">Al Batinah North</option>
-                                <option value="Al Batinah South">Al Batinah South</option>
-                                <option value="Ash Sharqiyah North">Ash Sharqiyah North</option>
-                                <option value="Ash Sharqiyah South">Ash Sharqiyah South</option>
-                                <option value="Al Wusta">Al Wusta</option>
-                                <option value="Adh Dhahirah">Adh Dhahirah</option>
+                                <option value="" data-translate="select_wilaya">Select Wilaya</option>
+                                <option value="Muscat" data-translate="muscat">Muscat</option>
+                                <option value="Dhofar" data-translate="dhofar">Dhofar</option>
+                                <option value="Musandam" data-translate="musandam">Musandam</option>
+                                <option value="Al Buraimi" data-translate="al_buraimi">Al Buraimi</option>
+                                <option value="Ad Dakhiliyah" data-translate="ad_dakhiliyah">Ad Dakhiliyah</option>
+                                <option value="Al Batinah North" data-translate="al_batinah_north">Al Batinah North</option>
+                                <option value="Al Batinah South" data-translate="al_batinah_south">Al Batinah South</option>
+                                <option value="Ash Sharqiyah North" data-translate="ash_sharqiyah_north">Ash Sharqiyah North</option>
+                                <option value="Ash Sharqiyah South" data-translate="ash_sharqiyah_south">Ash Sharqiyah South</option>
+                                <option value="Al Wusta" data-translate="al_wusta">Al Wusta</option>
+                                <option value="Adh Dhahirah" data-translate="adh_dhahirah">Adh Dhahirah</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="customerCity">City *</label>
+                            <label for="customerCity" data-translate="city">City *</label>
                             <input type="text" id="customerCity" name="customerCity" required placeholder="Enter your city">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="deliveryOption">Delivery Option *</label>
+                        <label for="deliveryOption" data-translate="delivery_option">Delivery Option *</label>
                         <div class="delivery-options">
                             <label class="delivery-option">
                                 <input type="radio" name="deliveryOption" value="home" checked>
-                                <span class="delivery-label">🏠 Deliver to Home</span>
+                                <span class="delivery-label" data-translate="deliver_to_home">🏠 Deliver to Home</span>
                             </label>
                             <label class="delivery-option">
                                 <input type="radio" name="deliveryOption" value="service">
-                                <span class="delivery-label">🚛 Use Delivery Service</span>
+                                <span class="delivery-label" data-translate="use_delivery_service">🚛 Use Delivery Service</span>
                             </label>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="customerNotes">Notes (Optional)</label>
-                        <textarea id="customerNotes" name="customerNotes" rows="3" placeholder="Any special instructions or notes for your order..."></textarea>
+                        <label for="customerNotes" data-translate="additional_notes">Notes (Optional)</label>
+                        <textarea id="customerNotes" name="customerNotes" rows="3" placeholder="Any special instructions or notes for your order..." data-translate="notes_placeholder" ></textarea>
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Information</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()" data-translate="cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" data-translate="save_information">Save Information</button>
                     </div>
                 </form>
             </div>
@@ -175,11 +175,11 @@
                     <img src="/icons/icon-32x32.png" alt="Qotore" class="footer-logo-icon">
                     <span>Qotore</span>
                 </div>
-                <p class="footer-description">Premium fragrances delivered to your door</p>
+                <p class="footer-description" data-translate="footer_description">Premium fragrances delivered to your door</p>
             </div>
             
             <div class="footer-section">
-                <h3>Contact Us</h3>
+                <h3 data-translate="contact_us">Contact Us</h3>
                 <div class="social-links">
                     <a href="https://instagram.com/qotore_official" target="_blank" class="social-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
