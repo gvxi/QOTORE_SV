@@ -495,30 +495,56 @@ function updateCartDisplay() {
 }
 
 function removeFromCart(index) {
-    cart.splice(index, 1);
-    saveCart();
-    updateCartDisplay();
-    renderCartSidebar();
+    if (index >= 0 && index < cart.length) {
+        const removedItem = cart[index];
+        cart.splice(index, 1);
+        saveCart();
+        updateCartDisplay();
+        renderCartSidebar();
+        
+        // Show confirmation message
+        const productName = `${removedItem.fragranceBrand ? removedItem.fragranceBrand + ' ' : ''}${removedItem.fragranceName}`;
+        showCustomAlert(`🗑️ ${t('item_removed') || 'Removed'} ${productName} ${t('from_cart') || 'from cart'}`);
+    }
 }
 
 function updateCartQuantity(index, change) {
     if (cart[index]) {
-        cart[index].quantity += change;
-        if (cart[index].quantity <= 0) {
+        const newQuantity = cart[index].quantity + change;
+        
+        if (newQuantity <= 0) {
+            // Remove item if quantity becomes 0 or less
             removeFromCart(index);
-        } else {
+        } else if (newQuantity <= 10) {
+            // Update quantity if within limits
+            cart[index].quantity = newQuantity;
             saveCart();
+            updateCartDisplay();
             renderCartSidebar();
+        } else {
+            // Show limit message if trying to exceed maximum
+            showCustomAlert(t('quantity_limit') || 'Maximum 10 items per fragrance variant');
         }
     }
 }
 
 function setCartQuantity(index, quantity) {
     const qty = parseInt(quantity);
-    if (cart[index] && qty > 0 && qty <= 10) {
+    if (cart[index] && qty >= 1 && qty <= 10) {
         cart[index].quantity = qty;
         saveCart();
+        updateCartDisplay();
         renderCartSidebar();
+    } else if (qty < 1) {
+        // Remove item if quantity is set to 0
+        removeFromCart(index);
+    } else if (qty > 10) {
+        // Reset to maximum and show message
+        cart[index].quantity = 10;
+        document.querySelector(`#cartSidebarContent .qty-input[onchange*="${index}"]`).value = 10;
+        saveCart();
+        renderCartSidebar();
+        showCustomAlert(t('quantity_limit') || 'Maximum 10 items per fragrance variant');
     }
 }
 
