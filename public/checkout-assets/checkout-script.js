@@ -114,15 +114,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         await loadTranslations();
         loadLanguagePreference();
+        
+        const minLoadTime = 800; // Minimum 800ms
+        const startTime = Date.now();
+        
+        // Your existing code...
         await getCustomerIP();
         await loadCustomerInfo();
         await loadCart();
         await checkActiveOrder();
         await loadPreviousOrders();
         renderPage();
+        
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, minLoadTime - elapsedTime);
+        
+        setTimeout(hideLoadingSplash, remainingTime);
+        
     } catch (error) {
-        console.error('Error initializing checkout:', error);
-        showToast(t('error_loading_checkout'), 'error');
+        console.error('Error:', error);
+        hideLoadingSplash();
     }
 });
 
@@ -1059,3 +1070,12 @@ setInterval(async () => {
         }
     }
 }, 30000);
+
+//Splash screen handling
+function hideLoadingSplash() {
+    const splash = document.getElementById('loadingSplash');
+    if (splash) {
+        splash.classList.add('hidden');
+        setTimeout(() => splash.remove(), 500);
+    }
+}
