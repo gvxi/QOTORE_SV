@@ -71,8 +71,8 @@ export async function onRequestPost(context) {
       });
     }
 
-    const { order_number, customer, delivery, items, total_amount_omr, created_at } = orderData;
-    
+const { order_number, customer, delivery, items, total_amount_omr, created_at, orderId } = orderData;
+
     if (!order_number || !customer || !delivery || !items || !total_amount_omr) {
       return new Response(JSON.stringify({
         error: 'Missing required order fields',
@@ -105,10 +105,6 @@ export async function onRequestPost(context) {
         <td style="padding: 12px 8px; text-align: right; font-weight: 500;">${(item.total_price_cents / 1000).toFixed(3)} OMR</td>
       </tr>
     `).join('');
-
-const orderId = orderData.orderId || orderData.id || orderData.order_id || 'unknown';
-
-// Then replace your emailHtml section with this updated template:
 
 const emailHtml = `
 <!DOCTYPE html>
