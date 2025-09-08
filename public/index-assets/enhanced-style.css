@@ -1535,3 +1535,147 @@ body {
         max-width: none;
     }
 }
+
+/* User Authentication Styles */
+.user-auth-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.login-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-dropdown {
+    position: relative;
+}
+
+.user-menu-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.user-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    min-width: 150px;
+    display: none;
+    z-index: 1000;
+}
+
+.user-dropdown-menu.show {
+    display: block;
+    animation: fadeInDown 0.3s ease;
+}
+
+.user-dropdown-menu a,
+.user-dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    color: #333;
+    text-decoration: none;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.user-dropdown-menu a:hover,
+.user-dropdown-menu button:hover {
+    background: #f8f9fa;
+    color: #8B4513;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Admin link in footer (hidden) */
+.footer-admin-link {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-admin-link:hover {
+    color: rgba(255, 255, 255, 0.6);
+}

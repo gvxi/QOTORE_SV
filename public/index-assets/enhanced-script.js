@@ -90,7 +90,6 @@ function loadLanguagePreference() {
 }
 
 function toggleLanguage() {
-    console.log('Language toggle started, current language:', currentLanguage);
     
     // Show splash screen
     showLoadingSplash();
@@ -98,9 +97,7 @@ function toggleLanguage() {
     // Change language
     const newLanguage = currentLanguage === 'en' ? 'ar' : 'en';
     currentLanguage = newLanguage;
-    
-    console.log('Switching to:', currentLanguage);
-    
+        
     // Save to localStorage
     localStorage.setItem('qotore_language', currentLanguage);
     
@@ -112,29 +109,24 @@ function toggleLanguage() {
     const langButton = document.getElementById('currentLang');
     if (langButton) {
         langButton.textContent = currentLanguage.toUpperCase();
-        console.log('Updated language button to:', currentLanguage.toUpperCase());
     }
     
     // Update all translations after a brief delay
     setTimeout(() => {
         try {
-            console.log('Updating translations...');
             updateTranslations();
             
             // Re-render products if they exist
             if (filteredFragrances && filteredFragrances.length > 0) {
-                console.log('Re-rendering products...');
                 displayFragrances();
             }
             
             // Update cart sidebar if open
             const cartSidebar = document.getElementById('cartSidebar');
             if (cartSidebar && cartSidebar.classList.contains('open')) {
-                console.log('Updating cart sidebar...');
                 renderCartSidebar();
             }
             
-            console.log('Language switch completed successfully');
             
         } catch (error) {
             console.error('Error during language switch:', error);
@@ -142,11 +134,10 @@ function toggleLanguage() {
         
         // Always hide splash screen after processing
         setTimeout(() => {
-            console.log('Hiding splash screen...');
             hideLoadingSplash();
         }, 300);
         
-    }, 100);
+    }, 200);
 }
 
 function showLanguageSplash() {
@@ -987,6 +978,110 @@ function updateTranslations() {
         }
     });
 }
+
+//Auth
+// User Authentication Functions
+function initUserAuth() {
+    checkUserAuthStatus();
+    setupUserAuthEvents();
+}
+
+function checkUserAuthStatus() {
+    const user = getCurrentUser();
+    const loginBtn = document.getElementById('loginBtn');
+    const userProfile = document.getElementById('userProfile');
+    
+    if (user) {
+        // User is logged in
+        showUserProfile(user);
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (userProfile) userProfile.style.display = 'flex';
+    } else {
+        // User is not logged in
+        hideUserProfile();
+        if (loginBtn) loginBtn.style.display = 'flex';
+        if (userProfile) userProfile.style.display = 'none';
+    }
+}
+
+function getCurrentUser() {
+    try {
+        const userData = localStorage.getItem('qotore_user');
+        return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+        console.error('Error getting user data:', error);
+        return null;
+    }
+}
+
+function showUserProfile(user) {
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    
+    if (userAvatar && user.picture) {
+        userAvatar.src = user.picture;
+        userAvatar.alt = user.name || 'User Avatar';
+    }
+    
+    if (userName && user.name) {
+        userName.textContent = user.given_name || user.name.split(' ')[0];
+    }
+}
+
+function hideUserProfile() {
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    
+    if (userAvatar) userAvatar.src = '';
+    if (userName) userName.textContent = '';
+}
+
+function setupUserAuthEvents() {
+    // User menu dropdown
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    
+    if (userMenuBtn && userDropdown) {
+        userMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            userDropdown.classList.remove('show');
+        });
+    }
+    
+    // Logout functionality
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+}
+
+function handleLogout() {
+    // Clear user data
+    localStorage.removeItem('qotore_user');
+    localStorage.removeItem('google_access_token');
+    
+    // Clear any Google auth session
+    if (typeof google !== 'undefined' && google.accounts) {
+        google.accounts.id.disableAutoSelect();
+    }
+    
+    // Refresh auth status
+    checkUserAuthStatus();
+    
+    // Optional: Show logout message
+    showNotification('Logged out successfully', 'success');
+}
+
+// Initialize user auth when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit for other scripts to load
+    setTimeout(initUserAuth, 500);
+});
 
 // Global functions for external access
 window.openCartSidebar = openCartSidebar;

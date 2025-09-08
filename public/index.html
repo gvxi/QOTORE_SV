@@ -33,7 +33,7 @@
                     </svg>
                     <span id="currentLang" class="language-indicator">EN</span>
                 </button>
-                
+
                 <!-- Cart Button -->
                 <button id="cartButton" class="nav-btn cart-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -42,10 +42,33 @@
                     <span id="cartCount" class="cart-count" style="display: none;">0</span>
                 </button>
 
-                <!-- Admin Login Button -->
-                <a href="/login.html" class="nav-btn admin-btn" data-translate-title="admin_login">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Im0xMCAyaDEwdjIwSDR2LTJoNlYyem0wIDJIOFYyMGgxMFY0SDE4VjJoLTh6TTEyIDEwSDh2MmgxMnYtMkg4djJoNHptMCA0SDh2MmgxMnYtMkg4djJoNHptMCA0SDh2MmgxMnYtMkg4djJoNHoiLz48L3N2Zz4=" alt="Admin" class="admin-icon">
-                </a>
+<!-- User Auth Button -->
+<div id="userAuthSection" class="user-auth-section">
+    <!-- Login Button (shown when not logged in) -->
+    <a href="/user-login.html" id="loginBtn" class="nav-btn login-btn" data-translate-title="login" style="display: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L9 7V9C9 11.66 11.34 14 14 14S19 11.66 19 9ZM12 16C7.59 16 4 17.79 4 20V22H20V20C20 17.79 16.41 16 12 16Z"/>
+        </svg>
+        <span data-translate="login">Login</span>
+    </a>
+    
+    <!-- User Profile (shown when logged in) -->
+    <div id="userProfile" class="user-profile" style="display: none;">
+        <img id="userAvatar" class="user-avatar" src="" alt="User Avatar">
+        <span id="userName" class="user-name"></span>
+        <div class="user-dropdown">
+            <button id="userMenuBtn" class="user-menu-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <div id="userDropdown" class="user-dropdown-menu">
+                <a href="/user-orders.html" data-translate="my_orders">My Orders</a>
+                <button id="logoutBtn" data-translate="logout">Logout</button>
+            </div>
+        </div>
+    </div>
+</div>
             </nav>
         </div>
     </header>
@@ -325,6 +348,7 @@
             <div class="footer-bottom">
                 <p>&copy; 2025 Qotore. <span data-translate="footer_rights">All rights reserved.</span></p>
             </div>
+            <a href="/login.html" class="footer-admin-link" title="API">API</a>
         </div>
     </footer>
 
