@@ -146,7 +146,7 @@ function toggleLanguage() {
             hideLoadingSplash();
         }, 300);
         
-    }, 200);
+    }, 100);
 }
 
 function showLanguageSplash() {
