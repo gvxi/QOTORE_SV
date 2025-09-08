@@ -291,11 +291,11 @@ body {
     padding: 2rem;
     border-top: 2px solid #c3e6cb;
 
-    position: fixed;
+    position: sticky;
     bottom: 0;
     left: 0;
     width: 100%;
-    z-index: 1000;
+    /* z-index: 1000; */
 }
 
 .summary-row {
