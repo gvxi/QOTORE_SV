@@ -60,6 +60,11 @@ export async function onRequestPost(context) {
         });
       }
       orderData = JSON.parse(text);
+        // Add these debug lines:
+    console.log('Full orderData received:', JSON.stringify(orderData, null, 2));
+    console.log('orderData.orderId:', orderData.orderId);
+    console.log('orderData.id:', orderData.id);
+    console.log('orderData.order_id:', orderData.order_id);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       return new Response(JSON.stringify({ 
