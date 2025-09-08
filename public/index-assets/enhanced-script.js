@@ -593,7 +593,7 @@ function renderCartSidebar() {
                 <p>${t('add_fragrances') || 'Add some fragrances to get started'}</p>
             </div>
         `;
-        // footer.style.display = 'none';
+        footer.style.display = 'none';
         return;
     }
     
