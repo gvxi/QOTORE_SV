@@ -75,33 +75,6 @@ window.addEventListener('storage', function(e) {
     }
 });
 
-//==============================================================
-function toggleLanguage() {
-    currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
-    localStorage.setItem('qotore_language', currentLanguage);
-    document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
-    document.documentElement.setAttribute('lang', currentLanguage);
-    
-    updateLanguageButton();
-    updateTranslations();
-    renderPage(); // Re-render dynamic content
-}
-
-function updateLanguageButton() {
-    const currentLangSpan = document.getElementById('currentLang');
-    const otherLangSpan = document.getElementById('otherLang');
-    
-    if (currentLangSpan && otherLangSpan) {
-        if (currentLanguage === 'en') {
-            currentLangSpan.textContent = 'EN';
-            otherLangSpan.textContent = 'AR';
-        } else {
-            currentLangSpan.textContent = 'AR';
-            otherLangSpan.textContent = 'EN';
-        }
-    }
-}
-//==============================================================
 // Checkout Script - Mobile-friendly, Supabase integration
 let cart = [];
 let customerInfo = null;
