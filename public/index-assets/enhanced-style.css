@@ -1344,8 +1344,8 @@ body {
 }
 
 .header-logo-img {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
     margin-right: 0.5rem;
     vertical-align: middle;
