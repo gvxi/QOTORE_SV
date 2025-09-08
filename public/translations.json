@@ -68,6 +68,10 @@
     "results_found": "results found",
     "clear_search": "Clear search",
 
+    "per_page_12": "12 per page",
+    "per_page_24": "24 per page", 
+    "per_page_48": "48 per page",
+
     "nav": {
       "products": "Products",
       "language": "Language",
@@ -213,6 +217,10 @@
 
     "results_found": "نتيجة موجودة",
     "clear_search": "مسح البحث",
+
+    "per_page_12": "عرض 12 لكل صفحة",
+    "per_page_24": "عرض 24 لكل صفحة",
+    "per_page_48": "عرض 48 لكل صفحة",
 
     "nav": {
       "products": "المنتجات",

@@ -884,6 +884,42 @@ function updateSearchUI() {
     }
 }
 
+// Per page selection
+function updateTranslations() {
+    document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        const translation = t(key);
+        if (translation !== key) {
+            element.textContent = translation;
+        }
+    });
+    
+    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-translate-placeholder');
+        const translation = t(key);
+        if (translation !== key) {
+            element.placeholder = translation;
+        }
+    });
+
+    document.querySelectorAll('[data-translate-title]').forEach(element => {
+        const key = element.getAttribute('data-translate-title');
+        const translation = t(key);
+        if (translation !== key) {
+            element.title = translation;
+        }
+    });
+    
+    // Handle option elements specifically
+    document.querySelectorAll('option[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        const translation = t(key);
+        if (translation !== key) {
+            element.textContent = translation;
+        }
+    });
+}
+
 // Global functions for external access
 window.openCartSidebar = openCartSidebar;
 window.closeCartSidebar = closeCartSidebar;
