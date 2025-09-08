@@ -855,7 +855,7 @@ function showCustomAlert(message) {
     }, 3000);
 }
 
-// Add this new function to update search UI
+// Search UI
 function updateSearchUI() {
     const searchInput = document.getElementById('searchInput');
     const searchClearBtn = document.getElementById('searchClearBtn');
