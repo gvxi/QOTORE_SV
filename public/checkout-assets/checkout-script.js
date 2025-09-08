@@ -717,6 +717,7 @@ async function placeOrder() {
         
         console.log('Placing order:', orderData);
         
+        // Step 1: Place the order
         const response = await fetch('/api/place-order', {
             method: 'POST',
             headers: {
@@ -725,14 +726,34 @@ async function placeOrder() {
             body: JSON.stringify(orderData)
         });
         
-        console.log('Place order response status:', response.status);
         const result = await response.json();
-        console.log('Place order result:', result);
         
         if (result.success) {
             console.log('Order placed successfully:', result.order);
             
-            // Clear cart and reload page state
+            // Step 2: Send email notification (non-blocking)
+            try {
+                console.log('Sending admin email notification...');
+                
+                // Check if email adapter is available
+                if (window.sendOrderNotification) {
+                    const emailResult = await window.sendOrderNotification(result.order, customerInfo);
+                    
+                    if (emailResult.success) {
+                        console.log('Admin email notification sent successfully');
+                    } else {
+                        console.warn('Failed to send admin email notification:', emailResult.error);
+                        // Don't show error to user - order was successful
+                    }
+                } else {
+                    console.warn('Email notification adapter not loaded');
+                }
+            } catch (emailError) {
+                // Email failure shouldn't affect order success
+                console.error('Email notification error (non-critical):', emailError);
+            }
+            
+            // Step 3: Clear cart and update UI
             cart = [];
             saveCart();
             await checkActiveOrder();
@@ -740,6 +761,7 @@ async function placeOrder() {
             renderPage();
             
             showToast(t('order_success'));
+            
         } else {
             console.error('Order placement failed:', result);
             throw new Error(result.error || t('order_error'));
