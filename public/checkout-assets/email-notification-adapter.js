@@ -49,7 +49,7 @@ class EmailNotificationAdapter {
      * Build email payload with order and customer information
      * @param {Object} orderData - Order information
      * @param {Object} customerInfo - Customer information
-     * @returns {Object} - Formatted email payload
+     * @returns {Object} - Formatted email payload matching API expectations
      */
     buildEmailPayload(orderData, customerInfo) {
         const orderDate = new Date().toLocaleString('en-GB', {
@@ -62,50 +62,38 @@ class EmailNotificationAdapter {
         });
 
         const totalAmount = orderData.total_amount ? (orderData.total_amount / 1000).toFixed(3) : '0.000';
-        const itemsCount = orderData.items ? orderData.items.length : 0;
-        const totalItems = orderData.items ? 
-            orderData.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
 
-        // Build items list for email
-        let itemsList = '';
-        if (orderData.items && orderData.items.length > 0) {
-            itemsList = orderData.items.map(item => {
-                const itemPrice = item.variant_price_cents ? 
-                    (item.variant_price_cents / 1000).toFixed(3) : 'Contact';
-                const itemTotal = item.total_price_cents ? 
-                    (item.total_price_cents / 1000).toFixed(3) : 'Contact';
-                
-                return `• ${item.fragrance_brand ? item.fragrance_brand + ' ' : ''}${item.fragrance_name}
-  Size: ${item.variant_size}
-  Quantity: ${item.quantity}
-  Price: ${itemPrice} OMR each
-  Total: ${itemTotal} OMR`;
-            }).join('\n\n');
-        } else {
-            itemsList = 'No items found';
-        }
+        // Build items array matching the API structure
+        const items = orderData.items ? orderData.items.map(item => ({
+            fragrance_name: item.fragrance_name,
+            fragrance_brand: item.fragrance_brand || '',
+            variant_size: item.variant_size,
+            quantity: item.quantity,
+            total_price_cents: item.total_price_cents || 0
+        })) : [];
 
-        // Build customer info section
+        // Build customer info matching API structure
         const customerName = orderData.customer_first_name + 
             (orderData.customer_last_name ? ' ' + orderData.customer_last_name : '');
-        
-        const deliveryInfo = orderData.delivery_address || 'Not provided';
-        const location = `${orderData.delivery_city || 'Unknown'}, ${orderData.delivery_region || 'Unknown'}`;
 
+        // Return payload structure that matches the working test implementation
         return {
-            orderNumber: orderData.order_number,
-            customerName: customerName,
-            customerPhone: orderData.customer_phone,
-            customerEmail: orderData.customer_email || 'Not provided',
-            deliveryAddress: deliveryInfo,
-            location: location,
-            notes: orderData.notes || 'No special notes',
-            totalAmount: totalAmount,
-            itemsCount: itemsCount,
-            totalItems: totalItems,
-            itemsList: itemsList,
-            orderDate: orderDate,
-            customerIP: orderData.customer_ip || 'Unknown'
+            order_number: orderData.order_number,
+            total_amount_omr: totalAmount,
+            created_at: orderData.created_at || new Date().toISOString(),
+            customer: {
+                first_name: orderData.customer_first_name,
+                last_name: orderData.customer_last_name || '',
+                phone: orderData.customer_phone,
+                email: orderData.customer_email || ''
+            },
+            delivery: {
+                address: orderData.delivery_address || 'Not provided',
+                city: orderData.delivery_city || 'Unknown',
+                region: orderData.delivery_region || 'Unknown',
+                notes: orderData.notes || 'No special notes'
+            },
+            items: items
         };
     }
 
