@@ -1,39 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qotore - Premium Fragrances</title>
-    <link rel="stylesheet" href="index-assets/style.css">
+    <title data-translate="page_title">Qotore - Premium Fragrances</title>
+    <link rel="stylesheet" href="/index-assets/enhanced-style.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
+    <!-- Loading Splash -->
+    <div id="loadingSplash" class="loading-splash">
+        <div class="loading-content">
+            <div class="loading-logo">🌸</div>
+            <div class="loading-spinner"></div>
+            <p data-translate="loading_text">Loading premium fragrances...</p>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="header">
         <div class="nav-container">
             <div class="logo">
                 <span>🌸 Qotore</span>
             </div>
+            
             <nav class="nav-menu">
-                <button class="nav-btn" id="productsButton">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" data-translate-placeholder="search_fragrances" placeholder="Search fragrances...">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                     </svg>
+                </div>
+
+                <!-- Language Toggle -->
+                <button id="languageButton" class="nav-btn language-btn" data-translate="nav_language">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                    </svg>
+                    <span id="currentLang">EN</span>
                 </button>
-                <button class="nav-btn" id="languageButton">
+
+                <!-- Cart Button -->
+                <button id="cartButton" class="nav-btn cart-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.87 15.07L10.33 12.56L10.36 12.53C12.1 10.59 13.34 8.36 14.07 6H17V4H10V2H8V4H1V6H12.17C11.5 7.92 10.44 9.75 9 11.35C8.07 10.32 7.3 9.19 6.69 8H4.69C5.42 9.63 6.42 11.17 7.67 12.56L2.58 17.58L4 19L9 14L12.11 17.11L12.87 15.07Z"/>
+                        <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                     </svg>
+                    <span id="cartCount" class="cart-count" style="display: none;">0</span>
                 </button>
-                <button class="nav-btn" id="cartButton" onclick="window.location.href='/checkout.html'">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                         <path d="M7 18C5.9 18 5 18.9 5 20S5.9 22 7 22 9 21.1 9 20 8.1 18 7 18ZM1 2V4H3L6.6 11.59L5.25 14.04C5.09 14.32 5 14.65 5 15C5 16.1 5.9 17 7 17H19V15H7.42C7.28 15 7.17 14.89 7.17 14.75L7.2 14.63L8.1 13H15.55C16.3 13 16.96 12.59 17.3 11.97L20.88 5H18.21L15.27 11H8.53L4.27 2H1ZM17 18C15.9 18 15 18.9 15 20S15.9 22 17 22 19 21.1 19 20 18.1 18 17 18Z"/>
-                    </svg>
-                <span class="cart-count" id="cartCount">0</span>
-                </button>
-                <a href="/login.html" class="nav-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9Z"/>
-                    </svg>
+
+                <!-- Admin Login Button -->
+                <a href="/admin/login.html" class="nav-btn admin-btn" data-translate-title="admin_login">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Im0xMCAyaDEwdjIwSDR2LTJoNlYyem0wIDJIOFYyMGgxMFY0SDE4VjJoLTh6TTEyIDEwSDh2MmgxMnYtMkg4djJoNHptMCA0SDh2MmgxMnYtMkg4djJoNHptMCA0SDh2MmgxMnYtMkg4djJoNHoiLz48L3N2Zz4=" alt="Admin" class="admin-icon">
                 </a>
             </nav>
         </div>
@@ -42,9 +60,9 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <h1 data-key="hero.title">Premium Fragrances</h1>
-            <p data-key="hero.subtitle">Discover luxury scents from around the world</p>
-            <button class="cta-button" id="ctaButton" data-key="hero.cta">
+            <h1 data-translate="hero_title">Premium Fragrances</h1>
+            <p data-translate="hero_subtitle">Discover luxury scents from around the world</p>
+            <button class="cta-button" id="ctaButton" data-translate="hero_cta">
                 Explore Collection
             </button>
         </div>
@@ -53,12 +71,32 @@
     <!-- Products Section -->
     <section id="products" class="products-section">
         <div class="container">
-            <h2 data-key="products.title">Our Collection</h2>
+            <div class="products-header">
+                <h2 data-translate="products_title">Our Collection</h2>
+                
+                <!-- Filters & Pagination Controls -->
+                <div class="products-controls">
+                    <div class="filter-controls">
+                        <select id="sortSelect" class="sort-select">
+                            <option value="name" data-translate="sort_name">Sort by Name</option>
+                            <option value="brand" data-translate="sort_brand">Sort by Brand</option>
+                            <option value="price_low" data-translate="sort_price_low">Price: Low to High</option>
+                            <option value="price_high" data-translate="sort_price_high">Price: High to Low</option>
+                        </select>
+                        
+                        <select id="itemsPerPageSelect" class="items-per-page-select">
+                            <option value="12">12 per page</option>
+                            <option value="24" selected>24 per page</option>
+                            <option value="48">48 per page</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             
             <!-- Loading State -->
             <div id="loading" class="loading">
                 <div class="spinner"></div>
-                <p data-key="loading.text">Loading fragrances...</p>
+                <p data-translate="loading_fragrances">Loading fragrances...</p>
             </div>
 
             <!-- Products Grid -->
@@ -66,10 +104,90 @@
                 <!-- Products will be loaded here -->
             </div>
 
+            <!-- Pagination -->
+            <div id="paginationContainer" class="pagination-container" style="display: none;">
+                <!-- Pagination buttons will be populated by JavaScript -->
+            </div>
+
             <!-- Empty State -->
             <div id="emptyState" class="empty-state" style="display: none;">
-                <h3 data-key="empty.title">Coming Soon</h3>
-                <p data-key="empty.subtitle">New fragrances are being added</p>
+                <div class="empty-icon">🌸</div>
+                <h3 data-translate="empty_title">Coming Soon</h3>
+                <p data-translate="empty_subtitle">New fragrances are being added</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 data-translate="about_title">Why Choose Qotore?</h2>
+                    <p data-translate="about_description">
+                        At Qotore, we specialize in bringing you the finest fragrances from around the world. 
+                        Our carefully curated collection features premium scents that tell stories, evoke memories, 
+                        and express your unique personality.
+                    </p>
+                    <div class="about-features">
+                        <div class="feature">
+                            <span class="feature-icon">✨</span>
+                            <div>
+                                <h4 data-translate="feature_authentic_title">100% Authentic</h4>
+                                <p data-translate="feature_authentic_desc">Only genuine fragrances from authorized distributors</p>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">🚚</span>
+                            <div>
+                                <h4 data-translate="feature_delivery_title">Fast Delivery</h4>
+                                <p data-translate="feature_delivery_desc">Quick and secure delivery across Oman</p>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">💎</span>
+                            <div>
+                                <h4 data-translate="feature_quality_title">Premium Quality</h4>
+                                <p data-translate="feature_quality_desc">Carefully selected luxury fragrances</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section class="reviews-section">
+        <div class="container">
+            <h2 data-translate="reviews_title">What Our Customers Say</h2>
+            <div class="reviews-grid">
+                <div class="review-card">
+                    <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                    <p data-translate="review_1_text">"Amazing quality fragrances! The scents last all day and the service is exceptional."</p>
+                    <div class="review-author">
+                        <strong data-translate="review_1_author">Ahmed Al-Rashid</strong>
+                        <span data-translate="review_1_location">Muscat</span>
+                    </div>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                    <p data-translate="review_2_text">"Perfect samples to try before buying the full bottle. Love the variety of options!"</p>
+                    <div class="review-author">
+                        <strong data-translate="review_2_author">Fatima Al-Zahra</strong>
+                        <span data-translate="review_2_location">Salalah</span>
+                    </div>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                    <p data-translate="review_3_text">"Fast delivery and authentic products. Qotore is my go-to for luxury fragrances."</p>
+                    <div class="review-author">
+                        <strong data-translate="review_3_author">Mohammed Al-Kindi</strong>
+                        <span data-translate="review_3_location">Nizwa</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -77,7 +195,7 @@
     <!-- Product Modal -->
     <div id="productModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
             <div class="modal-body">
                 <div class="product-image-modal">
                     <img id="modalImage" src="" alt="">
@@ -87,22 +205,14 @@
                     <p id="modalBrand"></p>
                     <p id="modalDescription"></p>
                     
-                    <div class="variants">
-                        <h3 data-key="modal.choose_size">Choose Size:</h3>
-                        <div id="variantsList"></div>
-                    </div>
-                    
-                    <!-- Quantity Selector -->
-                    <div id="quantitySection" class="quantity-section" style="display: none; margin: 1.5rem 0;">
-                        <h4>Quantity:</h4>
-                        <div class="quantity-controls">
-                            <button type="button" class="quantity-btn" onclick="changeQuantity(-1)">-</button>
-                            <input type="number" id="quantityInput" value="1" min="1" max="10" class="quantity-input">
-                            <button type="button" class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                    <div class="variant-selection">
+                        <h3 data-translate="modal_choose_size">Choose Size:</h3>
+                        <div id="variantButtons" class="variant-buttons">
+                            <!-- Variant buttons will be populated -->
                         </div>
                     </div>
                     
-                    <button id="addToCartBtn" class="add-to-cart-btn" data-key="modal.add_to_cart">
+                    <button id="addToCartBtn" class="add-to-cart-btn" data-translate="modal_add_to_cart">
                         Add to Cart
                     </button>
                 </div>
@@ -110,22 +220,41 @@
         </div>
     </div>
 
-    <!-- Cart Modal -->
-    <div id="cartModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeCartModal()">&times;</span>
-            <div class="modal-body">
-                <h2 data-key="cart.title">Shopping Cart</h2>
-                <div id="cartItems"></div>
-                <div class="cart-total">
-                    <strong data-key="cart.total">Total: <span id="cartTotal">0.000 OMR</span></strong>
-                </div>
-                <div class="cart-actions">
-                    <button onclick="clearCart()" class="btn-secondary" data-key="cart.clear">Clear</button>
-                    <button onclick="proceedToCheckout()" class="btn-primary" data-key="cart.checkout">Checkout</button>
-                </div>
+    <!-- Cart Sidebar -->
+    <div id="cartSidebar" class="cart-sidebar">
+        <div class="cart-sidebar-header">
+            <h3 data-translate="cart_title">Shopping Cart</h3>
+            <button id="closeSidebar" class="close-sidebar">×</button>
+        </div>
+        <div class="cart-sidebar-content" id="cartSidebarContent">
+            <!-- Cart items will be populated here -->
+        </div>
+        <div class="cart-sidebar-footer" id="cartSidebarFooter" style="display: none;">
+            <div class="cart-total">
+                <strong data-translate="cart_total">Total: <span id="sidebarTotal">0.000 OMR</span></strong>
+            </div>
+            <div class="cart-actions">
+                <button id="clearCartSidebar" class="btn-secondary" data-translate="cart_clear">Clear Cart</button>
+                <button id="checkoutSidebar" class="btn-primary" data-translate="cart_checkout">Checkout</button>
             </div>
         </div>
+    </div>
+
+    <!-- Floating Buttons -->
+    <div class="floating-buttons">
+        <!-- WhatsApp Button -->
+        <a href="https://wa.me/96812345678" class="whatsapp-float" target="_blank" rel="noopener" data-translate-title="whatsapp_contact">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.53 3.687"/>
+            </svg>
+        </a>
+
+        <!-- Scroll to Top Button -->
+        <button id="scrollTopBtn" class="scroll-top-btn" style="display: none;" data-translate-title="scroll_to_top">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+            </svg>
+        </button>
     </div>
 
     <!-- Footer -->
@@ -134,65 +263,50 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>🌸 Qotore</h3>
-                    <p data-key="footer.description">Premium fragrances for discerning tastes</p>
+                    <p data-translate="footer_description">Premium fragrances for discerning tastes</p>
                 </div>
+                
                 <div class="footer-section">
-                    <h4 data-key="footer.contact">Contact Us</h4>
+                    <h4 data-translate="footer_contact_title">Contact Us</h4>
                     <div class="social-links">
-                        <a href="https://wa.me/96800000000" target="_blank" class="social-link whatsapp" title="WhatsApp">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
-                            </svg>
-                        </a>
-                        <a href="https://instagram.com/qotore" target="_blank" class="social-link instagram" title="Instagram">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <a href="https://instagram.com/qotore" target="_blank" rel="noopener" class="social-link">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                             </svg>
+                            Instagram
                         </a>
-                        <a href="https://snapchat.com/add/qotore" target="_blank" class="social-link snapchat" title="Snapchat">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.219-5.160 1.219-5.160s-.313-.623-.313-1.526c0-1.434.83-2.503 1.868-2.503.881 0 1.309.662 1.309 1.455 0 .887-.567 2.212-.859 3.438-.245 1.038.52 1.884 1.547 1.884 1.854 0 3.279-1.954 3.279-4.772 0-2.503-1.799-4.253-4.384-4.253-2.986 0-4.751 2.239-4.751 4.546 0 .896.343 1.864.771 2.383.085.104.097.195.072.299-.079.33-.254 1.037-.289 1.183-.046.191-.148.232-.342.141-1.29-.601-2.101-2.481-2.101-3.998 0-3.297 2.396-6.325 6.913-6.325 3.628 0 6.44 2.586 6.44 6.041 0 3.607-2.274 6.504-5.431 6.504-1.060 0-2.057-.552-2.396-1.226 0 0-.523 1.991-.65 2.484-.236.915-.872 2.062-1.299 2.759.976.301 2.016.461 3.096.461 6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641.001 12.017.001z"/>
+                        <a href="https://snapchat.com/add/qotore" target="_blank" rel="noopener" class="social-link">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.042-3.441.219-.937 1.404-5.965 1.404-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.888-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24c6.624 0 11.99-5.367 11.99-12.013C24.007 5.367 18.641.001.017 0z"/>
                             </svg>
+                            Snapchat
+                        </a>
+                        <a href="https://wa.me/96812345678" target="_blank" rel="noopener" class="social-link">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.53 3.687"/>
+                            </svg>
+                            WhatsApp
                         </a>
                     </div>
                 </div>
+                
+                <div class="footer-section">
+                    <h4 data-translate="footer_legal_title">Legal</h4>
+                    <div class="footer-links">
+                        <a href="/terms.html" data-translate="footer_terms">Terms & Conditions</a>
+                        <a href="/privacy.html" data-translate="footer_privacy">Privacy Policy</a>
+                    </div>
+                </div>
             </div>
+            
             <div class="footer-bottom">
-                <p>&copy; 2024 Qotore. All rights reserved.</p>
+                <p>&copy; 2025 Qotore. <span data-translate="footer_rights">All rights reserved.</span></p>
             </div>
         </div>
     </footer>
 
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/96800000000" target="_blank" class="whatsapp-float" title="Contact us on WhatsApp">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
-        </svg>
-    </a>
-
-    <script src="index-assets/app.js"></script>
-    <script>
-        // Quantity control functions
-        function changeQuantity(delta) {
-            const input = document.getElementById('quantityInput');
-            const currentValue = parseInt(input.value) || 1;
-            const newValue = Math.max(1, Math.min(10, currentValue + delta));
-            input.value = newValue;
-        }
-
-        // Validate quantity input
-        document.addEventListener('DOMContentLoaded', function() {
-            const quantityInput = document.getElementById('quantityInput');
-            if (quantityInput) {
-                quantityInput.addEventListener('input', function() {
-                    let value = parseInt(this.value);
-                    if (isNaN(value) || value < 1) value = 1;
-                    if (value > 10) value = 10;
-                    this.value = value;
-                });
-            }
-        });
-    </script>
-    <script src="index-assets/cart-adapter.js"></script>
+    <!-- Scripts -->
+    <script src="/index-assets/enhanced-script.js"></script>
+    <script src="/index-assets/cart-adapter.js"></script>
 </body>
 </html>

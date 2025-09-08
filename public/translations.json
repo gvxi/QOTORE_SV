@@ -1,5 +1,69 @@
 {
   "en": {
+        "_comment": "Add these entries to your existing translations.json file",
+    
+    "page_title": "Qotore - Premium Fragrances",
+    "loading_text": "Loading premium fragrances...",
+    "nav_language": "Language",
+    "admin_login": "Admin Login",
+    "whatsapp_contact": "Contact us on WhatsApp",
+    "scroll_to_top": "Scroll to top",
+    
+    "search_fragrances": "Search fragrances...",
+    "sort_name": "Sort by Name",
+    "sort_brand": "Sort by Brand", 
+    "sort_price_low": "Price: Low to High",
+    "sort_price_high": "Price: High to Low",
+    "loading_fragrances": "Loading fragrances...",
+    
+    "hero_title": "Premium Fragrances",
+    "hero_subtitle": "Discover luxury scents from around the world",
+    "hero_cta": "Explore Collection",
+    
+    "products_title": "Our Collection",
+    "contact_pricing": "Contact for pricing",
+    "full_bottle": "Full Bottle",
+    
+    "modal_choose_size": "Choose Size:",
+    "modal_add_to_cart": "Add to Cart",
+    "please_select_variant": "Please select a size first",
+    "added_to_cart": "Added to cart!",
+    
+    "cart_title": "Shopping Cart",
+    "cart_total": "Total:",
+    "cart_clear": "Clear Cart",
+    "cart_checkout": "Checkout",
+    "cart_empty": "Your cart is empty",
+    "add_fragrances": "Add some fragrances to get started",
+    "confirm_clear_cart": "Are you sure you want to clear your cart?",
+    
+    "about_title": "Why Choose Qotore?",
+    "about_description": "At Qotore, we specialize in bringing you the finest fragrances from around the world. Our carefully curated collection features premium scents that tell stories, evoke memories, and express your unique personality.",
+    
+    "feature_authentic_title": "100% Authentic",
+    "feature_authentic_desc": "Only genuine fragrances from authorized distributors",
+    "feature_delivery_title": "Fast Delivery", 
+    "feature_delivery_desc": "Quick and secure delivery across Oman",
+    "feature_quality_title": "Premium Quality",
+    "feature_quality_desc": "Carefully selected luxury fragrances",
+    
+    "reviews_title": "What Our Customers Say",
+    "review_1_text": "Amazing quality fragrances! The scents last all day and the service is exceptional.",
+    "review_1_author": "Ahmed Al-Rashid",
+    "review_1_location": "Muscat",
+    "review_2_text": "Perfect samples to try before buying the full bottle. Love the variety of options!",
+    "review_2_author": "Fatima Al-Zahra", 
+    "review_2_location": "Salalah",
+    "review_3_text": "Fast delivery and authentic products. Qotore is my go-to for luxury fragrances.",
+    "review_3_author": "Mohammed Al-Kindi",
+    "review_3_location": "Nizwa",
+    
+    "footer_description": "Premium fragrances for discerning tastes",
+    "footer_contact_title": "Contact Us",
+    "footer_legal_title": "Legal",
+    "footer_terms": "Terms & Conditions",
+    "footer_privacy": "Privacy Policy", 
+    "footer_rights": "All rights reserved.",
     "nav": {
       "products": "Products",
       "language": "Language",
@@ -74,6 +138,71 @@
     }
   },
   "ar": {
+        "_comment": "Add these entries to your existing translations.json file",
+    
+    "page_title": "قطور - عطور فاخرة",
+    "loading_text": "جار تحميل العطور الفاخرة...",
+    "nav_language": "اللغة",
+    "admin_login": "دخول الإدارة",
+    "whatsapp_contact": "تواصل معنا عبر واتساب",
+    "scroll_to_top": "العودة للأعلى",
+    
+    "search_fragrances": "البحث عن العطور...",
+    "sort_name": "ترتيب حسب الاسم",
+    "sort_brand": "ترتيب حسب الماركة",
+    "sort_price_low": "السعر: من الأقل للأعلى",
+    "sort_price_high": "السعر: من الأعلى للأقل",
+    "loading_fragrances": "جار تحميل العطور...",
+    
+    "hero_title": "عطور فاخرة",
+    "hero_subtitle": "اكتشف العطور الفاخرة من جميع أنحاء العالم",
+    "hero_cta": "استكشف المجموعة",
+    
+    "products_title": "مجموعتنا",
+    "contact_pricing": "اتصل للاستفسار عن السعر",
+    "full_bottle": "الزجاجة الكاملة",
+    
+    "modal_choose_size": "اختر الحجم:",
+    "modal_add_to_cart": "أضف إلى السلة",
+    "please_select_variant": "يرجى اختيار الحجم أولاً",
+    "added_to_cart": "تم إضافته إلى السلة!",
+    
+    "cart_title": "سلة التسوق",
+    "cart_total": "المجموع:",
+    "cart_clear": "مسح السلة",
+    "cart_checkout": "الدفع",
+    "cart_empty": "سلتك فارغة",
+    "add_fragrances": "أضف بعض العطور للبدء",
+    "confirm_clear_cart": "هل أنت متأكد من رغبتك في مسح السلة؟",
+    
+    "about_title": "لماذا تختار قطور؟",
+    "about_description": "في قطور، نتخصص في تقديم أجود العطور من جميع أنحاء العالم. مجموعتنا المختارة بعناية تضم عطوراً فاخرة تحكي القصص وتستحضر الذكريات وتعبر عن شخصيتك الفريدة.",
+    
+    "feature_authentic_title": "أصلية 100%",
+    "feature_authentic_desc": "عطور أصلية فقط من موزعين معتمدين",
+    "feature_delivery_title": "توصيل سريع",
+    "feature_delivery_desc": "توصيل سريع وآمن في جميع أنحاء عُمان",
+    "feature_quality_title": "جودة فاخرة",
+    "feature_quality_desc": "عطور فاخرة مختارة بعناية",
+    
+    "reviews_title": "ماذا يقول عملاؤنا",
+    "review_1_text": "عطور بجودة مذهلة! الروائح تدوم طوال اليوم والخدمة استثنائية.",
+    "review_1_author": "أحمد الراشد",
+    "review_1_location": "مسقط",
+    "review_2_text": "عينات مثالية لتجربتها قبل شراء الزجاجة الكاملة. أحب تنوع الخيارات!",
+    "review_2_author": "فاطمة الزهراء",
+    "review_2_location": "صلالة",
+    "review_3_text": "توصيل سريع ومنتجات أصلية. قطور هي خياري الأول للعطور الفاخرة.",
+    "review_3_author": "محمد الكندي",
+    "review_3_location": "نزوى",
+    
+    "footer_description": "عطور فاخرة للأذواق المميزة",
+    "footer_contact_title": "تواصل معنا",
+    "footer_legal_title": "قانوني",
+    "footer_terms": "الشروط والأحكام",
+    "footer_privacy": "سياسة الخصوصية",
+    "footer_rights": "جميع الحقوق محفوظة.",
+    
     "nav": {
       "products": "المنتجات",
       "language": "اللغة",

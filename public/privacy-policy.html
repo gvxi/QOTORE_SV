@@ -1,50 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - Qotore</title>
-    
-    <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-    
-    <!-- PWA Theme -->
-    <meta name="theme-color" content="#8B4513">
-    <meta name="msapplication-TileColor" content="#8B4513">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Qotore">
-    
-    <!-- Meta Tags -->
-    <meta name="description" content="Qotore Privacy Policy - How we collect, use, and protect your personal information when you shop for premium fragrances.">
-    <meta property="og:title" content="Privacy Policy - Qotore">
-    <meta property="og:description" content="Learn how Qotore protects your privacy and handles your personal information.">
-    <meta property="og:image" content="/icons/icon-512x512.png">
-    <meta property="og:url" content="/privacy-policy">
-    <meta property="og:type" content="website">
-
     <style>
-        :root {
-            --primary: #8B4513;
-            --primary-dark: #A0522D;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #2d3748;
-            --border: #e9ecef;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            --border-radius: 12px;
-            --transition: all 0.3s ease;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -52,21 +12,20 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
-            color: var(--dark);
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: 100vh;
+            color: #333;
+            background: #fafafa;
         }
 
         .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
             color: white;
-            padding: 2rem 0;
-            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .header-content {
+        .nav-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
@@ -75,836 +34,279 @@
             align-items: center;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
+        .logo span {
+            font-size: 1.8rem;
+            font-weight: bold;
         }
 
         .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 500;
-            transition: var(--transition);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
 
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 3rem 2rem;
         }
 
         .content {
             background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
             padding: 3rem;
-            margin-bottom: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        .page-title {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 3px solid var(--primary);
-        }
-
-        .page-title h1 {
+        h1 {
+            color: #8B4513;
+            margin-bottom: 1rem;
             font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
         }
 
         .last-updated {
             color: #666;
             font-style: italic;
-            text-align: center;
             margin-bottom: 2rem;
-            padding: 1rem;
-            background: var(--light);
-            border-radius: 8px;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
         }
 
-        .section {
-            margin-bottom: 2.5rem;
-        }
-
-        .section h2 {
-            color: var(--primary);
+        h2 {
+            color: #333;
+            margin: 2rem 0 1rem 0;
             font-size: 1.5rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border);
         }
 
-        .section h3 {
-            color: var(--primary-dark);
-            font-size: 1.2rem;
+        h3 {
+            color: #555;
             margin: 1.5rem 0 0.75rem 0;
+            font-size: 1.2rem;
         }
 
-        .section p {
+        p {
             margin-bottom: 1rem;
-            text-align: justify;
         }
 
-        .section ul {
-            margin-bottom: 1rem;
-            padding-left: 2rem;
+        ul {
+            margin: 1rem 0 1rem 2rem;
         }
 
-        .section li {
+        li {
             margin-bottom: 0.5rem;
         }
 
         .highlight-box {
-            background: #f0f9ff;
-            border: 2px solid var(--info);
-            border-radius: 8px;
+            background: #f8f9fa;
             padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .highlight-box h4 {
-            color: var(--info);
-            margin-bottom: 0.75rem;
-        }
-
-        .warning-box {
-            background: #fff3cd;
-            border: 2px solid var(--warning);
             border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .warning-box h4 {
-            color: #856404;
-            margin-bottom: 0.75rem;
+            margin: 2rem 0;
+            border-left: 4px solid #8B4513;
         }
 
         .contact-info {
-            background: var(--light);
-            border-radius: 8px;
+            background: #e3f2fd;
             padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .contact-info h4 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .contact-info p {
-            margin-bottom: 0.5rem;
-        }
-
-        .contact-info a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .contact-info a:hover {
-            text-decoration: underline;
-        }
-
-        .toc {
-            background: var(--light);
             border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .toc h3 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .toc ol {
-            padding-left: 1.5rem;
-        }
-
-        .toc li {
-            margin-bottom: 0.5rem;
-        }
-
-        .toc a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .toc a:hover {
-            text-decoration: underline;
-        }
-
-        .footer {
-            background: var(--dark);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 2rem;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer h4 {
-            margin-bottom: 1rem;
-        }
-
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .social-link {
-            background: var(--primary);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 1.25rem;
-            transition: var(--transition);
-        }
-
-        .social-link:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-
-        .footer-bottom {
-            border-top: 1px solid #444;
-            padding-top: 1rem;
-            margin-top: 1rem;
-        }
-
-        .whatsapp-float {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: #25D366;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
-            z-index: 1000;
-            transition: var(--transition);
-        }
-
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(37, 211, 102, 0.4);
+            margin: 2rem 0;
         }
 
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-
             .container {
-                padding: 1rem;
+                padding: 2rem 1rem;
             }
 
             .content {
                 padding: 2rem 1.5rem;
             }
 
-            .page-title h1 {
+            h1 {
                 font-size: 2rem;
-            }
-
-            .social-links {
-                gap: 0.5rem;
-            }
-
-            .social-link {
-                width: 45px;
-                height: 45px;
-                font-size: 1.1rem;
             }
         }
     </style>
 </head>
 <body>
     <header class="header">
-        <div class="header-content">
-            <a href="/" class="logo">
-                <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>Qotore</span>
-            </a>
-            <a href="/" class="back-btn">
-                <span>←</span>
-                <span>Back to Home</span>
-            </a>
+        <div class="nav-container">
+            <div class="logo">
+                <span>🌸 Qotore</span>
+            </div>
+            <a href="/" class="back-btn">← Back to Home</a>
         </div>
     </header>
 
     <div class="container">
         <div class="content">
-            <div class="page-title">
-                <h1>🔒 Privacy Policy</h1>
-                <p>Your privacy matters to us</p>
+            <h1>Privacy Policy</h1>
+            <p class="last-updated">Last updated: January 2025</p>
+
+            <div class="highlight-box">
+                <p><strong>Your privacy is important to us.</strong> This privacy policy explains how Qotore collects, uses, and protects your personal information when you use our website and services.</p>
             </div>
 
-            <div class="last-updated">
-                <p><strong>Last Updated:</strong> January 2025</p>
-                <p>This Privacy Policy is effective as of the date listed above and applies to all users of the Qotore website and services.</p>
+            <h2>1. Information We Collect</h2>
+            
+            <h3>1.1 Personal Information</h3>
+            <p>When you place an order or contact us, we may collect the following personal information:</p>
+            <ul>
+                <li>Full name</li>
+                <li>Phone number</li>
+                <li>Email address (if provided)</li>
+                <li>Delivery address</li>
+                <li>City and region information</li>
+                <li>Order preferences and special instructions</li>
+            </ul>
+
+            <h3>1.2 Automatically Collected Information</h3>
+            <p>When you visit our website, we may automatically collect:</p>
+            <ul>
+                <li>IP address</li>
+                <li>Browser type and version</li>
+                <li>Operating system</li>
+                <li>Pages visited and time spent on our website</li>
+                <li>Language preferences</li>
+                <li>Device information</li>
+            </ul>
+
+            <h3>1.3 Cookies and Local Storage</h3>
+            <p>We use cookies and local storage to enhance your browsing experience:</p>
+            <ul>
+                <li>Shopping cart contents</li>
+                <li>Language preferences</li>
+                <li>Website preferences and settings</li>
+                <li>Analytics data to improve our services</li>
+            </ul>
+
+            <h2>2. How We Use Your Information</h2>
+            
+            <h3>2.1 Order Processing</h3>
+            <p>We use your personal information to:</p>
+            <ul>
+                <li>Process and fulfill your orders</li>
+                <li>Communicate with you about your orders</li>
+                <li>Arrange delivery to your specified address</li>
+                <li>Provide customer support</li>
+            </ul>
+
+            <h3>2.2 Service Improvement</h3>
+            <p>We may use aggregated, non-personal information to:</p>
+            <ul>
+                <li>Analyze website usage patterns</li>
+                <li>Improve our website functionality</li>
+                <li>Develop new features and services</li>
+                <li>Understand customer preferences</li>
+            </ul>
+
+            <h3>2.3 Communication</h3>
+            <p>With your consent, we may use your contact information to:</p>
+            <ul>
+                <li>Send order confirmations and updates</li>
+                <li>Notify you about new products or promotions</li>
+                <li>Respond to your inquiries</li>
+                <li>Provide customer service</li>
+            </ul>
+
+            <h2>3. Information Sharing and Disclosure</h2>
+            
+            <h3>3.1 No Sale of Personal Information</h3>
+            <p>We do not sell, trade, or otherwise transfer your personal information to third parties for marketing purposes.</p>
+
+            <h3>3.2 Service Providers</h3>
+            <p>We may share your information with trusted service providers who assist us in:</p>
+            <ul>
+                <li>Delivery services (only delivery-related information)</li>
+                <li>Payment processing (if applicable)</li>
+                <li>Website hosting and maintenance</li>
+                <li>Customer support services</li>
+            </ul>
+
+            <h3>3.3 Legal Requirements</h3>
+            <p>We may disclose your information if required by law or to:</p>
+            <ul>
+                <li>Comply with legal process</li>
+                <li>Protect our rights and property</li>
+                <li>Ensure user safety</li>
+                <li>Investigate potential violations of our terms</li>
+            </ul>
+
+            <h2>4. Data Security</h2>
+            
+            <h3>4.1 Security Measures</h3>
+            <p>We implement appropriate security measures to protect your personal information:</p>
+            <ul>
+                <li>Secure data transmission (SSL encryption)</li>
+                <li>Access controls and authentication</li>
+                <li>Regular security assessments</li>
+                <li>Employee training on data protection</li>
+            </ul>
+
+            <h3>4.2 Data Retention</h3>
+            <p>We retain your personal information only as long as necessary to:</p>
+            <ul>
+                <li>Fulfill the purposes outlined in this policy</li>
+                <li>Comply with legal obligations</li>
+                <li>Resolve disputes</li>
+                <li>Enforce our agreements</li>
+            </ul>
+
+            <h2>5. Your Rights and Choices</h2>
+            
+            <h3>5.1 Access and Update</h3>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Access your personal information</li>
+                <li>Request corrections to inaccurate data</li>
+                <li>Update your contact preferences</li>
+                <li>Request deletion of your data (subject to legal requirements)</li>
+            </ul>
+
+            <h3>5.2 Communication Preferences</h3>
+            <p>You can opt out of promotional communications at any time by:</p>
+            <ul>
+                <li>Contacting us directly</li>
+                <li>Following unsubscribe instructions in emails</li>
+                <li>Updating your preferences on our website</li>
+            </ul>
+
+            <h3>5.3 Cookie Management</h3>
+            <p>You can control cookies through your browser settings, though this may affect website functionality.</p>
+
+            <h2>6. Children's Privacy</h2>
+            <p>Our services are not directed to children under 18. We do not knowingly collect personal information from children. If we become aware that we have collected information from a child, we will take steps to delete it promptly.</p>
+
+            <h2>7. International Data Transfers</h2>
+            <p>Your information may be transferred to and processed in countries other than Oman. We ensure appropriate safeguards are in place to protect your information in such transfers.</p>
+
+            <h2>8. Third-Party Websites</h2>
+            <p>Our website may contain links to third-party websites (such as social media platforms). We are not responsible for the privacy practices of these external sites and encourage you to review their privacy policies.</p>
+
+            <h2>9. Changes to This Privacy Policy</h2>
+            <p>We may update this privacy policy from time to time. We will notify you of any material changes by posting the new policy on our website with an updated "Last updated" date.</p>
+
+            <h2>10. Contact Information</h2>
+            <div class="contact-info">
+                <p>If you have any questions about this Privacy Policy or our data practices, please contact us:</p>
+                <ul>
+                    <li><strong>WhatsApp:</strong> +968 1234 5678</li>
+                    <li><strong>Instagram:</strong> @qotore</li>
+                    <li><strong>Website:</strong> qotore.com</li>
+                </ul>
+                <p>We will respond to your inquiry within a reasonable timeframe.</p>
             </div>
 
-            <div class="toc">
-                <h3>📋 Table of Contents</h3>
-                <ol>
-                    <li><a href="#introduction">Introduction</a></li>
-                    <li><a href="#information-we-collect">Information We Collect</a></li>
-                    <li><a href="#how-we-use-information">How We Use Your Information</a></li>
-                    <li><a href="#information-sharing">Information Sharing and Disclosure</a></li>
-                    <li><a href="#data-security">Data Security</a></li>
-                    <li><a href="#data-retention">Data Retention</a></li>
-                    <li><a href="#your-rights">Your Rights and Choices</a></li>
-                    <li><a href="#cookies">Cookies and Tracking Technologies</a></li>
-                    <li><a href="#international-transfers">International Data Transfers</a></li>
-                    <li><a href="#children-privacy">Children's Privacy</a></li>
-                    <li><a href="#changes">Changes to This Policy</a></li>
-                    <li><a href="#contact">Contact Information</a></li>
-                </ol>
-            </div>
-
-            <section id="introduction" class="section">
-                <h2>1. Introduction</h2>
-                <p>Welcome to Qotore, your premier destination for luxury fragrances in Oman. We are committed to protecting and respecting your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal information when you visit our website, place orders, or interact with our services.</p>
-                
-                <p>Qotore operates as an online fragrance retailer, offering a curated selection of premium fragrances in various sizes including 5ml, 10ml, 30ml samples, and full bottles. We are based in Muscat, Oman, and primarily serve customers throughout the Sultanate of Oman.</p>
-
-                <div class="highlight-box">
-                    <h4>🛡️ Our Commitment to You</h4>
-                    <p>We believe in transparency and giving you control over your personal information. This policy will help you understand what information we collect, why we collect it, and what choices you have about your data.</p>
-                </div>
-            </section>
-
-            <section id="information-we-collect" class="section">
-                <h2>2. Information We Collect</h2>
-                
-                <h3>2.1 Information You Provide Directly</h3>
-                <p>When you place an order or interact with our services, we collect information you voluntarily provide, including:</p>
-                <ul>
-                    <li><strong>Contact Information:</strong> Full name, phone number, email address</li>
-                    <li><strong>Delivery Information:</strong> Complete delivery address, city, region/wilayat, special delivery instructions</li>
-                    <li><strong>Order Information:</strong> Fragrance preferences, quantities, order notes and special requests</li>
-                    <li><strong>Communication Records:</strong> Messages sent through WhatsApp, email, or other communication channels</li>
-                </ul>
-
-                <h3>2.2 Information Collected Automatically</h3>
-                <p>When you visit our website, we automatically collect certain technical information:</p>
-                <ul>
-                    <li><strong>Device Information:</strong> IP address, browser type and version, operating system</li>
-                    <li><strong>Usage Information:</strong> Pages visited, time spent on site, click patterns, referring websites</li>
-                    <li><strong>Local Storage:</strong> Shopping cart contents, preferences, and session information stored locally on your device</li>
-                    <li><strong>Performance Data:</strong> Website loading times, error reports, and system diagnostics</li>
-                </ul>
-
-                <h3>2.3 Information from Third Parties</h3>
-                <p>We may receive information from third-party services we use:</p>
-                <ul>
-                    <li><strong>Payment Processors:</strong> Transaction confirmations and payment status (when applicable)</li>
-                    <li><strong>Delivery Services:</strong> Delivery confirmations and status updates</li>
-                    <li><strong>Analytics Services:</strong> Aggregated website usage statistics</li>
-                </ul>
-
-                <div class="warning-box">
-                    <h4>⚠️ Important Note</h4>
-                    <p>We do not collect payment card information directly. All payment processing is handled by secure third-party payment processors who maintain their own privacy policies and security standards.</p>
-                </div>
-            </section>
-
-            <section id="how-we-use-information" class="section">
-                <h2>3. How We Use Your Information</h2>
-                
-                <p>We use your personal information for the following purposes:</p>
-
-                <h3>3.1 Order Processing and Fulfillment</h3>
-                <ul>
-                    <li>Processing and managing your fragrance orders</li>
-                    <li>Arranging delivery to your specified address</li>
-                    <li>Sending order confirmations and status updates</li>
-                    <li>Handling customer service inquiries and support</li>
-                    <li>Managing returns, exchanges, or refunds when applicable</li>
-                </ul>
-
-                <h3>3.2 Communication and Customer Service</h3>
-                <ul>
-                    <li>Responding to your questions and providing customer support</li>
-                    <li>Sending important updates about your orders or our services</li>
-                    <li>Communicating via WhatsApp, phone, or email as preferred</li>
-                    <li>Providing product recommendations based on your preferences</li>
-                </ul>
-
-                <h3>3.3 Business Operations and Improvement</h3>
-                <ul>
-                    <li>Analyzing website usage to improve user experience</li>
-                    <li>Managing inventory and product availability</li>
-                    <li>Detecting and preventing fraud or security issues</li>
-                    <li>Complying with legal obligations and business requirements</li>
-                    <li>Maintaining accurate business records</li>
-                </ul>
-
-                <h3>3.4 Marketing and Promotions (With Consent)</h3>
-                <ul>
-                    <li>Sending promotional offers and new product announcements</li>
-                    <li>Sharing information about seasonal collections and special deals</li>
-                    <li>Providing personalized fragrance recommendations</li>
-                    <li>Inviting participation in customer surveys or feedback programs</li>
-                </ul>
-
-                <div class="highlight-box">
-                    <h4>📧 Marketing Communications</h4>
-                    <p>We will only send you marketing communications if you have given us permission to do so. You can opt out of these communications at any time by contacting us or using the unsubscribe options provided.</p>
-                </div>
-            </section>
-
-            <section id="information-sharing" class="section">
-                <h2>4. Information Sharing and Disclosure</h2>
-                
-                <p>We do not sell, rent, or trade your personal information to third parties. We may share your information only in the following limited circumstances:</p>
-
-                <h3>4.1 Service Providers and Business Partners</h3>
-                <ul>
-                    <li><strong>Delivery Services:</strong> We share delivery addresses and contact information with our delivery partners to fulfill your orders</li>
-                    <li><strong>Technology Providers:</strong> Website hosting, database management, and email services that help us operate our business</li>
-                    <li><strong>Payment Processors:</strong> Secure payment processing services (they handle payment information according to their own privacy policies)</li>
-                    <li><strong>Customer Support Tools:</strong> Services that help us provide better customer service and communication</li>
-                </ul>
-
-                <h3>4.2 Legal Requirements</h3>
-                <p>We may disclose your information if required by law or if we believe in good faith that such disclosure is necessary to:</p>
-                <ul>
-                    <li>Comply with legal obligations or government requests</li>
-                    <li>Protect and defend our rights and property</li>
-                    <li>Prevent fraud or security threats</li>
-                    <li>Protect the safety of our customers and the public</li>
-                </ul>
-
-                <h3>4.3 Business Transfers</h3>
-                <p>In the event of a merger, acquisition, or sale of business assets, customer information may be transferred as part of the transaction, subject to equivalent privacy protections.</p>
-
-                <div class="highlight-box">
-                    <h4>🤝 Our Promise</h4>
-                    <p>All third parties we work with are required to maintain the confidentiality and security of your personal information and are prohibited from using it for any purpose other than providing services to us.</p>
-                </div>
-            </section>
-
-            <section id="data-security" class="section">
-                <h2>5. Data Security</h2>
-                
-                <p>We take the security of your personal information seriously and implement comprehensive measures to protect it:</p>
-
-                <h3>5.1 Technical Safeguards</h3>
-                <ul>
-                    <li><strong>Encryption:</strong> All data transmission is protected using SSL/TLS encryption</li>
-                    <li><strong>Secure Hosting:</strong> Our website and databases are hosted on secure, professionally managed servers</li>
-                    <li><strong>Access Controls:</strong> Limited access to personal information on a need-to-know basis</li>
-                    <li><strong>Regular Updates:</strong> Security patches and updates are applied promptly</li>
-                    <li><strong>Monitoring:</strong> Continuous monitoring for security threats and vulnerabilities</li>
-                </ul>
-
-                <h3>5.2 Administrative Safeguards</h3>
-                <ul>
-                    <li>Regular security training for all staff members</li>
-                    <li>Confidentiality agreements for anyone with access to customer data</li>
-                    <li>Regular review and updating of security policies and procedures</li>
-                    <li>Incident response procedures for any security breaches</li>
-                </ul>
-
-                <h3>5.3 Physical Safeguards</h3>
-                <ul>
-                    <li>Secure facilities with controlled access</li>
-                    <li>Protected storage of any physical records</li>
-                    <li>Secure disposal of sensitive information when no longer needed</li>
-                </ul>
-
-                <div class="warning-box">
-                    <h4>⚠️ Security Reminder</h4>
-                    <p>While we implement strong security measures, please remember to keep your personal information safe. Do not share your order details or personal information with unauthorized parties claiming to represent Qotore.</p>
-                </div>
-            </section>
-
-            <section id="data-retention" class="section">
-                <h2>6. Data Retention</h2>
-                
-                <p>We retain your personal information only for as long as necessary to fulfill the purposes for which it was collected:</p>
-
-                <h3>6.1 Active Customer Data</h3>
-                <ul>
-                    <li><strong>Order Information:</strong> Retained for 3 years after order completion for customer service and warranty purposes</li>
-                    <li><strong>Account Information:</strong> Retained while you remain an active customer and for 2 years after last activity</li>
-                    <li><strong>Communication Records:</strong> Retained for 1 year for customer service quality and training purposes</li>
-                </ul>
-
-                <h3>6.2 Legal and Business Requirements</h3>
-                <ul>
-                    <li><strong>Tax Records:</strong> Retained for 7 years as required by Omani tax law</li>
-                    <li><strong>Fraud Prevention:</strong> Certain data may be retained longer for fraud prevention and security purposes</li>
-                    <li><strong>Legal Disputes:</strong> Information may be retained longer if involved in legal proceedings</li>
-                </ul>
-
-                <h3>6.3 Data Deletion</h3>
-                <p>When personal information is no longer needed, we securely delete or anonymize it. You may also request deletion of your personal information subject to legal and business requirements.</p>
-            </section>
-
-            <section id="your-rights" class="section">
-                <h2>7. Your Rights and Choices</h2>
-                
-                <p>You have several rights regarding your personal information:</p>
-
-                <h3>7.1 Access and Correction</h3>
-                <ul>
-                    <li><strong>Access:</strong> Request a copy of the personal information we hold about you</li>
-                    <li><strong>Correction:</strong> Request correction of inaccurate or incomplete information</li>
-                    <li><strong>Update:</strong> Update your contact and delivery information at any time</li>
-                </ul>
-
-                <h3>7.2 Control Over Communications</h3>
-                <ul>
-                    <li><strong>Marketing Opt-out:</strong> Unsubscribe from promotional communications at any time</li>
-                    <li><strong>Communication Preferences:</strong> Choose how you want to receive order updates (WhatsApp, email, SMS)</li>
-                    <li><strong>Frequency Control:</strong> Adjust how often you receive communications from us</li>
-                </ul>
-
-                <h3>7.3 Data Portability and Deletion</h3>
-                <ul>
-                    <li><strong>Data Export:</strong> Request a copy of your data in a structured, machine-readable format</li>
-                    <li><strong>Account Deletion:</strong> Request deletion of your account and associated data</li>
-                    <li><strong>Selective Deletion:</strong> Request deletion of specific types of information</li>
-                </ul>
-
-                <h3>7.4 How to Exercise Your Rights</h3>
-                <p>To exercise any of these rights, please contact us using the information provided in the Contact section. We will respond to your request within 30 days and may require verification of your identity for security purposes.</p>
-
-                <div class="highlight-box">
-                    <h4>🎛️ Your Control</h4>
-                    <p>We believe you should have control over your personal information. If you have any questions about exercising your rights or need assistance, our customer service team is here to help.</p>
-                </div>
-            </section>
-
-            <section id="cookies" class="section">
-                <h2>8. Cookies and Tracking Technologies</h2>
-                
-                <p>We use cookies and similar technologies to enhance your browsing experience:</p>
-
-                <h3>8.1 Types of Cookies We Use</h3>
-                <ul>
-                    <li><strong>Essential Cookies:</strong> Required for website functionality, including shopping cart and checkout processes</li>
-                    <li><strong>Performance Cookies:</strong> Help us understand how visitors use our website to improve performance</li>
-                    <li><strong>Functionality Cookies:</strong> Remember your preferences and provide enhanced features</li>
-                    <li><strong>Analytics Cookies:</strong> Provide insights into website usage and customer behavior</li>
-                </ul>
-
-                <h3>8.2 Local Storage</h3>
-                <p>We use browser local storage to:</p>
-                <ul>
-                    <li>Save your shopping cart contents between visits</li>
-                    <li>Remember your preferences and settings</li>
-                    <li>Improve website loading speed and performance</li>
-                    <li>Provide a better user experience</li>
-                </ul>
-
-                <h3>8.3 Managing Cookies</h3>
-                <p>You can control cookies through your browser settings. However, disabling certain cookies may affect website functionality and your ability to place orders.</p>
-
-                <div class="warning-box">
-                    <h4>🍪 Cookie Notice</h4>
-                    <p>Essential cookies are necessary for our website to function properly. These cannot be disabled if you want to use our online services. Other cookies can be managed through your browser preferences.</p>
-                </div>
-            </section>
-
-            <section id="international-transfers" class="section">
-                <h2>9. International Data Transfers</h2>
-                
-                <p>While Qotore is based in Oman and primarily serves Omani customers, some of our technology service providers may be located outside of Oman. When we transfer your personal information internationally, we ensure appropriate safeguards are in place:</p>
-
-                <h3>9.1 Safeguards for International Transfers</h3>
-                <ul>
-                    <li>Use of service providers with adequate privacy protections</li>
-                    <li>Contractual commitments to protect your data</li>
-                    <li>Compliance with international data protection standards</li>
-                    <li>Regular monitoring of service provider security practices</li>
-                </ul>
-
-                <h3>9.2 Countries We May Transfer Data To</h3>
-                <p>Your data may be processed in:</p>
-                <ul>
-                    <li>United States (cloud hosting and analytics services)</li>
-                    <li>European Union (email and communication services)</li>
-                    <li>Other countries where our service providers operate secure data centers</li>
-                </ul>
-            </section>
-
-            <section id="children-privacy" class="section">
-                <h2>10. Children's Privacy</h2>
-                
-                <p>Qotore is committed to protecting the privacy of children. Our services are not intended for individuals under the age of 18, and we do not knowingly collect personal information from children.</p>
-
-                <h3>10.1 Age Restrictions</h3>
-                <ul>
-                    <li>You must be 18 years or older to place orders</li>
-                    <li>Parents or guardians must place orders for minors</li>
-                    <li>We do not target marketing to children</li>
-                </ul>
-
-                <h3>10.2 If We Learn of Child Data Collection</h3>
-                <p>If we become aware that we have collected personal information from a child under 18, we will take steps to delete that information promptly. If you believe we have collected information from a child, please contact us immediately.</p>
-            </section>
-
-            <section id="changes" class="section">
-                <h2>11. Changes to This Privacy Policy</h2>
-                
-                <p>We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or legal requirements. When we make changes:</p>
-
-                <h3>11.1 Notification of Changes</h3>
-                <ul>
-                    <li>We will post the updated policy on our website</li>
-                    <li>We will update the "Last Updated" date at the top of this policy</li>
-                    <li>For significant changes, we will provide additional notice via email or website banner</li>
-                    <li>Continued use of our services after changes constitutes acceptance of the updated policy</li>
-                </ul>
-
-                <h3>11.2 Your Options</h3>
-                <p>If you disagree with changes to this Privacy Policy, you may:</p>
-                <ul>
-                    <li>Stop using our services</li>
-                    <li>Contact us to discuss your concerns</li>
-                    <li>Request deletion of your personal information (subject to legal requirements)</li>
-                </ul>
-            </section>
-
-            <section id="contact" class="section">
-                <h2>12. Contact Information</h2>
-                
-                <p>If you have any questions, concerns, or requests regarding this Privacy Policy or our handling of your personal information, please contact us:</p>
-
-                <div class="contact-info">
-                    <h4>🏢 Qotore Customer Privacy Team</h4>
-                    <p><strong>Business Address:</strong> Muscat, Sultanate of Oman</p>
-                    <p><strong>WhatsApp:</strong> <a href="https://wa.me/96812345678">+968 1234 5678</a></p>
-                    <p><strong>Email:</strong> <a href="mailto:privacy@qotore.com">privacy@qotore.com</a></p>
-                    <p><strong>Customer Service:</strong> <a href="mailto:support@qotore.com">support@qotore.com</a></p>
-                    <p><strong>Business Hours:</strong> Sunday - Thursday: 9:00 AM - 6:00 PM (Oman Time)</p>
-                </div>
-
-                <h3>12.1 Response Time</h3>
-                <p>We are committed to responding to your privacy-related inquiries promptly:</p>
-                <ul>
-                    <li><strong>General Inquiries:</strong> Within 24-48 hours</li>
-                    <li><strong>Data Access Requests:</strong> Within 30 days</li>
-                    <li><strong>Urgent Privacy Concerns:</strong> Within 24 hours</li>
-                    <li><strong>Data Deletion Requests:</strong> Within 30 days (subject to legal requirements)</li>
-                </ul>
-
-                <h3>12.2 What to Include in Your Contact</h3>
-                <p>To help us respond effectively to your privacy inquiry, please include:</p>
-                <ul>
-                    <li>Your full name and contact information</li>
-                    <li>Description of your privacy concern or request</li>
-                    <li>Any relevant order numbers or account information</li>
-                    <li>Preferred method of response (email, phone, WhatsApp)</li>
-                </ul>
-
-                <div class="highlight-box">
-                    <h4>🤝 Our Commitment to You</h4>
-                    <p>Your privacy is important to us, and we are committed to addressing any concerns you may have. Our customer privacy team is trained to handle all privacy-related inquiries with care and professionalism.</p>
-                </div>
-
-                <div class="warning-box">
-                    <h4>🛡️ Verify Official Communications</h4>
-                    <p><strong>Important:</strong> Qotore will never ask for your passwords, payment card details, or other sensitive information via email or phone. If you receive suspicious communications claiming to be from Qotore, please contact us directly to verify.</p>
-                </div>
-            </section>
-
-            <section class="section">
-                <h2>13. Additional Information for Oman Residents</h2>
-                
-                <p>As a business operating in the Sultanate of Oman, we comply with applicable Omani laws and regulations regarding data protection and privacy:</p>
-
-                <h3>13.1 Local Compliance</h3>
-                <ul>
-                    <li>We comply with Omani telecommunications and data protection regulations</li>
-                    <li>Customer data is handled in accordance with local business licensing requirements</li>
-                    <li>We respect cultural values and privacy expectations in Oman</li>
-                    <li>All business operations follow Omani commercial law requirements</li>
-                </ul>
-
-                <h3>13.2 Language and Communication</h3>
-                <ul>
-                    <li>This Privacy Policy is available in English</li>
-                    <li>Customer service is available in both English and Arabic</li>
-                    <li>Privacy inquiries can be submitted in either language</li>
-                    <li>Legal documents and agreements follow Omani legal standards</li>
-                </ul>
-
-                <h3>13.3 Local Data Handling</h3>
-                <ul>
-                    <li>Order processing and customer service are managed locally in Oman</li>
-                    <li>Delivery information is shared only with local delivery partners</li>
-                    <li>Customer support teams are based in Muscat</li>
-                    <li>Business records are maintained according to Omani requirements</li>
-                </ul>
-            </section>
-
-            <section class="section">
-                <h2>14. Glossary of Terms</h2>
-                
-                <p>To help you understand this Privacy Policy, here are definitions of key terms:</p>
-
-                <h3>14.1 Data Protection Terms</h3>
-                <ul>
-                    <li><strong>Personal Information:</strong> Any information that can identify you as an individual</li>
-                    <li><strong>Processing:</strong> Any operation performed on personal data, including collection, storage, and use</li>
-                    <li><strong>Data Controller:</strong> The entity (Qotore) that determines how and why personal data is processed</li>
-                    <li><strong>Data Processor:</strong> Third parties who process personal data on our behalf</li>
-                    <li><strong>Consent:</strong> Your freely given agreement to our processing of your personal information</li>
-                </ul>
-
-                <h3>14.2 Technical Terms</h3>
-                <ul>
-                    <li><strong>Cookies:</strong> Small files stored on your device to remember preferences and improve experience</li>
-                    <li><strong>Local Storage:</strong> Data stored in your browser for website functionality</li>
-                    <li><strong>Encryption:</strong> Technology that protects data by converting it into a secure code</li>
-                    <li><strong>SSL/TLS:</strong> Security protocols that protect data transmitted over the internet</li>
-                    <li><strong>IP Address:</strong> A unique number assigned to your device when connected to the internet</li>
-                </ul>
-
-                <h3>14.3 Business Terms</h3>
-                <ul>
-                    <li><strong>Order Processing:</strong> All activities involved in handling your fragrance orders</li>
-                    <li><strong>Customer Service:</strong> Support provided to help with orders, questions, and concerns</li>
-                    <li><strong>Marketing Communications:</strong> Promotional messages about products and offers</li>
-                    <li><strong>Service Providers:</strong> Third-party companies that help us operate our business</li>
-                </ul>
-            </section>
-
-            <div class="highlight-box" style="margin-top: 3rem;">
-                <h4>🌟 Thank You for Choosing Qotore</h4>
-                <p>We appreciate your trust in Qotore for your fragrance needs. This Privacy Policy reflects our commitment to protecting your personal information while providing you with exceptional service and premium fragrances.</p>
-                <p>If you have any questions about this Privacy Policy or our privacy practices, please don't hesitate to contact our customer privacy team. We're here to help ensure your experience with Qotore is both enjoyable and secure.</p>
+            <div class="highlight-box">
+                <h3>Data Protection Officer</h3>
+                <p>For specific data protection inquiries or to exercise your rights under this policy, you may contact our Data Protection Officer through any of the contact methods listed above.</p>
             </div>
         </div>
     </div>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>Qotore</h4>
-                <p>Premium fragrances for discerning tastes</p>
-                <p>Your privacy and satisfaction are our priorities</p>
-            </div>
-            <div class="footer-section">
-                <h4>Contact Us</h4>
-                <div class="social-links">
-                    <a href="https://wa.me/96812345678" target="_blank" class="social-link whatsapp" title="WhatsApp">📱</a>
-                    <a href="https://instagram.com/qotore" target="_blank" class="social-link instagram" title="Instagram">📷</a>
-                    <a href="https://snapchat.com/add/qotore" target="_blank" class="social-link snapchat" title="Snapchat">👻</a>
-                </div>
-                <p><strong>Email:</strong> <a href="mailto:privacy@qotore.com" style="color: #ccc;">privacy@qotore.com</a></p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Qotore. All rights reserved. | <a href="/privacy-policy.html" style="color: #ccc;">Privacy Policy</a> | <a href="/terms-of-service.html" style="color: #ccc;">Terms of Service</a></p>
-        </div>
-    </footer>
-
-    <a href="https://wa.me/96812345678?text=Hello%20Qotore%2C%20I%20have%20a%20question%20about%20your%20privacy%20policy" 
-       target="_blank" 
-       class="whatsapp-float" 
-       title="Contact us about privacy">
-        📱
-    </a>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tocLinks = document.querySelectorAll('.toc a[href^="#"]');
-            
-            tocLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    const targetId = this.getAttribute('href').substring(1);
-                    const targetElement = document.getElementById(targetId);
-                    
-                    if (targetElement) {
-                        const offsetTop = targetElement.offsetTop - 100;
-                        window.scrollTo({
-                            top: offsetTop,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
-
-            const sections = document.querySelectorAll('section[id]');
-            const tocLinksArray = Array.from(tocLinks);
-
-            function updateActiveLink() {
-                let currentSection = '';
-                const scrollPosition = window.scrollY + 150;
-
-                sections.forEach(section => {
-                    const sectionTop = section.offsetTop;
-                    const sectionHeight = section.offsetHeight;
-                    
-                    if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-                        currentSection = section.getAttribute('id');
-                    }
-                });
-
-                tocLinksArray.forEach(link => {
-                    link.style.fontWeight = 'normal';
-                    link.style.color = 'var(--primary)';
-                    
-                    if (link.getAttribute('href') === `#${currentSection}`) {
-                        link.style.fontWeight = 'bold';
-                        link.style.color = 'var(--primary-dark)';
-                    }
-                });
-            }
-
-            window.addEventListener('scroll', updateActiveLink);
-            updateActiveLink();
-        });
-    </script>
 </body>
 </html>
