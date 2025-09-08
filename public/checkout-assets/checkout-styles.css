@@ -139,7 +139,7 @@ body {
 /* Cart Content */
 .cart-content {
     padding: 0;
-    max-height: 60vh;
+    max-height: auto;
     overflow-y: auto;
 }
 
