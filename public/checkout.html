@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart & Checkout - Qotore</title>
-    
+    <title>t('page_title')</title>
+
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -37,11 +37,11 @@
         <div class="header-content">
             <a href="/" class="logo">
                 <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
-                <span>Qotore</span>
+                <span>t('qotore')</span>
             </a>
             <a href="/" class="back-btn">
                 <span>←</span>
-                <span>Continue Shopping</span>
+                <span>t('continue_shopping')</span>
             </a>
         </div>
     </header>
@@ -52,12 +52,12 @@
         <section class="cart-section">
             <div class="cart-header">
                 <div class="cart-title-section">
-                    <h1 class="cart-title">🛒 Your Cart</h1>
-                    <p class="cart-subtitle">Review your fragrances</p>
+                    <h1 class="cart-title">🛒 t('your_cart')</h1>
+                    <p class="cart-subtitle">t('review_fragrances')</p>
                 </div>
                 <button id="clearCartBtn" class="btn btn-danger clear-cart-btn" onclick="clearCart()" style="display: none;">
                     <span>🗑️</span>
-                    <span>Clear Cart</span>
+                    <span>t('clear_cart')</span>
                 </button>
             </div>
 
@@ -87,13 +87,13 @@
     <div id="customerInfoModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📝 Your Information</h2>
+                <h2>📝 t('your_information')</h2>
                 <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="customerInfoForm">
                     <div class="form-group">
-                        <label for="customerName">Full Name *</label>
+                        <label for="customerName">t('Name') *</label>
                         <input type="text" id="customerName" name="customerName" required placeholder="Enter your full name">
                     </div>
                     

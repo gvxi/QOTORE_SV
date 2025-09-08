@@ -1,3 +1,62 @@
+let currentLanguage = 'en';
+let translations = {};
+
+// Translation Functions
+async function loadTranslations() {
+    try {
+        const response = await fetch('/checkout-assets/checkout-translations.json');
+        translations = await response.json();
+    } catch (error) {
+        console.error('Failed to load translations:', error);
+        translations = { en: {}, ar: {} };
+    }
+}
+
+function t(key) {
+    return translations[currentLanguage]?.[key] || key;
+}
+
+function updateTranslations() {
+    document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        const translation = t(key);
+        if (translation !== key) {
+            element.textContent = translation;
+        }
+    });
+    
+    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-translate-placeholder');
+        const translation = t(key);
+        if (translation !== key) {
+            element.placeholder = translation;
+        }
+    });
+
+    const titleElement = document.querySelector('title');
+    if (titleElement) {
+        const titleKey = titleElement.getAttribute('data-translate');
+        if (titleKey) {
+            const translation = t(titleKey);
+            if (translation !== titleKey) {
+                titleElement.textContent = translation;
+            }
+        }
+    }
+}
+
+function loadLanguagePreference() {
+    const mainPageLanguage = localStorage.getItem('qotore_language');
+    const savedLanguage = mainPageLanguage || 'en';
+    
+    currentLanguage = savedLanguage;
+    document.documentElement.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', currentLanguage);
+    
+    updateTranslations();
+}
+
+
 // Checkout Script - Mobile-friendly, Supabase integration
 let cart = [];
 let customerInfo = null;
