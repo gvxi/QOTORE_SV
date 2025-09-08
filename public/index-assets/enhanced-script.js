@@ -601,7 +601,7 @@ function renderCartSidebar() {
     
     let total = 0;
     content.innerHTML = cart.map((item, index) => {
-        const itemTotal = (item.variant.price_cents / 1000) * item.quantity;
+        const itemTotal = (item.variant.price) * item.quantity;
         total += itemTotal;
         
         return `
