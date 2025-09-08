@@ -732,7 +732,14 @@ async function placeOrder() {
             console.log('Order placed successfully:', result.order);
             
             // Step 2: ALWAYS send admin email notification
-            sendAdminEmailNotification(result.order, customerInfo);
+            // Use the original orderData (not result.order) + the order number from response
+            const emailOrderData = {
+                ...orderData, // Original order data with all customer/item details
+                order_number: result.order.order_number, // Order number from API response
+                created_at: result.order.created_at || new Date().toISOString()
+            };
+            
+            sendAdminEmailNotification(emailOrderData, customerInfo);
             
             // Step 3: Clear cart and update UI
             cart = [];
@@ -761,6 +768,12 @@ async function placeOrder() {
 async function sendAdminEmailNotification(orderData, customerInfo) {
     try {
         console.log('Sending admin email notification for order:', orderData.order_number);
+        console.log('Order data for email:', {
+            customer_first_name: orderData.customer_first_name,
+            customer_phone: orderData.customer_phone,
+            delivery_city: orderData.delivery_city,
+            items_count: orderData.items?.length || 0
+        });
         
         if (window.sendOrderNotification) {
             const emailResult = await window.sendOrderNotification(orderData, customerInfo);
@@ -777,7 +790,6 @@ async function sendAdminEmailNotification(orderData, customerInfo) {
         // Log error but don't let it affect the order process
         console.error('Email notification error:', error);
     }
-}
 
 async function cancelOrder() {
     if (!activeOrder || !confirm(t('confirm_cancel_order'))) {
@@ -1076,4 +1088,4 @@ function hideLoadingSplash() {
         splash.classList.add('hidden');
         setTimeout(() => splash.remove(), 500);
     }
-}
+}}
