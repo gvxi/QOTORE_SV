@@ -260,8 +260,8 @@ function createProductCard(fragrance) {
        card.innerHTML = `
         <div class="product-image">
             ${fragrance.image_path ? 
-                `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}?${bustParam}" alt="${fragrance.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<img src=\'/public/icons/icon-32x32-dark.png\' alt=\'Qotore Logo\' class=\'fallback-logo\'>';">` :
-                '<img src="/public/icons/icon-32x32-dark.png" alt="Qotore Logo" class="cart-empty-logo">'
+                `<img src="/api/image/${fragrance.image_path.replace('fragrance-images/', '')}?${bustParam}" alt="${fragrance.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<img src=\'/icons/icon-32x32-dark.png\' alt=\'Qotore Logo\' class=\'fallback-logo\'>';">` :
+                '<img src="/icons/icon-32x32-dark.png" alt="Qotore Logo" class="cart-empty-logo">'
             }
         </div>
         <div class="product-info">
@@ -614,7 +614,7 @@ function renderCartSidebar() {
         <div class="cart-item-image">
             ${item.image_path ? 
                 `<img src="/api/image/${item.image_path.replace('fragrance-images/', '')}?${bustParam}" alt="${item.fragranceName}">` :
-                '<img src="/public/icons/icon-32x32-dark.png" alt="Qotore Logo" class="product-fallback-logo">'
+                '<img src="/icons/icon-32x32-dark.png" alt="Qotore Logo" class="product-fallback-logo">'
             }
         </div>
         <div class="cart-item-details">
