@@ -65,6 +65,9 @@
     "footer_privacy": "Privacy Policy", 
     "footer_rights": "All rights reserved.",
 
+    "results_found": "results found",
+    "clear_search": "Clear search",
+
     "nav": {
       "products": "Products",
       "language": "Language",
@@ -207,7 +210,10 @@
     "footer_terms": "الشروط والأحكام",
     "footer_privacy": "سياسة الخصوصية",
     "footer_rights": "جميع الحقوق محفوظة.",
-    
+
+    "results_found": "نتيجة موجودة",
+    "clear_search": "مسح البحث",
+
     "nav": {
       "products": "المنتجات",
       "language": "اللغة",

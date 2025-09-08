@@ -74,57 +74,75 @@
         </div>
     </section>
 
-    <!-- Products Section -->
-    <section id="products" class="products-section">
-        <div class="container">
-            <div class="products-header">
-                <h2 data-translate="products_title">Our Collection</h2>
-                
-                <!-- Filters & Pagination Controls -->
-                <div class="products-controls">
-                    <div class="filter-controls">
-                        <select id="sortSelect" class="sort-select">
-                            <option value="name" data-translate="sort_name">Sort by Name</option>
-                            <option value="brand" data-translate="sort_brand">Sort by Brand</option>
-                            <option value="price_low" data-translate="sort_price_low">Price: Low to High</option>
-                            <option value="price_high" data-translate="sort_price_high">Price: High to Low</option>
-                        </select>
-                        
-                        <select id="itemsPerPageSelect" class="items-per-page-select">
-                            <option value="12">12 per page</option>
-                            <option value="24" selected>24 per page</option>
-                            <option value="48">48 per page</option>
-                        </select>
+<!-- Products Section -->
+<section id="products" class="products-section">
+    <div class="container">
+        <div class="products-header">
+            <h2 data-translate="products_title">Our Collection</h2>
+            
+            <!-- Enhanced Search and Filter Controls -->
+            <div class="search-filter-section">
+                <!-- Search Box -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="searchInput" class="search-input" data-translate-placeholder="search_fragrances" placeholder="Search fragrances...">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                        <button class="search-clear-btn" id="searchClearBtn" style="display: none;">×</button>
                     </div>
+                </div>
+                
+                <!-- Filter Controls -->
+                <div class="filter-controls">
+                    <select id="sortSelect" class="sort-select">
+                        <option value="name" data-translate="sort_name">Sort by Name</option>
+                        <option value="brand" data-translate="sort_brand">Sort by Brand</option>
+                        <option value="price_low" data-translate="sort_price_low">Price: Low to High</option>
+                        <option value="price_high" data-translate="sort_price_high">Price: High to Low</option>
+                    </select>
+                    
+                    <select id="itemsPerPageSelect" class="items-per-page-select">
+                        <option value="12">12 per page</option>
+                        <option value="24" selected>24 per page</option>
+                        <option value="48">48 per page</option>
+                    </select>
                 </div>
             </div>
             
-            <!-- Loading State -->
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p data-translate="loading_fragrances">Loading fragrances...</p>
-            </div>
-
-            <!-- Products Grid -->
-            <div id="productsGrid" class="products-grid" style="display: none;">
-                <!-- Products will be loaded here -->
-            </div>
-
-            <!-- Pagination -->
-            <div id="paginationContainer" class="pagination-container" style="display: none;">
-                <!-- Pagination buttons will be populated by JavaScript -->
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="empty-state" style="display: none;">
-                <div class="empty-icon">
-                    <img src="/icons/icon-32x32.png" alt="Qotore Logo" class="empty-icon-img">
-                </div>
-                <h3 data-translate="empty_title">Coming Soon</h3>
-                <p data-translate="empty_subtitle">New fragrances are being added</p>
+            <!-- Search Results Info -->
+            <div class="search-results-info" id="searchResultsInfo" style="display: none;">
+                <span id="resultsCount">0</span> <span data-translate="results_found">results found</span>
+                <span id="searchTermDisplay"></span>
             </div>
         </div>
-    </section>
+        
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p data-translate="loading_fragrances">Loading fragrances...</p>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="productsGrid" class="products-grid" style="display: none;">
+            <!-- Products will be loaded here -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="paginationContainer" class="pagination-container" style="display: none;">
+            <!-- Pagination buttons will be populated by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">
+                <img src="/icons/icon-32x32.png" alt="Qotore Logo" class="empty-icon-img">
+            </div>
+            <h3 data-translate="empty_title">Coming Soon</h3>
+            <p data-translate="empty_subtitle">New fragrances are being added</p>
+        </div>
+    </div>
+</section>
 
     <!-- About Section -->
     <section class="about-section">

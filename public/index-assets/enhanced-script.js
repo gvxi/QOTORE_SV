@@ -187,6 +187,7 @@ function applyFiltersAndSort() {
     });
     
     displayFragrances();
+    updateSearchUI();
 }
 
 function getMinPrice(fragrance) {
@@ -645,24 +646,31 @@ function renderCartSidebar() {
 
 // Event Listeners
 function initializeEventListeners() {
-
-    // Initialize search toggle
-    initializeSearchToggle();
-
-// Search
-const searchInput = document.getElementById('searchInput');
-if (searchInput) {
-    searchInput.addEventListener('input', debounce((e) => {
-        searchTerm = e.target.value;
-        currentPage = 1;
-        applyFiltersAndSort();
-        
-        // Close search if input is empty
-        if (!e.target.value.trim()) {
-            closeSearch();
-        }
-    }, 300));
-}    
+    
+    // Search with clear button
+    const searchInput = document.getElementById('searchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce((e) => {
+            searchTerm = e.target.value;
+            currentPage = 1;
+            applyFiltersAndSort();
+            updateSearchUI();
+        }, 300));
+    }
+    
+    if (searchClearBtn) {
+        searchClearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchTerm = '';
+            currentPage = 1;
+            applyFiltersAndSort();
+            updateSearchUI();
+            searchInput.focus();
+        });
+    }
+    
     // Sort
     const sortSelect = document.getElementById('sortSelect');
     if (sortSelect) {
@@ -847,60 +855,32 @@ function showCustomAlert(message) {
     }, 3000);
 }
 
-// Search Toggle Functions
-function initializeSearchToggle() {
-    const searchToggleBtn = document.getElementById('searchToggleBtn');
-    const searchInputContainer = document.getElementById('searchInputContainer');
-    const searchCloseBtn = document.getElementById('searchCloseBtn');
+// Add this new function to update search UI
+function updateSearchUI() {
     const searchInput = document.getElementById('searchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const searchResultsInfo = document.getElementById('searchResultsInfo');
+    const resultsCount = document.getElementById('resultsCount');
+    const searchTermDisplay = document.getElementById('searchTermDisplay');
     
-    if (searchToggleBtn && searchInputContainer && searchCloseBtn) {
-        searchToggleBtn.addEventListener('click', openSearch);
-        searchCloseBtn.addEventListener('click', closeSearch);
-        
-        // Close search on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && searchInputContainer.classList.contains('active')) {
-                closeSearch();
-            }
-        });
-        
-        // Close search when clicking outside
-        document.addEventListener('click', (e) => {
-            if (searchInputContainer.classList.contains('active') && 
-                !searchInputContainer.contains(e.target) && 
-                !searchToggleBtn.contains(e.target)) {
-                closeSearch();
-            }
-        });
+    // Show/hide clear button
+    if (searchInput && searchClearBtn) {
+        if (searchInput.value.trim()) {
+            searchClearBtn.style.display = 'flex';
+        } else {
+            searchClearBtn.style.display = 'none';
+        }
     }
-}
-
-function openSearch() {
-    const searchInputContainer = document.getElementById('searchInputContainer');
-    const searchInput = document.getElementById('searchInput');
-    const overlay = document.createElement('div');
     
-    overlay.className = 'search-overlay';
-    overlay.id = 'searchOverlay';
-    document.body.appendChild(overlay);
-    
-    searchInputContainer.classList.add('active');
-    
-    // Focus on input after animation
-    setTimeout(() => {
-        searchInput.focus();
-    }, 100);
-}
-
-function closeSearch() {
-    const searchInputContainer = document.getElementById('searchInputContainer');
-    const overlay = document.getElementById('searchOverlay');
-    
-    searchInputContainer.classList.remove('active');
-    
-    if (overlay) {
-        overlay.remove();
+    // Show/hide search results info
+    if (searchResultsInfo && resultsCount && searchTermDisplay) {
+        if (searchTerm.trim()) {
+            searchResultsInfo.style.display = 'block';
+            resultsCount.textContent = filteredFragrances.length;
+            searchTermDisplay.textContent = `for "${searchTerm}"`;
+        } else {
+            searchResultsInfo.style.display = 'none';
+        }
     }
 }
 
