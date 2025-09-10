@@ -116,21 +116,42 @@ function prefillOAuthData(user) {
     // Pre-fill form fields from OAuth data
     const metadata = user.user_metadata || {};
     
+    console.log('OAuth user metadata:', metadata);
+    
+    // Handle name fields
     if (metadata.full_name) {
         const nameParts = metadata.full_name.split(' ');
-        document.getElementById('firstName').value = nameParts[0] || '';
-        document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+        const firstNameEl = document.getElementById('firstName');
+        const lastNameEl = document.getElementById('lastName');
+        
+        if (firstNameEl) firstNameEl.value = nameParts[0] || '';
+        if (lastNameEl) lastNameEl.value = nameParts.slice(1).join(' ') || '';
     } else {
-        document.getElementById('firstName').value = metadata.first_name || '';
-        document.getElementById('lastName').value = metadata.last_name || '';
+        const firstNameEl = document.getElementById('firstName');
+        const lastNameEl = document.getElementById('lastName');
+        
+        if (firstNameEl) firstNameEl.value = metadata.first_name || metadata.name || '';
+        if (lastNameEl) lastNameEl.value = metadata.last_name || '';
     }
     
-    document.getElementById('email').value = user.email || '';
-    document.getElementById('email').readOnly = true; // Make email readonly for OAuth users
+    // Handle email
+    const emailEl = document.getElementById('email');
+    if (emailEl) {
+        emailEl.value = user.email || '';
+        emailEl.readOnly = true; // Make email readonly for OAuth users
+        
+        // Add visual indicator that field is readonly
+        emailEl.style.backgroundColor = '#f8f9fa';
+        emailEl.style.cursor = 'not-allowed';
+    }
     
+    // Store OAuth data for later use
     googleUserData = {
         picture: metadata.avatar_url || metadata.picture
     };
+    
+    // Show success message
+    showAlert('Account connected! Please complete your profile below.', 'success');
 }
 
 // Initialize Google Sign-In
@@ -408,7 +429,7 @@ async function registerNewUser(formData) {
                 last_name: formData.lastName,
                 language: currentLanguage
             },
-            emailRedirectTo: window.location.origin
+            emailRedirectTo: 'https://qotore.uk'
         }
     });
     

@@ -207,7 +207,7 @@ async function handleEmailLogin(event) {
             const { data, error } = await supabase.auth.signInWithOtp({
                 email: emailOrPhone,
                 options: {
-                    emailRedirectTo: window.location.origin
+                    emailRedirectTo: 'https://qotore.uk'
                 }
             });
             
