@@ -8,11 +8,13 @@ let googleUserData = null;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DEBUG: DOM Content Loaded');
-    console.log('🔍 DEBUG: Current timestamp:', new Date().toISOString());
-    console.log('🔍 DEBUG: User agent:', navigator.userAgent);
-    console.log('🔍 DEBUG: Page location:', window.location.href);
     initializeApp();
+    setTimeout(() => {
+        const { data: { session } } = supabase?.auth?.getSession?.() || {};
+        if (session?.user) {
+            addCancelButtonToRegistrationForm();
+        }
+    }, 1000);
 });
 
 // Add window error handler to catch any unhandled errors
@@ -859,14 +861,3 @@ function addCancelButtonToRegistrationForm() {
         authHeader.appendChild(cancelBtn);
     }
 }
-
-// Initialize cancel button when page loads (add to DOMContentLoaded)
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if user came from OAuth and add cancel option
-    setTimeout(() => {
-        const { data: { session } } = supabase?.auth?.getSession?.() || {};
-        if (session?.user) {
-            addCancelButtonToRegistrationForm();
-        }
-    }, 1000);
-});
