@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         
     } catch (error) {
         console.error('Initialization error:', error);
-        showAlert('Failed to initialize. Please refresh the page.', 'error');
         // Always hide loading even on error
         hideLoadingScreen();
     }
@@ -121,7 +120,6 @@ async function checkForOAuthCallback() {
                 if (!profile || !profile.profile_completed) {
                     // Pre-fill form with OAuth data
                     prefillOAuthData(data.session.user);
-                    showAlert('Please complete your profile to finish registration.', 'info');
                     
                     // Add cancel button for OAuth users
                     if (isOAuthUser) {
@@ -129,7 +127,6 @@ async function checkForOAuthCallback() {
                     }
                 } else {
                     // Profile already complete, redirect to main page
-                    showAlert('Welcome back!', 'success');
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 2000);
@@ -137,7 +134,6 @@ async function checkForOAuthCallback() {
             } catch (profileErr) {
                 console.error('Profile check failed:', profileErr);
                 prefillOAuthData(data.session.user);
-                showAlert('Please complete your profile to finish registration.', 'info');
                 
                 if (isOAuthUser) {
                     addCancelButtonToRegistrationForm();
@@ -316,19 +312,13 @@ async function cancelRegistration() {
             console.warn('Sign out error:', signOutError);
         }
         
-        console.log('Account deletion completed');
-        
-        // Show success message and redirect
-        alert('Account successfully deleted. Redirecting to home page...');
-        
+        console.log('Account deletion completed');        
         setTimeout(() => {
             window.location.href = '/';
         }, 1000);
         
     } catch (error) {
-        console.error('Account deletion error:', error);
-        alert('Failed to delete account. Please try again.');
-        
+        console.error('Account deletion error:', error);        
         // Reset button
         const cancelBtn = document.getElementById('cancelRegistrationBtn');
         if (cancelBtn) {
@@ -391,9 +381,6 @@ function prefillOAuthData(user) {
     if (pageTitle) {
         pageTitle.textContent = currentLanguage === 'ar' ? 'إكمال الملف الشخصي' : 'Complete Profile';
     }
-    
-    // Show success message
-    showAlert('Account connected successfully! Please complete your profile below.', 'success');
 }
 
 // Initialize Google Sign-In
@@ -421,7 +408,6 @@ async function initializeGoogleSignIn(clientId) {
                     }
                 } catch (error) {
                     console.error('Google OAuth error:', error);
-                    showAlert('Failed to sign up with Google. Please try again.', 'error');
                     showProcessing('google-signin-button', false);
                 }
             });
@@ -457,8 +443,6 @@ async function handleFormSubmit(e) {
         
         if (session?.user) {
             await completeProfile(formData, session.user);
-            
-            showAlert('Profile completed successfully! Welcome to QOTORE.', 'success');
             setTimeout(() => {
                 window.location.href = '/';
             }, 2000);
@@ -468,10 +452,6 @@ async function handleFormSubmit(e) {
         
     } catch (error) {
         console.error('Registration error:', error);
-        showAlert(
-            error.message || 'Registration failed. Please try again.',
-            'error'
-        );
     } finally {
         isProcessing = false;
         showProcessing('registerBtn', false);
@@ -512,7 +492,6 @@ async function loadConfiguration() {
         }
     } catch (error) {
         console.error('Configuration load error:', error);
-        showAlert('Service not configured. Please contact support.', 'error');
         throw error;
     }
 }
@@ -586,18 +565,6 @@ function showProcessing(buttonId, show) {
     }
 }
 
-function showAlert(message, type) {
-    console.log(`${type.toUpperCase()}: ${message}`);
-    // Simple alert for now - you can enhance this
-    if (type === 'error') {
-        alert('Error: ' + message);
-    } else if (type === 'success') {
-        alert('Success: ' + message);
-    } else {
-        alert(message);
-    }
-}
-
 function goToStep(step) {
     // Hide all steps
     document.querySelectorAll('.form-step').forEach(stepEl => {
@@ -645,7 +612,6 @@ async function registerNewUser(formData) {
     
     if (error) {
         if (error.message.includes('already registered')) {
-            showAlert('An account with this email already exists. Please sign in instead.', 'error');
             setTimeout(() => {
                 window.location.href = '/user/login.html';
             }, 2000);
@@ -655,10 +621,7 @@ async function registerNewUser(formData) {
     }
     
     if (data.user) {
-        await completeProfile(formData, data.user);
-        
-        showAlert('Account created successfully! Please check your email to verify your account.', 'success');
-        
+        await completeProfile(formData, data.user);        
         setTimeout(() => {
             window.location.href = '/user/verify-email.html';
         }, 3000);
@@ -702,13 +665,3 @@ async function completeProfile(formData, user) {
 function generateTemporaryPassword() {
     return Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
 }
-
-// Add CSS animation for spin
-// const style = document.createElement('style');
-// style.textContent = `
-//     @keyframes spin {
-//         0% { transform: rotate(0deg); }
-//         100% { transform: rotate(360deg); }
-//     }
-// `;
-// document.head.appendChild(style);
