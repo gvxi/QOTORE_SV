@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="login_title">Login | QOTORE</title>
+    <title data-translate="verify_title">Verify Email | QOTORE</title>
     <link rel="stylesheet" href="/user/user-auth-style.css">
 </head>
 <body>
@@ -41,13 +41,13 @@
                     <span id="currentLang">EN</span>
                 </button>
                 
-                <!-- Back to Main -->
-                <a href="/" class="nav-btn">
+                <!-- Back Button -->
+                <button class="nav-btn" onclick="goBack()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
                     </svg>
-                    <span data-translate="back_to_main">Back to Main</span>
-                </a>
+                    <span data-translate="back">Back</span>
+                </button>
             </div>
         </div>
     </header>
@@ -57,81 +57,95 @@
         <div class="auth-container">
             <div class="auth-card">
                 <div class="auth-header">
-                    <h1 data-translate="welcome_back">Welcome Back</h1>
-                    <p data-translate="login_subtitle">Sign in to your QOTORE account</p>
+                    <div class="verification-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                            <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/>
+                        </svg>
+                    </div>
+                    <h1 data-translate="verify_email_title">Verify Your Email</h1>
+                    <p data-translate="verify_email_subtitle">We've sent a verification code to your email</p>
                 </div>
 
                 <div class="auth-content">
-                    <!-- Google Sign-In Button -->
-                    <div class="google-signin-section">
-                        <div id="google-signin-button" class="google-signin-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24">
-                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                            </svg>
-                            <span data-translate="continue_with_google">Continue with Google</span>
-                        </div>
+                    <!-- Email Display -->
+                    <div class="email-display">
+                        <span data-translate="code_sent_to">Code sent to:</span>
+                        <strong id="emailDisplay">user@example.com</strong>
                     </div>
 
-                    <!-- Alternative Login Methods -->
-                    <div class="auth-divider">
-                        <span data-translate="or">or</span>
-                    </div>
-
-                    <!-- Email/Phone Login Form -->
-                    <form id="emailLoginForm" class="auth-form">
+                    <!-- Verification Form -->
+                    <form id="verificationForm" class="auth-form">
                         <div class="form-group">
-                            <label for="emailOrPhone" data-translate="email_or_phone">Email or Phone Number</label>
-                            <input type="text" id="emailOrPhone" name="emailOrPhone" 
-                                   data-translate-placeholder="email_phone_placeholder" 
-                                   placeholder="Enter your email or phone number" required>
+                            <label for="verificationCode" data-translate="verification_code">Verification Code</label>
+                            <div class="code-input-container">
+                                <input type="text" 
+                                       id="verificationCode" 
+                                       name="verificationCode" 
+                                       maxlength="6" 
+                                       pattern="[0-9]{6}"
+                                       data-translate-placeholder="enter_code" 
+                                       placeholder="Enter 6-digit code"
+                                       autocomplete="one-time-code"
+                                       inputmode="numeric"
+                                       required>
+                                <div class="code-timer" id="codeTimer">
+                                    <span data-translate="expires_in">Expires in:</span>
+                                    <span id="timerDisplay">10:00</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <button type="submit" class="auth-submit-btn" id="emailSubmitBtn">
-                            <span data-translate="continue">Continue</span>
+                        <button type="submit" class="auth-submit-btn" id="verifyBtn">
+                            <span data-translate="verify_email">Verify Email</span>
                             <div class="button-spinner" style="display: none;"></div>
                         </button>
                     </form>
 
-                    <!-- Registration Link -->
-                    <div class="auth-footer">
-                        <p data-translate="no_account">Don't have an account?</p>
-                        <a href="/user/register.html" class="auth-link" data-translate="sign_up">Sign up</a>
+                    <!-- Resend Section -->
+                    <div class="resend-section">
+                        <p data-translate="didnt_receive_code">Didn't receive the code?</p>
+                        <button type="button" class="resend-btn" id="resendBtn" onclick="resendCode()" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C14.21,20 16.2,19.1 17.65,17.65L16.23,16.23C15.07,17.39 13.59,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.59,6 15.07,6.61 16.23,7.77L14.83,9.17L19,9.17V5L17.65,6.35Z"/>
+                            </svg>
+                            <span data-translate="resend_code">Resend Code</span>
+                        </button>
+                        <div class="resend-timer" id="resendTimer">
+                            <span data-translate="resend_available_in">Resend available in:</span>
+                            <span id="resendTimerDisplay">01:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="help-section">
+                        <h4 data-translate="having_trouble">Having trouble?</h4>
+                        <ul class="help-list">
+                            <li data-translate="check_spam">Check your spam/junk folder</li>
+                            <li data-translate="check_email_correct">Make sure your email address is correct</li>
+                            <li data-translate="wait_few_minutes">Wait a few minutes for delivery</li>
+                            <li>
+                                <span data-translate="contact_support">Still need help? </span>
+                                <a href="https://wa.me/96812345678" target="_blank" data-translate="contact_us">Contact us</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Benefits Section -->
-            <div class="benefits-section">
-                <h3 data-translate="why_create_account">Why create an account?</h3>
-                <ul class="benefits-list">
-                    <li>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                        </svg>
-                        <span data-translate="benefit_1">Track your orders easily</span>
-                    </li>
-                    <li>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                        </svg>
-                        <span data-translate="benefit_2">Faster checkout process</span>
-                    </li>
-                    <li>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                        </svg>
-                        <span data-translate="benefit_3">Exclusive offers and updates</span>
-                    </li>
-                    <li>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                        </svg>
-                        <span data-translate="benefit_4">Order history and reordering</span>
-                    </li>
-                </ul>
+            <!-- Success Animation (Hidden by default) -->
+            <div class="success-animation" id="successAnimation" style="display: none;">
+                <div class="success-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="11" stroke="#28a745" stroke-width="2" fill="none"/>
+                        <path d="M8 12l3 3l5-5" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 data-translate="email_verified">Email Verified!</h2>
+                <p data-translate="account_created_success">Your account has been created successfully</p>
+                <div class="redirect-info">
+                    <span data-translate="redirecting_in">Redirecting in:</span>
+                    <span id="redirectTimer">3</span>
+                </div>
             </div>
         </div>
     </main>
@@ -173,8 +187,6 @@
     </a>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="/user/user-auth-script.js"></script>
+    <script src="/user/user-verify-script.js"></script>
 </body>
 </html>

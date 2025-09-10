@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="register_title">Create Account | QOTORE</title>
+    <link rel="stylesheet" href="/user/user-auth-style.css">
+</head>
+<body>
+    <!-- Loading Splash -->
+    <div id="loadingSplash" class="loading-splash">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                </svg>
+            </div>
+            <div class="loading-spinner"></div>
+            <p data-translate="loading_text">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="logo-icon">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                    </svg>
+                    <span>QOTORE</span>
+                </a>
+            </div>
+
+            <div class="nav-buttons">
+                <!-- Language Toggle -->
+                <button id="languageToggle" class="nav-btn" onclick="toggleLanguage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.87,15.07L11.54,14.5L9.38,12.35L8.13,11.13C7.26,10.24 6.24,9.47 5.5,8.5C4.76,7.53 4.76,6.47 5.5,5.5C6.24,4.53 7.26,3.76 8.13,2.87L9.38,1.65L11.54,9.5L12.87,8.93C13.5,8.67 14.13,8.33 14.7,7.9C15.27,7.47 15.8,6.97 16.23,6.4L17.65,4.65C18.2,3.9 18.59,3.07 18.76,2.17L19,1L20.83,2.83L19.66,4C19.27,4.39 18.84,4.74 18.38,5.03C17.92,5.32 17.43,5.55 16.91,5.7L15.64,6.07L14.37,6.44C13.85,6.59 13.36,6.82 12.9,7.11C12.44,7.4 12.01,7.75 11.62,8.14L10.19,9.57L12.11,17.11L12.87,15.07Z"/>
+                    </svg>
+                    <span id="currentLang">EN</span>
+                </button>
+                
+                <!-- Back to Login -->
+                <a href="/user/login.html" class="nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                    </svg>
+                    <span data-translate="back_to_login">Back to Login</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 data-translate="create_account">Create Account</h1>
+                    <p data-translate="register_subtitle">Join QOTORE for exclusive fragrances</p>
+                </div>
+
+                <div class="auth-content">
+                    <!-- Google Sign-Up Section -->
+                    <div class="google-signin-section" id="googleSection">
+                        <div id="google-signin-button" class="google-signin-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <span data-translate="signup_with_google">Sign up with Google</span>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="auth-divider" id="authDivider">
+                        <span data-translate="or">or</span>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form id="registrationForm" class="auth-form">
+                        <!-- Step 1: Basic Information -->
+                        <div id="step1" class="form-step active">
+                            <div class="step-header">
+                                <h3 data-translate="basic_information">Basic Information</h3>
+                                <span class="step-indicator">1/3</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName" data-translate="first_name">First Name *</label>
+                                    <input type="text" id="firstName" name="firstName" required
+                                           data-translate-placeholder="first_name_placeholder" 
+                                           placeholder="Enter your first name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName" data-translate="last_name">Last Name *</label>
+                                    <input type="text" id="lastName" name="lastName" required
+                                           data-translate-placeholder="last_name_placeholder" 
+                                           placeholder="Enter your last name">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email" data-translate="email_address">Email Address *</label>
+                                <input type="email" id="email" name="email" required
+                                       data-translate-placeholder="email_placeholder" 
+                                       placeholder="Enter your email address">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone" data-translate="phone_number">Phone Number *</label>
+                                <input type="tel" id="phone" name="phone" required
+                                       data-translate-placeholder="phone_placeholder" 
+                                       placeholder="Enter your phone number (e.g., +968 12345678)">
+                            </div>
+
+                            <button type="button" class="auth-submit-btn" onclick="goToStep(2)">
+                                <span data-translate="continue">Continue</span>
+                            </button>
+                        </div>
+
+                        <!-- Step 2: Personal Details -->
+                        <div id="step2" class="form-step">
+                            <div class="step-header">
+                                <h3 data-translate="personal_details">Personal Details</h3>
+                                <span class="step-indicator">2/3</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="gender" data-translate="gender">Gender *</label>
+                                    <select id="gender" name="gender" required>
+                                        <option value="" data-translate="select_gender">Select Gender</option>
+                                        <option value="male" data-translate="male">Male</option>
+                                        <option value="female" data-translate="female">Female</option>
+                                        <option value="prefer_not_to_say" data-translate="prefer_not_to_say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="age" data-translate="age">Age *</label>
+                                    <input type="number" id="age" name="age" min="13" max="120" required
+                                           data-translate-placeholder="age_placeholder" 
+                                           placeholder="Enter your age">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="wilayat" data-translate="wilayat">Wilayat *</label>
+                                    <select id="wilayat" name="wilayat" required>
+                                        <option value="" data-translate="select_wilayat">Select Wilayat</option>
+                                        <option value="muscat">Muscat</option>
+                                        <option value="seeb">Seeb</option>
+                                        <option value="bawshar">Bawshar</option>
+                                        <option value="mutrah">Mutrah</option>
+                                        <option value="qurayyat">Qurayyat</option>
+                                        <option value="amerat">Amerat</option>
+                                        <option value="nizwa">Nizwa</option>
+                                        <option value="sur">Sur</option>
+                                        <option value="sohar">Sohar</option>
+                                        <option value="salalah">Salalah</option>
+                                        <option value="rustaq">Rustaq</option>
+                                        <option value="barka">Barka</option>
+                                        <option value="saham">Saham</option>
+                                        <option value="shinas">Shinas</option>
+                                        <option value="liwa">Liwa</option>
+                                        <option value="other" data-translate="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="city" data-translate="city_area">City/Area *</label>
+                                    <input type="text" id="city" name="city" required
+                                           data-translate-placeholder="city_placeholder" 
+                                           placeholder="Enter your city or area">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="auth-submit-btn btn-outline" onclick="goToStep(1)">
+                                    <span data-translate="back">Back</span>
+                                </button>
+                                <button type="button" class="auth-submit-btn" onclick="goToStep(3)">
+                                    <span data-translate="continue">Continue</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Terms and Verification -->
+                        <div id="step3" class="form-step">
+                            <div class="step-header">
+                                <h3 data-translate="almost_done">Almost Done!</h3>
+                                <span class="step-indicator">3/3</span>
+                            </div>
+
+                            <div class="terms-section">
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                                        <span class="checkmark"></span>
+                                        <span data-translate="agree_terms">I agree to the Terms & Conditions and Privacy Policy</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="agreeMarketing" name="agreeMarketing">
+                                        <span class="checkmark"></span>
+                                        <span data-translate="agree_marketing">I want to receive exclusive offers and updates</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="auth-submit-btn btn-outline" onclick="goToStep(2)">
+                                    <span data-translate="back">Back</span>
+                                </button>
+                                <button type="submit" class="auth-submit-btn" id="registerBtn">
+                                    <span data-translate="create_account_btn">Create Account</span>
+                                    <div class="button-spinner" style="display: none;"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Login Link -->
+                    <div class="auth-footer">
+                        <p data-translate="already_have_account">Already have an account?</p>
+                        <a href="/user/login.html" class="auth-link" data-translate="sign_in">Sign in</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benefits Section -->
+            <div class="benefits-section">
+                <h3 data-translate="join_qotore_family">Join the QOTORE Family</h3>
+                <ul class="benefits-list">
+                    <li>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                        </svg>
+                        <span data-translate="exclusive_access">Exclusive access to limited edition fragrances</span>
+                    </li>
+                    <li>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
+                        </svg>
+                        <span data-translate="verified_authentic">100% verified authentic products</span>
+                    </li>
+                    <li>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19,7H16V6A4,4 0 0,0 8,6V7H5A1,1 0 0,0 4,8V19A3,3 0 0,0 7,22H17A3,3 0 0,0 20,19V8A1,1 0 0,0 19,7M10,6A2,2 0 0,1 14,6V7H10V6Z"/>
+                        </svg>
+                        <span data-translate="order_tracking">Real-time order tracking and history</span>
+                    </li>
+                    <li>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17Z"/>
+                        </svg>
+                        <span data-translate="personalized_recommendations">Personalized fragrance recommendations</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- Contact Footer -->
+    <footer class="contact-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4 data-translate="footer_contact_title">Contact Us</h4>
+                <div class="contact-links">
+                    <a href="https://instagram.com/qotore" target="_blank" class="contact-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/>
+                        </svg>
+                        Instagram
+                    </a>
+                    <a href="https://snapchat.com/add/qotore" target="_blank" class="contact-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,2.5C10.94,2.5 9.5,3.5 9.5,5.5C9.5,7.5 10.94,8.5 12,8.5C13.06,8.5 14.5,7.5 14.5,5.5C14.5,3.5 13.06,2.5 12,2.5M12,9.5C9.5,9.5 7.5,11.5 7.5,14V17.5C7.5,19.43 9.07,21 11,21H13C14.93,21 16.5,19.43 16.5,17.5V14C16.5,11.5 14.5,9.5 12,9.5Z"/>
+                        </svg>
+                        Snapchat
+                    </a>
+                    <a href="https://wa.me/96812345678" target="_blank" class="contact-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472,14.382C17.367,14.382 17.265,14.403 17.175,14.442L14.382,15.842C14.265,15.903 14.132,15.903 14.014,15.842L11.222,14.442C11.132,14.403 11.03,14.382 10.925,14.382C10.013,14.382 9.268,15.126 9.268,16.039V19.191C9.268,20.104 10.013,20.848 10.925,20.848H17.472C18.384,20.848 19.129,20.104 19.129,19.191V16.039C19.129,15.126 18.384,14.382 17.472,14.382Z"/>
+                        </svg>
+                        WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/96812345678" class="whatsapp-float" target="_blank">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M17.472,14.382C17.367,14.382 17.265,14.403 17.175,14.442L14.382,15.842C14.265,15.903 14.132,15.903 14.014,15.842L11.222,14.442C11.132,14.403 11.03,14.382 10.925,14.382C10.013,14.382 9.268,15.126 9.268,16.039V19.191C9.268,20.104 10.013,20.848 10.925,20.848H17.472C18.384,20.848 19.129,20.104 19.129,19.191V16.039C19.129,15.126 18.384,14.382 17.472,14.382Z"/>
+        </svg>
+    </a>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="/user/user-register-script.js"></script>
+</body>
+</html>
