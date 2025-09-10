@@ -1,4 +1,4 @@
-// User Authentication Script using Supabase Auth
+// User Authentication Script using Supabase Auth - WITH TOAST NOTIFICATIONS
 let currentLanguage = 'en';
 let translations = {};
 let supabase = null;
@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeApp() {
     try {
         showLoadingSplash();
+        createToastContainer(); // Initialize toast system
         await loadConfiguration();
         await loadTranslations();
         loadLanguagePreference();
@@ -21,8 +22,166 @@ async function initializeApp() {
     } catch (error) {
         console.error('Error initializing app:', error);
         hideLoadingSplash();
-        showAlert('Error loading page. Please refresh and try again.', 'error');
+        showToast('Error loading page. Please refresh and try again.', 'error');
     }
+}
+
+// Toast Notification System
+function createToastContainer() {
+    if (document.getElementById('toastContainer')) return;
+    
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+        max-width: 400px;
+        width: 90%;
+    `;
+    document.body.appendChild(container);
+}
+
+function showToast(message, type = 'info', duration = 4000) {
+    createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const baseStyles = `
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: auto;
+        backdrop-filter: blur(10px);
+        max-width: 100%;
+        word-wrap: break-word;
+    `;
+    
+    let borderColor, textColor, backgroundColor, icon;
+    
+    switch (type) {
+        case 'success':
+            borderColor = '#10b981';
+            textColor = '#065f46';
+            backgroundColor = '#f0fdf4';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+            </svg>`;
+            break;
+        case 'error':
+            borderColor = '#ef4444';
+            textColor = '#991b1b';
+            backgroundColor = '#fef2f2';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z"/>
+            </svg>`;
+            break;
+        case 'warning':
+            borderColor = '#f59e0b';
+            textColor = '#92400e';
+            backgroundColor = '#fffbeb';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+            </svg>`;
+            break;
+        default:
+            borderColor = '#3b82f6';
+            textColor = '#1e40af';
+            backgroundColor = '#eff6ff';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
+            </svg>`;
+    }
+    
+    toast.style.cssText = baseStyles + `
+        border-left-color: ${borderColor};
+        color: ${textColor};
+        background: ${backgroundColor};
+    `;
+    
+    toast.innerHTML = `
+        <div class="toast-icon" style="color: ${borderColor}; flex-shrink: 0;">
+            ${icon}
+        </div>
+        <div class="toast-message" style="flex: 1; line-height: 1.5;">
+            ${message}
+        </div>
+        <button class="toast-close" style="
+            background: none;
+            border: none;
+            color: ${textColor};
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+            </svg>
+        </button>
+    `;
+    
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    }, 10);
+    
+    const autoRemove = setTimeout(() => {
+        removeToast(toast);
+    }, duration);
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => {
+        clearTimeout(autoRemove);
+        removeToast(toast);
+    });
+    
+    toast.addEventListener('click', (e) => {
+        if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+            clearTimeout(autoRemove);
+            removeToast(toast);
+        }
+    });
+    
+    return toast;
+}
+
+function removeToast(toast) {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px) scale(0.95)';
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+// Replace showAlert with showToast
+function showAlert(message, type = 'info') {
+    showToast(message, type);
 }
 
 // Load configuration and initialize Supabase
@@ -38,19 +197,16 @@ async function loadConfiguration() {
         if (response.ok) {
             const config = await response.json();
             
-            // Check if Supabase library is loaded
             if (typeof window.supabase === 'undefined') {
                 console.error('Supabase library not loaded');
                 throw new Error('Supabase library not available');
             }
             
-            // Initialize Supabase client
             const { createClient } = window.supabase;
             supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
             
             console.log('Supabase client initialized');
             
-            // Initialize Google Sign-In if configured
             if (config.GOOGLE_CLIENT_ID) {
                 await initializeGoogleSignIn(config.GOOGLE_CLIENT_ID);
             } else {
@@ -62,7 +218,7 @@ async function loadConfiguration() {
         }
     } catch (error) {
         console.error('Configuration load error:', error);
-        showAlert('Service not configured. Please contact support.', 'error');
+        showToast('Service not configured. Please contact support.', 'error');
         throw error;
     }
 }
@@ -80,9 +236,8 @@ async function checkExistingSession() {
         }
         
         if (session) {
-            // User is already logged in, redirect to main page
             console.log('User already logged in:', session.user);
-            showAlert('You are already logged in. Redirecting...', 'success');
+            showToast('You are already logged in. Redirecting...', 'success');
             
             setTimeout(() => {
                 window.location.href = '/';
@@ -110,7 +265,6 @@ async function initializeGoogleSignIn(clientId) {
                     try {
                         showProcessing('google-signin-button', true);
                         
-                        // FIXED: Redirect to register.html instead of profile-completion.html
                         const { data, error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
@@ -122,10 +276,9 @@ async function initializeGoogleSignIn(clientId) {
                             throw error;
                         }
                         
-                        // OAuth redirect will handle the rest
                     } catch (error) {
                         console.error('Google OAuth error:', error);
-                        showAlert('Failed to sign in with Google. Please try again.', 'error');
+                        showToast('Failed to sign in with Google. Please try again.', 'error');
                         showProcessing('google-signin-button', false);
                     }
                 });
@@ -137,13 +290,10 @@ async function initializeGoogleSignIn(clientId) {
     }
 }
 
-
-// Handle Google Sign-In callback (fallback for direct Google API)
 async function handleGoogleSignIn(response) {
     try {
         showProcessing('google-signin-button', true);
         
-        // This is a fallback - normally OAuth redirect handles this
         const { data, error } = await supabase.auth.signInWithIdToken({
             provider: 'google',
             token: response.credential
@@ -158,13 +308,12 @@ async function handleGoogleSignIn(response) {
         
     } catch (error) {
         console.error('Google sign-in error:', error);
-        showAlert(t('google_signin_error') || 'Failed to sign in with Google. Please try again.', 'error');
+        showToast(t('google_signin_error') || 'Failed to sign in with Google. Please try again.', 'error');
     } finally {
         showProcessing('google-signin-button', false);
     }
 }
 
-// Hide Google Sign-In if not configured
 function hideGoogleSignIn() {
     const googleSection = document.querySelector('.google-signin-section');
     const authDivider = document.querySelector('.auth-divider');
@@ -173,7 +322,6 @@ function hideGoogleSignIn() {
     if (authDivider) authDivider.style.display = 'none';
 }
 
-// Initialize event listeners
 function initializeEventListeners() {
     const emailForm = document.getElementById('emailLoginForm');
     if (emailForm) {
@@ -181,7 +329,6 @@ function initializeEventListeners() {
     }
 }
 
-// Handle email/phone login
 async function handleEmailLogin(event) {
     event.preventDefault();
     
@@ -190,7 +337,7 @@ async function handleEmailLogin(event) {
     const emailOrPhone = document.getElementById('emailOrPhone').value.trim();
     
     if (!emailOrPhone) {
-        showAlert(t('email_phone_required') || 'Please enter your email or phone number.', 'error');
+        showToast(t('email_phone_required') || 'Please enter your email or phone number.', 'error');
         return;
     }
     
@@ -201,7 +348,6 @@ async function handleEmailLogin(event) {
         const isEmail = emailOrPhone.includes('@');
         
         if (isEmail) {
-            // Use Supabase magic link for email login
             const { data, error } = await supabase.auth.signInWithOtp({
                 email: emailOrPhone,
                 options: {
@@ -211,7 +357,6 @@ async function handleEmailLogin(event) {
             
             if (error) {
                 if (error.message.includes('User not found')) {
-                    // User doesn't exist, redirect to registration
                     localStorage.setItem('registration_prefill', emailOrPhone);
                     window.location.href = '/user/register.html';
                     return;
@@ -219,13 +364,12 @@ async function handleEmailLogin(event) {
                 throw error;
             }
             
-            // Show success message
-            showAlert(
+            showToast(
                 t('magic_link_sent') || `A magic link has been sent to ${emailOrPhone}. Check your email to sign in.`,
-                'success'
+                'success',
+                6000
             );
             
-            // Change button to indicate email was sent
             const submitBtn = document.getElementById('emailSubmitBtn');
             if (submitBtn) {
                 const span = submitBtn.querySelector('span');
@@ -236,7 +380,6 @@ async function handleEmailLogin(event) {
             }
             
         } else {
-            // Handle phone login (SMS OTP) - needs to be enabled in Supabase
             const { data, error } = await supabase.auth.signInWithOtp({
                 phone: emailOrPhone
             });
@@ -250,14 +393,13 @@ async function handleEmailLogin(event) {
                 throw error;
             }
             
-            // Redirect to phone verification
             localStorage.setItem('phone_verification', emailOrPhone);
             window.location.href = '/user/verify-phone.html';
         }
         
     } catch (error) {
         console.error('Login error:', error);
-        showAlert(
+        showToast(
             error.message || t('login_error') || 'Login failed. Please try again.',
             'error'
         );
@@ -267,26 +409,21 @@ async function handleEmailLogin(event) {
     }
 }
 
-// Handle successful authentication
 function handleSuccessfulAuth(authData) {
     if (authData.user) {
-        showAlert(t('login_success') || 'Welcome back!', 'success');
+        showToast(t('login_success') || 'Welcome back!', 'success');
         
-        // Log user activity
         logUserActivity('user_login');
         
-        // Check if profile is complete, redirect accordingly
         setTimeout(async () => {
             const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
                 .select('profile_completed')
                 .eq('id', authData.user.id)
-                .maybeSingle(); // Use maybeSingle() instead of single()
+                .maybeSingle();
             
-            // Handle profile error or no profile found
             if (profileError && profileError.code !== 'PGRST116') {
                 console.warn('Profile check error:', profileError);
-                // Continue to main page even if profile check fails
                 window.location.href = '/';
                 return;
             }
@@ -300,7 +437,6 @@ function handleSuccessfulAuth(authData) {
     }
 }
 
-// Log user activity
 async function logUserActivity(action, details = null) {
     if (!supabase) return;
     
@@ -318,7 +454,6 @@ async function logUserActivity(action, details = null) {
     }
 }
 
-// Translation Management
 async function loadTranslations() {
     try {
         const response = await fetch('/user/user-translations.json');
@@ -399,7 +534,6 @@ function toggleLanguage() {
     }, 500);
 }
 
-// UI Helper Functions
 function showLoadingSplash() {
     const splash = document.getElementById('loadingSplash');
     if (splash) {
@@ -429,35 +563,6 @@ function showProcessing(buttonId, show) {
         button.disabled = false;
         if (spinner) spinner.style.display = 'none';
         if (text) text.style.opacity = '1';
-    }
-}
-
-function showAlert(message, type = 'info') {
-    // Remove existing alerts
-    const existingAlert = document.querySelector('.alert');
-    if (existingAlert) {
-        existingAlert.remove();
-    }
-    
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type}`;
-    
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-    alert.innerHTML = `
-        <span>${icon}</span>
-        <span>${message}</span>
-    `;
-    
-    const authContent = document.querySelector('.auth-content');
-    if (authContent) {
-        authContent.insertBefore(alert, authContent.firstChild);
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.remove();
-            }
-        }, 5000);
     }
 }
 

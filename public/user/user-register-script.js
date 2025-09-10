@@ -1,4 +1,4 @@
-// Corrected user-register-script.js - Matching actual HTML structure
+// Updated user-register-script.js - WITH TOAST NOTIFICATIONS
 
 let supabase;
 let currentLanguage = 'en';
@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM loaded, initializing...');
     
     try {
+        createToastContainer(); // Initialize toast system
         await loadTranslations();
         await loadConfiguration();
         
@@ -21,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 await checkForOAuthCallback();
             }
             
-            // FIXED: Hide loading screen using correct ID from HTML
             hideLoadingScreen();
         }, 1000);
         
@@ -31,16 +31,171 @@ document.addEventListener('DOMContentLoaded', async function() {
         
     } catch (error) {
         console.error('Initialization error:', error);
-        // Always hide loading even on error
         hideLoadingScreen();
     }
 });
 
-// FIXED: Correct function matching actual HTML IDs
+// Toast Notification System
+function createToastContainer() {
+    if (document.getElementById('toastContainer')) return;
+    
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+        max-width: 400px;
+        width: 90%;
+    `;
+    document.body.appendChild(container);
+}
+
+function showToast(message, type = 'info', duration = 4000) {
+    createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const baseStyles = `
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: auto;
+        backdrop-filter: blur(10px);
+        max-width: 100%;
+        word-wrap: break-word;
+    `;
+    
+    let borderColor, textColor, backgroundColor, icon;
+    
+    switch (type) {
+        case 'success':
+            borderColor = '#10b981';
+            textColor = '#065f46';
+            backgroundColor = '#f0fdf4';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+            </svg>`;
+            break;
+        case 'error':
+            borderColor = '#ef4444';
+            textColor = '#991b1b';
+            backgroundColor = '#fef2f2';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z"/>
+            </svg>`;
+            break;
+        case 'warning':
+            borderColor = '#f59e0b';
+            textColor = '#92400e';
+            backgroundColor = '#fffbeb';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+            </svg>`;
+            break;
+        default:
+            borderColor = '#3b82f6';
+            textColor = '#1e40af';
+            backgroundColor = '#eff6ff';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
+            </svg>`;
+    }
+    
+    toast.style.cssText = baseStyles + `
+        border-left-color: ${borderColor};
+        color: ${textColor};
+        background: ${backgroundColor};
+    `;
+    
+    toast.innerHTML = `
+        <div class="toast-icon" style="color: ${borderColor}; flex-shrink: 0;">
+            ${icon}
+        </div>
+        <div class="toast-message" style="flex: 1; line-height: 1.5;">
+            ${message}
+        </div>
+        <button class="toast-close" style="
+            background: none;
+            border: none;
+            color: ${textColor};
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+            </svg>
+        </button>
+    `;
+    
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    }, 10);
+    
+    const autoRemove = setTimeout(() => {
+        removeToast(toast);
+    }, duration);
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => {
+        clearTimeout(autoRemove);
+        removeToast(toast);
+    });
+    
+    toast.addEventListener('click', (e) => {
+        if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+            clearTimeout(autoRemove);
+            removeToast(toast);
+        }
+    });
+    
+    return toast;
+}
+
+function removeToast(toast) {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px) scale(0.95)';
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+// Replace alert/confirm with toast
+function showAlert(message, type = 'info') {
+    showToast(message, type);
+}
+
 function hideLoadingScreen() {
     console.log('Hiding loading screen...');
     
-    // Using correct IDs from your HTML
     const loadingSplash = document.getElementById('loadingSplash');
     const registrationContainer = document.querySelector('.registration-container');
     
@@ -65,9 +220,7 @@ function hideLoadingScreen() {
     console.log('Loading screen hidden');
 }
 
-// Setup form event handlers
 function setupFormHandlers() {
-    // Using correct form ID from HTML
     const form = document.getElementById('registrationForm');
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
@@ -76,14 +229,12 @@ function setupFormHandlers() {
         console.log('Registration form not found');
     }
     
-    // Add input validation
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(input => {
         input.addEventListener('blur', validateField);
     });
 }
 
-// Fixed OAuth callback check
 async function checkForOAuthCallback() {
     if (!supabase) {
         console.log('Supabase not ready yet');
@@ -102,7 +253,6 @@ async function checkForOAuthCallback() {
         if (data?.session?.user) {
             console.log('User session found:', data.session.user.email);
             
-            // Check if this is an OAuth user
             const isOAuthUser = data.session.user.app_metadata?.provider === 'google';
             console.log('Is OAuth user:', isOAuthUser);
             
@@ -118,15 +268,13 @@ async function checkForOAuthCallback() {
                 }
                 
                 if (!profile || !profile.profile_completed) {
-                    // Pre-fill form with OAuth data
                     prefillOAuthData(data.session.user);
                     
-                    // Add cancel button for OAuth users
                     if (isOAuthUser) {
                         addCancelButtonToRegistrationForm();
                     }
                 } else {
-                    // Profile already complete, redirect to main page
+                    showToast('Welcome back!', 'success');
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 2000);
@@ -147,21 +295,17 @@ async function checkForOAuthCallback() {
     }
 }
 
-// FIXED: Updated to match actual HTML structure
 function addCancelButtonToRegistrationForm() {
     console.log('Adding cancel button for OAuth user...');
     
-    // Remove existing cancel button if any
     const existingBtn = document.getElementById('cancelRegistrationBtn');
     if (existingBtn) {
         existingBtn.remove();
     }
     
-    // Find the logo section to add the cancel button
     const logoSection = document.querySelector('.logo-section');
     
     if (logoSection) {
-        // Create cancel button
         const cancelBtn = document.createElement('button');
         cancelBtn.id = 'cancelRegistrationBtn';
         cancelBtn.type = 'button';
@@ -192,7 +336,6 @@ function addCancelButtonToRegistrationForm() {
             <span>Cancel</span>
         `;
         
-        // Add hover effect
         cancelBtn.addEventListener('mouseenter', () => {
             cancelBtn.style.background = 'rgba(255, 255, 255, 0.3)';
             cancelBtn.style.transform = 'translateY(-1px)';
@@ -203,7 +346,6 @@ function addCancelButtonToRegistrationForm() {
             cancelBtn.style.transform = 'translateY(0)';
         });
         
-        // Add click handler
         cancelBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -211,18 +353,15 @@ function addCancelButtonToRegistrationForm() {
             cancelRegistration();
         };
         
-        // Add to logo section
         logoSection.style.position = 'relative';
         logoSection.appendChild(cancelBtn);
         
         console.log('Cancel button added successfully to logo section');
         
-        // Also add cancel link at the bottom for better UX
         addCancelLinkToForm();
     } else {
         console.error('Could not find logo-section to add cancel button');
         
-        // Fallback: try to add to form content
         const formContent = document.querySelector('.form-content');
         if (formContent) {
             addCancelLinkToForm();
@@ -230,7 +369,6 @@ function addCancelButtonToRegistrationForm() {
     }
 }
 
-// Add cancel link at the bottom of the form
 function addCancelLinkToForm() {
     const step3 = document.getElementById('step3');
     
@@ -265,17 +403,77 @@ function addCancelLinkToForm() {
     }
 }
 
-// Enhanced cancel registration function
 async function cancelRegistration() {
     console.log('cancelRegistration called');
     
-    // Simple confirm dialog first, then enhanced modal
-    if (!confirm('Are you sure you want to cancel registration and delete your account? This cannot be undone.')) {
-        return;
-    }
+    // Use toast for confirmation instead of confirm dialog
+    showToast('Are you sure you want to cancel registration and delete your account?', 'warning', 5000);
     
+    // Create a custom confirmation toast
+    const confirmToast = document.createElement('div');
+    confirmToast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid #ef4444;
+        z-index: 10001;
+        max-width: 400px;
+        width: 90%;
+    `;
+    
+    confirmToast.innerHTML = `
+        <div style="margin-bottom: 15px; color: #991b1b; font-weight: 600;">
+            Confirm Account Deletion
+        </div>
+        <div style="margin-bottom: 20px; color: #666; line-height: 1.5;">
+            This will permanently delete your account. You cannot undo this action.
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button id="cancelDelete" style="
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                padding: 8px 16px;
+                cursor: pointer;
+                color: #6c757d;
+            ">Keep Account</button>
+            <button id="confirmDelete" style="
+                background: #dc3545;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                cursor: pointer;
+                color: white;
+            ">Delete Account</button>
+        </div>
+    `;
+    
+    document.body.appendChild(confirmToast);
+    
+    document.getElementById('cancelDelete').onclick = () => {
+        confirmToast.remove();
+    };
+    
+    document.getElementById('confirmDelete').onclick = async () => {
+        confirmToast.remove();
+        await performAccountDeletion();
+    };
+    
+    // Auto remove after 10 seconds
+    setTimeout(() => {
+        if (confirmToast.parentNode) {
+            confirmToast.remove();
+        }
+    }, 10000);
+}
+
+async function performAccountDeletion() {
     try {
-        // Show loading state
         const cancelBtn = document.getElementById('cancelRegistrationBtn');
         if (cancelBtn) {
             cancelBtn.innerHTML = `
@@ -285,7 +483,6 @@ async function cancelRegistration() {
             cancelBtn.disabled = true;
         }
         
-        // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError || !user) {
@@ -294,7 +491,6 @@ async function cancelRegistration() {
         
         console.log('Deleting user profile and signing out...');
         
-        // Delete user profile from database (if exists)
         const { error: profileError } = await supabase
             .from('user_profiles')
             .delete()
@@ -302,24 +498,25 @@ async function cancelRegistration() {
         
         if (profileError) {
             console.warn('Profile deletion error:', profileError);
-            // Continue anyway
         }
         
-        // Sign out
         const { error: signOutError } = await supabase.auth.signOut();
         
         if (signOutError) {
             console.warn('Sign out error:', signOutError);
         }
         
-        console.log('Account deletion completed');        
+        console.log('Account deletion completed');
+        showToast('Account successfully deleted', 'success');
+        
         setTimeout(() => {
             window.location.href = '/';
         }, 1000);
         
     } catch (error) {
-        console.error('Account deletion error:', error);        
-        // Reset button
+        console.error('Account deletion error:', error);
+        showToast('Failed to delete account. Please try again.', 'error');
+        
         const cancelBtn = document.getElementById('cancelRegistrationBtn');
         if (cancelBtn) {
             cancelBtn.innerHTML = `
@@ -333,19 +530,15 @@ async function cancelRegistration() {
     }
 }
 
-// Pre-fill form with OAuth data
 function prefillOAuthData(user) {
     console.log('Pre-filling OAuth data for user:', user.email);
     
-    // Hide Google signup section since user came from OAuth
     hideGoogleSignIn();
     
-    // Pre-fill form fields from OAuth data
     const metadata = user.user_metadata || {};
     
     console.log('OAuth user metadata:', metadata);
     
-    // Handle name fields
     if (metadata.full_name) {
         const nameParts = metadata.full_name.split(' ');
         const firstNameEl = document.getElementById('firstName');
@@ -361,7 +554,6 @@ function prefillOAuthData(user) {
         if (lastNameEl) lastNameEl.value = metadata.last_name || '';
     }
     
-    // Handle email
     const emailEl = document.getElementById('email');
     if (emailEl) {
         emailEl.value = user.email || '';
@@ -371,19 +563,18 @@ function prefillOAuthData(user) {
         emailEl.style.opacity = '0.7';
     }
     
-    // Store OAuth data for later use
     googleUserData = {
         picture: metadata.avatar_url || metadata.picture
     };
     
-    // Update page title
     const pageTitle = document.querySelector('.page-title');
     if (pageTitle) {
         pageTitle.textContent = currentLanguage === 'ar' ? 'إكمال الملف الشخصي' : 'Complete Profile';
     }
+    
+    showToast('Account connected successfully! Please complete your profile below.', 'success');
 }
 
-// Initialize Google Sign-In
 async function initializeGoogleSignIn(clientId) {
     try {
         const googleSignInButton = document.getElementById('google-signin-button');
@@ -408,6 +599,7 @@ async function initializeGoogleSignIn(clientId) {
                     }
                 } catch (error) {
                     console.error('Google OAuth error:', error);
+                    showToast('Failed to sign up with Google. Please try again.', 'error');
                     showProcessing('google-signin-button', false);
                 }
             });
@@ -418,7 +610,6 @@ async function initializeGoogleSignIn(clientId) {
     }
 }
 
-// Handle form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -426,7 +617,7 @@ async function handleFormSubmit(e) {
     
     try {
         if (!validateAllFields()) {
-            showAlert('Please correct the errors and try again.', 'error');
+            showToast('Please fill in all required fields and agree to the terms.', 'error');
             return;
         }
         
@@ -443,6 +634,7 @@ async function handleFormSubmit(e) {
         
         if (session?.user) {
             await completeProfile(formData, session.user);
+            showToast('Profile completed successfully! Welcome to QOTORE.', 'success');
             setTimeout(() => {
                 window.location.href = '/';
             }, 2000);
@@ -452,13 +644,16 @@ async function handleFormSubmit(e) {
         
     } catch (error) {
         console.error('Registration error:', error);
+        showToast(
+            error.message || 'Registration failed. Please try again.',
+            'error'
+        );
     } finally {
         isProcessing = false;
         showProcessing('registerBtn', false);
     }
 }
 
-// Load configuration and initialize Supabase
 async function loadConfiguration() {
     try {
         const response = await fetch('/api/config', {
@@ -492,11 +687,11 @@ async function loadConfiguration() {
         }
     } catch (error) {
         console.error('Configuration load error:', error);
+        showToast('Service not configured. Please contact support.', 'error');
         throw error;
     }
 }
 
-// Helper functions
 function hideGoogleSignIn() {
     const googleSection = document.getElementById('googleSection');
     const authDivider = document.getElementById('authDivider');
@@ -566,12 +761,10 @@ function showProcessing(buttonId, show) {
 }
 
 function goToStep(step) {
-    // Hide all steps
     document.querySelectorAll('.form-step').forEach(stepEl => {
         stepEl.classList.remove('active');
     });
     
-    // Show target step
     const targetStep = document.getElementById(`step${step}`);
     if (targetStep) {
         targetStep.classList.add('active');
@@ -595,7 +788,6 @@ async function loadTranslations() {
     }
 }
 
-// Register new user with email/password
 async function registerNewUser(formData) {
     const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -612,6 +804,7 @@ async function registerNewUser(formData) {
     
     if (error) {
         if (error.message.includes('already registered')) {
+            showToast('An account with this email already exists. Please sign in instead.', 'error');
             setTimeout(() => {
                 window.location.href = '/user/login.html';
             }, 2000);
@@ -621,14 +814,15 @@ async function registerNewUser(formData) {
     }
     
     if (data.user) {
-        await completeProfile(formData, data.user);        
+        await completeProfile(formData, data.user);
+        showToast('Account created successfully! Please check your email to verify your account.', 'success');
+        
         setTimeout(() => {
             window.location.href = '/user/verify-email.html';
         }, 3000);
     }
 }
 
-// Complete user profile
 async function completeProfile(formData, user) {
     try {
         const { data, error } = await supabase.rpc('complete_user_profile', {
@@ -665,3 +859,13 @@ async function completeProfile(formData, user) {
 function generateTemporaryPassword() {
     return Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
 }
+
+// Add CSS animation for spin
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
