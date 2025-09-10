@@ -33,7 +33,7 @@ function initializeToastContainer() {
 }
 
 // Show toast notification
-function showToast(message, type = 'info', duration = 5000) {
+function showCustomAlert(message, type = 'info', duration = 5000) {
     initializeToastContainer();
     
     const toast = document.createElement('div');
@@ -332,7 +332,7 @@ async function checkForOAuthCallback() {
                     }
                 } else {
                     // Profile already complete, redirect to main page
-                    showToast('Welcome back!', 'success');
+                    showCustomAlert('Welcome back!', 'success');
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 2000);
@@ -482,7 +482,7 @@ async function cancelRegistration() {
         async () => {
             try {
                 // Show loading toast
-                const loadingToast = showToast('Deleting account...', 'info', 0);
+                const loadingToast = showCustomAlert('Deleting account...', 'info', 0);
                 
                 // Show loading state on button
                 const cancelBtn = document.getElementById('cancelRegistrationBtn');
@@ -527,7 +527,7 @@ async function cancelRegistration() {
                 removeToast(loadingToast);
                 
                 // Show success toast
-                showToast('Account successfully deleted. Redirecting...', 'success');
+                showCustomAlert('Account successfully deleted. Redirecting...', 'success');
                 
                 setTimeout(() => {
                     window.location.href = '/';
@@ -535,7 +535,7 @@ async function cancelRegistration() {
                 
             } catch (error) {
                 console.error('Account deletion error:', error);
-                showToast('Failed to delete account. Please try again.', 'error');
+                showCustomAlert('Failed to delete account. Please try again.', 'error');
                 
                 // Reset button
                 const cancelBtn = document.getElementById('cancelRegistrationBtn');
@@ -704,7 +704,7 @@ function prefillOAuthData(user) {
     }
     
     // Show success toast
-    showToast('Account connected successfully! Please complete your profile below.', 'success');
+    showCustomAlert('Account connected successfully! Please complete your profile below.', 'success');
 }
 
 // Initialize Google Sign-In
@@ -732,7 +732,7 @@ async function initializeGoogleSignIn(clientId) {
                     }
                 } catch (error) {
                     console.error('Google OAuth error:', error);
-                    showToast('Failed to sign up with Google. Please try again.', 'error');
+                    showCustomAlert('Failed to sign up with Google. Please try again.', 'error');
                     showProcessing('google-signin-button', false);
                 }
             });
@@ -751,7 +751,7 @@ async function handleFormSubmit(e) {
     
     try {
         if (!validateAllFields()) {
-            showToast('Please correct the errors and try again.', 'error');
+            showCustomAlert('Please correct the errors and try again.', 'error');
             return;
         }
         
@@ -768,7 +768,7 @@ async function handleFormSubmit(e) {
         
         if (session?.user) {
             await completeProfile(formData, session.user);
-            showToast('Profile completed successfully! Welcome to QOTORE.', 'success');
+            showCustomAlert('Profile completed successfully! Welcome to QOTORE.', 'success');
             setTimeout(() => {
                 window.location.href = '/';
             }, 2000);
@@ -778,7 +778,7 @@ async function handleFormSubmit(e) {
         
     } catch (error) {
         console.error('Registration error:', error);
-        showToast(
+        showCustomAlert(
             error.message || 'Registration failed. Please try again.',
             'error'
         );
@@ -822,7 +822,7 @@ async function loadConfiguration() {
         }
     } catch (error) {
         console.error('Configuration load error:', error);
-        showToast('Service not configured. Please contact support.', 'error');
+        showCustomAlert('Service not configured. Please contact support.', 'error');
         throw error;
     }
 }
@@ -943,7 +943,7 @@ async function registerNewUser(formData) {
     
     if (error) {
         if (error.message.includes('already registered')) {
-            showToast('An account with this email already exists. Please sign in instead.', 'error');
+            showCustomAlert('An account with this email already exists. Please sign in instead.', 'error');
             setTimeout(() => {
                 window.location.href = '/user/login.html';
             }, 2000);
@@ -955,7 +955,7 @@ async function registerNewUser(formData) {
     if (data.user) {
         await completeProfile(formData, data.user);
         
-        showToast('Account created successfully! Please check your email to verify your account.', 'success');
+        showCustomAlert('Account created successfully! Please check your email to verify your account.', 'success');
         
         setTimeout(() => {
             window.location.href = '/user/verify-email.html';
@@ -1010,6 +1010,41 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+function showCustomAlert(message) {
+    // Create a simple toast notification
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: #333;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        z-index: 10000;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Hide toast
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
 
 // Make global functions available
 window.removeToast = removeToast;
