@@ -1,8 +1,213 @@
-// User Authentication Script using Supabase Auth - WITH TOAST NOTIFICATIONS
+// User Authentication Script using Supabase Auth - Updated with Toast System
 let currentLanguage = 'en';
 let translations = {};
 let supabase = null;
 let isProcessing = false;
+
+// Toast notification system
+let toastContainer;
+
+// Initialize toast container
+function initializeToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 90vw;
+            width: auto;
+        `;
+        document.body.appendChild(toastContainer);
+    }
+}
+
+// Show toast notification
+function showToast(message, type = 'info', duration = 5000) {
+    initializeToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    // Toast styles
+    const baseStyles = `
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 500px;
+        font-size: 14px;
+        line-height: 1.4;
+        font-weight: 500;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: auto;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    `;
+    
+    let iconColor, borderColor, textColor, bgColor;
+    let icon;
+    
+    switch (type) {
+        case 'success':
+            iconColor = '#10B981';
+            borderColor = '#10B981';
+            textColor = '#064E3B';
+            bgColor = '#F0FDF4';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22,4 12,14.01 9,11.01"></polyline>
+            </svg>`;
+            break;
+        case 'error':
+            iconColor = '#EF4444';
+            borderColor = '#EF4444';
+            textColor = '#7F1D1D';
+            bgColor = '#FEF2F2';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>`;
+            break;
+        case 'warning':
+            iconColor = '#F59E0B';
+            borderColor = '#F59E0B';
+            textColor = '#92400E';
+            bgColor = '#FFFBEB';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>`;
+            break;
+        default: // info
+            iconColor = '#3B82F6';
+            borderColor = '#3B82F6';
+            textColor = '#1E3A8A';
+            bgColor = '#F0F9FF';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>`;
+    }
+    
+    toast.style.cssText = `
+        ${baseStyles}
+        border-left-color: ${borderColor};
+        background: ${bgColor};
+        color: ${textColor};
+    `;
+    
+    // Progress bar for auto-dismiss
+    const progressBar = document.createElement('div');
+    progressBar.style.cssText = `
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: ${borderColor};
+        width: 100%;
+        transform-origin: left;
+        transform: scaleX(1);
+        transition: transform ${duration}ms linear;
+    `;
+    
+    toast.innerHTML = `
+        <div style="flex-shrink: 0;">
+            ${icon}
+        </div>
+        <div style="flex: 1; min-width: 0;">
+            ${message}
+        </div>
+        <button onclick="removeToast(this.parentElement)" style="
+            background: none;
+            border: none;
+            color: ${textColor};
+            opacity: 0.5;
+            cursor: pointer;
+            padding: 4px;
+            margin: -4px;
+            border-radius: 4px;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='0.5'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    `;
+    
+    toast.appendChild(progressBar);
+    
+    // Click to dismiss
+    toast.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') {
+            removeToast(toast);
+        }
+    });
+    
+    // Add to container
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+        
+        // Start progress bar animation
+        requestAnimationFrame(() => {
+            progressBar.style.transform = 'scaleX(0)';
+        });
+    });
+    
+    // Auto remove
+    if (duration > 0) {
+        setTimeout(() => {
+            removeToast(toast);
+        }, duration);
+    }
+    
+    return toast;
+}
+
+// Remove toast
+function removeToast(toast) {
+    if (!toast || !toast.parentElement) return;
+    
+    toast.style.transform = 'translateY(100px)';
+    toast.style.opacity = '0';
+    
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+        
+        // Clean up container if empty
+        if (toastContainer && toastContainer.children.length === 0) {
+            toastContainer.remove();
+            toastContainer = null;
+        }
+    }, 300);
+}
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,7 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeApp() {
     try {
         showLoadingSplash();
-        createToastContainer(); // Initialize toast system
         await loadConfiguration();
         await loadTranslations();
         loadLanguagePreference();
@@ -24,164 +228,6 @@ async function initializeApp() {
         hideLoadingSplash();
         showToast('Error loading page. Please refresh and try again.', 'error');
     }
-}
-
-// Toast Notification System
-function createToastContainer() {
-    if (document.getElementById('toastContainer')) return;
-    
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        pointer-events: none;
-        max-width: 400px;
-        width: 90%;
-    `;
-    document.body.appendChild(container);
-}
-
-function showToast(message, type = 'info', duration = 4000) {
-    createToastContainer();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    
-    const baseStyles = `
-        background: white;
-        border-radius: 12px;
-        padding: 16px 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 14px;
-        font-weight: 500;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: auto;
-        backdrop-filter: blur(10px);
-        max-width: 100%;
-        word-wrap: break-word;
-    `;
-    
-    let borderColor, textColor, backgroundColor, icon;
-    
-    switch (type) {
-        case 'success':
-            borderColor = '#10b981';
-            textColor = '#065f46';
-            backgroundColor = '#f0fdf4';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
-            </svg>`;
-            break;
-        case 'error':
-            borderColor = '#ef4444';
-            textColor = '#991b1b';
-            backgroundColor = '#fef2f2';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z"/>
-            </svg>`;
-            break;
-        case 'warning':
-            borderColor = '#f59e0b';
-            textColor = '#92400e';
-            backgroundColor = '#fffbeb';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
-            </svg>`;
-            break;
-        default:
-            borderColor = '#3b82f6';
-            textColor = '#1e40af';
-            backgroundColor = '#eff6ff';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
-            </svg>`;
-    }
-    
-    toast.style.cssText = baseStyles + `
-        border-left-color: ${borderColor};
-        color: ${textColor};
-        background: ${backgroundColor};
-    `;
-    
-    toast.innerHTML = `
-        <div class="toast-icon" style="color: ${borderColor}; flex-shrink: 0;">
-            ${icon}
-        </div>
-        <div class="toast-message" style="flex: 1; line-height: 1.5;">
-            ${message}
-        </div>
-        <button class="toast-close" style="
-            background: none;
-            border: none;
-            color: ${textColor};
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-            flex-shrink: 0;
-        " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-            </svg>
-        </button>
-    `;
-    
-    const container = document.getElementById('toastContainer');
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-    }, 10);
-    
-    const autoRemove = setTimeout(() => {
-        removeToast(toast);
-    }, duration);
-    
-    const closeBtn = toast.querySelector('.toast-close');
-    closeBtn.addEventListener('click', () => {
-        clearTimeout(autoRemove);
-        removeToast(toast);
-    });
-    
-    toast.addEventListener('click', (e) => {
-        if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
-            clearTimeout(autoRemove);
-            removeToast(toast);
-        }
-    });
-    
-    return toast;
-}
-
-function removeToast(toast) {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(-10px) scale(0.95)';
-    
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
-    }, 300);
-}
-
-// Replace showAlert with showToast
-function showAlert(message, type = 'info') {
-    showToast(message, type);
 }
 
 // Load configuration and initialize Supabase
@@ -197,16 +243,19 @@ async function loadConfiguration() {
         if (response.ok) {
             const config = await response.json();
             
+            // Check if Supabase library is loaded
             if (typeof window.supabase === 'undefined') {
                 console.error('Supabase library not loaded');
                 throw new Error('Supabase library not available');
             }
             
+            // Initialize Supabase client
             const { createClient } = window.supabase;
             supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
             
             console.log('Supabase client initialized');
             
+            // Initialize Google Sign-In if configured
             if (config.GOOGLE_CLIENT_ID) {
                 await initializeGoogleSignIn(config.GOOGLE_CLIENT_ID);
             } else {
@@ -236,6 +285,7 @@ async function checkExistingSession() {
         }
         
         if (session) {
+            // User is already logged in, redirect to main page
             console.log('User already logged in:', session.user);
             showToast('You are already logged in. Redirecting...', 'success');
             
@@ -265,6 +315,7 @@ async function initializeGoogleSignIn(clientId) {
                     try {
                         showProcessing('google-signin-button', true);
                         
+                        // FIXED: Redirect to register.html instead of profile-completion.html
                         const { data, error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
@@ -276,6 +327,7 @@ async function initializeGoogleSignIn(clientId) {
                             throw error;
                         }
                         
+                        // OAuth redirect will handle the rest
                     } catch (error) {
                         console.error('Google OAuth error:', error);
                         showToast('Failed to sign in with Google. Please try again.', 'error');
@@ -290,10 +342,12 @@ async function initializeGoogleSignIn(clientId) {
     }
 }
 
+// Handle Google Sign-In callback (fallback for direct Google API)
 async function handleGoogleSignIn(response) {
     try {
         showProcessing('google-signin-button', true);
         
+        // This is a fallback - normally OAuth redirect handles this
         const { data, error } = await supabase.auth.signInWithIdToken({
             provider: 'google',
             token: response.credential
@@ -314,6 +368,7 @@ async function handleGoogleSignIn(response) {
     }
 }
 
+// Hide Google Sign-In if not configured
 function hideGoogleSignIn() {
     const googleSection = document.querySelector('.google-signin-section');
     const authDivider = document.querySelector('.auth-divider');
@@ -322,6 +377,7 @@ function hideGoogleSignIn() {
     if (authDivider) authDivider.style.display = 'none';
 }
 
+// Initialize event listeners
 function initializeEventListeners() {
     const emailForm = document.getElementById('emailLoginForm');
     if (emailForm) {
@@ -329,6 +385,7 @@ function initializeEventListeners() {
     }
 }
 
+// Handle email/phone login
 async function handleEmailLogin(event) {
     event.preventDefault();
     
@@ -348,6 +405,7 @@ async function handleEmailLogin(event) {
         const isEmail = emailOrPhone.includes('@');
         
         if (isEmail) {
+            // Use Supabase magic link for email login
             const { data, error } = await supabase.auth.signInWithOtp({
                 email: emailOrPhone,
                 options: {
@@ -357,6 +415,7 @@ async function handleEmailLogin(event) {
             
             if (error) {
                 if (error.message.includes('User not found')) {
+                    // User doesn't exist, redirect to registration
                     localStorage.setItem('registration_prefill', emailOrPhone);
                     window.location.href = '/user/register.html';
                     return;
@@ -364,12 +423,13 @@ async function handleEmailLogin(event) {
                 throw error;
             }
             
+            // Show success message
             showToast(
                 t('magic_link_sent') || `A magic link has been sent to ${emailOrPhone}. Check your email to sign in.`,
-                'success',
-                6000
+                'success'
             );
             
+            // Change button to indicate email was sent
             const submitBtn = document.getElementById('emailSubmitBtn');
             if (submitBtn) {
                 const span = submitBtn.querySelector('span');
@@ -380,6 +440,7 @@ async function handleEmailLogin(event) {
             }
             
         } else {
+            // Handle phone login (SMS OTP) - needs to be enabled in Supabase
             const { data, error } = await supabase.auth.signInWithOtp({
                 phone: emailOrPhone
             });
@@ -393,6 +454,7 @@ async function handleEmailLogin(event) {
                 throw error;
             }
             
+            // Redirect to phone verification
             localStorage.setItem('phone_verification', emailOrPhone);
             window.location.href = '/user/verify-phone.html';
         }
@@ -409,21 +471,26 @@ async function handleEmailLogin(event) {
     }
 }
 
+// Handle successful authentication
 function handleSuccessfulAuth(authData) {
     if (authData.user) {
         showToast(t('login_success') || 'Welcome back!', 'success');
         
+        // Log user activity
         logUserActivity('user_login');
         
+        // Check if profile is complete, redirect accordingly
         setTimeout(async () => {
             const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
                 .select('profile_completed')
                 .eq('id', authData.user.id)
-                .maybeSingle();
+                .maybeSingle(); // Use maybeSingle() instead of single()
             
+            // Handle profile error or no profile found
             if (profileError && profileError.code !== 'PGRST116') {
                 console.warn('Profile check error:', profileError);
+                // Continue to main page even if profile check fails
                 window.location.href = '/';
                 return;
             }
@@ -437,6 +504,7 @@ function handleSuccessfulAuth(authData) {
     }
 }
 
+// Log user activity
 async function logUserActivity(action, details = null) {
     if (!supabase) return;
     
@@ -454,6 +522,7 @@ async function logUserActivity(action, details = null) {
     }
 }
 
+// Translation Management
 async function loadTranslations() {
     try {
         const response = await fetch('/user/user-translations.json');
@@ -534,6 +603,7 @@ function toggleLanguage() {
     }, 500);
 }
 
+// UI Helper Functions
 function showLoadingSplash() {
     const splash = document.getElementById('loadingSplash');
     if (splash) {
@@ -569,3 +639,4 @@ function showProcessing(buttonId, show) {
 // Global functions
 window.toggleLanguage = toggleLanguage;
 window.handleGoogleSignIn = handleGoogleSignIn;
+window.removeToast = removeToast;

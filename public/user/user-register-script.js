@@ -1,4 +1,4 @@
-// Updated user-register-script.js - WITH TOAST NOTIFICATIONS
+// Updated user-register-script.js with Toast System - No Alerts
 
 let supabase;
 let currentLanguage = 'en';
@@ -7,62 +7,39 @@ let isProcessing = false;
 let currentStep = 1;
 let googleUserData = null;
 
-// Initialize everything when DOM is loaded
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('DOM loaded, initializing...');
-    
-    try {
-        createToastContainer(); // Initialize toast system
-        await loadTranslations();
-        await loadConfiguration();
-        
-        // Wait a bit for Supabase to be ready, then check for OAuth
-        setTimeout(async () => {
-            if (supabase) {
-                await checkForOAuthCallback();
-            }
-            
-            hideLoadingScreen();
-        }, 1000);
-        
-        setupFormHandlers();
-        updateLanguageDisplay();
-        prefillFromLocalStorage();
-        
-    } catch (error) {
-        console.error('Initialization error:', error);
-        hideLoadingScreen();
-    }
-});
+// Toast notification system
+let toastContainer;
 
-// Toast Notification System
-function createToastContainer() {
-    if (document.getElementById('toastContainer')) return;
-    
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        pointer-events: none;
-        max-width: 400px;
-        width: 90%;
-    `;
-    document.body.appendChild(container);
+// Initialize toast container
+function initializeToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 90vw;
+            width: auto;
+        `;
+        document.body.appendChild(toastContainer);
+    }
 }
 
-function showToast(message, type = 'info', duration = 4000) {
-    createToastContainer();
+// Show toast notification
+function showToast(message, type = 'info', duration = 5000) {
+    initializeToastContainer();
     
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     
+    // Toast styles
     const baseStyles = `
         background: white;
         border-radius: 12px;
@@ -72,130 +49,203 @@ function showToast(message, type = 'info', duration = 4000) {
         display: flex;
         align-items: center;
         gap: 12px;
+        min-width: 300px;
+        max-width: 500px;
         font-size: 14px;
+        line-height: 1.4;
         font-weight: 500;
+        transform: translateY(100px);
         opacity: 0;
-        transform: translateY(20px);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: auto;
+        cursor: pointer;
         backdrop-filter: blur(10px);
-        max-width: 100%;
-        word-wrap: break-word;
+        position: relative;
+        overflow: hidden;
     `;
     
-    let borderColor, textColor, backgroundColor, icon;
+    let iconColor, borderColor, textColor, bgColor;
+    let icon;
     
     switch (type) {
         case 'success':
-            borderColor = '#10b981';
-            textColor = '#065f46';
-            backgroundColor = '#f0fdf4';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+            iconColor = '#10B981';
+            borderColor = '#10B981';
+            textColor = '#064E3B';
+            bgColor = '#F0FDF4';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22,4 12,14.01 9,11.01"></polyline>
             </svg>`;
             break;
         case 'error':
-            borderColor = '#ef4444';
-            textColor = '#991b1b';
-            backgroundColor = '#fef2f2';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z"/>
+            iconColor = '#EF4444';
+            borderColor = '#EF4444';
+            textColor = '#7F1D1D';
+            bgColor = '#FEF2F2';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
             </svg>`;
             break;
         case 'warning':
-            borderColor = '#f59e0b';
-            textColor = '#92400e';
-            backgroundColor = '#fffbeb';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+            iconColor = '#F59E0B';
+            borderColor = '#F59E0B';
+            textColor = '#92400E';
+            bgColor = '#FFFBEB';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>`;
             break;
-        default:
-            borderColor = '#3b82f6';
-            textColor = '#1e40af';
-            backgroundColor = '#eff6ff';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
+        default: // info
+            iconColor = '#3B82F6';
+            borderColor = '#3B82F6';
+            textColor = '#1E3A8A';
+            bgColor = '#F0F9FF';
+            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>`;
     }
     
-    toast.style.cssText = baseStyles + `
+    toast.style.cssText = `
+        ${baseStyles}
         border-left-color: ${borderColor};
+        background: ${bgColor};
         color: ${textColor};
-        background: ${backgroundColor};
+    `;
+    
+    // Progress bar for auto-dismiss
+    const progressBar = document.createElement('div');
+    progressBar.style.cssText = `
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: ${borderColor};
+        width: 100%;
+        transform-origin: left;
+        transform: scaleX(1);
+        transition: transform ${duration}ms linear;
     `;
     
     toast.innerHTML = `
-        <div class="toast-icon" style="color: ${borderColor}; flex-shrink: 0;">
+        <div style="flex-shrink: 0;">
             ${icon}
         </div>
-        <div class="toast-message" style="flex: 1; line-height: 1.5;">
+        <div style="flex: 1; min-width: 0;">
             ${message}
         </div>
-        <button class="toast-close" style="
+        <button onclick="removeToast(this.parentElement)" style="
             background: none;
             border: none;
             color: ${textColor};
+            opacity: 0.5;
             cursor: pointer;
             padding: 4px;
+            margin: -4px;
             border-radius: 4px;
-            opacity: 0.6;
             transition: opacity 0.2s;
             flex-shrink: 0;
-        " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+        " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='0.5'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
         </button>
     `;
     
-    const container = document.getElementById('toastContainer');
-    container.appendChild(toast);
+    toast.appendChild(progressBar);
     
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-    }, 10);
-    
-    const autoRemove = setTimeout(() => {
-        removeToast(toast);
-    }, duration);
-    
-    const closeBtn = toast.querySelector('.toast-close');
-    closeBtn.addEventListener('click', () => {
-        clearTimeout(autoRemove);
-        removeToast(toast);
-    });
-    
+    // Click to dismiss
     toast.addEventListener('click', (e) => {
-        if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
-            clearTimeout(autoRemove);
+        if (e.target.tagName !== 'BUTTON') {
             removeToast(toast);
         }
     });
     
+    // Add to container
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+        
+        // Start progress bar animation
+        requestAnimationFrame(() => {
+            progressBar.style.transform = 'scaleX(0)';
+        });
+    });
+    
+    // Auto remove
+    if (duration > 0) {
+        setTimeout(() => {
+            removeToast(toast);
+        }, duration);
+    }
+    
     return toast;
 }
 
+// Remove toast
 function removeToast(toast) {
+    if (!toast || !toast.parentElement) return;
+    
+    toast.style.transform = 'translateY(100px)';
     toast.style.opacity = '0';
-    toast.style.transform = 'translateY(-10px) scale(0.95)';
     
     setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
+        if (toast.parentElement) {
+            toast.remove();
+        }
+        
+        // Clean up container if empty
+        if (toastContainer && toastContainer.children.length === 0) {
+            toastContainer.remove();
+            toastContainer = null;
         }
     }, 300);
 }
 
-// Replace alert/confirm with toast
-function showAlert(message, type = 'info') {
-    showToast(message, type);
-}
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM loaded, initializing...');
+    
+    try {
+        await loadTranslations();
+        await loadConfiguration();
+        
+        // Wait a bit for Supabase to be ready, then check for OAuth
+        setTimeout(async () => {
+            if (supabase) {
+                await checkForOAuthCallback();
+            }
+            
+            // Hide loading screen using correct ID from HTML
+            hideLoadingScreen();
+        }, 1000);
+        
+        setupFormHandlers();
+        updateLanguageDisplay();
+        prefillFromLocalStorage();
+        
+    } catch (error) {
+        console.error('Initialization error:', error);
+        // Always hide loading even on error
+        hideLoadingScreen();
+    }
+});
 
+// Correct function matching actual HTML IDs
 function hideLoadingScreen() {
     console.log('Hiding loading screen...');
     
+    // Using correct IDs from your HTML
     const loadingSplash = document.getElementById('loadingSplash');
     const registrationContainer = document.querySelector('.registration-container');
     
@@ -220,7 +270,9 @@ function hideLoadingScreen() {
     console.log('Loading screen hidden');
 }
 
+// Setup form event handlers
 function setupFormHandlers() {
+    // Using correct form ID from HTML
     const form = document.getElementById('registrationForm');
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
@@ -229,12 +281,14 @@ function setupFormHandlers() {
         console.log('Registration form not found');
     }
     
+    // Add input validation
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(input => {
         input.addEventListener('blur', validateField);
     });
 }
 
+// Fixed OAuth callback check
 async function checkForOAuthCallback() {
     if (!supabase) {
         console.log('Supabase not ready yet');
@@ -253,6 +307,7 @@ async function checkForOAuthCallback() {
         if (data?.session?.user) {
             console.log('User session found:', data.session.user.email);
             
+            // Check if this is an OAuth user
             const isOAuthUser = data.session.user.app_metadata?.provider === 'google';
             console.log('Is OAuth user:', isOAuthUser);
             
@@ -268,12 +323,15 @@ async function checkForOAuthCallback() {
                 }
                 
                 if (!profile || !profile.profile_completed) {
+                    // Pre-fill form with OAuth data
                     prefillOAuthData(data.session.user);
                     
+                    // Add cancel button for OAuth users
                     if (isOAuthUser) {
                         addCancelButtonToRegistrationForm();
                     }
                 } else {
+                    // Profile already complete, redirect to main page
                     showToast('Welcome back!', 'success');
                     setTimeout(() => {
                         window.location.href = '/';
@@ -295,17 +353,21 @@ async function checkForOAuthCallback() {
     }
 }
 
+// Updated to match actual HTML structure
 function addCancelButtonToRegistrationForm() {
     console.log('Adding cancel button for OAuth user...');
     
+    // Remove existing cancel button if any
     const existingBtn = document.getElementById('cancelRegistrationBtn');
     if (existingBtn) {
         existingBtn.remove();
     }
     
+    // Find the logo section to add the cancel button
     const logoSection = document.querySelector('.logo-section');
     
     if (logoSection) {
+        // Create cancel button
         const cancelBtn = document.createElement('button');
         cancelBtn.id = 'cancelRegistrationBtn';
         cancelBtn.type = 'button';
@@ -336,6 +398,7 @@ function addCancelButtonToRegistrationForm() {
             <span>Cancel</span>
         `;
         
+        // Add hover effect
         cancelBtn.addEventListener('mouseenter', () => {
             cancelBtn.style.background = 'rgba(255, 255, 255, 0.3)';
             cancelBtn.style.transform = 'translateY(-1px)';
@@ -346,6 +409,7 @@ function addCancelButtonToRegistrationForm() {
             cancelBtn.style.transform = 'translateY(0)';
         });
         
+        // Add click handler
         cancelBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -353,15 +417,18 @@ function addCancelButtonToRegistrationForm() {
             cancelRegistration();
         };
         
+        // Add to logo section
         logoSection.style.position = 'relative';
         logoSection.appendChild(cancelBtn);
         
         console.log('Cancel button added successfully to logo section');
         
+        // Also add cancel link at the bottom for better UX
         addCancelLinkToForm();
     } else {
         console.error('Could not find logo-section to add cancel button');
         
+        // Fallback: try to add to form content
         const formContent = document.querySelector('.form-content');
         if (formContent) {
             addCancelLinkToForm();
@@ -369,6 +436,7 @@ function addCancelButtonToRegistrationForm() {
     }
 }
 
+// Add cancel link at the bottom of the form
 function addCancelLinkToForm() {
     const step3 = document.getElementById('step3');
     
@@ -403,142 +471,202 @@ function addCancelLinkToForm() {
     }
 }
 
+// Enhanced cancel registration function with toast instead of confirm
 async function cancelRegistration() {
     console.log('cancelRegistration called');
     
-    // Use toast for confirmation instead of confirm dialog
-    showToast('Are you sure you want to cancel registration and delete your account?', 'warning', 5000);
+    // Show confirmation toast with action buttons
+    showConfirmationToast(
+        'Are you sure you want to cancel registration and delete your account? This cannot be undone.',
+        'warning',
+        async () => {
+            try {
+                // Show loading toast
+                const loadingToast = showToast('Deleting account...', 'info', 0);
+                
+                // Show loading state on button
+                const cancelBtn = document.getElementById('cancelRegistrationBtn');
+                if (cancelBtn) {
+                    cancelBtn.innerHTML = `
+                        <div style="display: inline-block; width: 14px; height: 14px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        Canceling...
+                    `;
+                    cancelBtn.disabled = true;
+                }
+                
+                // Get current user
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                
+                if (userError || !user) {
+                    throw new Error('No user found to delete');
+                }
+                
+                console.log('Deleting user profile and signing out...');
+                
+                // Delete user profile from database (if exists)
+                const { error: profileError } = await supabase
+                    .from('user_profiles')
+                    .delete()
+                    .eq('id', user.id);
+                
+                if (profileError) {
+                    console.warn('Profile deletion error:', profileError);
+                    // Continue anyway
+                }
+                
+                // Sign out
+                const { error: signOutError } = await supabase.auth.signOut();
+                
+                if (signOutError) {
+                    console.warn('Sign out error:', signOutError);
+                }
+                
+                console.log('Account deletion completed');
+                
+                // Remove loading toast
+                removeToast(loadingToast);
+                
+                // Show success toast
+                showToast('Account successfully deleted. Redirecting...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Account deletion error:', error);
+                showToast('Failed to delete account. Please try again.', 'error');
+                
+                // Reset button
+                const cancelBtn = document.getElementById('cancelRegistrationBtn');
+                if (cancelBtn) {
+                    cancelBtn.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                        </svg>
+                        <span>Cancel</span>
+                    `;
+                    cancelBtn.disabled = false;
+                }
+            }
+        }
+    );
+}
+
+// Show confirmation toast with action buttons
+function showConfirmationToast(message, type = 'warning', onConfirm, onCancel = null) {
+    initializeToastContainer();
     
-    // Create a custom confirmation toast
-    const confirmToast = document.createElement('div');
-    confirmToast.style.cssText = `
-        position: fixed;
-        bottom: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: white;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const iconColor = '#F59E0B';
+    const borderColor = '#F59E0B';
+    const textColor = '#92400E';
+    const bgColor = '#FFFBEB';
+    
+    toast.style.cssText = `
+        background: ${bgColor};
         border-radius: 12px;
-        padding: 20px;
+        padding: 16px 20px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid #ef4444;
-        z-index: 10001;
-        max-width: 400px;
-        width: 90%;
+        border-left: 4px solid ${borderColor};
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 350px;
+        max-width: 500px;
+        font-size: 14px;
+        line-height: 1.4;
+        font-weight: 500;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: auto;
+        backdrop-filter: blur(10px);
+        color: ${textColor};
     `;
     
-    confirmToast.innerHTML = `
-        <div style="margin-bottom: 15px; color: #991b1b; font-weight: 600;">
-            Confirm Account Deletion
+    toast.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="flex-shrink: 0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                ${message}
+            </div>
         </div>
-        <div style="margin-bottom: 20px; color: #666; line-height: 1.5;">
-            This will permanently delete your account. You cannot undo this action.
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button id="cancelDelete" style="
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button onclick="removeToast(this.closest('.toast'))" style="
                 background: #f8f9fa;
                 border: 1px solid #dee2e6;
-                border-radius: 6px;
-                padding: 8px 16px;
-                cursor: pointer;
                 color: #6c757d;
-            ">Keep Account</button>
-            <button id="confirmDelete" style="
-                background: #dc3545;
-                border: none;
-                border-radius: 6px;
                 padding: 8px 16px;
+                border-radius: 6px;
                 cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s;
+            " onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                Cancel
+            </button>
+            <button onclick="confirmAction(this)" style="
+                background: #dc3545;
+                border: 1px solid #dc3545;
                 color: white;
-            ">Delete Account</button>
+                padding: 8px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s;
+            " onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">
+                Delete Account
+            </button>
         </div>
     `;
     
-    document.body.appendChild(confirmToast);
+    // Store confirm callback on the toast element
+    toast._onConfirm = onConfirm;
     
-    document.getElementById('cancelDelete').onclick = () => {
-        confirmToast.remove();
-    };
+    // Add to container
+    toastContainer.appendChild(toast);
     
-    document.getElementById('confirmDelete').onclick = async () => {
-        confirmToast.remove();
-        await performAccountDeletion();
-    };
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    });
     
-    // Auto remove after 10 seconds
-    setTimeout(() => {
-        if (confirmToast.parentNode) {
-            confirmToast.remove();
-        }
-    }, 10000);
+    return toast;
 }
 
-async function performAccountDeletion() {
-    try {
-        const cancelBtn = document.getElementById('cancelRegistrationBtn');
-        if (cancelBtn) {
-            cancelBtn.innerHTML = `
-                <div style="display: inline-block; width: 14px; height: 14px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                Canceling...
-            `;
-            cancelBtn.disabled = true;
-        }
-        
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-            throw new Error('No user found to delete');
-        }
-        
-        console.log('Deleting user profile and signing out...');
-        
-        const { error: profileError } = await supabase
-            .from('user_profiles')
-            .delete()
-            .eq('id', user.id);
-        
-        if (profileError) {
-            console.warn('Profile deletion error:', profileError);
-        }
-        
-        const { error: signOutError } = await supabase.auth.signOut();
-        
-        if (signOutError) {
-            console.warn('Sign out error:', signOutError);
-        }
-        
-        console.log('Account deletion completed');
-        showToast('Account successfully deleted', 'success');
-        
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 1000);
-        
-    } catch (error) {
-        console.error('Account deletion error:', error);
-        showToast('Failed to delete account. Please try again.', 'error');
-        
-        const cancelBtn = document.getElementById('cancelRegistrationBtn');
-        if (cancelBtn) {
-            cancelBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                </svg>
-                <span>Cancel</span>
-            `;
-            cancelBtn.disabled = false;
-        }
+// Global function for confirmation action
+window.confirmAction = function(button) {
+    const toast = button.closest('.toast');
+    if (toast && toast._onConfirm) {
+        removeToast(toast);
+        toast._onConfirm();
     }
-}
+};
 
+// Pre-fill form with OAuth data
 function prefillOAuthData(user) {
     console.log('Pre-filling OAuth data for user:', user.email);
     
+    // Hide Google signup section since user came from OAuth
     hideGoogleSignIn();
     
+    // Pre-fill form fields from OAuth data
     const metadata = user.user_metadata || {};
     
     console.log('OAuth user metadata:', metadata);
     
+    // Handle name fields
     if (metadata.full_name) {
         const nameParts = metadata.full_name.split(' ');
         const firstNameEl = document.getElementById('firstName');
@@ -554,6 +682,7 @@ function prefillOAuthData(user) {
         if (lastNameEl) lastNameEl.value = metadata.last_name || '';
     }
     
+    // Handle email
     const emailEl = document.getElementById('email');
     if (emailEl) {
         emailEl.value = user.email || '';
@@ -563,18 +692,22 @@ function prefillOAuthData(user) {
         emailEl.style.opacity = '0.7';
     }
     
+    // Store OAuth data for later use
     googleUserData = {
         picture: metadata.avatar_url || metadata.picture
     };
     
+    // Update page title
     const pageTitle = document.querySelector('.page-title');
     if (pageTitle) {
         pageTitle.textContent = currentLanguage === 'ar' ? 'إكمال الملف الشخصي' : 'Complete Profile';
     }
     
+    // Show success toast
     showToast('Account connected successfully! Please complete your profile below.', 'success');
 }
 
+// Initialize Google Sign-In
 async function initializeGoogleSignIn(clientId) {
     try {
         const googleSignInButton = document.getElementById('google-signin-button');
@@ -610,6 +743,7 @@ async function initializeGoogleSignIn(clientId) {
     }
 }
 
+// Handle form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -617,7 +751,7 @@ async function handleFormSubmit(e) {
     
     try {
         if (!validateAllFields()) {
-            showToast('Please fill in all required fields and agree to the terms.', 'error');
+            showToast('Please correct the errors and try again.', 'error');
             return;
         }
         
@@ -654,6 +788,7 @@ async function handleFormSubmit(e) {
     }
 }
 
+// Load configuration and initialize Supabase
 async function loadConfiguration() {
     try {
         const response = await fetch('/api/config', {
@@ -692,6 +827,7 @@ async function loadConfiguration() {
     }
 }
 
+// Helper functions
 function hideGoogleSignIn() {
     const googleSection = document.getElementById('googleSection');
     const authDivider = document.getElementById('authDivider');
@@ -761,10 +897,12 @@ function showProcessing(buttonId, show) {
 }
 
 function goToStep(step) {
+    // Hide all steps
     document.querySelectorAll('.form-step').forEach(stepEl => {
         stepEl.classList.remove('active');
     });
     
+    // Show target step
     const targetStep = document.getElementById(`step${step}`);
     if (targetStep) {
         targetStep.classList.add('active');
@@ -788,6 +926,7 @@ async function loadTranslations() {
     }
 }
 
+// Register new user with email/password
 async function registerNewUser(formData) {
     const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -815,6 +954,7 @@ async function registerNewUser(formData) {
     
     if (data.user) {
         await completeProfile(formData, data.user);
+        
         showToast('Account created successfully! Please check your email to verify your account.', 'success');
         
         setTimeout(() => {
@@ -823,6 +963,7 @@ async function registerNewUser(formData) {
     }
 }
 
+// Complete user profile
 async function completeProfile(formData, user) {
     try {
         const { data, error } = await supabase.rpc('complete_user_profile', {
@@ -869,3 +1010,7 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Make global functions available
+window.removeToast = removeToast;
+window.confirmAction = confirmAction;
