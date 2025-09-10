@@ -75,6 +75,15 @@
     "switching_to_arabic": "Switching to Arabic...",
     "switching_language": "Switching language...",
 
+    "profile":"Profile",
+    "my_orders":"My Orders",
+    "logout":"Logout",
+
+    "confirm_logout":"Confirm Logout",
+    "logout_subtitle":"Are you sure you want to sign out?",
+    "logout_message":"You will be signed out of your account and redirected to the login page.",
+    "cancel":"Cancel",
+
     "nav": {
       "products": "Products",
       "language": "Language",
@@ -227,6 +236,15 @@
     "nav_language": "تغيير اللغة",
     "switching_to_english": "التبديل إلى الإنجليزية...",
     "switching_language": "تبديل اللغة...",
+
+    "profile":"الملف الشخصي",
+    "my_orders":"طلباتي",
+    "logout":"تسجيل الخروج",
+
+    "confirm_logout":"تأكيد تسجيل الخروج",
+    "logout_subtitle":"هل أنت متأكد أنك تريد تسجيل الخروج؟",
+    "logout_message":"سيتم تسجيل خروجك من حسابك وإعادة توجيهك إلى صفحة تسجيل الدخول.",
+    "cancel":"إلغاء",
 
     "nav": {
       "products": "المنتجات",
