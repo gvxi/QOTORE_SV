@@ -114,8 +114,34 @@
     "verification_expired": "Verification code has expired. Please request a new one.",
     "verification_invalid": "Invalid verification code. Please try again.",
     "email_phone_required": "Please enter your email or phone number.",
-    "code_resent": "Verification code has been resent to your email."
+    "code_resent": "Verification code has been resent to your email.",
+
+    "confirm_logout": "Confirm Logout",
+    "logout_subtitle": "Are you sure you want to sign out?",
+    "logout_message": "You will be signed out of your account and redirected to the login page.",
+    "logging_out": "Logging out...",
+    "cancel": "Cancel",
+
+    "cancel_registration": "Cancel Registration",
+    "cancel_subtitle": "This will permanently delete your account",
+    "cancel_message": "Are you sure you want to cancel your registration? This action cannot be undone.",
+    "warning": "Warning:",
+    "cancel_warning": "Your account will be permanently deleted from our system. You will need to start the registration process again if you change your mind.",
+    "keep_account": "Keep Account",
+    "delete_account": "Delete Account",
+    "deleting": "Deleting...",
+
+    "complete_profile_subtitle": "Complete your profile to get started",
+    "profile_completion_subtitle": "Please fill in the required information to complete your registration"
+
   },
+
+
+
+
+
+
+
   "ar": {
     "login_title": "تسجيل الدخول | قطورة",
     "register_title": "إنشاء حساب | قطورة",
@@ -231,6 +257,24 @@
     "verification_expired": "انتهت صلاحية رمز التأكيد. يرجى طلب رمز جديد.",
     "verification_invalid": "رمز التأكيد غير صحيح. يرجى المحاولة مرة أخرى.",
     "email_phone_required": "يرجى إدخال بريدك الإلكتروني أو رقم هاتفك.",
-    "code_resent": "تم إعادة إرسال رمز التأكيد إلى بريدك الإلكتروني."
+    "code_resent": "تم إعادة إرسال رمز التأكيد إلى بريدك الإلكتروني.",
+
+    "confirm_logout": "تأكيد تسجيل الخروج",
+    "logout_subtitle": "هل أنت متأكد من أنك تريد تسجيل الخروج؟",
+    "logout_message": "سيتم تسجيل خروجك من حسابك وإعادة توجيهك إلى صفحة تسجيل الدخول.",
+    "logging_out": "جارٍ تسجيل الخروج...",
+    "cancel": "إلغاء",
+
+    "cancel_registration": "إلغاء التسجيل",
+    "cancel_subtitle": "سيؤدي هذا إلى حذف حسابك نهائياً",
+    "cancel_message": "هل أنت متأكد من أنك تريد إلغاء التسجيل؟ لا يمكن التراجع عن هذا الإجراء.",
+    "warning": "تحذير:",
+    "cancel_warning": "سيتم حذف حسابك نهائياً من نظامنا. ستحتاج إلى بدء عملية التسجيل من جديد إذا غيرت رأيك.",
+    "keep_account": "الاحتفاظ بالحساب",
+    "delete_account": "حذف الحساب",
+    "deleting": "جارٍ الحذف...",
+
+    "complete_profile_subtitle": "أكمل ملفك الشخصي للبدء",
+    "profile_completion_subtitle": "يرجى ملء المعلومات المطلوبة لإكمال التسجيل"
   }
 }

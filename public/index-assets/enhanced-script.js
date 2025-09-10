@@ -1375,3 +1375,276 @@ async function checkUserAuthentication() {
         isLoggedIn = false;
     }
 }
+
+// LOGOUT HANDLE //---------------------------------------------------------------
+
+// Logout user with confirmation
+async function logoutUser() {
+    showLogoutModal();
+}
+
+// Show logout confirmation modal
+function showLogoutModal() {
+    const modalHTML = `
+        <div class="modal-overlay" id="logoutModal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div class="modal-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
+                        </svg>
+                    </div>
+                    <h3 class="modal-title" data-translate="confirm_logout">Confirm Logout</h3>
+                    <p class="modal-subtitle" data-translate="logout_subtitle">Are you sure you want to sign out?</p>
+                </div>
+                <div class="modal-content">
+                    <p class="modal-message" data-translate="logout_message">
+                        You will be signed out of your account and redirected to the login page.
+                    </p>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="hideLogoutModal()">
+                        <span data-translate="cancel">Cancel</span>
+                    </button>
+                    <button class="modal-btn modal-btn-primary" onclick="confirmLogout()" id="confirmLogoutBtn">
+                        <span data-translate="logout">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Show modal
+    setTimeout(() => {
+        document.getElementById('logoutModal').classList.add('show');
+    }, 10);
+    
+    // Close on overlay click
+    document.getElementById('logoutModal').addEventListener('click', (e) => {
+        if (e.target.id === 'logoutModal') {
+            hideLogoutModal();
+        }
+    });
+}
+
+// Hide logout modal
+function hideLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+// Confirm logout action
+async function confirmLogout() {
+    const confirmBtn = document.getElementById('confirmLogoutBtn');
+    
+    try {
+        // Show loading
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `
+            <div class="button-spinner"></div>
+            <span data-translate="logging_out">Logging out...</span>
+        `;
+        
+        // Sign out from Supabase
+        const { error } = await supabase.auth.signOut();
+        
+        if (error) {
+            throw error;
+        }
+        
+        // Clear local state
+        currentUser = null;
+        isLoggedIn = false;
+        
+        // Show success message
+        showAlert('Successfully logged out', 'success');
+        
+        // Hide modal
+        hideLogoutModal();
+        
+        // Redirect to login page
+        setTimeout(() => {
+            window.location.href = '/user/login.html';
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Logout error:', error);
+        showAlert('Failed to logout. Please try again.', 'error');
+        
+        // Reset button
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span data-translate="logout">Logout</span>';
+    }
+}
+
+// Add these functions to user-register-script.js (registration/profile completion page)
+
+// Cancel registration and delete account
+function cancelRegistration() {
+    showCancelRegistrationModal();
+}
+
+// Show cancel registration modal
+function showCancelRegistrationModal() {
+    const modalHTML = `
+        <div class="modal-overlay" id="cancelModal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div class="modal-icon danger">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+                        </svg>
+                    </div>
+                    <h3 class="modal-title" data-translate="cancel_registration">Cancel Registration</h3>
+                    <p class="modal-subtitle" data-translate="cancel_subtitle">This will permanently delete your account</p>
+                </div>
+                <div class="modal-content">
+                    <p class="modal-message" data-translate="cancel_message">
+                        Are you sure you want to cancel your registration? This action cannot be undone.
+                    </p>
+                    <div class="modal-warning danger">
+                        <strong data-translate="warning">Warning:</strong>
+                        <span data-translate="cancel_warning">
+                            Your account will be permanently deleted from our system. You will need to start the registration process again if you change your mind.
+                        </span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="hideCancelModal()">
+                        <span data-translate="keep_account">Keep Account</span>
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmCancelRegistration()" id="confirmCancelBtn">
+                        <span data-translate="delete_account">Delete Account</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Show modal
+    setTimeout(() => {
+        document.getElementById('cancelModal').classList.add('show');
+    }, 10);
+    
+    // Close on overlay click
+    document.getElementById('cancelModal').addEventListener('click', (e) => {
+        if (e.target.id === 'cancelModal') {
+            hideCancelModal();
+        }
+    });
+}
+
+// Hide cancel modal
+function hideCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+// Confirm account cancellation
+async function confirmCancelRegistration() {
+    const confirmBtn = document.getElementById('confirmCancelBtn');
+    
+    try {
+        // Show loading
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `
+            <div class="button-spinner"></div>
+            <span data-translate="deleting">Deleting...</span>
+        `;
+        
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+            throw new Error('No user found to delete');
+        }
+        
+        // Delete user profile from database (if exists)
+        const { error: profileError } = await supabase
+            .from('user_profiles')
+            .delete()
+            .eq('id', user.id);
+        
+        if (profileError) {
+            console.warn('Profile deletion error:', profileError);
+            // Continue even if profile deletion fails
+        }
+        
+        // Sign out and delete auth user
+        const { error: signOutError } = await supabase.auth.signOut();
+        
+        if (signOutError) {
+            console.warn('Sign out error:', signOutError);
+        }
+        
+        // Clear local state
+        currentUser = null;
+        isLoggedIn = false;
+        
+        // Show success message
+        showAlert('Account successfully deleted', 'success');
+        
+        // Hide modal
+        hideCancelModal();
+        
+        // Redirect to main page
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Account deletion error:', error);
+        showAlert('Failed to delete account. Please try again.', 'error');
+        
+        // Reset button
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span data-translate="delete_account">Delete Account</span>';
+    }
+}
+
+// Add a cancel button to the registration form
+function addCancelButtonToRegistrationForm() {
+    // Add cancel button to the header
+    const authHeader = document.querySelector('.auth-header');
+    if (authHeader && !document.getElementById('cancelRegistrationBtn')) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.id = 'cancelRegistrationBtn';
+        cancelBtn.className = 'cancel-registration-btn';
+        cancelBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+            </svg>
+            <span data-translate="cancel">Cancel</span>
+        `;
+        cancelBtn.onclick = cancelRegistration;
+        
+        authHeader.appendChild(cancelBtn);
+    }
+}
+
+// Initialize cancel button when page loads (add to DOMContentLoaded)
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user came from OAuth and add cancel option
+    setTimeout(() => {
+        const { data: { session } } = supabase?.auth?.getSession?.() || {};
+        if (session?.user) {
+            addCancelButtonToRegistrationForm();
+        }
+    }, 1000);
+});

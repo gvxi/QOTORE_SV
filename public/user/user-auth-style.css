@@ -731,3 +731,55 @@ body[dir="rtl"] .contact-links {
         max-height: calc(100vh - 2rem);
     }
 }
+
+/* Cancel Registration Button Styles */
+
+.cancel-registration-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    z-index: 100;
+}
+
+.cancel-registration-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+}
+
+.cancel-registration-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Make sure auth header has relative positioning */
+.auth-header {
+    position: relative;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .cancel-registration-btn {
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    
+    .cancel-registration-btn span {
+        display: none; /* Hide text on mobile, keep only icon */
+    }
+}
