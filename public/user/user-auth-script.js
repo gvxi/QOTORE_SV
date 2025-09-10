@@ -279,14 +279,22 @@ function handleSuccessfulAuth(authData) {
         
         // Check if profile is complete, redirect accordingly
         setTimeout(async () => {
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
                 .select('profile_completed')
                 .eq('id', authData.user.id)
-                .single();
+                .maybeSingle(); // Use maybeSingle() instead of single()
             
-            if (profile && !profile.profile_completed) {
-                window.location.href = '/user/profile-completion.html';
+            // Handle profile error or no profile found
+            if (profileError && profileError.code !== 'PGRST116') {
+                console.warn('Profile check error:', profileError);
+                // Continue to main page even if profile check fails
+                window.location.href = '/';
+                return;
+            }
+            
+            if (!profile || !profile.profile_completed) {
+                window.location.href = '/user/register.html';
             } else {
                 window.location.href = '/';
             }
