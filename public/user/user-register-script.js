@@ -332,7 +332,7 @@ async function checkForOAuthCallback() {
                     }
                 } else {
                     // Profile already complete, redirect to main page
-                    showCustomAlert('Welcome back!', 'success');
+                    // showCustomAlert('Welcome back!', 'success');
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 2000);
