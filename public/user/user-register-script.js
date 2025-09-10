@@ -8,7 +8,27 @@ let googleUserData = null;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DEBUG: DOM Content Loaded');
+    console.log('🔍 DEBUG: Current timestamp:', new Date().toISOString());
+    console.log('🔍 DEBUG: User agent:', navigator.userAgent);
+    console.log('🔍 DEBUG: Page location:', window.location.href);
     initializeApp();
+});
+
+// Add window error handler to catch any unhandled errors
+window.addEventListener('error', function(event) {
+    console.error('🚨 DEBUG: Unhandled error:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error
+    });
+});
+
+// Add unhandled promise rejection handler
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('🚨 DEBUG: Unhandled promise rejection:', event.reason);
 });
 
 async function initializeApp() {
