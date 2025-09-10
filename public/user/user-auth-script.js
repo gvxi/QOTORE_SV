@@ -110,11 +110,11 @@ async function initializeGoogleSignIn(clientId) {
                     try {
                         showProcessing('google-signin-button', true);
                         
-                        // Use Supabase OAuth instead of Google's direct API
+                        // FIXED: Redirect to register.html instead of profile-completion.html
                         const { data, error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
-                                redirectTo: window.location.origin + '/user/profile-completion.html'
+                                redirectTo: window.location.origin + '/user/register.html'
                             }
                         });
 
@@ -130,15 +130,13 @@ async function initializeGoogleSignIn(clientId) {
                     }
                 });
             }
-        } else {
-            console.warn('Google Sign-In not available');
-            hideGoogleSignIn();
         }
     } catch (error) {
         console.error('Google Sign-In initialization error:', error);
         hideGoogleSignIn();
     }
 }
+
 
 // Handle Google Sign-In callback (fallback for direct Google API)
 async function handleGoogleSignIn(response) {

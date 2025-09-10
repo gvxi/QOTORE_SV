@@ -1286,7 +1286,7 @@ function renderUserSection() {
     }
 }
 
-// Toggle user dropdown (add this function)
+// Toggle user dropdown 
 function toggleUserDropdown() {
     const dropdown = document.getElementById('userDropdownMenu');
     if (dropdown) {
@@ -1294,7 +1294,7 @@ function toggleUserDropdown() {
     }
 }
 
-// Close dropdown when clicking outside (add this event listener)
+// Close dropdown when clicking outside 
 document.addEventListener('click', function(event) {
     const userDropdown = document.querySelector('.user-profile-dropdown');
     if (userDropdown && !userDropdown.contains(event.target)) {
@@ -1305,7 +1305,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Logout user (add this function)
+// Logout user 
 async function logoutUser() {
     if (!supabase) return;
     
@@ -1324,3 +1324,54 @@ async function logoutUser() {
 // Make functions global
 window.toggleUserDropdown = toggleUserDropdown;
 window.logoutUser = logoutUser;
+
+
+// Check profile completion
+async function checkUserAuthentication() {
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+            console.error('Session check error:', error);
+            currentUser = null;
+            isLoggedIn = false;
+            return;
+        }
+        
+        if (session && session.user) {
+            console.log('User is logged in:', session.user.email);
+            
+            // Get user profile
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('first_name, last_name, google_picture, profile_completed')
+                .eq('id', session.user.id)
+                .maybeSingle();
+            
+            // IMPORTANT: Check if profile is incomplete and redirect
+            if (!profile || !profile.profile_completed) {
+                console.log('Profile incomplete, redirecting to registration...');
+                // Prevent access to main page until profile is complete
+                window.location.href = '/user/register.html?complete=true';
+                return;
+            }
+            
+            currentUser = {
+                id: session.user.id,
+                email: session.user.email,
+                name: profile?.first_name || session.user.user_metadata?.name || session.user.email.split('@')[0],
+                given_name: profile?.first_name || session.user.user_metadata?.given_name || '',
+                picture: profile?.google_picture || session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+                profile: profile
+            };
+            isLoggedIn = true;
+        } else {
+            currentUser = null;
+            isLoggedIn = false;
+        }
+    } catch (error) {
+        console.error('Error checking user authentication:', error);
+        currentUser = null;
+        isLoggedIn = false;
+    }
+}

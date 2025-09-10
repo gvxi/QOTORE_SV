@@ -181,7 +181,7 @@ function prefillOAuthData(user) {
     showAlert('Account connected successfully! Please complete your profile below.', 'success');
 }
 
-// Initialize Google Sign-In
+// Fix in user-register-script.js (registration page)
 async function initializeGoogleSignIn(clientId) {
     try {
         const googleSignInButton = document.getElementById('google-signin-button');
@@ -190,11 +190,11 @@ async function initializeGoogleSignIn(clientId) {
                 try {
                     showProcessing('google-signin-button', true);
                     
-                    // Use Supabase OAuth for Google signup
+                    // FIXED: Stay on register.html for profile completion
                     const { data, error } = await supabase.auth.signInWithOAuth({
                         provider: 'google',
                         options: {
-                            redirectTo: window.location.href, // Come back to registration page
+                            redirectTo: window.location.href, // Stay on current registration page
                             queryParams: {
                                 access_type: 'offline',
                                 prompt: 'consent'
