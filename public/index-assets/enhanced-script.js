@@ -1463,10 +1463,7 @@ async function confirmLogout() {
         // Clear local state
         currentUser = null;
         isLoggedIn = false;
-        
-        // Show success message
-        showAlert('Successfully logged out', 'success');
-        
+                
         // Hide modal
         hideLogoutModal();
         
@@ -1477,7 +1474,6 @@ async function confirmLogout() {
         
     } catch (error) {
         console.error('Logout error:', error);
-        showAlert('Failed to logout. Please try again.', 'error');
         
         // Reset button
         confirmBtn.disabled = false;
