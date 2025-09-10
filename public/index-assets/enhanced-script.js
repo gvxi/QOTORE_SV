@@ -1102,3 +1102,225 @@ window.setCartQuantity = setCartQuantity;
 window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
 window.closeModal = closeModal;
+
+//USER SIDE
+// User authentication variables
+let supabase = null;
+
+// Add this to your existing initializeApp function
+async function initializeApp() {
+    try {
+        showLoadingSplash();
+        await loadConfiguration(); // Add this line
+        await loadTranslations();
+        loadLanguagePreference();
+        loadCart();
+        await loadFragrances();
+        initializeEventListeners();
+        setupScrollEffects();
+        updateCartDisplay();
+        await initializeUserSection(); // Add this line
+        hideLoadingSplash();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        hideLoadingSplash();
+    }
+}
+
+// Load configuration and initialize Supabase (add this function)
+async function loadConfiguration() {
+    try {
+        const response = await fetch('/api/config', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const config = await response.json();
+            
+            // Check if Supabase library is loaded
+            if (typeof window.supabase !== 'undefined') {
+                const { createClient } = window.supabase;
+                supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                console.log('Supabase client initialized for main page');
+            }
+        } else {
+            console.warn('Failed to load configuration for user auth');
+        }
+    } catch (error) {
+        console.warn('Configuration load error:', error);
+    }
+}
+
+// Initialize user section (add this function)
+async function initializeUserSection() {
+    if (!supabase) {
+        // No Supabase, show login button
+        renderUserSection();
+        return;
+    }
+    
+    await checkUserAuthentication();
+    renderUserSection();
+    
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state changed:', event);
+        if (event === 'SIGNED_IN') {
+            handleSignIn(session);
+        } else if (event === 'SIGNED_OUT') {
+            handleSignOut();
+        }
+    });
+}
+
+// Check if user is authenticated (add this function)
+async function checkUserAuthentication() {
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+            console.error('Session check error:', error);
+            currentUser = null;
+            isLoggedIn = false;
+            return;
+        }
+        
+        if (session && session.user) {
+            console.log('User is logged in:', session.user.email);
+            
+            // Get user profile
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('first_name, last_name, google_picture')
+                .eq('id', session.user.id)
+                .maybeSingle();
+            
+            currentUser = {
+                id: session.user.id,
+                email: session.user.email,
+                name: profile?.first_name || session.user.user_metadata?.name || session.user.email.split('@')[0],
+                given_name: profile?.first_name || session.user.user_metadata?.given_name || '',
+                picture: profile?.google_picture || session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+                profile: profile
+            };
+            isLoggedIn = true;
+        } else {
+            currentUser = null;
+            isLoggedIn = false;
+        }
+    } catch (error) {
+        console.error('Error checking user authentication:', error);
+        currentUser = null;
+        isLoggedIn = false;
+    }
+}
+
+// Handle sign in (add this function)
+function handleSignIn(session) {
+    checkUserAuthentication().then(() => {
+        renderUserSection();
+    });
+}
+
+// Handle sign out (add this function)
+function handleSignOut() {
+    currentUser = null;
+    isLoggedIn = false;
+    renderUserSection();
+}
+
+// Render user section based on login status (add this function)
+function renderUserSection() {
+    const userSection = document.getElementById('userSection');
+    if (!userSection) return;
+    
+    if (isLoggedIn && currentUser) {
+        // Show user profile
+        userSection.innerHTML = `
+            <div class="user-profile-dropdown">
+                <button class="nav-btn user-profile-btn" onclick="toggleUserDropdown()">
+                    <img src="${currentUser.picture || '/icons/icon-32x32.png'}" 
+                         alt="${currentUser.name}" 
+                         class="user-avatar"
+                         onerror="this.src='/icons/icon-32x32.png'">
+                    <span class="user-name">${currentUser.given_name || currentUser.name}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="dropdown-arrow">
+                        <path d="M7,10L12,15L17,10H7Z"/>
+                    </svg>
+                </button>
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="/user/profile.html" class="dropdown-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                        </svg>
+                        <span data-translate="profile">Profile</span>
+                    </a>
+                    <a href="/user/orders.html" class="dropdown-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19,7H16V6A4,4 0 0,0 8,6V7H5A1,1 0 0,0 4,8V19A3,3 0 0,0 7,22H17A3,3 0 0,0 20,19V8A1,1 0 0,0 19,7M10,6A2,2 0 0,1 14,6V7H10V6Z"/>
+                        </svg>
+                        <span data-translate="my_orders">My Orders</span>
+                    </a>
+                    <button class="dropdown-item logout-btn" onclick="logoutUser()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
+                        </svg>
+                        <span data-translate="logout">Logout</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        // Show login button
+        userSection.innerHTML = `
+            <a href="/user/login.html" class="nav-btn login-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z"/>
+                </svg>
+                <span data-translate="login">Login</span>
+            </a>
+        `;
+    }
+}
+
+// Toggle user dropdown (add this function)
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdownMenu');
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+    }
+}
+
+// Close dropdown when clicking outside (add this event listener)
+document.addEventListener('click', function(event) {
+    const userDropdown = document.querySelector('.user-profile-dropdown');
+    if (userDropdown && !userDropdown.contains(event.target)) {
+        const dropdown = document.getElementById('userDropdownMenu');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    }
+});
+
+// Logout user (add this function)
+async function logoutUser() {
+    if (!supabase) return;
+    
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Logout error:', error);
+        } else {
+            console.log('User logged out successfully');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+}
+
+// Make functions global
+window.toggleUserDropdown = toggleUserDropdown;
+window.logoutUser = logoutUser;
