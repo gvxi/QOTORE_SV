@@ -1,4 +1,4 @@
-// Fixed user-register-script.js - Loading Screen and Cancel Button Issues
+// Corrected user-register-script.js - Matching actual HTML structure
 
 let supabase;
 let currentLanguage = 'en';
@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 await checkForOAuthCallback();
             }
             
-            // FIXED: Always hide loading screen after initialization
+            // FIXED: Hide loading screen using correct ID from HTML
             hideLoadingScreen();
-        }, 1000); // Increased timeout to ensure everything loads
+        }, 1000);
         
         setupFormHandlers();
         updateLanguageDisplay();
@@ -32,31 +32,35 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Initialization error:', error);
         showAlert('Failed to initialize. Please refresh the page.', 'error');
-        // FIXED: Hide loading even on error
+        // Always hide loading even on error
         hideLoadingScreen();
     }
 });
 
-// FIXED: Dedicated function to hide loading screen
+// FIXED: Correct function matching actual HTML IDs
 function hideLoadingScreen() {
     console.log('Hiding loading screen...');
     
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const authContainer = document.getElementById('authContainer');
+    // Using correct IDs from your HTML
+    const loadingSplash = document.getElementById('loadingSplash');
+    const registrationContainer = document.querySelector('.registration-container');
     
-    if (loadingSpinner) {
-        loadingSpinner.style.opacity = '0';
+    if (loadingSplash) {
+        console.log('Found loadingSplash element, hiding...');
+        loadingSplash.style.opacity = '0';
         setTimeout(() => {
-            loadingSpinner.style.display = 'none';
-        }, 300);
+            loadingSplash.style.display = 'none';
+        }, 500);
+    } else {
+        console.log('loadingSplash element not found');
     }
     
-    if (authContainer) {
-        authContainer.style.display = 'block';
-        // Fade in effect
-        setTimeout(() => {
-            authContainer.style.opacity = '1';
-        }, 100);
+    if (registrationContainer) {
+        console.log('Found registration container, showing...');
+        registrationContainer.style.opacity = '1';
+        registrationContainer.style.visibility = 'visible';
+    } else {
+        console.log('Registration container not found');
     }
     
     console.log('Loading screen hidden');
@@ -64,9 +68,13 @@ function hideLoadingScreen() {
 
 // Setup form event handlers
 function setupFormHandlers() {
-    const form = document.getElementById('profileForm');
+    // Using correct form ID from HTML
+    const form = document.getElementById('registrationForm');
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
+        console.log('Form handlers set up');
+    } else {
+        console.log('Registration form not found');
     }
     
     // Add input validation
@@ -95,7 +103,7 @@ async function checkForOAuthCallback() {
         if (data?.session?.user) {
             console.log('User session found:', data.session.user.email);
             
-            // Check if this is an OAuth user (came from Google)
+            // Check if this is an OAuth user
             const isOAuthUser = data.session.user.app_metadata?.provider === 'google';
             console.log('Is OAuth user:', isOAuthUser);
             
@@ -115,7 +123,7 @@ async function checkForOAuthCallback() {
                     prefillOAuthData(data.session.user);
                     showAlert('Please complete your profile to finish registration.', 'info');
                     
-                    // FIXED: Add cancel button specifically for OAuth users
+                    // Add cancel button for OAuth users
                     if (isOAuthUser) {
                         addCancelButtonToRegistrationForm();
                     }
@@ -131,7 +139,6 @@ async function checkForOAuthCallback() {
                 prefillOAuthData(data.session.user);
                 showAlert('Please complete your profile to finish registration.', 'info');
                 
-                // Add cancel button for OAuth users even on profile check error
                 if (isOAuthUser) {
                     addCancelButtonToRegistrationForm();
                 }
@@ -141,6 +148,198 @@ async function checkForOAuthCallback() {
         }
     } catch (error) {
         console.error('OAuth callback check failed:', error);
+    }
+}
+
+// FIXED: Updated to match actual HTML structure
+function addCancelButtonToRegistrationForm() {
+    console.log('Adding cancel button for OAuth user...');
+    
+    // Remove existing cancel button if any
+    const existingBtn = document.getElementById('cancelRegistrationBtn');
+    if (existingBtn) {
+        existingBtn.remove();
+    }
+    
+    // Find the logo section to add the cancel button
+    const logoSection = document.querySelector('.logo-section');
+    
+    if (logoSection) {
+        // Create cancel button
+        const cancelBtn = document.createElement('button');
+        cancelBtn.id = 'cancelRegistrationBtn';
+        cancelBtn.type = 'button';
+        cancelBtn.style.cssText = `
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        `;
+        
+        cancelBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+            </svg>
+            <span>Cancel</span>
+        `;
+        
+        // Add hover effect
+        cancelBtn.addEventListener('mouseenter', () => {
+            cancelBtn.style.background = 'rgba(255, 255, 255, 0.3)';
+            cancelBtn.style.transform = 'translateY(-1px)';
+        });
+        
+        cancelBtn.addEventListener('mouseleave', () => {
+            cancelBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+            cancelBtn.style.transform = 'translateY(0)';
+        });
+        
+        // Add click handler
+        cancelBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Cancel button clicked');
+            cancelRegistration();
+        };
+        
+        // Add to logo section
+        logoSection.style.position = 'relative';
+        logoSection.appendChild(cancelBtn);
+        
+        console.log('Cancel button added successfully to logo section');
+        
+        // Also add cancel link at the bottom for better UX
+        addCancelLinkToForm();
+    } else {
+        console.error('Could not find logo-section to add cancel button');
+        
+        // Fallback: try to add to form content
+        const formContent = document.querySelector('.form-content');
+        if (formContent) {
+            addCancelLinkToForm();
+        }
+    }
+}
+
+// Add cancel link at the bottom of the form
+function addCancelLinkToForm() {
+    const step3 = document.getElementById('step3');
+    
+    if (step3 && !document.getElementById('cancelRegistrationLink')) {
+        const cancelLink = document.createElement('div');
+        cancelLink.id = 'cancelRegistrationLink';
+        cancelLink.style.cssText = `
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        `;
+        cancelLink.innerHTML = `
+            <p style="color: #666; margin-bottom: 5px; font-size: 14px;">
+                Don't want to complete registration?
+            </p>
+            <button type="button" onclick="cancelRegistration()" style="
+                background: none;
+                border: none;
+                color: #dc3545;
+                text-decoration: underline;
+                cursor: pointer;
+                font-size: 14px;
+                padding: 5px;
+            " onmouseover="this.style.color='#c82333'" onmouseout="this.style.color='#dc3545'">
+                Cancel and delete account
+            </button>
+        `;
+        
+        step3.appendChild(cancelLink);
+        console.log('Cancel link added to form');
+    }
+}
+
+// Enhanced cancel registration function
+async function cancelRegistration() {
+    console.log('cancelRegistration called');
+    
+    // Simple confirm dialog first, then enhanced modal
+    if (!confirm('Are you sure you want to cancel registration and delete your account? This cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        // Show loading state
+        const cancelBtn = document.getElementById('cancelRegistrationBtn');
+        if (cancelBtn) {
+            cancelBtn.innerHTML = `
+                <div style="display: inline-block; width: 14px; height: 14px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                Canceling...
+            `;
+            cancelBtn.disabled = true;
+        }
+        
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+            throw new Error('No user found to delete');
+        }
+        
+        console.log('Deleting user profile and signing out...');
+        
+        // Delete user profile from database (if exists)
+        const { error: profileError } = await supabase
+            .from('user_profiles')
+            .delete()
+            .eq('id', user.id);
+        
+        if (profileError) {
+            console.warn('Profile deletion error:', profileError);
+            // Continue anyway
+        }
+        
+        // Sign out
+        const { error: signOutError } = await supabase.auth.signOut();
+        
+        if (signOutError) {
+            console.warn('Sign out error:', signOutError);
+        }
+        
+        console.log('Account deletion completed');
+        
+        // Show success message and redirect
+        alert('Account successfully deleted. Redirecting to home page...');
+        
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Account deletion error:', error);
+        alert('Failed to delete account. Please try again.');
+        
+        // Reset button
+        const cancelBtn = document.getElementById('cancelRegistrationBtn');
+        if (cancelBtn) {
+            cancelBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                </svg>
+                <span>Cancel</span>
+            `;
+            cancelBtn.disabled = false;
+        }
     }
 }
 
@@ -177,8 +376,6 @@ function prefillOAuthData(user) {
     if (emailEl) {
         emailEl.value = user.email || '';
         emailEl.readOnly = true;
-        
-        // Add visual indicator that field is readonly
         emailEl.style.backgroundColor = '#f8f9fa';
         emailEl.style.cursor = 'not-allowed';
         emailEl.style.opacity = '0.7';
@@ -189,8 +386,8 @@ function prefillOAuthData(user) {
         picture: metadata.avatar_url || metadata.picture
     };
     
-    // Update page title to indicate profile completion
-    const pageTitle = document.querySelector('.page-title h2');
+    // Update page title
+    const pageTitle = document.querySelector('.page-title');
     if (pageTitle) {
         pageTitle.textContent = currentLanguage === 'ar' ? 'إكمال الملف الشخصي' : 'Complete Profile';
     }
@@ -198,356 +395,6 @@ function prefillOAuthData(user) {
     // Show success message
     showAlert('Account connected successfully! Please complete your profile below.', 'success');
 }
-
-// FIXED: Improved cancel button creation with better styling and positioning
-function addCancelButtonToRegistrationForm() {
-    console.log('Adding cancel button for OAuth user...');
-    
-    // Remove existing cancel button if any
-    const existingBtn = document.getElementById('cancelRegistrationBtn');
-    if (existingBtn) {
-        existingBtn.remove();
-    }
-    
-    // Find the best place to add the button
-    const authHeader = document.querySelector('.auth-header');
-    const backBtn = document.querySelector('.back-btn');
-    
-    if (authHeader) {
-        // Create cancel button
-        const cancelBtn = document.createElement('button');
-        cancelBtn.id = 'cancelRegistrationBtn';
-        cancelBtn.type = 'button';
-        cancelBtn.className = 'cancel-registration-btn';
-        cancelBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-            </svg>
-            <span>Cancel Registration</span>
-        `;
-        
-        // Add click handler
-        cancelBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Cancel button clicked');
-            cancelRegistration();
-        };
-        
-        // Position the button
-        authHeader.style.position = 'relative';
-        authHeader.appendChild(cancelBtn);
-        
-        console.log('Cancel button added successfully');
-        
-        // Also add it as a link in the form if user scrolls down
-        addCancelLinkToForm();
-    } else {
-        console.error('Could not find auth-header to add cancel button');
-    }
-}
-
-// FIXED: Add cancel link at the bottom of the form for better visibility
-function addCancelLinkToForm() {
-    const formActions = document.querySelector('.form-actions');
-    const step3 = document.getElementById('step3');
-    
-    if (step3 && !document.getElementById('cancelRegistrationLink')) {
-        const cancelLink = document.createElement('div');
-        cancelLink.id = 'cancelRegistrationLink';
-        cancelLink.className = 'cancel-link';
-        cancelLink.innerHTML = `
-            <p style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                <span style="color: #666;">Don't want to complete registration?</span>
-                <button type="button" onclick="cancelRegistration()" style="background: none; border: none; color: #dc3545; text-decoration: underline; cursor: pointer; font-size: inherit;">
-                    Cancel and delete account
-                </button>
-            </p>
-        `;
-        
-        step3.appendChild(cancelLink);
-    }
-}
-
-// FIXED: Enhanced cancel registration function with proper modal
-async function cancelRegistration() {
-    console.log('cancelRegistration called');
-    
-    // Create and show modal
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.id = 'cancelModal';
-    modal.innerHTML = `
-        <div class="modal-container">
-            <div class="modal-header">
-                <div class="modal-icon danger">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
-                    </svg>
-                </div>
-                <h3 class="modal-title">Cancel Registration</h3>
-                <p class="modal-subtitle">This will permanently delete your account</p>
-            </div>
-            <div class="modal-content">
-                <p class="modal-message">
-                    Are you sure you want to cancel your registration? This action cannot be undone.
-                </p>
-                <div class="modal-warning danger">
-                    <strong>Warning:</strong>
-                    Your account will be permanently deleted from our system. You will need to start the registration process again if you change your mind.
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="modal-btn modal-btn-secondary" onclick="hideCancelModal()">
-                    Keep Account
-                </button>
-                <button class="modal-btn modal-btn-danger" onclick="confirmCancelRegistration()" id="confirmCancelBtn">
-                    Delete Account
-                </button>
-            </div>
-        </div>
-    `;
-    
-    // Add modal styles if not already present
-    if (!document.getElementById('modalStyles')) {
-        const styles = document.createElement('style');
-        styles.id = 'modalStyles';
-        styles.textContent = `
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            .modal-overlay.show {
-                opacity: 1;
-            }
-            .modal-container {
-                background: white;
-                border-radius: 16px;
-                max-width: 450px;
-                width: 90%;
-                padding: 0;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-                transform: scale(0.9);
-                transition: transform 0.3s ease;
-            }
-            .modal-overlay.show .modal-container {
-                transform: scale(1);
-            }
-            .modal-header {
-                padding: 2rem 2rem 1rem 2rem;
-                text-align: center;
-                border-bottom: 1px solid #f0f0f0;
-            }
-            .modal-icon {
-                width: 60px;
-                height: 60px;
-                background: #f8d7da;
-                color: #721c24;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 1rem auto;
-                font-size: 24px;
-            }
-            .modal-title {
-                font-size: 1.5rem;
-                font-weight: 600;
-                color: #333;
-                margin: 0 0 0.5rem 0;
-            }
-            .modal-subtitle {
-                color: #666;
-                font-size: 0.95rem;
-                margin: 0;
-            }
-            .modal-content {
-                padding: 1.5rem 2rem;
-            }
-            .modal-message {
-                color: #555;
-                line-height: 1.6;
-                margin-bottom: 1.5rem;
-                text-align: center;
-            }
-            .modal-warning {
-                background: #f8d7da;
-                border: 1px solid #f5c6cb;
-                border-radius: 8px;
-                padding: 1rem;
-                margin-bottom: 1.5rem;
-                color: #721c24;
-                font-size: 0.9rem;
-                line-height: 1.5;
-            }
-            .modal-actions {
-                display: flex;
-                gap: 0.75rem;
-                justify-content: center;
-                padding: 0 2rem 2rem 2rem;
-            }
-            .modal-btn {
-                padding: 0.75rem 1.5rem;
-                border-radius: 8px;
-                border: none;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                min-width: 120px;
-            }
-            .modal-btn-secondary {
-                background: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #dee2e6;
-            }
-            .modal-btn-secondary:hover {
-                background: #e9ecef;
-            }
-            .modal-btn-danger {
-                background: #dc3545;
-                color: white;
-            }
-            .modal-btn-danger:hover {
-                background: #c82333;
-            }
-            .modal-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-            .cancel-registration-btn {
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                background: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                padding: 0.5rem 0.75rem;
-                color: #6c757d;
-                font-size: 0.875rem;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-weight: 500;
-                z-index: 100;
-            }
-            .cancel-registration-btn:hover {
-                background: #e9ecef;
-                color: #495057;
-                border-color: #adb5bd;
-            }
-            @media (max-width: 768px) {
-                .cancel-registration-btn span {
-                    display: none;
-                }
-                .modal-actions {
-                    flex-direction: column;
-                }
-                .modal-btn {
-                    width: 100%;
-                }
-            }
-        `;
-        document.head.appendChild(styles);
-    }
-    
-    // Add modal to page
-    document.body.appendChild(modal);
-    
-    // Show modal with animation
-    setTimeout(() => {
-        modal.classList.add('show');
-    }, 10);
-    
-    // Close on overlay click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            hideCancelModal();
-        }
-    });
-}
-
-// Hide cancel modal
-function hideCancelModal() {
-    const modal = document.getElementById('cancelModal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
-    }
-}
-
-// Confirm account cancellation
-async function confirmCancelRegistration() {
-    const confirmBtn = document.getElementById('confirmCancelBtn');
-    
-    try {
-        // Show loading
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = `
-            <div style="display: inline-block; width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            Deleting...
-        `;
-        
-        // Get current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-            throw new Error('No user found to delete');
-        }
-        
-        // Delete user profile from database (if exists)
-        const { error: profileError } = await supabase
-            .from('user_profiles')
-            .delete()
-            .eq('id', user.id);
-        
-        if (profileError) {
-            console.warn('Profile deletion error:', profileError);
-        }
-        
-        // Sign out
-        const { error: signOutError } = await supabase.auth.signOut();
-        
-        if (signOutError) {
-            console.warn('Sign out error:', signOutError);
-        }
-        
-        // Show success message
-        showAlert('Account successfully deleted', 'success');
-        
-        // Hide modal
-        hideCancelModal();
-        
-        // Redirect to main page
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 1500);
-        
-    } catch (error) {
-        console.error('Account deletion error:', error);
-        showAlert('Failed to delete account. Please try again.', 'error');
-        
-        // Reset button
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = 'Delete Account';
-    }
-}
-
-// Rest of the functions remain the same...
-// [Include all the other functions from the previous script]
 
 // Initialize Google Sign-In
 async function initializeGoogleSignIn(clientId) {
@@ -730,7 +577,7 @@ function showProcessing(buttonId, show) {
     
     if (show) {
         button.disabled = true;
-        if (spinner) spinner.style.display = 'block';
+        if (spinner) spinner.style.display = 'inline-block';
         if (text) text.style.opacity = '0.7';
     } else {
         button.disabled = false;
@@ -741,12 +588,30 @@ function showProcessing(buttonId, show) {
 
 function showAlert(message, type) {
     console.log(`${type.toUpperCase()}: ${message}`);
-    // You can implement a proper alert system here
+    // Simple alert for now - you can enhance this
+    if (type === 'error') {
+        alert('Error: ' + message);
+    } else if (type === 'success') {
+        alert('Success: ' + message);
+    } else {
+        alert(message);
+    }
 }
 
 function goToStep(step) {
+    // Hide all steps
+    document.querySelectorAll('.form-step').forEach(stepEl => {
+        stepEl.classList.remove('active');
+    });
+    
+    // Show target step
+    const targetStep = document.getElementById(`step${step}`);
+    if (targetStep) {
+        targetStep.classList.add('active');
+    }
+    
     currentStep = step;
-    console.log(`Going to step ${step}`);
+    console.log(`Moved to step ${step}`);
 }
 
 function updateLanguageDisplay() {
@@ -837,3 +702,13 @@ async function completeProfile(formData, user) {
 function generateTemporaryPassword() {
     return Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
 }
+
+// Add CSS animation for spin
+// const style = document.createElement('style');
+// style.textContent = `
+//     @keyframes spin {
+//         0% { transform: rotate(0deg); }
+//         100% { transform: rotate(360deg); }
+//     }
+// `;
+// document.head.appendChild(style);
