@@ -1,4 +1,4 @@
-// functions/api/config.js - Configuration API endpoint for user authentication
+// functions/api/config.js - SECURE Configuration API endpoint
 export async function onRequestGet(context) {
   const corsHeaders = {
     'Content-Type': 'application/json',
@@ -29,11 +29,10 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Return configuration for client-side use
     const config = {
       SUPABASE_URL: SUPABASE_URL,
-      SUPABASE_ANON_KEY: SUPABASE_ANON_KEY,
-      GOOGLE_CLIENT_ID: GOOGLE_CLIENT_ID || null
+      SUPABASE_ANON_KEY: SUPABASE_ANON_KEY, 
+      GOOGLE_CLIENT_ID: GOOGLE_CLIENT_ID || null 
     };
 
     console.log('Configuration served:', {

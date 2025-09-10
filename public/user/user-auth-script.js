@@ -1,5 +1,5 @@
 // User Authentication Script using Supabase Auth
-let currentLanguage = 'ar';
+let currentLanguage = 'en';
 let translations = {};
 let supabase = null;
 let isProcessing = false;
@@ -38,8 +38,14 @@ async function loadConfiguration() {
         if (response.ok) {
             const config = await response.json();
             
+            // Check if Supabase library is loaded
+            if (typeof window.supabase === 'undefined') {
+                console.error('Supabase library not loaded');
+                throw new Error('Supabase library not available');
+            }
+            
             // Initialize Supabase client
-            const { createClient } = supabase;
+            const { createClient } = window.supabase;
             supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
             
             console.log('Supabase client initialized');
