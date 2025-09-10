@@ -1,26 +1,25 @@
-// User Authentication Script using Supabase Auth - Updated with Toast System
+// COMPLETELY CLEAN user-auth-script.js - ONLY CUSTOM TOASTS
 let currentLanguage = 'en';
 let translations = {};
 let supabase = null;
 let isProcessing = false;
 
-// Toast notification system
+// Toast notification system - ONLY custom toasts, NO browser alerts
 let toastContainer;
 
-// Initialize toast container
 function initializeToastContainer() {
     if (!toastContainer) {
         toastContainer = document.createElement('div');
         toastContainer.id = 'toast-container';
         toastContainer.style.cssText = `
             position: fixed;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 10000;
+            z-index: 99999;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             pointer-events: none;
             max-width: 90vw;
             width: auto;
@@ -29,40 +28,18 @@ function initializeToastContainer() {
     }
 }
 
-// Show toast notification
 function showToast(message, type = 'info', duration = 5000) {
+    // Prevent any browser alerts
+    if (typeof message !== 'string') {
+        message = String(message);
+    }
+    
     initializeToastContainer();
     
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     
-    // Toast styles
-    const baseStyles = `
-        background: white;
-        border-radius: 12px;
-        padding: 16px 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 300px;
-        max-width: 500px;
-        font-size: 14px;
-        line-height: 1.4;
-        font-weight: 500;
-        transform: translateY(100px);
-        opacity: 0;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: auto;
-        cursor: pointer;
-        backdrop-filter: blur(10px);
-        position: relative;
-        overflow: hidden;
-    `;
-    
-    let iconColor, borderColor, textColor, bgColor;
-    let icon;
+    let iconColor, borderColor, textColor, bgColor, icon;
     
     switch (type) {
         case 'success':
@@ -97,7 +74,7 @@ function showToast(message, type = 'info', duration = 5000) {
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>`;
             break;
-        default: // info
+        default:
             iconColor = '#3B82F6';
             borderColor = '#3B82F6';
             textColor = '#1E3A8A';
@@ -110,13 +87,29 @@ function showToast(message, type = 'info', duration = 5000) {
     }
     
     toast.style.cssText = `
-        ${baseStyles}
-        border-left-color: ${borderColor};
         background: ${bgColor};
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid ${borderColor};
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 320px;
+        max-width: 500px;
+        font-size: 14px;
+        line-height: 1.4;
+        font-weight: 500;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: auto;
+        cursor: pointer;
         color: ${textColor};
+        position: relative;
+        overflow: hidden;
     `;
     
-    // Progress bar for auto-dismiss
     const progressBar = document.createElement('div');
     progressBar.style.cssText = `
         position: absolute;
@@ -158,28 +151,23 @@ function showToast(message, type = 'info', duration = 5000) {
     
     toast.appendChild(progressBar);
     
-    // Click to dismiss
     toast.addEventListener('click', (e) => {
         if (e.target.tagName !== 'BUTTON') {
             removeToast(toast);
         }
     });
     
-    // Add to container
     toastContainer.appendChild(toast);
     
-    // Animate in
     requestAnimationFrame(() => {
         toast.style.transform = 'translateY(0)';
         toast.style.opacity = '1';
         
-        // Start progress bar animation
         requestAnimationFrame(() => {
             progressBar.style.transform = 'scaleX(0)';
         });
     });
     
-    // Auto remove
     if (duration > 0) {
         setTimeout(() => {
             removeToast(toast);
@@ -189,7 +177,6 @@ function showToast(message, type = 'info', duration = 5000) {
     return toast;
 }
 
-// Remove toast
 function removeToast(toast) {
     if (!toast || !toast.parentElement) return;
     
@@ -201,13 +188,22 @@ function removeToast(toast) {
             toast.remove();
         }
         
-        // Clean up container if empty
         if (toastContainer && toastContainer.children.length === 0) {
             toastContainer.remove();
             toastContainer = null;
         }
-    }, 300);
+    }, 400);
 }
+
+// Override browser alert functions to use toast instead
+window.alert = function(message) {
+    showToast(message, 'info');
+};
+
+window.confirm = function(message) {
+    showToast(message + ' (Please use the interface buttons)', 'warning');
+    return false; // Always return false to prevent default actions
+};
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
@@ -230,7 +226,6 @@ async function initializeApp() {
     }
 }
 
-// Load configuration and initialize Supabase
 async function loadConfiguration() {
     try {
         const response = await fetch('/api/config', {
@@ -243,19 +238,16 @@ async function loadConfiguration() {
         if (response.ok) {
             const config = await response.json();
             
-            // Check if Supabase library is loaded
             if (typeof window.supabase === 'undefined') {
                 console.error('Supabase library not loaded');
                 throw new Error('Supabase library not available');
             }
             
-            // Initialize Supabase client
             const { createClient } = window.supabase;
             supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
             
             console.log('Supabase client initialized');
             
-            // Initialize Google Sign-In if configured
             if (config.GOOGLE_CLIENT_ID) {
                 await initializeGoogleSignIn(config.GOOGLE_CLIENT_ID);
             } else {
@@ -272,7 +264,6 @@ async function loadConfiguration() {
     }
 }
 
-// Check for existing session
 async function checkExistingSession() {
     if (!supabase) return;
     
@@ -285,7 +276,6 @@ async function checkExistingSession() {
         }
         
         if (session) {
-            // User is already logged in, redirect to main page
             console.log('User already logged in:', session.user);
             showToast('You are already logged in. Redirecting...', 'success');
             
@@ -298,7 +288,6 @@ async function checkExistingSession() {
     }
 }
 
-// Initialize Google Sign-In
 async function initializeGoogleSignIn(clientId) {
     try {
         if (typeof google !== 'undefined' && google.accounts) {
@@ -315,7 +304,6 @@ async function initializeGoogleSignIn(clientId) {
                     try {
                         showProcessing('google-signin-button', true);
                         
-                        // FIXED: Redirect to register.html instead of profile-completion.html
                         const { data, error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
@@ -326,8 +314,6 @@ async function initializeGoogleSignIn(clientId) {
                         if (error) {
                             throw error;
                         }
-                        
-                        // OAuth redirect will handle the rest
                     } catch (error) {
                         console.error('Google OAuth error:', error);
                         showToast('Failed to sign in with Google. Please try again.', 'error');
@@ -342,12 +328,10 @@ async function initializeGoogleSignIn(clientId) {
     }
 }
 
-// Handle Google Sign-In callback (fallback for direct Google API)
 async function handleGoogleSignIn(response) {
     try {
         showProcessing('google-signin-button', true);
         
-        // This is a fallback - normally OAuth redirect handles this
         const { data, error } = await supabase.auth.signInWithIdToken({
             provider: 'google',
             token: response.credential
@@ -362,13 +346,12 @@ async function handleGoogleSignIn(response) {
         
     } catch (error) {
         console.error('Google sign-in error:', error);
-        showToast(t('google_signin_error') || 'Failed to sign in with Google. Please try again.', 'error');
+        showToast('Failed to sign in with Google. Please try again.', 'error');
     } finally {
         showProcessing('google-signin-button', false);
     }
 }
 
-// Hide Google Sign-In if not configured
 function hideGoogleSignIn() {
     const googleSection = document.querySelector('.google-signin-section');
     const authDivider = document.querySelector('.auth-divider');
@@ -377,7 +360,6 @@ function hideGoogleSignIn() {
     if (authDivider) authDivider.style.display = 'none';
 }
 
-// Initialize event listeners
 function initializeEventListeners() {
     const emailForm = document.getElementById('emailLoginForm');
     if (emailForm) {
@@ -385,7 +367,6 @@ function initializeEventListeners() {
     }
 }
 
-// Handle email/phone login
 async function handleEmailLogin(event) {
     event.preventDefault();
     
@@ -394,7 +375,7 @@ async function handleEmailLogin(event) {
     const emailOrPhone = document.getElementById('emailOrPhone').value.trim();
     
     if (!emailOrPhone) {
-        showToast(t('email_phone_required') || 'Please enter your email or phone number.', 'error');
+        showToast('Please enter your email or phone number.', 'error');
         return;
     }
     
@@ -405,7 +386,6 @@ async function handleEmailLogin(event) {
         const isEmail = emailOrPhone.includes('@');
         
         if (isEmail) {
-            // Use Supabase magic link for email login
             const { data, error } = await supabase.auth.signInWithOtp({
                 email: emailOrPhone,
                 options: {
@@ -415,7 +395,6 @@ async function handleEmailLogin(event) {
             
             if (error) {
                 if (error.message.includes('User not found')) {
-                    // User doesn't exist, redirect to registration
                     localStorage.setItem('registration_prefill', emailOrPhone);
                     window.location.href = '/user/register.html';
                     return;
@@ -423,24 +402,18 @@ async function handleEmailLogin(event) {
                 throw error;
             }
             
-            // Show success message
-            showToast(
-                t('magic_link_sent') || `A magic link has been sent to ${emailOrPhone}. Check your email to sign in.`,
-                'success'
-            );
+            showToast(`A magic link has been sent to ${emailOrPhone}. Check your email to sign in.`, 'success');
             
-            // Change button to indicate email was sent
             const submitBtn = document.getElementById('emailSubmitBtn');
             if (submitBtn) {
                 const span = submitBtn.querySelector('span');
                 if (span) {
-                    span.textContent = t('email_sent') || 'Email Sent!';
+                    span.textContent = 'Email Sent!';
                 }
                 submitBtn.disabled = true;
             }
             
         } else {
-            // Handle phone login (SMS OTP) - needs to be enabled in Supabase
             const { data, error } = await supabase.auth.signInWithOtp({
                 phone: emailOrPhone
             });
@@ -454,43 +427,34 @@ async function handleEmailLogin(event) {
                 throw error;
             }
             
-            // Redirect to phone verification
             localStorage.setItem('phone_verification', emailOrPhone);
             window.location.href = '/user/verify-phone.html';
         }
         
     } catch (error) {
         console.error('Login error:', error);
-        showToast(
-            error.message || t('login_error') || 'Login failed. Please try again.',
-            'error'
-        );
+        showToast(error.message || 'Login failed. Please try again.', 'error');
     } finally {
         isProcessing = false;
         showProcessing('emailSubmitBtn', false);
     }
 }
 
-// Handle successful authentication
 function handleSuccessfulAuth(authData) {
     if (authData.user) {
-        showToast(t('login_success') || 'Welcome back!', 'success');
+        showToast('Welcome back!', 'success');
         
-        // Log user activity
         logUserActivity('user_login');
         
-        // Check if profile is complete, redirect accordingly
         setTimeout(async () => {
             const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
                 .select('profile_completed')
                 .eq('id', authData.user.id)
-                .maybeSingle(); // Use maybeSingle() instead of single()
+                .maybeSingle();
             
-            // Handle profile error or no profile found
             if (profileError && profileError.code !== 'PGRST116') {
                 console.warn('Profile check error:', profileError);
-                // Continue to main page even if profile check fails
                 window.location.href = '/';
                 return;
             }
@@ -504,7 +468,6 @@ function handleSuccessfulAuth(authData) {
     }
 }
 
-// Log user activity
 async function logUserActivity(action, details = null) {
     if (!supabase) return;
     
@@ -522,7 +485,6 @@ async function logUserActivity(action, details = null) {
     }
 }
 
-// Translation Management
 async function loadTranslations() {
     try {
         const response = await fetch('/user/user-translations.json');
@@ -603,7 +565,6 @@ function toggleLanguage() {
     }, 500);
 }
 
-// UI Helper Functions
 function showLoadingSplash() {
     const splash = document.getElementById('loadingSplash');
     if (splash) {
