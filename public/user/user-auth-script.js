@@ -294,7 +294,7 @@ function handleSuccessfulAuth(authData) {
             }
             
             if (!profile || !profile.profile_completed) {
-                window.location.href = '/user/register.html';
+                window.location.href = '/user/register.html?complete=true';
             } else {
                 window.location.href = '/';
             }

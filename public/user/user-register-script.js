@@ -143,6 +143,7 @@ function prefillOAuthData(user) {
         // Add visual indicator that field is readonly
         emailEl.style.backgroundColor = '#f8f9fa';
         emailEl.style.cursor = 'not-allowed';
+        emailEl.style.opacity = '0.7';
     }
     
     // Store OAuth data for later use
@@ -150,8 +151,14 @@ function prefillOAuthData(user) {
         picture: metadata.avatar_url || metadata.picture
     };
     
+    // Update page title to indicate profile completion
+    const pageTitle = document.querySelector('.page-title');
+    if (pageTitle) {
+        pageTitle.textContent = currentLanguage === 'ar' ? 'إكمال الملف الشخصي' : 'Complete Profile';
+    }
+    
     // Show success message
-    showAlert('Account connected! Please complete your profile below.', 'success');
+    showAlert('Account connected successfully! Please complete your profile below.', 'success');
 }
 
 // Initialize Google Sign-In
