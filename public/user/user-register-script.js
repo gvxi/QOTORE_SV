@@ -32,165 +32,74 @@ function initializeToastContainer() {
     }
 }
 
-// Show toast notification
-function showCustomAlert(message, type = 'info', duration = 5000) {
-    initializeToastContainer();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    
-    // Toast styles
-    const baseStyles = `
-        background: white;
-        border-radius: 12px;
-        padding: 16px 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 300px;
-        max-width: 500px;
-        font-size: 14px;
-        line-height: 1.4;
-        font-weight: 500;
-        transform: translateY(100px);
-        opacity: 0;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: auto;
-        cursor: pointer;
-        backdrop-filter: blur(10px);
-        position: relative;
-        overflow: hidden;
-    `;
-    
-    let iconColor, borderColor, textColor, bgColor;
-    let icon;
-    
-    switch (type) {
-        case 'success':
-            iconColor = '#10B981';
-            borderColor = '#10B981';
-            textColor = '#064E3B';
-            bgColor = '#F0FDF4';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22,4 12,14.01 9,11.01"></polyline>
-            </svg>`;
-            break;
-        case 'error':
-            iconColor = '#EF4444';
-            borderColor = '#EF4444';
-            textColor = '#7F1D1D';
-            bgColor = '#FEF2F2';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-            </svg>`;
-            break;
-        case 'warning':
-            iconColor = '#F59E0B';
-            borderColor = '#F59E0B';
-            textColor = '#92400E';
-            bgColor = '#FFFBEB';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>`;
-            break;
-        default: // info
-            iconColor = '#3B82F6';
-            borderColor = '#3B82F6';
-            textColor = '#1E3A8A';
-            bgColor = '#F0F9FF';
-            icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>`;
+function showCustomAlert(message, type = 'info') {
+    // Create container if it doesn't exist
+    let container = document.querySelector('.custom-alert-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'custom-alert-container';
+        document.body.appendChild(container);
+
+        // Inject CSS only once
+        const style = document.createElement('style');
+        style.textContent = `
+            .custom-alert-container {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                max-width: 350px;
+                width: calc(100% - 40px);
+                pointer-events: none;
+            }
+            .custom-alert {
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                color: white;
+                font-size: 0.95rem;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                animation: slideIn 0.4s ease, fadeOut 0.5s ease 3.5s forwards;
+                opacity: 0;
+                transform: translateX(100%);
+                pointer-events: auto;
+            }
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(100%); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100%); }
+            }
+            .custom-alert.success { background: linear-gradient(135deg, #4CAF50, #45a049); }
+            .custom-alert.error { background: linear-gradient(135deg, #f44336, #e53935); }
+            .custom-alert.warning { background: linear-gradient(135deg, #ff9800, #fb8c00); }
+            .custom-alert.info { background: linear-gradient(135deg, #2196F3, #1e88e5); }
+        `;
+        document.head.appendChild(style);
     }
-    
-    toast.style.cssText = `
-        ${baseStyles}
-        border-left-color: ${borderColor};
-        background: ${bgColor};
-        color: ${textColor};
-    `;
-    
-    // Progress bar for auto-dismiss
-    const progressBar = document.createElement('div');
-    progressBar.style.cssText = `
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 3px;
-        background: ${borderColor};
-        width: 100%;
-        transform-origin: left;
-        transform: scaleX(1);
-        transition: transform ${duration}ms linear;
-    `;
-    
-    toast.innerHTML = `
-        <div style="flex-shrink: 0;">
-            ${icon}
-        </div>
-        <div style="flex: 1; min-width: 0;">
-            ${message}
-        </div>
-        <button onclick="removeToast(this.parentElement)" style="
-            background: none;
-            border: none;
-            color: ${textColor};
-            opacity: 0.5;
-            cursor: pointer;
-            padding: 4px;
-            margin: -4px;
-            border-radius: 4px;
-            transition: opacity 0.2s;
-            flex-shrink: 0;
-        " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='0.5'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-        </button>
-    `;
-    
-    toast.appendChild(progressBar);
-    
-    // Click to dismiss
-    toast.addEventListener('click', (e) => {
-        if (e.target.tagName !== 'BUTTON') {
-            removeToast(toast);
-        }
-    });
-    
-    // Add to container
-    toastContainer.appendChild(toast);
-    
-    // Animate in
-    requestAnimationFrame(() => {
-        toast.style.transform = 'translateY(0)';
-        toast.style.opacity = '1';
-        
-        // Start progress bar animation
-        requestAnimationFrame(() => {
-            progressBar.style.transform = 'scaleX(0)';
-        });
-    });
-    
-    // Auto remove
-    if (duration > 0) {
-        setTimeout(() => {
-            removeToast(toast);
-        }, duration);
-    }
-    
-    return toast;
+
+    // Create the toast
+    const alertBox = document.createElement('div');
+    alertBox.className = `custom-alert ${type}`;
+    alertBox.textContent = message;
+
+    // Add it
+    container.appendChild(alertBox);
+
+    // Remove after animation
+    setTimeout(() => {
+        alertBox.remove();
+    }, 4000);
 }
+
+// ✅ Override browser alert() (as fallback)
+window.alert = function (message) {
+    showCustomAlert(message, 'info');
+};
 
 // Remove toast
 function removeToast(toast) {
@@ -1010,41 +919,6 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-
-function showCustomAlert(message) {
-    // Create a simple toast notification
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: #333;
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        z-index: 10000;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-    `;
-    toast.textContent = message;
-    
-    document.body.appendChild(toast);
-    
-    // Show toast
-    setTimeout(() => {
-        toast.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Hide toast
-    setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            document.body.removeChild(toast);
-        }, 300);
-    }, 3000);
-}
 
 // Make global functions available
 window.removeToast = removeToast;
