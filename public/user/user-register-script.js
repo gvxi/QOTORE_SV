@@ -1,103 +1,72 @@
-// User Registration Script using Supabase Auth
+// Fixed user-register-script.js
+
+let supabase;
 let currentLanguage = 'en';
 let translations = {};
-let currentStep = 1;
 let isProcessing = false;
-let supabase = null;
+let currentStep = 1;
 let googleUserData = null;
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-    setTimeout(() => {
-        const { data: { session } } = supabase?.auth?.getSession?.() || {};
-        if (session?.user) {
-            addCancelButtonToRegistrationForm();
-        }
-    }, 1000);
-});
+// Remove the problematic immediate execution and replace with proper initialization
+// window.addEventListener('error', function(e) {
+//     console.log('🚨 DEBUG: Unhandled error:', e);
+// });
 
-// Add window error handler to catch any unhandled errors
-window.addEventListener('error', function(event) {
-    console.error('🚨 DEBUG: Unhandled error:', {
-        message: event.message,
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-        error: event.error
-    });
-});
-
-// Add unhandled promise rejection handler
-window.addEventListener('unhandledrejection', function(event) {
-    console.error('🚨 DEBUG: Unhandled promise rejection:', event.reason);
-});
-
-async function initializeApp() {
-    try {
-        showLoadingSplash();
-        await loadConfiguration();
-        await loadTranslations();
-        loadLanguagePreference();
-        checkForGoogleSignup();
-        checkForOAuthCallback();
-        prefillFromLocalStorage();
-        initializeEventListeners();
-        hideLoadingSplash();
-    } catch (error) {
-        console.error('Error initializing app:', error);
-        hideLoadingSplash();
-        showAlert('Error loading page. Please refresh and try again.', 'error');
-    }
-}
-
-// Load configuration and initialize Supabase
-async function loadConfiguration() {
-    try {
-        const response = await fetch('/api/config', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const config = await response.json();
-            
-            // Check if Supabase library is loaded
-            if (typeof window.supabase === 'undefined') {
-                console.error('Supabase library not loaded');
-                throw new Error('Supabase library not available');
-            }
-            
-            // Initialize Supabase client
-            const { createClient } = window.supabase;
-            supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-            
-            console.log('Supabase client initialized');
-            
-            // Initialize Google Sign-In if configured
-            if (config.GOOGLE_CLIENT_ID) {
-                await initializeGoogleSignIn(config.GOOGLE_CLIENT_ID);
-            } else {
-                hideGoogleSignIn();
-            }
-        } else {
-            console.error('Failed to load configuration');
-            throw new Error('Configuration not available');
-        }
-    } catch (error) {
-        console.error('Configuration load error:', error);
-        showAlert('Service not configured. Please contact support.', 'error');
-        throw error;
-    }
-}
-
-// Check for OAuth callback
-async function checkForOAuthCallback() {
-    if (!supabase) return;
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM loaded, initializing...');
     
     try {
+        await loadTranslations();
+        await loadConfiguration();
+        
+        // Wait a bit for Supabase to be ready, then check for OAuth
+        setTimeout(async () => {
+            if (supabase) {
+                await checkForOAuthCallback();
+            }
+        }, 500);
+        
+        setupFormHandlers();
+        updateLanguageDisplay();
+        prefillFromLocalStorage();
+        
+        // Hide loading spinner and show content
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const authContainer = document.getElementById('authContainer');
+        
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+        if (authContainer) authContainer.style.display = 'block';
+        
+    } catch (error) {
+        console.error('Initialization error:', error);
+        showAlert('Failed to initialize. Please refresh the page.', 'error');
+    }
+});
+
+// Setup form event handlers
+function setupFormHandlers() {
+    const form = document.getElementById('profileForm');
+    if (form) {
+        form.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // Add input validation
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('blur', validateField);
+    });
+}
+
+// Fixed OAuth callback check
+async function checkForOAuthCallback() {
+    if (!supabase) {
+        console.log('Supabase not ready yet');
+        return;
+    }
+    
+    try {
+        console.log('Checking for OAuth callback...');
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -105,25 +74,41 @@ async function checkForOAuthCallback() {
             return;
         }
         
-        if (data.session) {
-            // User just signed up with OAuth, check if profile needs completion
-            const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('profile_completed')
-                .eq('id', data.session.user.id)
-                .single();
+        if (data?.session?.user) {
+            console.log('User session found:', data.session.user.email);
             
-            if (!profile || !profile.profile_completed) {
-                // Pre-fill form with OAuth data
+            // Fixed: Use proper query with single() instead of maybeSingle() for better error handling
+            try {
+                const { data: profile, error: profileError } = await supabase
+                    .from('user_profiles')
+                    .select('profile_completed')
+                    .eq('id', data.session.user.id)
+                    .maybeSingle(); // Use maybeSingle() to handle no rows gracefully
+                
+                if (profileError && profileError.code !== 'PGRST116') {
+                    console.error('Profile query error:', profileError);
+                    // Continue anyway, assume profile needs completion
+                }
+                
+                if (!profile || !profile.profile_completed) {
+                    // Pre-fill form with OAuth data
+                    prefillOAuthData(data.session.user);
+                    showAlert('Please complete your profile to finish registration.', 'info');
+                } else {
+                    // Profile already complete, redirect to main page
+                    showAlert('Welcome back!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                }
+            } catch (profileErr) {
+                console.error('Profile check failed:', profileErr);
+                // Assume profile needs completion and continue
                 prefillOAuthData(data.session.user);
                 showAlert('Please complete your profile to finish registration.', 'info');
-            } else {
-                // Profile already complete, redirect to main page
-                showAlert('Welcome back!', 'success');
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
             }
+        } else {
+            console.log('No active session found');
         }
     } catch (error) {
         console.error('OAuth callback check failed:', error);
@@ -132,6 +117,8 @@ async function checkForOAuthCallback() {
 
 // Pre-fill form with OAuth data
 function prefillOAuthData(user) {
+    console.log('Pre-filling OAuth data for user:', user.email);
+    
     // Hide Google signup section since user came from OAuth
     hideGoogleSignIn();
     
@@ -174,16 +161,19 @@ function prefillOAuthData(user) {
     };
     
     // Update page title to indicate profile completion
-    const pageTitle = document.querySelector('.page-title');
+    const pageTitle = document.querySelector('.page-title h2');
     if (pageTitle) {
         pageTitle.textContent = currentLanguage === 'ar' ? 'إكمال الملف الشخصي' : 'Complete Profile';
     }
     
     // Show success message
     showAlert('Account connected successfully! Please complete your profile below.', 'success');
+    
+    // Add cancel button for OAuth users
+    addCancelButtonToRegistrationForm();
 }
 
-// Fix in user-register-script.js (registration page)
+// Initialize Google Sign-In
 async function initializeGoogleSignIn(clientId) {
     try {
         const googleSignInButton = document.getElementById('google-signin-button');
@@ -192,7 +182,7 @@ async function initializeGoogleSignIn(clientId) {
                 try {
                     showProcessing('google-signin-button', true);
                     
-                    // FIXED: Stay on register.html for profile completion
+                    // Fixed: Redirect to register.html instead of profile-completion.html
                     const { data, error } = await supabase.auth.signInWithOAuth({
                         provider: 'google',
                         options: {
@@ -222,222 +212,48 @@ async function initializeGoogleSignIn(clientId) {
     }
 }
 
-// Hide Google Sign-In if not configured
-function hideGoogleSignIn() {
-    const googleSection = document.getElementById('googleSection');
-    const authDivider = document.getElementById('authDivider');
+// Handle form submission
+async function handleFormSubmit(e) {
+    e.preventDefault();
     
-    if (googleSection) googleSection.style.display = 'none';
-    if (authDivider) authDivider.style.display = 'none';
-}
-
-// Check for Google signup redirect
-function checkForGoogleSignup() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isGoogleSignup = urlParams.get('google');
-    
-    if (isGoogleSignup) {
-        // This is handled by checkForOAuthCallback instead
-        const tempGoogleData = localStorage.getItem('google_user_temp');
-        if (tempGoogleData) {
-            localStorage.removeItem('google_user_temp');
-        }
-    }
-}
-
-// Prefill from localStorage (for users coming from login page)
-function prefillFromLocalStorage() {
-    const prefillData = localStorage.getItem('registration_prefill');
-    if (prefillData) {
-        const emailInput = document.getElementById('email');
-        if (emailInput && prefillData.includes('@')) {
-            emailInput.value = prefillData;
-        }
-        localStorage.removeItem('registration_prefill');
-    }
-}
-
-// Multi-step form navigation
-function goToStep(stepNumber) {
-    if (stepNumber < currentStep) {
-        // Going back is always allowed
-        showStep(stepNumber);
-        return;
-    }
-    
-    // Validate current step before proceeding
-    if (!validateStep(currentStep)) {
-        return;
-    }
-    
-    showStep(stepNumber);
-}
-
-function showStep(stepNumber) {
-    // Hide all steps
-    document.querySelectorAll('.form-step').forEach(step => {
-        step.classList.remove('active');
-    });
-    
-    // Show target step
-    const targetStep = document.getElementById(`step${stepNumber}`);
-    if (targetStep) {
-        targetStep.classList.add('active');
-        currentStep = stepNumber;
-    }
-}
-
-function validateStep(stepNumber) {
-    let isValid = true;
-    let firstInvalidField = null;
-    
-    if (stepNumber === 1) {
-        const requiredFields = ['firstName', 'lastName', 'email', 'phone'];
-        
-        for (const fieldId of requiredFields) {
-            const field = document.getElementById(fieldId);
-            if (!field.value.trim()) {
-                showFieldError(field, t('field_required') || 'This field is required');
-                isValid = false;
-                if (!firstInvalidField) firstInvalidField = field;
-            } else {
-                clearFieldError(field);
-            }
-        }
-        
-        // Validate email format
-        const email = document.getElementById('email');
-        if (email.value && !isValidEmail(email.value)) {
-            showFieldError(email, t('invalid_email') || 'Please enter a valid email address');
-            isValid = false;
-            if (!firstInvalidField) firstInvalidField = email;
-        }
-        
-        // Validate phone format
-        const phone = document.getElementById('phone');
-        if (phone.value && !isValidPhone(phone.value)) {
-            showFieldError(phone, t('invalid_phone') || 'Please enter a valid phone number');
-            isValid = false;
-            if (!firstInvalidField) firstInvalidField = phone;
-        }
-        
-    } else if (stepNumber === 2) {
-        const requiredFields = ['gender', 'age', 'wilayat', 'city'];
-        
-        for (const fieldId of requiredFields) {
-            const field = document.getElementById(fieldId);
-            if (!field.value.trim()) {
-                showFieldError(field, t('field_required') || 'This field is required');
-                isValid = false;
-                if (!firstInvalidField) firstInvalidField = field;
-            } else {
-                clearFieldError(field);
-            }
-        }
-        
-        // Validate age
-        const age = document.getElementById('age');
-        if (age.value && (age.value < 13 || age.value > 120)) {
-            showFieldError(age, t('invalid_age') || 'Please enter a valid age (13-120)');
-            isValid = false;
-            if (!firstInvalidField) firstInvalidField = age;
-        }
-        
-    } else if (stepNumber === 3) {
-        const agreeTerms = document.getElementById('agreeTerms');
-        if (!agreeTerms.checked) {
-            showAlert(t('must_agree_terms') || 'You must agree to the terms and conditions to continue.', 'error');
-            isValid = false;
-        }
-    }
-    
-    if (!isValid && firstInvalidField) {
-        firstInvalidField.focus();
-    }
-    
-    return isValid;
-}
-
-// Form validation helpers
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function isValidPhone(phone) {
-    // Basic validation for Oman phone numbers
-    const phoneRegex = /^(\+968|968)?[2-9]\d{7}$/;
-    const cleanPhone = phone.replace(/\s|-/g, '');
-    return phoneRegex.test(cleanPhone);
-}
-
-function showFieldError(field, message) {
-    clearFieldError(field);
-    
-    field.classList.add('error');
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'field-error';
-    errorDiv.textContent = message;
-    
-    field.parentNode.appendChild(errorDiv);
-}
-
-function clearFieldError(field) {
-    field.classList.remove('error');
-    const existingError = field.parentNode.querySelector('.field-error');
-    if (existingError) {
-        existingError.remove();
-    }
-}
-
-// Event Listeners
-function initializeEventListeners() {
-    const registrationForm = document.getElementById('registrationForm');
-    if (registrationForm) {
-        registrationForm.addEventListener('submit', handleRegistration);
-    }
-    
-    // Real-time validation
-    const fields = ['firstName', 'lastName', 'email', 'phone', 'age'];
-    fields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('blur', () => clearFieldError(field));
-            field.addEventListener('input', () => clearFieldError(field));
-        }
-    });
-}
-
-// Handle Registration
-async function handleRegistration(event) {
-    event.preventDefault();
-    
-    if (!validateStep(3) || !supabase) {
-        return;
-    }
+    if (isProcessing) return;
     
     try {
+        // Validate all fields
+        if (!validateAllFields()) {
+            showAlert('Please correct the errors and try again.', 'error');
+            return;
+        }
+        
         isProcessing = true;
         showProcessing('registerBtn', true);
         
-        // Collect form data
         const formData = collectFormData();
         
-        // Check if user came from OAuth or needs to sign up
-        const { data: currentSession } = await supabase.auth.getSession();
+        // Check if user is already authenticated (OAuth flow)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (currentSession.session) {
-            // User came from OAuth, just complete their profile
-            await completeProfile(formData, currentSession.session.user);
+        if (sessionError) {
+            console.error('Session check error:', sessionError);
+        }
+        
+        if (session?.user) {
+            // User is already authenticated, just complete the profile
+            await completeProfile(formData, session.user);
+            
+            showAlert('Profile completed successfully! Welcome to QOTORE.', 'success');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
         } else {
-            // New email/password signup
+            // New user registration
             await registerNewUser(formData);
         }
         
     } catch (error) {
         console.error('Registration error:', error);
         showAlert(
-            error.message || t('registration_error') || 'Failed to create account. Please try again.',
+            error.message || 'Registration failed. Please try again.',
             'error'
         );
     } finally {
@@ -519,22 +335,74 @@ async function completeProfile(formData, user) {
         
         console.log('Profile completed successfully');
         
-        // If user is already logged in (OAuth flow), redirect to main page
-        const { data: session } = await supabase.auth.getSession();
-        if (session.session) {
-            showAlert('Profile completed successfully! Welcome to QOTORE.', 'success');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 2000);
-        }
-        
     } catch (error) {
         console.error('Profile completion error:', error);
         throw error;
     }
 }
 
-// Collect form data
+// Load configuration and initialize Supabase
+async function loadConfiguration() {
+    try {
+        const response = await fetch('/api/config', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const config = await response.json();
+            
+            // Check if Supabase library is loaded
+            if (typeof window.supabase === 'undefined') {
+                console.error('Supabase library not loaded');
+                throw new Error('Supabase library not available');
+            }
+            
+            // Initialize Supabase client
+            const { createClient } = window.supabase;
+            supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+            
+            console.log('Supabase client initialized');
+            
+            // Initialize Google Sign-In if configured
+            if (config.GOOGLE_CLIENT_ID) {
+                await initializeGoogleSignIn(config.GOOGLE_CLIENT_ID);
+            } else {
+                hideGoogleSignIn();
+            }
+        } else {
+            console.error('Failed to load configuration');
+            throw new Error('Configuration not available');
+        }
+    } catch (error) {
+        console.error('Configuration load error:', error);
+        showAlert('Service not configured. Please contact support.', 'error');
+        throw error;
+    }
+}
+
+// Add the remaining helper functions...
+function hideGoogleSignIn() {
+    const googleSection = document.getElementById('googleSection');
+    const authDivider = document.getElementById('authDivider');
+    
+    if (googleSection) googleSection.style.display = 'none';
+    if (authDivider) authDivider.style.display = 'none';
+}
+
+function prefillFromLocalStorage() {
+    const prefillData = localStorage.getItem('registration_prefill');
+    if (prefillData) {
+        const emailInput = document.getElementById('email');
+        if (emailInput && prefillData.includes('@')) {
+            emailInput.value = prefillData;
+        }
+        localStorage.removeItem('registration_prefill');
+    }
+}
+
 function collectFormData() {
     return {
         firstName: document.getElementById('firstName').value.trim(),
@@ -550,113 +418,37 @@ function collectFormData() {
     };
 }
 
-// Generate temporary password for email signup
 function generateTemporaryPassword() {
     return Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
 }
 
-// Translation Management
-async function loadTranslations() {
-    try {
-        const response = await fetch('/user/user-translations.json');
-        translations = await response.json();
-    } catch (error) {
-        console.error('Failed to load translations:', error);
-        translations = { en: {}, ar: {} };
-    }
-}
-
-function t(key) {
-    return translations[currentLanguage]?.[key] || key;
-}
-
-function updateTranslations() {
-    document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.getAttribute('data-translate');
-        const translation = t(key);
-        if (translation !== key) {
-            element.textContent = translation;
-        }
-    });
+function validateAllFields() {
+    const formData = collectFormData();
+    let isValid = true;
     
-    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-translate-placeholder');
-        const translation = t(key);
-        if (translation !== key) {
-            element.placeholder = translation;
-        }
-    });
-
-    // Update option elements
-    document.querySelectorAll('option[data-translate]').forEach(element => {
-        const key = element.getAttribute('data-translate');
-        const translation = t(key);
-        if (translation !== key) {
-            element.textContent = translation;
-        }
-    });
-
-    const titleElement = document.querySelector('title');
-    if (titleElement) {
-        const titleKey = titleElement.getAttribute('data-translate');
-        if (titleKey) {
-            const translation = t(titleKey);
-            if (translation !== titleKey) {
-                titleElement.textContent = translation;
-            }
-        }
-    }
-}
-
-function loadLanguagePreference() {
-    const savedLanguage = localStorage.getItem('qotore_language') || 'en';
-    currentLanguage = savedLanguage;
-    
-    document.documentElement.lang = currentLanguage;
-    document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
-    
-    const langButton = document.getElementById('currentLang');
-    if (langButton) {
-        langButton.textContent = currentLanguage.toUpperCase();
+    // Basic validation
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+        isValid = false;
     }
     
-    updateTranslations();
-}
-
-function toggleLanguage() {
-    showLoadingSplash();
-    
-    const newLanguage = currentLanguage === 'en' ? 'ar' : 'en';
-    currentLanguage = newLanguage;
-    
-    localStorage.setItem('qotore_language', currentLanguage);
-    
-    document.documentElement.lang = currentLanguage;
-    document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
-    
-    const langButton = document.getElementById('currentLang');
-    if (langButton) {
-        langButton.textContent = currentLanguage.toUpperCase();
+    if (!formData.agreeTerms) {
+        isValid = false;
     }
     
-    setTimeout(() => {
-        updateTranslations();
-        hideLoadingSplash();
-    }, 500);
+    return isValid;
 }
 
-// UI Helper Functions
-function showLoadingSplash() {
-    const splash = document.getElementById('loadingSplash');
-    if (splash) {
-        splash.classList.remove('hidden');
-    }
-}
-
-function hideLoadingSplash() {
-    const splash = document.getElementById('loadingSplash');
-    if (splash) {
-        splash.classList.add('hidden');
+function validateField(e) {
+    // Add field-specific validation here
+    const field = e.target;
+    const value = field.value.trim();
+    
+    // Remove existing error styling
+    field.classList.remove('error');
+    
+    // Add validation based on field type
+    if (field.required && !value) {
+        field.classList.add('error');
     }
 }
 
@@ -678,173 +470,33 @@ function showProcessing(buttonId, show) {
     }
 }
 
-function showAlert(message, type = 'info') {
-    const existingAlert = document.querySelector('.alert');
-    if (existingAlert) {
-        existingAlert.remove();
-    }
-    
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type}`;
-    
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-    alert.innerHTML = `
-        <span>${icon}</span>
-        <span>${message}</span>
-    `;
-    
-    const authContent = document.querySelector('.auth-content');
-    if (authContent) {
-        authContent.insertBefore(alert, authContent.firstChild);
-        
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.remove();
-            }
-        }, 5000);
-    }
+function showAlert(message, type) {
+    // Implement your alert system here
+    console.log(`${type.toUpperCase()}: ${message}`);
 }
 
-// Global functions
-window.toggleLanguage = toggleLanguage;
-window.goToStep = goToStep;
-
-// USER CANCEL AUTH
-
-// Cancel registration and delete account
-function cancelRegistration() {
-    showCancelRegistrationModal();
+function goToStep(step) {
+    // Implement multi-step navigation
+    console.log(`Going to step ${step}`);
 }
 
-// Show cancel registration modal
-function showCancelRegistrationModal() {
-    const modalHTML = `
-        <div class="modal-overlay" id="cancelModal">
-            <div class="modal-container">
-                <div class="modal-header">
-                    <div class="modal-icon danger">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
-                        </svg>
-                    </div>
-                    <h3 class="modal-title" data-translate="cancel_registration">Cancel Registration</h3>
-                    <p class="modal-subtitle" data-translate="cancel_subtitle">This will permanently delete your account</p>
-                </div>
-                <div class="modal-content">
-                    <p class="modal-message" data-translate="cancel_message">
-                        Are you sure you want to cancel your registration? This action cannot be undone.
-                    </p>
-                    <div class="modal-warning danger">
-                        <strong data-translate="warning">Warning:</strong>
-                        <span data-translate="cancel_warning">
-                            Your account will be permanently deleted from our system. You will need to start the registration process again if you change your mind.
-                        </span>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button class="modal-btn modal-btn-secondary" onclick="hideCancelModal()">
-                        <span data-translate="keep_account">Keep Account</span>
-                    </button>
-                    <button class="modal-btn modal-btn-danger" onclick="confirmCancelRegistration()" id="confirmCancelBtn">
-                        <span data-translate="delete_account">Delete Account</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Add modal to page
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // Show modal
-    setTimeout(() => {
-        document.getElementById('cancelModal').classList.add('show');
-    }, 10);
-    
-    // Close on overlay click
-    document.getElementById('cancelModal').addEventListener('click', (e) => {
-        if (e.target.id === 'cancelModal') {
-            hideCancelModal();
-        }
-    });
+function updateLanguageDisplay() {
+    // Implement language switching
+    console.log('Updating language display');
 }
 
-// Hide cancel modal
-function hideCancelModal() {
-    const modal = document.getElementById('cancelModal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
-    }
-}
-
-// Confirm account cancellation
-async function confirmCancelRegistration() {
-    const confirmBtn = document.getElementById('confirmCancelBtn');
-    
+async function loadTranslations() {
     try {
-        // Show loading
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = `
-            <div class="button-spinner"></div>
-            <span data-translate="deleting">Deleting...</span>
-        `;
-        
-        // Get current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-            throw new Error('No user found to delete');
-        }
-        
-        // Delete user profile from database (if exists)
-        const { error: profileError } = await supabase
-            .from('user_profiles')
-            .delete()
-            .eq('id', user.id);
-        
-        if (profileError) {
-            console.warn('Profile deletion error:', profileError);
-            // Continue even if profile deletion fails
-        }
-        
-        // Sign out and delete auth user
-        const { error: signOutError } = await supabase.auth.signOut();
-        
-        if (signOutError) {
-            console.warn('Sign out error:', signOutError);
-        }
-        
-        // Clear local state
-        currentUser = null;
-        isLoggedIn = false;
-        
-        // Show success message
-        showAlert('Account successfully deleted', 'success');
-        
-        // Hide modal
-        hideCancelModal();
-        
-        // Redirect to main page
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 1500);
-        
+        const response = await fetch('/user/user-translations.json');
+        translations = await response.json();
     } catch (error) {
-        console.error('Account deletion error:', error);
-        showAlert('Failed to delete account. Please try again.', 'error');
-        
-        // Reset button
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = '<span data-translate="delete_account">Delete Account</span>';
+        console.error('Failed to load translations:', error);
+        translations = { en: {}, ar: {} };
     }
 }
 
-// Add a cancel button to the registration form
 function addCancelButtonToRegistrationForm() {
-    // Add cancel button to the header
+    // Add cancel button for OAuth users who want to cancel registration
     const authHeader = document.querySelector('.auth-header');
     if (authHeader && !document.getElementById('cancelRegistrationBtn')) {
         const cancelBtn = document.createElement('button');
@@ -854,9 +506,16 @@ function addCancelButtonToRegistrationForm() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
             </svg>
-            <span data-translate="cancel">Cancel</span>
+            <span>Cancel</span>
         `;
-        cancelBtn.onclick = cancelRegistration;
+        cancelBtn.onclick = () => {
+            if (confirm('Are you sure you want to cancel registration? Your account will be deleted.')) {
+                // Implement cancel logic
+                supabase.auth.signOut().then(() => {
+                    window.location.href = '/';
+                });
+            }
+        };
         
         authHeader.appendChild(cancelBtn);
     }
