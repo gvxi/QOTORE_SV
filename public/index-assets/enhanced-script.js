@@ -1480,3 +1480,214 @@ async function confirmLogout() {
         confirmBtn.innerHTML = '<span data-translate="logout">Logout</span>';
     }
 }
+
+//------------------------------
+
+// Fixed renderUserSection function with instant translation updates
+// Add this to your enhanced-script.js
+
+// Translation function for dynamic content
+function t(key) {
+    return translations[currentLanguage]?.[key] || key;
+}
+
+// Fixed renderUserSection with instant translations
+function renderUserSection() {
+    const userSection = document.getElementById('userSection');
+    if (!userSection) return;
+    
+    if (isLoggedIn && currentUser) {
+        // Show user profile with pre-translated text
+        userSection.innerHTML = `
+            <div class="user-profile-dropdown">
+                <button class="nav-btn user-profile-btn" onclick="toggleUserDropdown()">
+                    <img src="${currentUser.picture || '/icons/icon-32x32.png'}" 
+                         alt="${currentUser.name}" 
+                         class="user-avatar"
+                         onerror="this.src='/icons/icon-32x32.png'">
+                    <span class="user-name">${currentUser.given_name || currentUser.name}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="dropdown-arrow">
+                        <path d="M7,10L12,15L17,10H7Z"/>
+                    </svg>
+                </button>
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="/user/profile.html" class="dropdown-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                        </svg>
+                        <span>${t('profile')}</span>
+                    </a>
+                    <a href="/user/orders.html" class="dropdown-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19,7H16V6A4,4 0 0,0 8,6V7H5A1,1 0 0,0 4,8V19A3,3 0 0,0 7,22H17A3,3 0 0,0 20,19V8A1,1 0 0,0 19,7M10,6A2,2 0 0,1 14,6V7H10V6Z"/>
+                        </svg>
+                        <span>${t('my_orders')}</span>
+                    </a>
+                    <button class="dropdown-item logout-btn" onclick="logoutUser()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
+                        </svg>
+                        <span>${t('logout')}</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        // Show login button with pre-translated text
+        userSection.innerHTML = `
+            <a href="/user/login.html" class="nav-btn login-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z"/>
+                </svg>
+                <span>${t('login')}</span>
+            </a>
+        `;
+    }
+}
+
+// Enhanced language toggle function that updates user menu
+function toggleLanguage() {
+    showLoadingSplash();
+    
+    const newLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+    currentLanguage = newLanguage;
+    
+    localStorage.setItem('qotore_language', currentLanguage);
+    
+    // Update document language and direction
+    document.documentElement.lang = currentLanguage;
+    document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+    
+    // Update language button
+    const langButton = document.getElementById('currentLang');
+    if (langButton) {
+        langButton.textContent = currentLanguage.toUpperCase();
+    }
+    
+    setTimeout(() => {
+        // Update all translations including static elements
+        updateTranslations();
+        
+        // Re-render user section with new language
+        renderUserSection();
+        
+        hideLoadingSplash();
+    }, 500);
+}
+
+// Enhanced updateTranslations function
+function updateTranslations() {
+    // Update static elements with data-translate attributes
+    document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        const translation = t(key);
+        if (translation !== key) {
+            element.textContent = translation;
+        }
+    });
+    
+    // Update placeholder attributes
+    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-translate-placeholder');
+        const translation = t(key);
+        if (translation !== key) {
+            element.placeholder = translation;
+        }
+    });
+
+    // Update title if it has data-translate attribute
+    const titleElement = document.querySelector('title[data-translate]');
+    if (titleElement) {
+        const titleKey = titleElement.getAttribute('data-translate');
+        const translation = t(titleKey);
+        if (translation !== titleKey) {
+            titleElement.textContent = translation;
+        }
+    }
+}
+
+// Alternative approach: Update user menu translations dynamically
+function updateUserMenuTranslations() {
+    // Update profile link
+    const profileSpan = document.querySelector('#userDropdownMenu .dropdown-item:first-child span');
+    if (profileSpan) {
+        profileSpan.textContent = t('profile');
+    }
+    
+    // Update my orders link
+    const ordersSpan = document.querySelector('#userDropdownMenu .dropdown-item:nth-child(2) span');
+    if (ordersSpan) {
+        ordersSpan.textContent = t('my_orders');
+    }
+    
+    // Update logout button
+    const logoutSpan = document.querySelector('#userDropdownMenu .logout-btn span');
+    if (logoutSpan) {
+        logoutSpan.textContent = t('logout');
+    }
+    
+    // Update login button if user is not logged in
+    const loginSpan = document.querySelector('.login-btn span');
+    if (loginSpan) {
+        loginSpan.textContent = t('login');
+    }
+}
+
+// Enhanced language preference loading
+function loadLanguagePreference() {
+    const savedLanguage = localStorage.getItem('qotore_language') || 'en';
+    currentLanguage = savedLanguage;
+    
+    // Update document properties
+    document.documentElement.lang = currentLanguage;
+    document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+    
+    // Update language button
+    const langButton = document.getElementById('currentLang');
+    if (langButton) {
+        langButton.textContent = currentLanguage.toUpperCase();
+    }
+    
+    // Update all translations
+    updateTranslations();
+    
+    // Update user menu if it exists
+    updateUserMenuTranslations();
+}
+
+// Add event listener for authentication state changes to update translations
+function initializeUserSection() {
+    // Initial render
+    renderUserSection();
+    
+    // Listen for auth changes if supabase is available
+    if (supabase) {
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth state changed:', event);
+            if (event === 'SIGNED_IN') {
+                handleSignIn(session);
+            } else if (event === 'SIGNED_OUT') {
+                handleSignOut();
+            }
+        });
+    }
+}
+
+// Enhanced handleSignIn to update translations
+function handleSignIn(session) {
+    checkUserAuthentication().then(() => {
+        renderUserSection(); // This will now use current language
+    });
+}
+
+// Enhanced handleSignOut to update translations
+function handleSignOut() {
+    currentUser = null;
+    isLoggedIn = false;
+    renderUserSection(); // This will now use current language
+}
+
+// Make functions globally available
+window.toggleLanguage = toggleLanguage;
+window.renderUserSection = renderUserSection;
+window.updateUserMenuTranslations = updateUserMenuTranslations;
