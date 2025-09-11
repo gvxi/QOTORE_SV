@@ -80,7 +80,7 @@ function t(key) {
 
 // Load language preference
 function loadLanguagePreference() {
-    currentLanguage = localStorage.getItem('preferred_language') || 'en';
+    currentLanguage = localStorage.getItem('qotore_language') || 'en';
     document.documentElement.lang = currentLanguage;
     document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
     updateTranslations();
@@ -465,7 +465,7 @@ async function saveProfile() {
         // Handle language change
         if (formData.language_preference !== currentLanguage) {
             currentLanguage = formData.language_preference;
-            localStorage.setItem('preferred_language', currentLanguage);
+            localStorage.setItem('qotore_language', currentLanguage);
             document.documentElement.lang = currentLanguage;
             document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
             updateTranslations();

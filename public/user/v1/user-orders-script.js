@@ -71,7 +71,7 @@ function t(key) {
 
 // Load language preference
 function loadLanguagePreference() {
-    currentLanguage = localStorage.getItem('preferred_language') || 'en';
+    currentLanguage = localStorage.getItem('qotore_language') || 'en';
     document.documentElement.lang = currentLanguage;
     document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
     updateTranslations();
