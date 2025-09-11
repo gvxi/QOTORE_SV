@@ -14,6 +14,18 @@ async function initializePage() {
         await loadConfiguration();
         await loadTranslations();
         loadLanguagePreference();
+        
+        // Add a listener for language changes from other tabs/pages
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'qotore_language' && e.newValue !== currentLanguage) {
+                console.log('Language changed in another tab:', e.newValue);
+                currentLanguage = e.newValue;
+                document.documentElement.lang = currentLanguage;
+                document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+                updateTranslations();
+            }
+        });
+        
         await checkAuthentication();
         await loadUserOrders();
         setupEventListeners();
