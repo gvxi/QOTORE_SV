@@ -28,302 +28,16 @@
     <meta property="og:url" content="/checkout">
     <meta property="og:type" content="website">
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <!-- Styles -->
     <link rel="stylesheet" href="/checkout-assets/checkout-styles.css">
-    <style>
-        /* Additional styles for new features */
-        .auth-required-message {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            border: 1px solid #ffeb9c;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: center;
-            color: #856404;
-        }
-
-        .auth-required-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #8B4513;
-        }
-
-        .auth-required-text {
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .auth-btn {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
-            padding: 0.75rem 2rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-block;
-            border: none;
-            cursor: pointer;
-        }
-
-        .auth-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
-        }
-
-        .current-order-section {
-            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
-            border: 1px solid #bee5eb;
-            border-radius: 16px;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
-
-        .order-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .order-action-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-view {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .btn-print {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-cancel {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-whatsapp {
-            background: #25d366;
-            color: white;
-        }
-
-        .order-action-btn:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
-
-        .location-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        @media (min-width: 768px) {
-            .location-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .delivery-options {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        .delivery-option {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .delivery-option:hover {
-            border-color: #8B4513;
-            background: #fff;
-        }
-
-        .delivery-option.selected {
-            border-color: #8B4513;
-            background: #fff;
-            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.1);
-        }
-
-        .delivery-option input[type="radio"] {
-            margin: 0;
-        }
-
-        .delivery-option-content {
-            flex: 1;
-        }
-
-        .delivery-option-title {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.25rem;
-        }
-
-        .delivery-option-desc {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-
-        .profile-incomplete-warning {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            border: 1px solid #f5c6cb;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: center;
-            color: #721c24;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 1rem;
-        }
-
-        .invoice-modal {
-            background: white;
-            border-radius: 16px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .invoice-header {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 16px 16px 0 0;
-            text-align: center;
-        }
-
-        .invoice-content {
-            padding: 2rem;
-        }
-
-        .invoice-section {
-            margin-bottom: 2rem;
-        }
-
-        .invoice-section h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 0.5rem;
-        }
-
-        .invoice-detail {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f8f9fa;
-        }
-
-        .invoice-detail:last-child {
-            border-bottom: none;
-        }
-
-        .invoice-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-        }
-
-        .invoice-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .invoice-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-
-        @media print {
-            .invoice-actions,
-            .modal-overlay .invoice-header .close-btn {
-                display: none !important;
-            }
-
-            .modal-overlay {
-                position: static;
-                background: none;
-            }
-
-            .invoice-modal {
-                box-shadow: none;
-                max-width: none;
-                width: 100%;
-                max-height: none;
-            }
-        }
-
-        .countdown-timer {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            border: 1px solid #ffeb9c;
-            border-radius: 8px;
-            padding: 0.75rem;
-            margin-top: 1rem;
-            text-align: center;
-            font-weight: 600;
-            color: #856404;
-        }
-
-        .countdown-timer.expired {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-    </style>
 </head>
 <body>
     <!-- Loading Splash Screen -->
-    <div id="loadingSplash" class="loading-splash">
-        <img src="/icons/icon-32x32-dark.png" alt="Qotore" class="loading-logo">
-        <div class="loading-spinner"></div>
-    </div>
-
+<div id="loadingSplash" class="loading-splash">
+    <img src="/icons/icon-32x32-dark.png" alt="Qotore" class="loading-logo">
+    <div class="loading-spinner"></div>
+</div>
+</div>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
@@ -339,197 +53,170 @@
     </header>
 
     <!-- Main Content -->
-    <main class="main-content" id="mainContent">
-        <!-- Authentication Required Section -->
-        <div id="authRequiredSection" class="auth-required-message" style="display: none;">
-            <h2 class="auth-required-title">🔐 <span data-translate="login_required">Login Required</span></h2>
-            <p class="auth-required-text" data-translate="checkout_login_message">
-                Please sign in to your account to proceed with checkout. You need to complete your profile to place orders.
-            </p>
-            <a href="/user/login.html" class="auth-btn">
-                <span data-translate="login">Login</span>
-            </a>
-        </div>
-
-        <!-- Profile Incomplete Section -->
-        <div id="profileIncompleteSection" class="profile-incomplete-warning" style="display: none;">
-            <h2 class="auth-required-title">📝 <span data-translate="complete_profile">Complete Your Profile</span></h2>
-            <p class="auth-required-text" data-translate="profile_incomplete_message">
-                Please complete your profile information to place orders. This helps us process and deliver your order properly.
-            </p>
-            <a href="/user/v1/profile.html" class="auth-btn">
-                <span data-translate="complete_profile">Complete Profile</span>
-            </a>
-        </div>
-
-        <!-- Current Order Section -->
-        <div id="currentOrderSection" class="current-order-section" style="display: none;">
-            <h2>📦 <span data-translate="current_order">Current Order</span></h2>
-            <p data-translate="active_order_message">You have an active order in progress. You can view, print, or cancel it below.</p>
-            
-            <div id="currentOrderDetails"></div>
-            
-            <div class="order-actions">
-                <button class="order-action-btn btn-view" onclick="viewCurrentOrderInvoice()">
-                    📄 <span data-translate="view_invoice">View Invoice</span>
-                </button>
-                <button class="order-action-btn btn-print" onclick="printCurrentOrderInvoice()">
-                    🖨️ <span data-translate="print_invoice">Print Invoice</span>
-                </button>
-                <button class="order-action-btn btn-cancel" onclick="cancelCurrentOrder()" id="cancelOrderBtn">
-                    ❌ <span data-translate="cancel_order">Cancel Order</span>
-                </button>
-                <a class="order-action-btn btn-whatsapp" href="https://wa.me/96892225949" target="_blank">
-                    💬 <span data-translate="contact_admin">Contact Admin</span>
-                </a>
-            </div>
-            
-            <div id="cancelCountdown" class="countdown-timer" style="display: none;"></div>
-        </div>
-
-        <!-- Normal Checkout Section -->
-        <div id="checkoutSection" style="display: none;">
-            <!-- Cart Section -->
-            <div class="cart-section">
-                <div class="cart-header">
-                    <div class="cart-title-section">
-                        <h1 class="cart-title">
-                            🛒 <span data-translate="your_cart">Your Cart</span>
-                        </h1>
-                        <p class="cart-subtitle" data-translate="review_fragrances">Review your fragrances</p>
-                    </div>
-                    <button class="btn btn-secondary" onclick="clearCart()" data-translate="clear_cart">Clear Cart</button>
+    <main class="main-content">
+        <!-- Cart Section -->
+        <section class="cart-section">
+            <div class="cart-header">
+                <div class="cart-title-section">
+                    <h1 class="cart-title" data-translate="your_cart">🛒 Your Cart</h1>
+                    <p class="cart-subtitle" data-translate="review_fragrances">Review your fragrances</p>
                 </div>
-
-                <!-- Cart Items -->
-                <div id="cartItems" class="cart-items">
-                    <!-- Cart items will be rendered here -->
-                </div>
+                <button id="clearCartBtn" class="btn btn-danger clear-cart-btn" onclick="clearCart()" style="display: none;">
+                    <span>🗑️</span>
+                    <span data-translate="clear_cart">Clear Cart</span>
+                </button>
             </div>
 
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div id="sidebarContent">
-                    <!-- Checkout form will be rendered here -->
+            <div class="cart-content" id="cartContent">
+                <!-- Cart items will be populated by JavaScript -->
+            </div>
+
+            <div class="cart-summary" id="cartSummary" style="display: none;">
+                <div class="summary-row">
+                    <span data-translate="subtotal">Subtotal:</span>
+                    <span id="subtotalAmount">0.000 OMR</span>
+                </div>
+                <div class="summary-row total">
+                    <span data-translate="total">Total:</span>
+                    <span id="totalAmount">0.000 OMR</span>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Order Status / Checkout Form -->
+        <aside id="sidebarContent">
+            <!-- This will be populated based on order status -->
+        </aside>
     </main>
 
-    <!-- Invoice Modal -->
-    <div id="invoiceModal" class="modal-overlay" style="display: none;">
-        <div class="invoice-modal">
-            <div class="invoice-header">
-                <h2>📄 <span data-translate="order_invoice">Order Invoice</span></h2>
-                <button onclick="closeInvoiceModal()" class="close-btn" style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;">✕</button>
-            </div>
-            <div class="invoice-content" id="invoiceContent">
-                <!-- Invoice content will be rendered here -->
-            </div>
-            <div class="invoice-actions">
-                <button class="order-action-btn btn-print" onclick="printInvoice()">
-                    🖨️ <span data-translate="print">Print</span>
-                </button>
-                <button class="order-action-btn btn-view" onclick="closeInvoiceModal()">
-                    ✕ <span data-translate="close">Close</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Customer Info Modal -->
-    <div id="customerInfoModal" class="modal-overlay" style="display: none;">
-        <div class="modal-container">
+    <!-- Customer Information Modal -->
+    <div id="customerInfoModal" class="modal" style="display: none;">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" data-translate="customer_information">Customer Information</h3>
-                <button onclick="closeCustomerInfoModal()" class="close-btn">✕</button>
+                <h2 data-translate="your_information">📝 Your Information</h2>
+                <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
             </div>
-            <div class="modal-content">
+            <div class="modal-body">
                 <form id="customerInfoForm">
                     <div class="form-group">
-                        <label class="form-label" data-translate="first_name">First Name</label>
-                        <input type="text" id="firstName" class="form-input" required>
+                        <label for="customerName" data-translate="full_name">Full Name *</label>
+                        <input type="text" id="customerName" name="customerName" required data-translate-placeholder="enter_full_name" placeholder="Enter your full name">
                     </div>
                     
-                    <div class="form-group">
-                        <label class="form-label" data-translate="last_name">Last Name</label>
-                        <input type="text" id="lastName" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-translate="phone_number">Phone Number</label>
-                        <input type="tel" id="phoneNumber" class="form-input" placeholder="+968 12345678" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-translate="email_address">Email Address (Optional)</label>
-                        <input type="email" id="emailAddress" class="form-input">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customerPhone" data-translate="phone_number">Phone Number *</label>
+                            <input type="tel" id="customerPhone" name="customerPhone" required data-translate-placeholder="phone_placeholder" placeholder="968XXXXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerEmail" data-translate="email_address">Email</label>
+                            <input type="email" id="customerEmail" name="customerEmail" data-translate-placeholder="email_placeholder" placeholder="your@email.com">
+                        </div>
                     </div>
 
-                    <div class="location-grid">
+                    <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label" data-translate="region_wilayat">Region/Wilayat</label>
-                            <select id="wilayat" class="form-input" required>
-                                <option value="" data-translate="select_wilayat">Select Wilayat</option>
-                                <option value="Muscat">Muscat</option>
-                                <option value="Seeb">Seeb</option>
-                                <option value="Bousher">Bousher</option>
-                                <option value="Al Amerat">Al Amerat</option>
-                                <option value="Quriyat">Quriyat</option>
-                                <option value="Nizwa">Nizwa</option>
-                                <option value="Salalah">Salalah</option>
-                                <option value="Sohar">Sohar</option>
-                                <option value="Sur">Sur</option>
-                                <option value="Ibra">Ibra</option>
-                                <option value="other" data-translate="other">Other</option>
+                            <label for="customerWilaya" data-translate="region_wilayat">Wilaya *</label>
+                            <select id="customerWilaya" name="customerWilaya" required>
+                                <option value="" data-translate="select_wilaya">Select Wilaya</option>
+                                <option value="Muscat" data-translate="muscat">Muscat</option>
+                                <option value="Dhofar" data-translate="dhofar">Dhofar</option>
+                                <option value="Musandam" data-translate="musandam">Musandam</option>
+                                <option value="Al Buraimi" data-translate="al_buraimi">Al Buraimi</option>
+                                <option value="Ad Dakhiliyah" data-translate="ad_dakhiliyah">Ad Dakhiliyah</option>
+                                <option value="Al Batinah North" data-translate="al_batinah_north">Al Batinah North</option>
+                                <option value="Al Batinah South" data-translate="al_batinah_south">Al Batinah South</option>
+                                <option value="Ash Sharqiyah North" data-translate="ash_sharqiyah_north">Ash Sharqiyah North</option>
+                                <option value="Ash Sharqiyah South" data-translate="ash_sharqiyah_south">Ash Sharqiyah South</option>
+                                <option value="Al Wusta" data-translate="al_wusta">Al Wusta</option>
+                                <option value="Adh Dhahirah" data-translate="adh_dhahirah">Adh Dhahirah</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label class="form-label" data-translate="city">City</label>
-                            <input type="text" id="city" class="form-input" required placeholder="Enter your city or area">
+                            <label for="customerCity" data-translate="city">City *</label>
+                            <input type="text" id="customerCity" name="customerCity" required data-translate-placeholder="enter_city" placeholder="Enter your city">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" data-translate="delivery_option">Delivery Option</label>
+                        <label for="deliveryOption" data-translate="delivery_option">Delivery Option *</label>
                         <div class="delivery-options">
-                            <label class="delivery-option" for="homeDelivery">
-                                <input type="radio" id="homeDelivery" name="deliveryType" value="home" checked>
-                                <div class="delivery-option-content">
-                                    <div class="delivery-option-title" data-translate="home_delivery">🏠 Home Delivery (Free)</div>
-                                    <div class="delivery-option-desc" data-translate="deliver_to_home_address">Deliver to home address</div>
-                                </div>
+                            <label class="delivery-option">
+                                <input type="radio" name="deliveryOption" value="home" checked>
+                                <span class="delivery-label" data-translate="deliver_to_home">🏠 Deliver to Home</span>
                             </label>
-                            <label class="delivery-option" for="deliveryService">
-                                <input type="radio" id="deliveryService" name="deliveryType" value="service">
-                                <div class="delivery-option-content">
-                                    <div class="delivery-option-title" data-translate="pickup_delivery">🚛 Use Delivery Service</div>
-                                    <div class="delivery-option-desc" data-translate="use_delivery_service_text">Use Delivery Service</div>
-                                </div>
+                            <label class="delivery-option">
+                                <input type="radio" name="deliveryOption" value="service">
+                                <span class="delivery-label" data-translate="use_delivery_service">🚛 Use Delivery Service</span>
                             </label>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" data-translate="additional_notes">Additional Notes (Optional)</label>
-                        <textarea id="notes" class="form-input" rows="3" placeholder="Special instructions or notes about your order"></textarea>
+                        <label for="customerNotes" data-translate="additional_notes">Notes (Optional)</label>
+                        <textarea id="customerNotes" name="customerNotes" rows="3" data-translate-placeholder="notes_placeholder" placeholder="Any special instructions or notes for your order..."></textarea>
                     </div>
 
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeCustomerInfoModal()">
-                            <span data-translate="cancel">Cancel</span>
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="saveCustomerInfoBtn">
-                            <span data-translate="save_information">Save Information</span>
-                        </button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeCustomerModal()" data-translate="cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" data-translate="save_information">Save Information</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/96812345678" class="whatsapp-float" target="_blank" data-translate="whatsapp_contact" title="Contact us on WhatsApp">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.9 3.515"/>
+        </svg>
+    </a>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <img src="/icons/icon-32x32.png" alt="Qotore" class="footer-logo-icon">
+                    <span>Qotore</span>
+                </div>
+                <p class="footer-description" data-translate="footer_description">Premium fragrances delivered to your door</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3 data-translate="contact_us">Contact Us</h3>
+                <div class="social-links">
+                    <a href="https://instagram.com/qotore_official" target="_blank" class="social-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                        <span data-translate="instagram">Instagram</span>
+                    </a>
+                    <a href="https://snapchat.com/add/qotore_official" target="_blank" class="social-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.405.042-3.441.219-.937 1.404-5.965 1.404-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.888-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z"/>
+                        </svg>
+                        <span data-translate="snapchat">Snapchat</span>
+                    </a>
+                    <a href="https://wa.me/96812345678" target="_blank" class="social-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.9 3.515"/>
+                        </svg>
+                        <span data-translate="whatsapp">WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p data-translate="copyright">&copy; 2024 Qotore. All rights reserved.</p>
+        </div>
+    </footer>
+
     <!-- Scripts -->
-    <script src="/checkout-assets/enhanced-checkout-script.js"></script>
+    <script src="/checkout-assets/email-notification-adapter.js"></script>
+    <script src="/checkout-assets/cart-adapter.js?v=3.1"></script>
+    <script src="/checkout-assets/checkout-script.js?v=3.1"></script>
+    <script src="/checkout-assets/checkout-hotfix.js?v=3.1"></script>
 </body>
 </html>
