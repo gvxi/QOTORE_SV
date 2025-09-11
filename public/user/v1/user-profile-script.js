@@ -47,7 +47,7 @@ async function loadConfiguration() {
 // Load translations
 async function loadTranslations() {
     try {
-        const response = await fetch('/users/v1/user-translations.json');
+        const response = await fetch('/user/v1/user-translations.json');
         translations = await response.json();
     } catch (error) {
         console.error('Failed to load translations:', error);
