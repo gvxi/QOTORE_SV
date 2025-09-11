@@ -103,7 +103,7 @@ async function checkAuthentication() {
 function redirectToLogin() {
     showToast('Please login to access your profile', 'error');
     setTimeout(() => {
-        window.location.href = '/users/v1/login.html';
+        window.location.href = '/user/v1/login.html';
     }, 2000);
 }
 
