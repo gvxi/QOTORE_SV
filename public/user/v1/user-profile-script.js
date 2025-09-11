@@ -483,6 +483,7 @@ function handleLanguageChange(event) {
     if (newLanguage !== currentLanguage) {
         // Show preview of language change
         currentLanguage = newLanguage;
+        localStorage.setItem('qotore_language', currentLanguage); // Use same key as main page
         document.documentElement.lang = currentLanguage;
         document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
         updateTranslations();
