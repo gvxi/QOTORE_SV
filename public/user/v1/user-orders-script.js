@@ -1,6 +1,6 @@
 // Orders Page Script
 let supabase = null;
-let currentLanguage = 'en';
+let currentLanguage = 'ar';
 let translations = {};
 let currentUser = null;
 let orders = [];
@@ -15,11 +15,10 @@ async function initializePage() {
         await loadTranslations();
         loadLanguagePreference();
         
-        // Add a listener for language changes from other tabs/pages
+        // Listen for language changes from main page - matching main page pattern
         window.addEventListener('storage', function(e) {
-            if (e.key === 'qotore_language' && e.newValue !== currentLanguage) {
-                console.log('Language changed in another tab:', e.newValue);
-                currentLanguage = e.newValue;
+            if (e.key === 'qotore_language') {
+                currentLanguage = e.newValue || 'en';
                 document.documentElement.lang = currentLanguage;
                 document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
                 updateTranslations();

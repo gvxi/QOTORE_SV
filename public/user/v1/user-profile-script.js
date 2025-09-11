@@ -1,6 +1,6 @@
 // Improved Profile Page Script with Edit Functionality
 let supabase = null;
-let currentLanguage = 'en';
+let currentLanguage = 'ar';
 let translations = {};
 let currentUser = null;
 let currentProfile = null;
@@ -17,11 +17,10 @@ async function initializePage() {
         await loadTranslations();
         loadLanguagePreference();
         
-        // Add a listener for language changes from other tabs/pages
+        // Listen for language changes from main page - matching main page pattern
         window.addEventListener('storage', function(e) {
-            if (e.key === 'qotore_language' && e.newValue !== currentLanguage) {
-                console.log('Language changed in another tab:', e.newValue);
-                currentLanguage = e.newValue;
+            if (e.key === 'qotore_language') {
+                currentLanguage = e.newValue || 'en';
                 document.documentElement.lang = currentLanguage;
                 document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
                 
@@ -575,7 +574,7 @@ async function deleteAccount() {
         // Sign out and redirect
         setTimeout(async () => {
             await supabase.auth.signOut();
-            window.location.href = '/user/v1/login.html';
+            window.location.href = '/user/login.html';
         }, 2000);
 
     } catch (error) {
