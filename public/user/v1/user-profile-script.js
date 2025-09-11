@@ -1,9 +1,12 @@
-// Profile Page Script
+// Improved Profile Page Script with Edit Functionality
 let supabase = null;
 let currentLanguage = 'en';
 let translations = {};
 let currentUser = null;
+let currentProfile = null;
 let isProcessing = false;
+let isEditMode = false;
+let originalData = {};
 
 // Initialize everything
 document.addEventListener('DOMContentLoaded', initializePage);
@@ -44,7 +47,7 @@ async function loadConfiguration() {
 // Load translations
 async function loadTranslations() {
     try {
-        const response = await fetch('/user/v1/user-translations.json');
+        const response = await fetch('/users/v1/user-translations.json');
         translations = await response.json();
     } catch (error) {
         console.error('Failed to load translations:', error);
@@ -89,6 +92,7 @@ async function checkAuthentication() {
         }
 
         currentUser = session.user;
+        console.log('User authenticated:', currentUser.email);
     } catch (error) {
         console.error('Authentication check error:', error);
         redirectToLogin();
@@ -99,7 +103,7 @@ async function checkAuthentication() {
 function redirectToLogin() {
     showToast('Please login to access your profile', 'error');
     setTimeout(() => {
-        window.location.href = '/user/login.html';
+        window.location.href = '/users/v1/login.html';
     }, 2000);
 }
 
@@ -108,6 +112,9 @@ async function loadUserProfile() {
     if (!supabase || !currentUser) return;
 
     try {
+        // Update header immediately with user info
+        updateProfileHeader();
+
         const { data: profile, error } = await supabase
             .from('user_profiles')
             .select('*')
@@ -120,6 +127,8 @@ async function loadUserProfile() {
             return;
         }
 
+        currentProfile = profile;
+        
         if (profile) {
             displayUserProfile(profile);
         } else {
@@ -131,127 +140,339 @@ async function loadUserProfile() {
     }
 }
 
-// Display user profile
-function displayUserProfile(profile) {
-    // Update profile header
+// Update profile header immediately
+function updateProfileHeader() {
     const profileName = document.getElementById('profileName');
     const profileEmail = document.getElementById('profileEmail');
     const profileAvatar = document.getElementById('profileAvatar');
 
+    // Set email immediately
+    if (currentUser) {
+        profileEmail.textContent = currentUser.email;
+        
+        // Set a default name from email until profile loads
+        const defaultName = currentUser.email.split('@')[0];
+        profileName.textContent = defaultName;
+        
+        // Set default avatar if Google picture is available
+        if (currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture) {
+            profileAvatar.src = currentUser.user_metadata.avatar_url || currentUser.user_metadata.picture;
+            profileAvatar.alt = defaultName;
+        }
+    }
+}
+
+// Display user profile
+function displayUserProfile(profile) {
+    // Update profile header with actual data
+    const profileName = document.getElementById('profileName');
+    const profileAvatar = document.getElementById('profileAvatar');
+
     const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-    profileName.textContent = fullName || currentUser.email.split('@')[0];
-    profileEmail.textContent = currentUser.email;
+    if (fullName) {
+        profileName.textContent = fullName;
+    }
     
     if (profile.google_picture) {
         profileAvatar.src = profile.google_picture;
         profileAvatar.alt = fullName || 'Profile';
     }
 
-    // Format date of birth
-    let dobFormatted = '-';
-    if (profile.date_of_birth) {
-        try {
-            const date = new Date(profile.date_of_birth);
-            dobFormatted = date.toLocaleDateString(currentLanguage === 'ar' ? 'ar-OM' : 'en-OM');
-        } catch (e) {
-            dobFormatted = profile.date_of_birth;
-        }
-    }
+    // Populate form fields
+    document.getElementById('firstName').value = profile.first_name || '';
+    document.getElementById('lastName').value = profile.last_name || '';
+    document.getElementById('email').value = currentUser.email;
+    document.getElementById('phone').value = profile.phone || '';
+    document.getElementById('gender').value = profile.gender || '';
+    document.getElementById('age').value = profile.age || '';
+    document.getElementById('dateOfBirth').value = profile.date_of_birth || '';
+    document.getElementById('wilayat').value = profile.wilayat || '';
+    document.getElementById('city').value = profile.city || '';
+    document.getElementById('language').value = profile.language_preference || 'en';
+    document.getElementById('fullAddress').value = profile.full_address || '';
 
-    // Format gender
-    let genderDisplay = '-';
-    if (profile.gender) {
-        switch (profile.gender) {
-            case 'male':
-                genderDisplay = t('male') || 'Male';
-                break;
-            case 'female':
-                genderDisplay = t('female') || 'Female';
-                break;
-            case 'prefer_not_to_say':
-                genderDisplay = t('prefer_not_to_say') || 'Prefer not to say';
-                break;
-            default:
-                genderDisplay = profile.gender;
-        }
-    }
-
-    // Update profile information
-    const profileInfo = document.getElementById('profileInfo');
-    profileInfo.innerHTML = `
-        <div class="info-item">
-            <span class="info-label" data-translate="first_name">First Name</span>
-            <span class="info-value">${profile.first_name || '-'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="last_name">Last Name</span>
-            <span class="info-value">${profile.last_name || '-'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="email">Email</span>
-            <span class="info-value">${currentUser.email}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="phone">Phone</span>
-            <span class="info-value">${profile.phone || '-'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="gender">Gender</span>
-            <span class="info-value">${genderDisplay}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="age">Age</span>
-            <span class="info-value">${profile.age || '-'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="date_of_birth">Date of Birth</span>
-            <span class="info-value">${dobFormatted}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="wilayat">Wilayat</span>
-            <span class="info-value">${profile.wilayat || '-'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="city">City</span>
-            <span class="info-value">${profile.city || '-'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="full_address">Full Address</span>
-            <span class="info-value">${profile.full_address || '-'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="language_preference">Language</span>
-            <span class="info-value">${profile.language_preference === 'ar' ? (t('arabic') || 'Arabic') : (t('english') || 'English')}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label" data-translate="currency">Currency</span>
-            <span class="info-value">${profile.currency || 'OMR'}</span>
-        </div>
-    `;
+    // Store original data for cancel functionality
+    originalData = {
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        phone: profile.phone || '',
+        gender: profile.gender || '',
+        age: profile.age || '',
+        date_of_birth: profile.date_of_birth || '',
+        wilayat: profile.wilayat || '',
+        city: profile.city || '',
+        language_preference: profile.language_preference || 'en',
+        full_address: profile.full_address || ''
+    };
 
     updateTranslations();
 }
 
 // Show empty profile
 function showEmptyProfile() {
-    const profileInfo = document.getElementById('profileInfo');
-    profileInfo.innerHTML = `
-        <div class="empty-state">
-            <svg class="empty-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
-            </svg>
-            <h3 data-translate="no_profile_info">No Profile Information</h3>
-            <p data-translate="profile_incomplete">Please complete your profile to see your information here.</p>
-        </div>
-    `;
+    // Set email in form
+    document.getElementById('email').value = currentUser.email;
+    
+    // Initialize with default language
+    document.getElementById('language').value = 'en';
+    
+    // Store empty original data
+    originalData = {
+        first_name: '',
+        last_name: '',
+        phone: '',
+        gender: '',
+        age: '',
+        date_of_birth: '',
+        wilayat: '',
+        city: '',
+        language_preference: 'en',
+        full_address: ''
+    };
+
     updateTranslations();
 }
 
 // Setup event listeners
 function setupEventListeners() {
+    // Edit toggle button
+    const editToggle = document.getElementById('editToggle');
+    if (editToggle) {
+        editToggle.addEventListener('click', toggleEditMode);
+    }
+
+    // Save button
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveProfile);
+    }
+
+    // Cancel button
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', cancelEdit);
+    }
+
+    // Delete account button
     const deleteBtn = document.getElementById('deleteAccountBtn');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', showDeleteConfirmation);
+    }
+
+    // Language change listener
+    const languageSelect = document.getElementById('language');
+    if (languageSelect) {
+        languageSelect.addEventListener('change', handleLanguageChange);
+    }
+
+    // Form submit prevention
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (isEditMode) {
+                saveProfile();
+            }
+        });
+    }
+}
+
+// Toggle edit mode
+function toggleEditMode() {
+    if (isProcessing) return;
+
+    isEditMode = !isEditMode;
+    const container = document.getElementById('profileContainer');
+    const editToggle = document.getElementById('editToggle');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const deleteBtn = document.getElementById('deleteAccountBtn');
+
+    if (isEditMode) {
+        // Enter edit mode
+        container.classList.remove('view-mode');
+        container.classList.add('edit-mode');
+        
+        // Enable form fields (except email)
+        const inputs = container.querySelectorAll('.form-input:not(.readonly), .form-select');
+        inputs.forEach(input => {
+            input.disabled = false;
+        });
+
+        // Update button states
+        editToggle.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"/>
+            </svg>
+        `;
+        editToggle.title = 'Cancel Edit';
+        
+        saveBtn.style.display = 'flex';
+        cancelBtn.style.display = 'flex';
+        deleteBtn.style.display = 'none';
+
+    } else {
+        // Exit edit mode
+        exitEditMode();
+    }
+}
+
+// Exit edit mode
+function exitEditMode() {
+    isEditMode = false;
+    const container = document.getElementById('profileContainer');
+    const editToggle = document.getElementById('editToggle');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const deleteBtn = document.getElementById('deleteAccountBtn');
+
+    container.classList.remove('edit-mode');
+    container.classList.add('view-mode');
+    
+    // Disable form fields
+    const inputs = container.querySelectorAll('.form-input:not(.readonly), .form-select');
+    inputs.forEach(input => {
+        input.disabled = true;
+    });
+
+    // Update button states
+    editToggle.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+        </svg>
+    `;
+    editToggle.title = 'Edit Profile';
+    
+    saveBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+    deleteBtn.style.display = 'flex';
+}
+
+// Cancel edit
+function cancelEdit() {
+    if (isProcessing) return;
+
+    // Restore original data
+    document.getElementById('firstName').value = originalData.first_name;
+    document.getElementById('lastName').value = originalData.last_name;
+    document.getElementById('phone').value = originalData.phone;
+    document.getElementById('gender').value = originalData.gender;
+    document.getElementById('age').value = originalData.age;
+    document.getElementById('dateOfBirth').value = originalData.date_of_birth;
+    document.getElementById('wilayat').value = originalData.wilayat;
+    document.getElementById('city').value = originalData.city;
+    document.getElementById('language').value = originalData.language_preference;
+    document.getElementById('fullAddress').value = originalData.full_address;
+
+    exitEditMode();
+}
+
+// Save profile
+async function saveProfile() {
+    if (isProcessing || !supabase || !currentUser) return;
+
+    // Validate required fields
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    
+    if (!firstName) {
+        showToast('First name is required', 'error');
+        document.getElementById('firstName').focus();
+        return;
+    }
+
+    isProcessing = true;
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.classList.add('loading');
+    saveBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+        </svg>
+        <span data-translate="saving">Saving...</span>
+    `;
+
+    try {
+        // Collect form data
+        const formData = {
+            first_name: firstName,
+            last_name: lastName || null,
+            phone: document.getElementById('phone').value.trim() || null,
+            gender: document.getElementById('gender').value || null,
+            age: document.getElementById('age').value ? parseInt(document.getElementById('age').value) : null,
+            date_of_birth: document.getElementById('dateOfBirth').value || null,
+            wilayat: document.getElementById('wilayat').value.trim() || null,
+            city: document.getElementById('city').value.trim() || null,
+            language_preference: document.getElementById('language').value || 'en',
+            full_address: document.getElementById('fullAddress').value.trim() || null,
+            profile_completed: true,
+            updated_at: new Date().toISOString()
+        };
+
+        // Update profile
+        const { data, error } = await supabase
+            .from('user_profiles')
+            .upsert({
+                id: currentUser.id,
+                ...formData
+            }, {
+                onConflict: 'id'
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        // Update stored data
+        currentProfile = { ...currentProfile, ...formData };
+        originalData = { ...formData };
+
+        // Update profile header
+        const fullName = `${formData.first_name} ${formData.last_name || ''}`.trim();
+        document.getElementById('profileName').textContent = fullName;
+
+        // Handle language change
+        if (formData.language_preference !== currentLanguage) {
+            currentLanguage = formData.language_preference;
+            localStorage.setItem('preferred_language', currentLanguage);
+            document.documentElement.lang = currentLanguage;
+            document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+            updateTranslations();
+        }
+
+        showToast('Profile updated successfully', 'success');
+        exitEditMode();
+
+    } catch (error) {
+        console.error('Save profile error:', error);
+        showToast('Failed to save profile: ' + error.message, 'error');
+    } finally {
+        isProcessing = false;
+        saveBtn.disabled = false;
+        saveBtn.classList.remove('loading');
+        saveBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"/>
+            </svg>
+            <span data-translate="save_changes">Save Changes</span>
+        `;
+        updateTranslations();
+    }
+}
+
+// Handle language change
+function handleLanguageChange(event) {
+    if (!isEditMode) return;
+    
+    const newLanguage = event.target.value;
+    if (newLanguage !== currentLanguage) {
+        // Show preview of language change
+        currentLanguage = newLanguage;
+        document.documentElement.lang = currentLanguage;
+        document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+        updateTranslations();
+        
+        showToast('Language will be saved when you save your profile', 'info');
     }
 }
 
@@ -272,6 +493,7 @@ async function deleteAccount() {
 
     isProcessing = true;
     const deleteBtn = document.getElementById('deleteAccountBtn');
+    deleteBtn.disabled = true;
     deleteBtn.classList.add('loading');
     deleteBtn.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -318,7 +540,7 @@ async function deleteAccount() {
         // Sign out and redirect
         setTimeout(async () => {
             await supabase.auth.signOut();
-            window.location.href = '/user/login.html';
+            window.location.href = '/user/v1/login.html';
         }, 2000);
 
     } catch (error) {
@@ -326,6 +548,7 @@ async function deleteAccount() {
         showToast('Failed to delete account information', 'error');
     } finally {
         isProcessing = false;
+        deleteBtn.disabled = false;
         deleteBtn.classList.remove('loading');
         deleteBtn.innerHTML = `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
