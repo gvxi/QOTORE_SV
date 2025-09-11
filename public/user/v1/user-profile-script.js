@@ -371,40 +371,50 @@ function cancelEdit() {
 async function saveProfile() {
     if (isProcessing || !supabase || !currentUser) return;
 
-    // Validate required fields
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
+    // Validate required fields - check if elements exist
+    const firstNameField = document.getElementById('firstName');
+    const lastNameField = document.getElementById('lastName');
+    
+    if (!firstNameField) {
+        showToast('Form not ready, please try again', 'error');
+        return;
+    }
+
+    const firstName = firstNameField.value.trim();
+    const lastName = lastNameField ? lastNameField.value.trim() : '';
     
     if (!firstName) {
         showToast('First name is required', 'error');
-        document.getElementById('firstName').focus();
+        firstNameField.focus();
         return;
     }
 
     isProcessing = true;
     const saveBtn = document.getElementById('saveBtn');
-    saveBtn.disabled = true;
-    saveBtn.classList.add('loading');
-    saveBtn.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
-        </svg>
-        <span data-translate="saving">Saving...</span>
-    `;
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.classList.add('loading');
+        saveBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+            </svg>
+            <span data-translate="saving">Saving...</span>
+        `;
+    }
 
     try {
-        // Collect form data
+        // Collect form data - safely get values
         const formData = {
             first_name: firstName,
             last_name: lastName || null,
-            phone: document.getElementById('phone').value.trim() || null,
-            gender: document.getElementById('gender').value || null,
-            age: document.getElementById('age').value ? parseInt(document.getElementById('age').value) : null,
-            date_of_birth: document.getElementById('dateOfBirth').value || null,
-            wilayat: document.getElementById('wilayat').value.trim() || null,
-            city: document.getElementById('city').value.trim() || null,
-            language_preference: document.getElementById('language').value || 'en',
-            full_address: document.getElementById('fullAddress').value.trim() || null,
+            phone: document.getElementById('phone')?.value.trim() || null,
+            gender: document.getElementById('gender')?.value || null,
+            age: document.getElementById('age')?.value ? parseInt(document.getElementById('age').value) : null,
+            date_of_birth: document.getElementById('dateOfBirth')?.value || null,
+            wilayat: document.getElementById('wilayat')?.value.trim() || null,
+            city: document.getElementById('city')?.value.trim() || null,
+            language_preference: document.getElementById('language')?.value || 'en',
+            full_address: document.getElementById('fullAddress')?.value.trim() || null,
             profile_completed: true,
             updated_at: new Date().toISOString()
         };
@@ -429,7 +439,10 @@ async function saveProfile() {
 
         // Update profile header
         const fullName = `${formData.first_name} ${formData.last_name || ''}`.trim();
-        document.getElementById('profileName').textContent = fullName;
+        const profileNameEl = document.getElementById('profileName');
+        if (profileNameEl) {
+            profileNameEl.textContent = fullName;
+        }
 
         // Handle language change
         if (formData.language_preference !== currentLanguage) {
@@ -448,15 +461,17 @@ async function saveProfile() {
         showToast('Failed to save profile: ' + error.message, 'error');
     } finally {
         isProcessing = false;
-        saveBtn.disabled = false;
-        saveBtn.classList.remove('loading');
-        saveBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"/>
-            </svg>
-            <span data-translate="save_changes">Save Changes</span>
-        `;
-        updateTranslations();
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('loading');
+            saveBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"/>
+                </svg>
+                <span data-translate="save_changes">Save Changes</span>
+            `;
+            updateTranslations();
+        }
     }
 }
 
