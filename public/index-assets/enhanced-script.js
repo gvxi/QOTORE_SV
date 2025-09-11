@@ -1072,7 +1072,7 @@ function renderUserSection() {
                         </svg>
                         <span data-translate="profile">Profile</span>
                     </a>
-                    <a href="/user/orders.html" class="dropdown-item">
+                    <a href="/user/v1/orders.html" class="dropdown-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19,7H16V6A4,4 0 0,0 8,6V7H5A1,1 0 0,0 4,8V19A3,3 0 0,0 7,22H17A3,3 0 0,0 20,19V8A1,1 0 0,0 19,7M10,6A2,2 0 0,1 14,6V7H10V6Z"/>
                         </svg>
@@ -1295,7 +1295,7 @@ function renderUserSection() {
                         </svg>
                         <span>${t('profile')}</span>
                     </a>
-                    <a href="/user/orders.html" class="dropdown-item">
+                    <a href="/user/v1/orders.html" class="dropdown-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19,7H16V6A4,4 0 0,0 8,6V7H5A1,1 0 0,0 4,8V19A3,3 0 0,0 7,22H17A3,3 0 0,0 20,19V8A1,1 0 0,0 19,7M10,6A2,2 0 0,1 14,6V7H10V6Z"/>
                         </svg>
