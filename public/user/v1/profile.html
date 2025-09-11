@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="profile_page_title">My Profile - Qotore</title>
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    
+    <!-- PWA Theme -->
+    <meta name="theme-color" content="#8B4513">
+    <meta name="msapplication-TileColor" content="#8B4513">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Qotore">
+    
+    <!-- Meta Tags -->
+    <meta property="og:title" content="Qotore - My Profile">
+    <meta property="og:description" content="Manage your profile and account settings">
+    <meta property="og:image" content="/icons/icon-512x512.png">
+    <meta property="og:url" content="/user/profile">
+    <meta property="og:type" content="website">
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/user/v1/user-profile-styles.css">
+</head>
+<body>
+    <!-- Loading Splash Screen -->
+    <div id="loadingSplash" class="loading-splash">
+        <div class="loading-content">
+            <img src="/icons/icon-32x32-dark.png" alt="Qotore" class="loading-logo">
+            <div class="loading-spinner"></div>
+            <p data-translate="loading">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
+                <span data-translate="qotore">Qotore</span>
+            </a>
+            <div class="nav-buttons">
+                <a href="/user/orders.html" class="nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,7H16V6A4,4 0 0,0 8,6V7H5A1,1 0 0,0 4,8V19A3,3 0 0,0 7,22H17A3,3 0 0,0 20,19V8A1,1 0 0,0 19,7M10,6A2,2 0 0,1 14,6V7H10V6Z"/>
+                    </svg>
+                    <span data-translate="my_orders">My Orders</span>
+                </a>
+                <a href="/" class="nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
+                    </svg>
+                    <span data-translate="home">Home</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-title">
+            <h1 data-translate="my_profile">My Profile</h1>
+            <p data-translate="profile_subtitle">Manage your account information and preferences</p>
+        </div>
+
+        <div class="profile-container">
+            <!-- Profile Card -->
+            <div class="profile-card">
+                <div class="profile-header">
+                    <img id="profileAvatar" src="/icons/icon-32x32.png" alt="Profile" class="profile-avatar">
+                    <h2 id="profileName" class="profile-name" data-translate="loading">Loading...</h2>
+                    <p id="profileEmail" class="profile-email"></p>
+                </div>
+                <div class="profile-content">
+                    <div class="action-buttons">
+                        <button id="deleteAccountBtn" class="btn btn-danger">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+                            </svg>
+                            <span data-translate="delete_account">Delete Account</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Information -->
+            <div class="info-section">
+                <div class="section-header">
+                    <h3 class="section-title" data-translate="personal_information">Personal Information</h3>
+                </div>
+                <div class="section-content">
+                    <div id="profileInfo" class="info-grid">
+                        <!-- Profile info will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/user/v1/user-profile-script.js"></script>
+</body>
+</html>

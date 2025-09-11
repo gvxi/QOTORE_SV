@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="orders_page_title">My Orders - Qotore</title>
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    
+    <!-- PWA Theme -->
+    <meta name="theme-color" content="#8B4513">
+    <meta name="msapplication-TileColor" content="#8B4513">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Qotore">
+    
+    <!-- Meta Tags -->
+    <meta property="og:title" content="Qotore - My Orders">
+    <meta property="og:description" content="View your order history and track orders">
+    <meta property="og:image" content="/icons/icon-512x512.png">
+    <meta property="og:url" content="/user/orders">
+    <meta property="og:type" content="website">
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/user/v1/user-orders-styles.css">
+</head>
+<body>
+    <!-- Loading Splash Screen -->
+    <div id="loadingSplash" class="loading-splash">
+        <div class="loading-content">
+            <img src="/icons/icon-32x32-dark.png" alt="Qotore" class="loading-logo">
+            <div class="loading-spinner"></div>
+            <p data-translate="loading">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <img src="/icons/icon-32x32.png" alt="Qotore" class="logo-icon">
+                <span data-translate="qotore">Qotore</span>
+            </a>
+            <div class="nav-buttons">
+                <a href="/user/profile.html" class="nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                    </svg>
+                    <span data-translate="profile">Profile</span>
+                </a>
+                <a href="/" class="nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
+                    </svg>
+                    <span data-translate="home">Home</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-title">
+            <h1 data-translate="my_orders">My Orders</h1>
+            <p data-translate="orders_subtitle">View and track your order history</p>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="statusFilter" data-translate="filter_by_status">Filter by Status:</label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="all" data-translate="all_orders">All Orders</option>
+                    <option value="pending" data-translate="pending">Pending</option>
+                    <option value="reviewed" data-translate="reviewed">Reviewed</option>
+                    <option value="completed" data-translate="completed">Completed</option>
+                    <option value="cancelled" data-translate="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <button id="refreshBtn" class="refresh-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                </svg>
+                <span data-translate="refresh">Refresh</span>
+            </button>
+        </div>
+
+        <!-- Orders Container -->
+        <div id="ordersContainer" class="orders-container">
+            <!-- Loading state -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p data-translate="loading_orders">Loading your orders...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/user/v1/user-orders-script.js"></script>
+</body>
+</html>
