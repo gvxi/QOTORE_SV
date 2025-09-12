@@ -82,10 +82,12 @@ class EmailNotificationAdapter {
                 text: emailContent.text
             };
 
-            const response = await fetch(this.apiEndpoint, {
+            // For now, send via direct API call instead of custom endpoint
+            const response = await fetch('https://api.resend.com/emails', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (await this.getResendApiKey())
                 },
                 body: JSON.stringify(payload)
             });
@@ -93,13 +95,13 @@ class EmailNotificationAdapter {
             const result = await response.json();
             
             if (!response.ok) {
-                throw new Error(result.error || 'Email sending failed');
+                throw new Error(result.message || result.error || 'Email sending failed');
             }
 
             return {
                 success: true,
-                messageId: result.messageId,
-                provider: result.provider || 'resend'
+                messageId: result.id,
+                provider: 'resend'
             };
         } catch (error) {
             console.error('Email sending error:', error);
@@ -108,6 +110,19 @@ class EmailNotificationAdapter {
                 error: error.message
             };
         }
+    }
+
+    async getResendApiKey() {
+        try {
+            const response = await fetch('/api/config');
+            if (response.ok) {
+                const config = await response.json();
+                return config.RESEND_API_KEY;
+            }
+        } catch (error) {
+            console.warn('Could not load Resend API key:', error);
+        }
+        return null;
     }
 
     getCustomerSubject(orderNumber, language) {
