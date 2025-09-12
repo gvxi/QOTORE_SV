@@ -833,4 +833,4 @@ setInterval(async function() {
     }
 }, 30000);
 
-console.log('Enhanced checkout script loaded successfully');
+console.log('ECS');

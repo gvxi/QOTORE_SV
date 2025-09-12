@@ -1,252 +1,506 @@
-// Email Notification Adapter for Order Notifications
-// This module handles sending admin email notifications when orders are placed
-
+// Email Notification Adapter for Qotore
 class EmailNotificationAdapter {
     constructor() {
-        this.apiEndpoint = '/api/send-admin-notification';
-        this.isEnabled = true;
-        this.retryAttempts = 3;
-        this.retryDelay = 1000; // 1 second
+        this.apiEndpoint = '/api/send-order-notification';
+        this.resendApiKey = null;
+        this.adminEmail = 'orders@qotore.uk'; // Default admin email
     }
 
-    /**
-     * Send order notification email to admin
-     * @param {Object} orderData - Complete order information
-     * @param {Object} customerInfo - Customer information
-     * @returns {Promise<Object>} - Result of email sending attempt
-     */
-    async sendOrderNotification(orderData, customerInfo) {
-        if (!this.isEnabled) {
-            // console.log('Email notifications are disabled');
-            return { success: false, reason: 'disabled' };
-        }
-
+    async sendOrderNotifications(orderData, userLanguage = 'en') {
         try {
-            // console.log('📧 Sending order notification email for order:', orderData.order_number);
-            
-            const emailPayload = this.buildEmailPayload(orderData, customerInfo);
-            const result = await this.sendWithRetry(emailPayload);
-            
-            if (result.success) {
-                // console.log('✅ Order notification email sent successfully');
-            } else {
-                console.error('❌ Failed to send order notification email:', result.error);
-            }
-            
-            return result;
-            
+            const notifications = {
+                admin: await this.sendAdminNotification(orderData),
+                customer: await this.sendCustomerNotification(orderData, userLanguage)
+            };
+
+            return {
+                success: true,
+                notifications,
+                message: 'Email notifications sent successfully'
+            };
         } catch (error) {
-            console.error('❌ Email notification error:', error);
-            return { 
-                success: false, 
+            console.error('Email notification error:', error);
+            return {
+                success: false,
                 error: error.message,
-                reason: 'exception'
+                message: 'Failed to send email notifications'
             };
         }
     }
 
-    /**
-     * Build email payload with order and customer information
-     * @param {Object} orderData - Order information
-     * @param {Object} customerInfo - Customer information
-     * @returns {Object} - Formatted email payload matching API expectations
-     */
-    buildEmailPayload(orderData, customerInfo) {
-        const totalAmount = orderData.total_amount ? (orderData.total_amount / 1000).toFixed(3) : '0.000';
-
-        // Build items array - ensure all required fields match the email template expectations
-        const items = orderData.items && orderData.items.length > 0 ? orderData.items.map(item => ({
-            fragrance_name: item.fragrance_name || 'Unknown Fragrance',
-            fragrance_brand: item.fragrance_brand || '',
-            variant_size: item.variant_size || 'Unknown Size',
-            quantity: item.quantity || 1,
-            total_price_cents: item.total_price_cents || 0  // Email template uses this field
-        })) : [];
-
-        // Build the payload exactly as the email template expects
-        const payload = {
-            order_number: orderData.order_number || 'UNKNOWN-ORDER',
-            total_amount_omr: totalAmount,
-            created_at: orderData.created_at || new Date().toISOString(),
-            customer: {
-                first_name: orderData.customer_first_name || 'Unknown',
-                last_name: orderData.customer_last_name || '',
-                phone: orderData.customer_phone || 'Not provided',
-                email: orderData.customer_email || ''
-            },
-            delivery: {
-                address: orderData.delivery_address || 'Not provided',
-                city: orderData.delivery_city || 'Unknown',
-                region: orderData.delivery_region || 'Unknown',
-                notes: orderData.notes || ''
-            },
-            items: items
+    async sendAdminNotification(orderData) {
+        const emailData = {
+            type: 'admin_new_order',
+            to: this.adminEmail,
+            from: 'noreply@qotore.uk',
+            subject: `🛒 New Order #${orderData.order_number} - ${this.formatPrice(orderData.total_amount)} OMR`,
+            data: {
+                order: orderData,
+                timestamp: new Date().toISOString(),
+                timezone: 'Asia/Muscat'
+            }
         };
 
-        // Log the payload for debugging
-        // console.log('📧 Email payload being sent:');
-        // console.log('- Order Number:', payload.order_number);
-        // console.log('- Customer:', payload.customer.first_name, payload.customer.last_name);
-        // console.log('- Phone:', payload.customer.phone);
-        // console.log('- Email:', payload.customer.email);
-        // console.log('- Delivery Address:', payload.delivery.address);
-        // console.log('- Location:', payload.delivery.city, payload.delivery.region);
-        // console.log('- Items Count:', payload.items.length);
-        // console.log('- Total:', payload.total_amount_omr, 'OMR');
-        
-        return payload;
+        return await this.sendEmail(emailData);
     }
 
-    /**
-     * Send email with retry logic
-     * @param {Object} emailPayload - Email data to send
-     * @returns {Promise<Object>} - Result of sending attempt
-     */
-    async sendWithRetry(emailPayload) {
-        let lastError = null;
-
-        for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
-            try {
-                // console.log(`📨 Email attempt ${attempt}/${this.retryAttempts}`);
-                
-                const response = await fetch(this.apiEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(emailPayload)
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    return { 
-                        success: true, 
-                        attempt: attempt,
-                        messageId: result.messageId 
-                    };
-                } else {
-                    lastError = result.error || `HTTP ${response.status}`;
-                    console.warn(`📨 Email attempt ${attempt} failed:`, lastError);
-                }
-
-            } catch (error) {
-                lastError = error.message;
-                console.warn(`📨 Email attempt ${attempt} error:`, error.message);
+    async sendCustomerNotification(orderData, language = 'en') {
+        const emailData = {
+            type: 'customer_order_confirmation',
+            to: orderData.customer_email,
+            from: 'orders@qotore.uk',
+            subject: this.getCustomerSubject(orderData.order_number, language),
+            language: language,
+            data: {
+                order: orderData,
+                timestamp: new Date().toISOString(),
+                timezone: 'Asia/Muscat'
             }
-
-            // Wait before retry (except on last attempt)
-            if (attempt < this.retryAttempts) {
-                await this.delay(this.retryDelay * attempt); // Progressive delay
-            }
-        }
-
-        return { 
-            success: false, 
-            error: lastError || 'Unknown error',
-            attempts: this.retryAttempts 
         };
+
+        return await this.sendEmail(emailData);
     }
 
-    /**
-     * Test email configuration
-     * @returns {Promise<Object>} - Test result
-     */
-    async testConfiguration() {
+    async sendEmail(emailData) {
         try {
-            console.log('🧪 Testing email configuration...');
-            
-            const response = await fetch('/api/test-email', {
+            const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify(emailData)
             });
 
             const result = await response.json();
             
-            if (response.ok && result.success) {
-                console.log('✅ Email configuration test successful');
-                return { success: true, message: result.message };
-            } else {
-                console.error('❌ Email configuration test failed:', result.error);
-                return { success: false, error: result.error };
+            if (!response.ok) {
+                throw new Error(result.error || 'Email sending failed');
             }
 
+            return {
+                success: true,
+                messageId: result.messageId,
+                provider: result.provider || 'resend'
+            };
         } catch (error) {
-            console.error('❌ Email test error:', error);
-            return { success: false, error: error.message };
+            console.error('Email sending error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
         }
     }
 
-    /**
-     * Enable email notifications (always enabled)
-     */
-    enable() {
-        console.log('Email notifications are always enabled');
+    getCustomerSubject(orderNumber, language) {
+        const subjects = {
+            en: `Order Confirmation #${orderNumber} - Qotore`,
+            ar: `تأكيد الطلب #${orderNumber} - قطوره`
+        };
+        return subjects[language] || subjects.en;
     }
 
-    /**
-     * Disable email notifications (not allowed - always enabled)
-     */
-    disable() {
-        console.log('Email notifications cannot be disabled - always enabled for admin');
+    formatPrice(cents) {
+        return (cents / 1000).toFixed(3);
     }
 
-    /**
-     * Check if email notifications are enabled (always true)
-     * @returns {boolean}
-     */
-    isEmailEnabled() {
-        return true;
+    // Email Templates
+    getAdminEmailTemplate(orderData) {
+        const orderDate = new Date(orderData.created_at || Date.now()).toLocaleString('en-GB', {
+            timeZone: 'Asia/Muscat',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const itemsList = orderData.items.map((item, index) => 
+            `${index + 1}. ${item.fragrance_brand ? item.fragrance_brand + ' ' : ''}${item.fragrance_name}
+   Size: ${item.variant_size} | Qty: ${item.quantity} | Total: ${this.formatPrice(item.total_price_cents)} OMR`
+        ).join('\n\n');
+
+        const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>New Order Alert - Qotore Admin</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+                    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+                    .header { background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); color: white; padding: 2rem; text-align: center; }
+                    .header h1 { margin: 0; font-size: 1.8rem; }
+                    .content { padding: 2rem; }
+                    .order-info { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; }
+                    .customer-info { background: #e3f2fd; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; }
+                    .items-list { background: #fff8e1; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; }
+                    .total { background: #e8f5e8; padding: 1rem; border-radius: 8px; text-align: center; font-size: 1.2rem; font-weight: bold; color: #2e7d32; }
+                    .actions { display: flex; gap: 1rem; margin: 2rem 0; justify-content: center; flex-wrap: wrap; }
+                    .btn { background: #8B4513; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; }
+                    .btn-whatsapp { background: #25D366; }
+                    .footer { background: #f8f9fa; padding: 1rem; text-align: center; color: #666; font-size: 0.9rem; }
+                    @media (max-width: 600px) {
+                        .container { margin: 1rem; }
+                        .content { padding: 1rem; }
+                        .actions { flex-direction: column; align-items: center; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🛒 New Order Received!</h1>
+                        <p>Order #${orderData.order_number}</p>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="order-info">
+                            <h3>📋 Order Details</h3>
+                            <p><strong>Order Number:</strong> #${orderData.order_number}</p>
+                            <p><strong>Date:</strong> ${orderDate} (Oman Time)</p>
+                            <p><strong>Status:</strong> Pending Review</p>
+                        </div>
+
+                        <div class="customer-info">
+                            <h3>👤 Customer Information</h3>
+                            <p><strong>Name:</strong> ${orderData.customer_first_name} ${orderData.customer_last_name || ''}</p>
+                            <p><strong>Phone:</strong> ${orderData.customer_phone}</p>
+                            ${orderData.customer_email ? `<p><strong>Email:</strong> ${orderData.customer_email}</p>` : ''}
+                            <p><strong>Delivery:</strong> ${orderData.delivery_address}</p>
+                            <p><strong>Location:</strong> ${orderData.delivery_region}, ${orderData.delivery_city}</p>
+                            ${orderData.notes ? `<p><strong>Notes:</strong> ${orderData.notes}</p>` : ''}
+                        </div>
+
+                        <div class="items-list">
+                            <h3>🧴 Order Items</h3>
+                            ${orderData.items.map((item, index) => `
+                                <div style="border-bottom: 1px solid #eee; padding: 0.5rem 0; ${index === orderData.items.length - 1 ? 'border-bottom: none;' : ''}">
+                                    <strong>${item.fragrance_brand ? item.fragrance_brand + ' ' : ''}${item.fragrance_name}</strong><br>
+                                    <span style="color: #666;">Size: ${item.variant_size} | Quantity: ${item.quantity} | Total: ${this.formatPrice(item.total_price_cents)} OMR</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="total">
+                            TOTAL: ${this.formatPrice(orderData.total_amount)} OMR
+                        </div>
+
+                        <div class="actions">
+                            <a href="https://wa.me/${orderData.customer_phone.replace(/[^0-9]/g, '')}" class="btn btn-whatsapp">
+                                📱 Contact Customer
+                            </a>
+                            <a href="${process.env.SITE_URL || 'https://qotore.uk'}/admin/" class="btn">
+                                🎛️ Manage Orders
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>This is an automated notification from Qotore Order Management System</p>
+                        <p>Received at ${orderDate} (Oman Time)</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+
+        const text = `
+NEW ORDER ALERT - QOTORE
+
+Order Details:
+• Order Number: #${orderData.order_number}
+• Date: ${orderDate} (Oman Time)
+• Status: Pending Review
+
+Customer Information:
+• Name: ${orderData.customer_first_name} ${orderData.customer_last_name || ''}
+• Phone: ${orderData.customer_phone}
+${orderData.customer_email ? `• Email: ${orderData.customer_email}` : ''}
+
+Delivery Information:
+• Method: ${orderData.delivery_address}
+• Location: ${orderData.delivery_region}, ${orderData.delivery_city}
+${orderData.notes ? `• Notes: ${orderData.notes}` : ''}
+
+Order Items:
+${itemsList}
+
+TOTAL: ${this.formatPrice(orderData.total_amount)} OMR
+
+Quick Actions:
+• Contact Customer: https://wa.me/${orderData.customer_phone.replace(/[^0-9]/g, '')}
+• Manage Orders: ${process.env.SITE_URL || 'https://qotore.uk'}/admin/
+
+---
+This is an automated notification from Qotore Admin System
+Order received at ${orderDate} (Oman Time)
+        `;
+
+        return { html, text };
     }
 
-    /**
-     * Utility function for delays
-     * @param {number} ms - Milliseconds to delay
-     * @returns {Promise}
-     */
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    getCustomerEmailTemplate(orderData, language = 'en') {
+        const translations = {
+            en: {
+                subject: `Order Confirmation #${orderData.order_number} - Qotore`,
+                title: '✅ Order Confirmed!',
+                subtitle: 'Thank you for your order',
+                orderDetails: 'Order Details',
+                orderNumber: 'Order Number',
+                orderDate: 'Order Date',
+                deliveryInfo: 'Delivery Information',
+                method: 'Method',
+                location: 'Location',
+                notes: 'Notes',
+                orderItems: 'Your Items',
+                size: 'Size',
+                quantity: 'Qty',
+                total: 'Total',
+                grandTotal: 'TOTAL',
+                nextSteps: 'What happens next?',
+                nextStep1: '📞 We will contact you within 24 hours to confirm your order',
+                nextStep2: '📦 Your fragrances will be prepared with care',
+                nextStep3: '🚚 We will arrange delivery to your specified location',
+                needHelp: 'Need help? Contact us:',
+                whatsapp: 'WhatsApp',
+                email: 'Email',
+                thankYou: 'Thank you for choosing Qotore!',
+                footerText: 'This is an automated confirmation from Qotore Order System'
+            },
+            ar: {
+                subject: `تأكيد الطلب #${orderData.order_number} - قطوره`,
+                title: '✅ تم تأكيد طلبك!',
+                subtitle: 'شكراً لك على طلبك',
+                orderDetails: 'تفاصيل الطلب',
+                orderNumber: 'رقم الطلب',
+                orderDate: 'تاريخ الطلب',
+                deliveryInfo: 'معلومات التوصيل',
+                method: 'الطريقة',
+                location: 'الموقع',
+                notes: 'ملاحظات',
+                orderItems: 'عناصر طلبك',
+                size: 'الحجم',
+                quantity: 'الكمية',
+                total: 'المجموع',
+                grandTotal: 'المجموع الإجمالي',
+                nextSteps: 'ما الذي سيحدث بعد ذلك؟',
+                nextStep1: '📞 سنتواصل معك خلال 24 ساعة لتأكيد طلبك',
+                nextStep2: '📦 سيتم تحضير عطورك بعناية',
+                nextStep3: '🚚 سنقوم بترتيب التوصيل إلى موقعك المحدد',
+                needHelp: 'تحتاج مساعدة؟ تواصل معنا:',
+                whatsapp: 'واتساب',
+                email: 'البريد الإلكتروني',
+                thankYou: 'شكراً لك لاختيارك قطوره!',
+                footerText: 'هذا تأكيد تلقائي من نظام طلبات قطوره'
+            }
+        };
 
-    /**
-     * Format order summary for quick reference
-     * @param {Object} emailPayload - Email payload data
-     * @returns {string} - Formatted summary
-     */
-    formatOrderSummary(emailPayload) {
-        return `Order ${emailPayload.orderNumber} - ${emailPayload.customerName} - ${emailPayload.totalAmount} OMR`;
+        const t = translations[language] || translations.en;
+        const isRTL = language === 'ar';
+
+        const orderDate = new Date(orderData.created_at || Date.now()).toLocaleString(language === 'ar' ? 'ar-OM' : 'en-GB', {
+            timeZone: 'Asia/Muscat',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const html = `
+            <!DOCTYPE html>
+            <html dir="${isRTL ? 'rtl' : 'ltr'}" lang="${language}">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${t.subject}</title>
+                <style>
+                    body { font-family: ${isRTL ? 'Tahoma, Arial' : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto'}, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; direction: ${isRTL ? 'rtl' : 'ltr'}; }
+                    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+                    .header { background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); color: white; padding: 2rem; text-align: center; }
+                    .header h1 { margin: 0; font-size: 1.8rem; }
+                    .content { padding: 2rem; }
+                    .section { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; }
+                    .items-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+                    .items-table th, .items-table td { padding: 0.75rem; text-align: ${isRTL ? 'right' : 'left'}; border-bottom: 1px solid #eee; }
+                    .items-table th { background: #f8f9fa; font-weight: bold; }
+                    .total { background: #e8f5e8; padding: 1rem; border-radius: 8px; text-align: center; font-size: 1.2rem; font-weight: bold; color: #2e7d32; }
+                    .next-steps { background: #e3f2fd; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; }
+                    .next-steps ul { ${isRTL ? 'margin-right: 1rem;' : 'margin-left: 1rem;'} }
+                    .contact-info { background: #fff8e1; padding: 1.5rem; border-radius: 8px; text-align: center; }
+                    .footer { background: #f8f9fa; padding: 1rem; text-align: center; color: #666; font-size: 0.9rem; }
+                    @media (max-width: 600px) {
+                        .container { margin: 1rem; }
+                        .content { padding: 1rem; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>${t.title}</h1>
+                        <p>${t.subtitle}</p>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="section">
+                            <h3>${t.orderDetails}</h3>
+                            <p><strong>${t.orderNumber}:</strong> #${orderData.order_number}</p>
+                            <p><strong>${t.orderDate}:</strong> ${orderDate}</p>
+                        </div>
+
+                        <div class="section">
+                            <h3>${t.deliveryInfo}</h3>
+                            <p><strong>${t.method}:</strong> ${orderData.delivery_address}</p>
+                            <p><strong>${t.location}:</strong> ${orderData.delivery_region}, ${orderData.delivery_city}</p>
+                            ${orderData.notes ? `<p><strong>${t.notes}:</strong> ${orderData.notes}</p>` : ''}
+                        </div>
+
+                        <div class="section">
+                            <h3>${t.orderItems}</h3>
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>${t.size}</th>
+                                        <th>${t.quantity}</th>
+                                        <th>${t.total}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${orderData.items.map(item => `
+                                        <tr>
+                                            <td>${item.fragrance_brand ? item.fragrance_brand + ' ' : ''}${item.fragrance_name}</td>
+                                            <td>${item.variant_size}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>${this.formatPrice(item.total_price_cents)} OMR</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="total">
+                            ${t.grandTotal}: ${this.formatPrice(orderData.total_amount)} OMR
+                        </div>
+
+                        <div class="next-steps">
+                            <h3>${t.nextSteps}</h3>
+                            <ul>
+                                <li>${t.nextStep1}</li>
+                                <li>${t.nextStep2}</li>
+                                <li>${t.nextStep3}</li>
+                            </ul>
+                        </div>
+
+                        <div class="contact-info">
+                            <p><strong>${t.needHelp}</strong></p>
+                            <p><strong>${t.whatsapp}:</strong> +968 9222 5949</p>
+                            <p><strong>${t.email}:</strong> orders@qotore.uk</p>
+                            <p style="margin-top: 1rem; color: #8B4513;"><strong>${t.thankYou}</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>${t.footerText}</p>
+                        <p>${orderDate} (Oman Time)</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+
+        const text = `
+${t.title}
+
+${t.orderDetails}:
+• ${t.orderNumber}: #${orderData.order_number}
+• ${t.orderDate}: ${orderDate}
+
+${t.deliveryInfo}:
+• ${t.method}: ${orderData.delivery_address}
+• ${t.location}: ${orderData.delivery_region}, ${orderData.delivery_city}
+${orderData.notes ? `• ${t.notes}: ${orderData.notes}` : ''}
+
+${t.orderItems}:
+${orderData.items.map((item, index) => 
+    `${index + 1}. ${item.fragrance_brand ? item.fragrance_brand + ' ' : ''}${item.fragrance_name} (${item.variant_size}) x${item.quantity} = ${this.formatPrice(item.total_price_cents)} OMR`
+).join('\n')}
+
+${t.grandTotal}: ${this.formatPrice(orderData.total_amount)} OMR
+
+${t.nextSteps}
+1. ${t.nextStep1}
+2. ${t.nextStep2}  
+3. ${t.nextStep3}
+
+${t.needHelp}
+${t.whatsapp}: +968 9222 5949
+${t.email}: orders@qotore.uk
+
+${t.thankYou}
+
+---
+${t.footerText}
+${orderDate} (Oman Time)
+        `;
+
+        return { html, text };
     }
 }
 
-// Create global instance
-window.EmailNotificationAdapter = EmailNotificationAdapter;
-
-// Create and export instance for immediate use
-const emailNotifier = new EmailNotificationAdapter();
-
-/**
- * Helper function to send order notification (simplified interface)
- * @param {Object} orderData - Order data
- * @param {Object} customerInfo - Customer information
- * @returns {Promise<Object>} - Notification result
- */
-async function sendOrderNotification(orderData, customerInfo) {
-    return await emailNotifier.sendOrderNotification(orderData, customerInfo);
+// Usage functions for checkout integration
+async function sendOrderEmailNotifications(orderData, userLanguage = 'en') {
+    const emailAdapter = new EmailNotificationAdapter();
+    return await emailAdapter.sendOrderNotifications(orderData, userLanguage);
 }
 
-/**
- * Helper function to test email configuration
- * @returns {Promise<Object>} - Test result
- */
-async function testEmailConfiguration() {
-    return await emailNotifier.testConfiguration();
+function getUserLanguagePreference() {
+    // Check user profile language
+    if (typeof userProfile !== 'undefined' && userProfile?.language) {
+        return userProfile.language;
+    }
+    
+    // Check current website language
+    if (typeof currentLanguage !== 'undefined') {
+        return currentLanguage;
+    }
+    
+    // Check localStorage
+    const savedLang = localStorage.getItem('qotore_language');
+    if (savedLang) {
+        return savedLang;
+    }
+    
+    // Check URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    if (urlLang) {
+        return urlLang;
+    }
+    
+    // Check browser language
+    const browserLang = navigator.language || navigator.languages[0];
+    if (browserLang.startsWith('ar')) {
+        return 'ar';
+    }
+    
+    return 'en'; // Default fallback
 }
 
 // Export for use in other modules
-window.sendOrderNotification = sendOrderNotification;
-window.testEmailConfiguration = testEmailConfiguration;
-window.emailNotifier = emailNotifier;
+if (typeof window !== 'undefined') {
+    window.EmailNotificationAdapter = EmailNotificationAdapter;
+    window.sendOrderEmailNotifications = sendOrderEmailNotifications;
+    window.getUserLanguagePreference = getUserLanguagePreference;
+}
 
-// console.log('📧 ENA');
+// Export for Node.js environments
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        EmailNotificationAdapter,
+        sendOrderEmailNotifications,
+        getUserLanguagePreference
+    };
+}
