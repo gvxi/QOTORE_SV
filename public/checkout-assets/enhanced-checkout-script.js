@@ -343,7 +343,7 @@ function renderCartItems() {
     let itemsHTML = '';
     
     cart.forEach((item, index) => {
-        const itemTotal = (item.variant.price_cents / 1000) * item.quantity;
+        const itemTotal = (item.variant.price_cents / 100) * item.quantity;
         total += itemTotal;
         
         itemsHTML += `
