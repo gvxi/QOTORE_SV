@@ -614,8 +614,11 @@ async function placeOrder() {
     `;
     
     try {
-        // Calculate total
-        const totalCents = cart.reduce((sum, item) => sum + (item.variant.price_cents * item.quantity), 0);
+        // Calculate total in cents
+        const totalCents = cart.reduce((sum, item) => {
+            const priceInCents = item.variant.price_cents || (item.variant.price * 1000) || 0;
+            return sum + (priceInCents * item.quantity);
+        }, 0);
         
         // Prepare order data
         const orderData = {
@@ -637,11 +640,13 @@ async function placeOrder() {
                 variant_id: item.variant.id,
                 variant_size: item.variant.size,
                 quantity: item.quantity,
-                unit_price_cents: item.variant.price_cents,
-                total_price_cents: item.variant.price_cents * item.quantity,
+                unit_price_cents: item.variant.price_cents || (item.variant.price * 1000) || 0,
+                total_price_cents: (item.variant.price_cents || (item.variant.price * 1000) || 0) * item.quantity,
                 is_whole_bottle: item.variant.is_whole_bottle || false
             }))
         };
+        
+        console.log('Placing order with data:', orderData);
         
         // Place order
         const response = await fetch('/api/place-order-auth', {
