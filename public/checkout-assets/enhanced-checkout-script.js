@@ -900,7 +900,61 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Global functions for onclick handlers
+// Debug function - you can call this in browser console
+window.debugCart = function() {
+    console.log('=== CART DEBUG INFO ===');
+    console.log('Raw localStorage cart:', localStorage.getItem('qotore_cart'));
+    console.log('Parsed cart:', JSON.parse(localStorage.getItem('qotore_cart') || '[]'));
+    console.log('Processed cart variable:', cart);
+    console.log('Cart length:', cart.length);
+    console.log('Current user:', currentUser);
+    console.log('User profile:', userProfile);
+    console.log('Customer info:', customerInfo);
+    console.log('Active order:', activeOrder);
+    console.log('Translations loaded:', Object.keys(translations).length > 0);
+    console.log('Current language:', currentLanguage);
+    
+    // Test cart transformation manually
+    const rawCart = JSON.parse(localStorage.getItem('qotore_cart') || '[]');
+    if (rawCart.length > 0) {
+        console.log('Manual transformation test:');
+        rawCart.forEach((item, index) => {
+            const fragrance = {
+                id: item.fragranceId,
+                name: item.fragranceName,
+                brand: item.fragranceBrand,
+                image_path: item.image_path
+            };
+            
+            const variant = {
+                id: item.variant.id,
+                size: item.variant.size,
+                price_cents: item.variant.price * 1000,
+                price: item.variant.price,
+                is_whole_bottle: item.variant.is_whole_bottle
+            };
+            
+            const transformed = {
+                fragrance,
+                variant,
+                quantity: item.quantity
+            };
+            
+            console.log(`Item ${index} transformation:`, {
+                original: item,
+                transformed: transformed,
+                valid: !!(transformed.fragrance && transformed.variant && transformed.quantity > 0)
+            });
+        });
+    }
+    
+    console.log('=== END DEBUG INFO ===');
+    
+    // Force re-render
+    console.log('Forcing cart reload and re-render...');
+    loadCart();
+    renderCartItems();
+};
 window.updateCartItemQuantity = updateCartItemQuantity;
 window.removeCartItem = removeCartItem;
 window.clearCart = clearCart;
