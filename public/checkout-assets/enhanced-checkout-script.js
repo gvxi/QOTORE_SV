@@ -165,18 +165,46 @@ async function loadUserProfile() {
 // Cart Functions
 function loadCart() {
     try {
-        const savedCart = localStorage.getItem('qotore_cart');
-        if (savedCart) {
-            cart = JSON.parse(savedCart);
-            cart = cart.filter(item => 
-                item && item.fragrance && item.variant && 
-                typeof item.quantity === 'number' && item.quantity > 0
-            );
-        } else {
+        const rawCart = localStorage.getItem('qotore_cart');
+        if (!rawCart) {
             cart = [];
+            return;
         }
-    } catch (error) {
-        console.error('Error loading cart:', error);
+
+        const parsed = JSON.parse(rawCart);
+
+        cart = parsed
+            .map(item => {
+                // Already normalized (Option A)
+                if (item.fragrance && item.variant && typeof item.quantity === 'number') {
+                    return item;
+                }
+
+                // Flat format (Option B) → transform
+                if (item.fragranceId && item.variant) {
+                    return {
+                        fragrance: {
+                            id: item.fragranceId,
+                            name: item.fragranceName,
+                            brand: item.fragranceBrand,
+                            image_path: item.image_path || null
+                        },
+                        variant: {
+                            ...item.variant,
+                            id: item.variantId || item.variant.id
+                        },
+                        quantity: item.quantity || 1
+                    };
+                }
+
+                return null;
+            })
+            .filter(Boolean); // remove invalid
+
+        console.log("Cart successfully loaded:", cart);
+
+    } catch (err) {
+        console.error("Error loading cart:", err);
         cart = [];
     }
 }
