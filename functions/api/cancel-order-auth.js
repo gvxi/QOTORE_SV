@@ -9,12 +9,13 @@ export async function onRequestPost(context) {
   try {
     console.log('Authenticated cancel order request received');
 
-    // Get Supabase credentials
+    // Get environment variables
     const { env } = context;
     const SUPABASE_URL = env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
     const RESEND_API_KEY = env.RESEND_API_KEY;
     const ADMIN_EMAIL = env.ADMIN_EMAIL || 'admin@qotore.uk';
+    const WHATSAPP_NUMBER = env.WHATSAPP_NUMBER || '96890000000';
     
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error('Missing Supabase environment variables');
@@ -70,10 +71,11 @@ export async function onRequestPost(context) {
     
     if (!orderResponse.ok) {
       const errorText = await orderResponse.text();
-      console.error('Order verification failed:', errorText);
+      console.error('Failed to fetch order:', errorText);
       
       return new Response(JSON.stringify({
-        error: 'Failed to verify order ownership',
+        error: 'Failed to fetch order details',
+        details: errorText,
         success: false
       }), {
         status: 500,
@@ -94,46 +96,42 @@ export async function onRequestPost(context) {
     }
     
     const order = orders[0];
-    console.log('Found order:', order.order_number, 'Status:', order.status, 'Created:', order.created_at);
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+    const orderNumber = order.order_number;
+    
+    console.log('Found order to cancel:', orderNumber, 'Customer:', customerName, 'Status:', order.status);
     
     // Step 2: Check if order can be cancelled
-    const orderTime = new Date(order.created_at).getTime();
-    const currentTime = Date.now();
-    const oneHour = 60 * 60 * 1000;
-    const timeSinceOrder = currentTime - orderTime;
+    const orderTime = new Date(order.created_at);
+    const now = new Date();
+    const hoursPassed = (now - orderTime) / (1000 * 60 * 60);
     
-    // Order can be cancelled if:
-    // 1. Status is 'pending' AND within 1 hour of creation
     if (order.status !== 'pending') {
       return new Response(JSON.stringify({
-        error: 'Order cannot be cancelled. It is already being processed or completed.',
-        status: order.status,
-        success: false
+        error: 'Order cannot be cancelled as it is no longer pending',
+        success: false,
+        current_status: order.status
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
     
-    if (timeSinceOrder > oneHour) {
+    if (hoursPassed >= 1) {
       return new Response(JSON.stringify({
-        error: 'Cancellation period expired. Orders can only be cancelled within 1 hour of placement.',
-        time_elapsed_hours: Math.round(timeSinceOrder / oneHour * 100) / 100,
-        success: false
+        error: 'Order cannot be cancelled as the 1-hour cancellation window has expired',
+        success: false,
+        hours_passed: hoursPassed.toFixed(2)
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
     
-    console.log('Order is eligible for cancellation');
-    
-    // Step 3: Update order status to cancelled
-    const now = new Date().toISOString();
-    const updatePayload = {
+    // Step 3: Cancel the order
+    const updateData = {
       status: 'cancelled',
-      updated_at: now,
-      cancelled_at: now
+      updated_at: new Date().toISOString()
     };
     
     const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order_id}`, {
@@ -144,12 +142,12 @@ export async function onRequestPost(context) {
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         'Prefer': 'return=representation'
       },
-      body: JSON.stringify(updatePayload)
+      body: JSON.stringify(updateData)
     });
     
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text();
-      console.error('Failed to update order status:', errorText);
+      console.error('Failed to cancel order:', errorText);
       
       return new Response(JSON.stringify({
         error: 'Failed to cancel order',
@@ -163,81 +161,105 @@ export async function onRequestPost(context) {
     
     const updatedOrders = await updateResponse.json();
     const updatedOrder = updatedOrders[0];
-    console.log('Order cancelled successfully:', updatedOrder.order_number);
+    
+    console.log('Order cancelled successfully:', orderNumber);
     
     // Step 4: Send email notifications
     let emailNotificationsSent = false;
     
     if (RESEND_API_KEY) {
       try {
-        const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
+        const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
         const totalOMR = (order.total_amount / 1000).toFixed(3);
+        const cancelDate = new Date().toLocaleDateString('en-GB');
+        const cancelTime = new Date().toLocaleTimeString('en-GB');
         
-        // Send notification to admin
+        // Admin email notification
         const adminEmailData = {
           from: 'Qotore Orders <orders@qotore.uk>',
           to: [ADMIN_EMAIL],
-          subject: `❌ Order Cancelled: ${order.order_number} - ${customerName}`,
+          subject: `❌ Order Cancelled: ${orderNumber} - ${customerName} - ${totalOMR} OMR`,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px; border-radius: 12px;">
-              <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <h1 style="margin: 0; font-size: 24px;">❌ Order Cancelled</h1>
-                <p style="margin: 10px 0 0 0; font-size: 16px;">Order #${order.order_number}</p>
-              </div>
-              
-              <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: #dc3545; margin-top: 0;">Cancellation Details</h2>
-                <p><strong>Customer:</strong> ${customerName}</p>
-                <p><strong>Email:</strong> ${order.customer_email}</p>
-                <p><strong>Phone:</strong> ${order.customer_phone}</p>
-                <p><strong>Order Total:</strong> ${totalOMR} OMR</p>
-                <p><strong>Cancelled At:</strong> ${new Date(now).toLocaleString()}</p>
-              </div>
-              
-              <div style="text-align: center; padding: 20px; background: #f8d7da; border-radius: 8px; border: 1px solid #f5c6cb;">
-                <p style="margin: 0; color: #721c24;">
-                  <strong>Order Status:</strong> This order has been cancelled by the customer and requires no further action.
-                </p>
+            <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; background: #f8f9fa; padding: 20px;">
+              <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 30px; text-align: center;">
+                  <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Order Cancelled</h1>
+                  <p style="margin: 10px 0 0 0; opacity: 0.9;">${orderNumber} • Cancelled on ${cancelDate}</p>
+                </div>
+                
+                <div style="padding: 30px;">
+                  <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #721c24;"><strong>Customer cancelled their order within the 1-hour window.</strong></p>
+                  </div>
+                  
+                  <h2 style="color: #dc3545; margin-bottom: 20px;">Customer Information</h2>
+                  <table style="width: 100%; margin-bottom: 30px;">
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Name:</td><td style="padding: 8px 0;">${customerName}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Phone:</td><td style="padding: 8px 0;"><a href="tel:${order.customer_phone}" style="color: #dc3545;">${order.customer_phone}</a></td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${order.customer_email}" style="color: #dc3545;">${order.customer_email}</a></td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Order Date:</td><td style="padding: 8px 0;">${orderDate}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Cancelled:</td><td style="padding: 8px 0;">${cancelDate} at ${cancelTime}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Total Amount:</td><td style="padding: 8px 0; font-weight: bold; color: #dc3545;">${totalOMR} OMR</td></tr>
+                  </table>
+                  
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://wa.me/${WHATSAPP_NUMBER}?text=Hello! Regarding cancelled order ${orderNumber}" 
+                       style="background: #25D366; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-right: 10px; display: inline-block;">
+                       📱 Contact Customer
+                    </a>
+                    <a href="https://qotore.uk/admin/orders" 
+                       style="background: #6c757d; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block;">
+                       📊 View All Orders
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           `
         };
         
-        // Send confirmation to customer
+        // Customer email notification
         const customerEmailData = {
           from: 'Qotore <orders@qotore.uk>',
           to: [order.customer_email],
-          subject: `Order Cancelled - ${order.order_number} | Qotore`,
+          subject: `Order Cancelled: ${orderNumber} - Confirmation`,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px; border-radius: 12px;">
-              <div style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <h1 style="margin: 0; font-size: 24px;">Order Cancelled</h1>
-                <p style="margin: 10px 0 0 0; font-size: 16px;">Order #${order.order_number}</p>
-              </div>
-              
-              <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: #6c757d; margin-top: 0;">Hello ${customerName},</h2>
-                <p>Your order has been successfully cancelled as requested. You will not be charged for this order.</p>
-                
-                <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; padding: 15px; margin: 20px 0;">
-                  <p style="margin: 0; color: #721c24;"><strong>Order Status:</strong> Cancelled</p>
+            <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; background: #f8f9fa; padding: 20px;">
+              <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: white; padding: 30px; text-align: center;">
+                  <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Order Cancelled</h1>
+                  <p style="margin: 10px 0 0 0; opacity: 0.9;">Your cancellation has been processed</p>
                 </div>
                 
-                <p><strong>Cancelled On:</strong> ${new Date(now).toLocaleString()}</p>
-                <p><strong>Original Total:</strong> ${totalOMR} OMR</p>
-              </div>
-              
-              <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: #8B4513; margin-top: 0;">We're Sorry to See You Go</h2>
-                <p>If you cancelled by mistake or would like to place a new order, you can visit our website anytime.</p>
-                <p>If you had any issues with our service, please don't hesitate to contact us - we're always looking to improve!</p>
-              </div>
-              
-              <div style="text-align: center; padding: 20px;">
-                <p style="color: #6c757d; margin-bottom: 10px;">Need help? Contact us:</p>
-                <p style="margin: 5px 0;"><strong>WhatsApp:</strong> +968 9222 5949</p>
-                <p style="margin: 5px 0;"><strong>Email:</strong> orders@qotore.uk</p>
-                <p style="margin: 20px 0 0 0; color: #8B4513;"><strong>Thank you for considering Qotore!</strong></p>
+                <div style="padding: 30px;">
+                  <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Dear ${customerName},<br><br>
+                    Your order has been successfully cancelled as requested. No charges have been applied to your account.
+                  </p>
+                  
+                  <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #6c757d; margin: 0 0 15px 0;">Cancelled Order Details</h3>
+                    <p style="margin: 5px 0;"><strong>Order Number:</strong> ${orderNumber}</p>
+                    <p style="margin: 5px 0;"><strong>Order Date:</strong> ${orderDate}</p>
+                    <p style="margin: 5px 0;"><strong>Cancelled Date:</strong> ${cancelDate} at ${cancelTime}</p>
+                    <p style="margin: 5px 0;"><strong>Total Amount:</strong> ${totalOMR} OMR</p>
+                  </div>
+                  
+                  <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #155724;"><strong>No Payment Required:</strong> Since your order was cancelled within the allowed timeframe, no payment has been processed.</p>
+                  </div>
+                  
+                  <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    We're sorry to see you cancel your order. If you have any feedback or if there's anything we can do better, please don't hesitate to let us know.
+                  </p>
+                  
+                  <div style="text-align: center; padding: 20px;">
+                    <p style="color: #6c757d; margin-bottom: 10px;">Questions? Contact us:</p>
+                    <p style="margin: 5px 0;"><strong>WhatsApp:</strong> <a href="https://wa.me/${WHATSAPP_NUMBER}" style="color: #8B4513;">+${WHATSAPP_NUMBER}</a></p>
+                    <p style="margin: 5px 0;"><strong>Email:</strong> <a href="mailto:orders@qotore.uk" style="color: #8B4513;">orders@qotore.uk</a></p>
+                    <p style="margin: 20px 0 0 0; color: #8B4513;"><strong>We hope to serve you again soon!</strong></p>
+                  </div>
+                </div>
               </div>
             </div>
           `
@@ -285,7 +307,7 @@ export async function onRequestPost(context) {
         order_id: updatedOrder.id,
         order_number: updatedOrder.order_number,
         status: 'cancelled',
-        cancelled_at: updatedOrder.cancelled_at,
+        cancelled_at: updatedOrder.updated_at,
         customer_name: customerName,
         total_amount: order.total_amount,
         email_sent: emailNotificationsSent

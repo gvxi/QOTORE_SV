@@ -65,46 +65,37 @@ export async function onRequest(context) {
 // Handle GET requests - Retrieve user orders
 async function handleGetOrders(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, corsHeaders) {
   try {
-    // Get query parameters
     const url = new URL(context.request.url);
-    const userEmail = url.searchParams.get('email');
-    const userId = url.searchParams.get('user_id');
-    const statusFilter = url.searchParams.get('status') || 'all';
-    const limit = parseInt(url.searchParams.get('limit')) || 50;
-
-    if (!userEmail && !userId) {
+    const user_id = url.searchParams.get('user_id');
+    const email = url.searchParams.get('email');
+    const status = url.searchParams.get('status');
+    
+    if (!user_id || !email) {
       return new Response(JSON.stringify({
-        error: 'Missing required parameter: email or user_id',
+        error: 'Missing required parameters: user_id and email',
         success: false
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
-
-    console.log('Fetching orders for user:', userEmail || userId);
-
-    // Build the query to get orders with order items
-    let ordersQuery = `${SUPABASE_URL}/rest/v1/orders?select=*,order_items(*)`;
     
-    // Add user filter (email-based approach for better user experience)
-    if (userId && userEmail) {
-      ordersQuery += `&or=(user_id.eq.${userId},customer_email.eq.${encodeURIComponent(userEmail)})`;
-    } else if (userId) {
-      ordersQuery += `&user_id=eq.${userId}`;
-    } else if (userEmail) {
-      ordersQuery += `&customer_email=eq.${encodeURIComponent(userEmail)}`;
+    console.log('Fetching orders for user:', user_id, 'email:', email);
+    
+    // Build query based on status filter
+    let orderQuery = `${SUPABASE_URL}/rest/v1/orders?select=*&or=(user_id.eq.${user_id},customer_email.eq.${encodeURIComponent(email)})&order=created_at.desc`;
+    
+    // Add status filter
+    if (status === 'active') {
+      orderQuery += '&status=in.(pending,reviewed)';
+    } else if (status && status !== 'all') {
+      orderQuery += `&status=eq.${status}`;
     }
     
-    // Add status filter if specified
-    if (statusFilter !== 'all') {
-      ordersQuery += `&status=eq.${statusFilter}`;
-    }
+    console.log('Order query:', orderQuery);
     
-    // Add ordering and limit
-    ordersQuery += `&order=created_at.desc&limit=${limit}`;
-
-    const ordersResponse = await fetch(ordersQuery, {
+    // Fetch orders
+    const orderResponse = await fetch(orderQuery, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
@@ -112,11 +103,11 @@ async function handleGetOrders(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
       }
     });
 
-    if (!ordersResponse.ok) {
-      const errorText = await ordersResponse.text();
-      console.error('Orders query failed:', errorText);
+    if (!orderResponse.ok) {
+      const errorText = await orderResponse.text();
+      console.error('Failed to fetch orders:', errorText);
       return new Response(JSON.stringify({
-        error: 'Failed to fetch orders from database',
+        error: 'Failed to fetch orders',
         details: errorText,
         success: false
       }), {
@@ -125,29 +116,78 @@ async function handleGetOrders(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
       });
     }
 
-    const orders = await ordersResponse.json();
-    
-    console.log(`Found ${orders.length} orders for user`);
+    const ordersData = await orderResponse.json();
+    console.log('Found orders:', ordersData.length);
 
-    // Transform orders to include formatted data
-    const transformedOrders = orders.map(order => ({
-      ...order,
-      // Add computed fields for frontend convenience
-      formatted_total: (order.total_amount / 1000).toFixed(3), // Convert fils to OMR
-      formatted_date: new Date(order.created_at).toISOString(),
-      item_count: order.order_items?.length || 0,
-      can_delete: ['pending', 'cancelled'].includes(order.status), // Only allow deletion of pending/cancelled orders
-      // Ensure order_items is always an array
-      order_items: order.order_items || []
-    }));
+    if (ordersData.length === 0) {
+      return new Response(JSON.stringify({
+        success: true,
+        orders: [],
+        message: 'No orders found'
+      }), {
+        status: 200,
+        headers: corsHeaders
+      });
+    }
+
+    // Get order IDs for fetching items
+    const orderIds = ordersData.map(order => order.id);
+    
+    // Fetch order items for all orders
+    const itemsQuery = `${SUPABASE_URL}/rest/v1/order_items?order_id=in.(${orderIds.join(',')})&select=*`;
+    
+    const itemsResponse = await fetch(itemsQuery, {
+      headers: {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    let orderItemsData = [];
+    if (itemsResponse.ok) {
+      orderItemsData = await itemsResponse.json();
+      console.log('Fetched order items:', orderItemsData.length);
+    } else {
+      console.warn('Order items fetch failed, proceeding with empty items');
+    }
+
+    // Transform orders to include items and formatted data
+    const ordersWithItems = ordersData.map(order => {
+      // Get items for this order
+      const orderItems = orderItemsData.filter(item => item.order_id === order.id);
+      
+      // Transform items to expected format
+      const items = orderItems.map(item => ({
+        id: item.id,
+        fragrance_name: item.fragrance_name || 'Unknown Item',
+        fragrance_brand: item.fragrance_brand || 'Unknown Brand',
+        variant_size: item.variant_size || 'Unknown Size',
+        quantity: item.quantity || 1,
+        unit_price_cents: item.unit_price_cents || 0,
+        total_price_cents: item.total_price_cents || 0,
+        is_whole_bottle: item.is_whole_bottle || false
+      }));
+      
+      // Add computed fields
+      return {
+        ...order,
+        order_items: items,
+        // Ensure order_number exists
+        order_number: order.order_number || `ORD-${String(order.id).padStart(5, '0')}`,
+        // Add formatted dates
+        created_at_formatted: new Date(order.created_at).toLocaleDateString('en-GB'),
+        created_at_time: new Date(order.created_at).toLocaleTimeString('en-GB'),
+        // Add computed totals
+        items_count: items.length,
+        total_amount_omr: (order.total_amount / 1000).toFixed(3)
+      };
+    });
 
     return new Response(JSON.stringify({
       success: true,
-      data: transformedOrders,
-      count: transformedOrders.length,
-      source: 'user-orders-api',
-      user_identifier: userEmail || userId,
-      status_filter: statusFilter
+      orders: ordersWithItems,
+      total_count: ordersWithItems.length
     }), {
       status: 200,
       headers: corsHeaders
@@ -170,47 +210,39 @@ async function handleGetOrders(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
 async function handleDeleteOrder(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, corsHeaders) {
   try {
     const url = new URL(context.request.url);
-    const orderId = url.searchParams.get('order_id');
-    const userEmail = url.searchParams.get('email');
-    const userId = url.searchParams.get('user_id');
-
-    if (!orderId) {
+    const order_id = url.searchParams.get('order_id');
+    const user_id = url.searchParams.get('user_id');
+    const email = url.searchParams.get('email');
+    
+    if (!order_id || !user_id || !email) {
       return new Response(JSON.stringify({
-        error: 'Missing required parameter: order_id',
+        error: 'Missing required parameters: order_id, user_id, and email',
         success: false
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
-
-    if (!userEmail && !userId) {
-      return new Response(JSON.stringify({
-        error: 'Missing required parameter: email or user_id for authorization',
-        success: false
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    console.log('Attempting to delete order:', orderId, 'for user:', userEmail || userId);
-
-    // First, verify the order belongs to the user and can be deleted
-    const verifyQuery = `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=id,status,customer_email,user_id`;
-    const verifyResponse = await fetch(verifyQuery, {
+    
+    console.log('Deleting order:', order_id, 'for user:', user_id);
+    
+    // Step 1: Verify order ownership and get order details
+    const orderQuery = `${SUPABASE_URL}/rest/v1/orders?id=eq.${order_id}&or=(user_id.eq.${user_id},customer_email.eq.${encodeURIComponent(email)})&select=*`;
+    
+    const checkResponse = await fetch(orderQuery, {
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       }
     });
 
-    if (!verifyResponse.ok) {
-      const errorText = await verifyResponse.text();
-      console.error('Order verification failed:', errorText);
+    if (!checkResponse.ok) {
+      const errorText = await checkResponse.text();
+      console.error('Failed to check order existence:', errorText);
+      
       return new Response(JSON.stringify({
-        error: 'Failed to verify order ownership',
+        error: 'Failed to verify order existence',
+        details: errorText,
         success: false
       }), {
         status: 500,
@@ -218,11 +250,10 @@ async function handleDeleteOrder(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KE
       });
     }
 
-    const orderData = await verifyResponse.json();
-    
-    if (!orderData || orderData.length === 0) {
+    const existingOrders = await checkResponse.json();
+    if (existingOrders.length === 0) {
       return new Response(JSON.stringify({
-        error: 'Order not found',
+        error: 'Order not found or you do not have permission to delete this order',
         success: false
       }), {
         status: 404,
@@ -230,26 +261,16 @@ async function handleDeleteOrder(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KE
       });
     }
 
-    const order = orderData[0];
-
-    // Verify ownership
-    const ownsOrder = (userId && order.user_id === userId) || 
-                     (userEmail && order.customer_email === userEmail);
+    const order = existingOrders[0];
+    const orderNumber = order.order_number || `ORD-${String(order.id).padStart(5, '0')}`;
+    const customerName = `${order.customer_first_name} ${order.customer_last_name || ''}`.trim();
     
-    if (!ownsOrder) {
-      return new Response(JSON.stringify({
-        error: 'Unauthorized: Order does not belong to this user',
-        success: false
-      }), {
-        status: 403,
-        headers: corsHeaders
-      });
-    }
+    console.log('Found order to delete:', orderNumber, 'Customer:', customerName, 'Status:', order.status);
 
-    // Check if order can be deleted (only pending and cancelled orders)
-    if (!['pending', 'cancelled'].includes(order.status)) {
+    // Step 2: Check if order can be deleted (only completed or cancelled orders)
+    if (!['completed', 'cancelled'].includes(order.status)) {
       return new Response(JSON.stringify({
-        error: `Cannot delete order with status: ${order.status}. Only pending and cancelled orders can be deleted.`,
+        error: 'Only completed or cancelled orders can be deleted',
         success: false,
         current_status: order.status
       }), {
@@ -258,20 +279,20 @@ async function handleDeleteOrder(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KE
       });
     }
 
-    // Delete the order (order_items will be cascade deleted due to foreign key constraint)
-    const deleteQuery = `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`;
-    const deleteResponse = await fetch(deleteQuery, {
+    // Step 3: Delete the order (order_items will be deleted automatically due to CASCADE)
+    const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order_id}`, {
       method: 'DELETE',
       headers: {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Content-Type': 'application/json'
+        'Prefer': 'return=representation'
       }
     });
 
     if (!deleteResponse.ok) {
       const errorText = await deleteResponse.text();
-      console.error('Order deletion failed:', errorText);
+      console.error('Failed to delete order:', errorText);
+      
       return new Response(JSON.stringify({
         error: 'Failed to delete order',
         details: errorText,
@@ -282,13 +303,20 @@ async function handleDeleteOrder(context, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KE
       });
     }
 
-    console.log('Order deleted successfully:', orderId);
+    console.log('Successfully deleted order:', orderNumber);
 
-    return new Response(JSON.stringify({
+    // Success response
+    return new Response(JSON.stringify({ 
       success: true,
-      message: 'Order deleted successfully',
-      deleted_order_id: orderId,
-      order_status: order.status
+      message: `Order ${orderNumber} deleted successfully!`,
+      data: {
+        order_id: parseInt(order_id),
+        order_number: orderNumber,
+        customer_name: customerName,
+        status: order.status,
+        total_amount: order.total_amount,
+        deleted_at: new Date().toISOString()
+      }
     }), {
       status: 200,
       headers: corsHeaders
