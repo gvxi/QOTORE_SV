@@ -567,7 +567,10 @@ async function cancelOrder(orderId) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ order_id: orderId })
+            body: JSON.stringify({ 
+                order_id: orderId,
+                user_id: currentUser.id
+            })
         });
         
         const result = await response.json();
@@ -577,7 +580,7 @@ async function cancelOrder(orderId) {
             activeOrder = null;
             renderPage();
         } else {
-            throw new Error(result.message || 'Failed to cancel order');
+            throw new Error(result.message || result.error || 'Failed to cancel order');
         }
     } catch (error) {
         console.error('Cancel order error:', error);
