@@ -1,293 +1,306 @@
-// Create this file as: /functions/api/review-order.js
+// functions/api/review-order.js
+// Order Review API - Sets order status to reviewed with 12-hour expiration
 
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase
-function initSupabase(env) {
-  const supabaseUrl = env.SUPABASE_URL;
-  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Missing Supabase configuration');
-  }
-  
-  return createClient(supabaseUrl, supabaseServiceKey);
-}
-
-// Generate secure token for order review
-function generateReviewToken(orderId, timestamp) {
-  const data = `${orderId}-${timestamp}`;
-  // In a real implementation, you'd use a proper HMAC with a secret key
-  // For now, we'll use a simple encoding that includes validation data
-  return btoa(data).replace(/[+=\/]/g, '').substring(0, 32);
-}
-
-// Validate review token
-function validateReviewToken(token, orderId) {
-  try {
-    // In a real implementation, you'd verify the HMAC signature
-    // For now, we'll decode and check timestamp
-    const decoded = atob(token.padEnd(32, 'A'));
-    const [tokenOrderId, timestamp] = decoded.split('-');
-    
-    // Check if token matches order ID
-    if (parseInt(tokenOrderId) !== parseInt(orderId)) {
-      return { valid: false, reason: 'Invalid token for this order' };
-    }
-    
-    // Check if token is within 24 hours
-    const tokenTime = parseInt(timestamp);
-    const now = Date.now();
-    const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    
-    if (now - tokenTime > twentyFourHours) {
-      return { valid: false, reason: 'Token has expired (24 hours)' };
-    }
-    
-    return { valid: true };
-  } catch (error) {
-    return { valid: false, reason: 'Invalid token format' };
-  }
-}
-
-// CORS headers
 const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Credentials': 'true'
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true'
 };
 
-// Handle GET request - Mark order as reviewed
-export async function onRequestGet(context) {
-  try {
-    const { env, request } = context;
-    const url = new URL(request.url);
-    const orderId = url.searchParams.get('order');
-    const token = url.searchParams.get('token');
+export async function onRequestPost(context) {
+    const { request, env } = context;
     
-    if (!orderId || !token) {
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Invalid Link - Qotore</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: system-ui, sans-serif; padding: 40px; text-align: center; background: #f8fafc; }
-            .container { max-width: 400px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .error { color: #dc2626; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1 class="error">Invalid Review Link</h1>
-            <p>This link is missing required parameters. Please use the link from the original email.</p>
-          </div>
-        </body>
-        </html>
-      `, {
-        status: 400,
-        headers: { 'Content-Type': 'text/html' }
-      });
+    try {
+        const { order_id, review_token } = await request.json();
+        
+        if (!order_id || !review_token) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Missing order_id or review_token'
+            }), {
+                status: 400,
+                headers: corsHeaders
+            });
+        }
+
+        // Initialize Supabase
+        const SUPABASE_URL = env.SUPABASE_URL;
+        const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+        
+        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+            throw new Error('Supabase configuration missing');
+        }
+
+        // Get order details
+        const orderResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order_id}&select=*`, {
+            headers: {
+                'apikey': SUPABASE_SERVICE_ROLE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!orderResponse.ok) {
+            throw new Error('Failed to fetch order');
+        }
+
+        const orders = await orderResponse.json();
+        
+        if (!orders || orders.length === 0) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Order not found'
+            }), {
+                status: 404,
+                headers: corsHeaders
+            });
+        }
+
+        const order = orders[0];
+
+        // Validate review token (should be generated from order_id + created_at + secret)
+        const expectedToken = await generateReviewToken(order.id, order.created_at, env.REVIEW_SECRET || 'qotore_review_secret');
+        
+        if (review_token !== expectedToken) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Invalid review token'
+            }), {
+                status: 403,
+                headers: corsHeaders
+            });
+        }
+
+        // Check if order is still within 12-hour review window
+        const orderTime = new Date(order.created_at);
+        const now = new Date();
+        const hoursElapsed = (now - orderTime) / (1000 * 60 * 60);
+        
+        if (hoursElapsed > 12) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Review period expired (12 hours limit)',
+                expired: true,
+                hours_elapsed: Math.round(hoursElapsed * 10) / 10
+            }), {
+                status: 410, // Gone
+                headers: corsHeaders
+            });
+        }
+
+        // Check if order is already reviewed
+        if (order.status === 'reviewed' || order.reviewed === true) {
+            return new Response(JSON.stringify({
+                success: true,
+                message: 'Order already reviewed',
+                order: order,
+                already_reviewed: true
+            }), {
+                status: 200,
+                headers: corsHeaders
+            });
+        }
+
+        // Check if order can be reviewed (must be pending)
+        if (order.status !== 'pending') {
+            return new Response(JSON.stringify({
+                success: false,
+                error: `Cannot review order with status: ${order.status}`,
+                current_status: order.status
+            }), {
+                status: 400,
+                headers: corsHeaders
+            });
+        }
+
+        // Update order status to reviewed
+        const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order_id}`, {
+            method: 'PATCH',
+            headers: {
+                'apikey': SUPABASE_SERVICE_ROLE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({
+                status: 'reviewed',
+                reviewed: true,
+                updated_at: new Date().toISOString()
+            })
+        });
+
+        if (!updateResponse.ok) {
+            const error = await updateResponse.text();
+            throw new Error(`Failed to update order: ${error}`);
+        }
+
+        const updatedOrders = await updateResponse.json();
+        const updatedOrder = updatedOrders[0];
+
+        // Log the review action
+        console.log(`Order #${order.order_number} marked as reviewed at ${new Date().toISOString()}`);
+
+        // Send notification to customer about status change (optional)
+        try {
+            await sendCustomerStatusUpdateEmail(updatedOrder, env);
+        } catch (emailError) {
+            console.error('Failed to send customer notification:', emailError);
+            // Don't fail the review process if email fails
+        }
+
+        return new Response(JSON.stringify({
+            success: true,
+            message: 'Order marked as reviewed successfully',
+            order: updatedOrder,
+            reviewed_at: new Date().toISOString(),
+            time_remaining: `${Math.round((12 - hoursElapsed) * 10) / 10} hours remaining`
+        }), {
+            status: 200,
+            headers: corsHeaders
+        });
+
+    } catch (error) {
+        console.error('Order review error:', error);
+        
+        return new Response(JSON.stringify({
+            success: false,
+            error: 'Internal server error',
+            details: error.message
+        }), {
+            status: 500,
+            headers: corsHeaders
+        });
     }
-    
-    // Validate token
-    const validation = validateReviewToken(token, orderId);
-    if (!validation.valid) {
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Link Expired - Qotore</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: system-ui, sans-serif; padding: 40px; text-align: center; background: #f8fafc; }
-            .container { max-width: 400px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .error { color: #dc2626; }
-            .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #8B4513; color: white; text-decoration: none; border-radius: 8px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1 class="error">Link Expired</h1>
-            <p>${validation.reason}</p>
-            <p>Please use the admin dashboard to manage orders.</p>
-            <a href="/admin/orders-management.html" class="btn">Go to Admin Dashboard</a>
-          </div>
-        </body>
-        </html>
-      `, {
-        status: 410,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-    
-    // Initialize Supabase and update order
-    const supabase = initSupabase(env);
-    
-    // Check if order exists and is still pending
-    const { data: order, error: fetchError } = await supabase
-      .from('orders')
-      .select('id, order_number, status, customer_first_name')
-      .eq('id', orderId)
-      .single();
-    
-    if (fetchError || !order) {
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Order Not Found - Qotore</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: system-ui, sans-serif; padding: 40px; text-align: center; background: #f8fafc; }
-            .container { max-width: 400px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .error { color: #dc2626; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1 class="error">Order Not Found</h1>
-            <p>The order could not be found in the system.</p>
-          </div>
-        </body>
-        </html>
-      `, {
-        status: 404,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-    
-    // Check if order is already reviewed
-    if (order.status === 'reviewed' || order.status === 'completed') {
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Order Already Reviewed - Qotore</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: system-ui, sans-serif; padding: 40px; text-align: center; background: #f8fafc; }
-            .container { max-width: 400px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .success { color: #059669; }
-            .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #8B4513; color: white; text-decoration: none; border-radius: 8px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1 class="success">Order Already Processed</h1>
-            <p>Order ${order.order_number} has already been reviewed and processed.</p>
-            <a href="/admin/orders-management.html" class="btn">View All Orders</a>
-          </div>
-        </body>
-        </html>
-      `, {
-        status: 200,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-    
-    // Update order status to reviewed
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({ 
-        status: 'reviewed',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', orderId);
-    
-    if (updateError) {
-      console.error('Error updating order:', updateError);
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Update Failed - Qotore</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: system-ui, sans-serif; padding: 40px; text-align: center; background: #f8fafc; }
-            .container { max-width: 400px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .error { color: #dc2626; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1 class="error">Update Failed</h1>
-            <p>Could not update the order status. Please try again or use the admin dashboard.</p>
-          </div>
-        </body>
-        </html>
-      `, {
-        status: 500,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-    
-    // Success response
-    return new Response(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Order Reviewed - Qotore</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-          body { font-family: system-ui, sans-serif; padding: 40px; text-align: center; background: #f8fafc; }
-          .container { max-width: 400px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-          .success { color: #059669; }
-          .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #8B4513; color: white; text-decoration: none; border-radius: 8px; margin-right: 10px; }
-          .btn-secondary { background: #6b7280; }
-          .checkmark { font-size: 48px; color: #059669; margin-bottom: 20px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="checkmark">✓</div>
-          <h1 class="success">Order Reviewed Successfully</h1>
-          <p>Order ${order.order_number} for ${order.customer_first_name} has been marked as reviewed.</p>
-          <p>The order status has been updated in the system.</p>
-          <div style="margin-top: 30px;">
-            <a href="/admin/orders-management.html" class="btn">View All Orders</a>
-            <a href="https://wa.me" class="btn btn-secondary">Contact Customer</a>
-          </div>
-        </div>
-      </body>
-      </html>
-    `, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html' }
-    });
-    
-  } catch (error) {
-    console.error('Error in review-order:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal server error',
-      details: error.message
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
-  }
 }
 
-// Handle OPTIONS requests for CORS
+// Generate secure review token
+async function generateReviewToken(orderId, createdAt, secret) {
+    const data = `${orderId}-${createdAt}-${secret}`;
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex.substring(0, 32); // Return first 32 characters
+}
+
+// Send status update email to customer
+async function sendCustomerStatusUpdateEmail(order, env) {
+    const RESEND_API_KEY = env.RESEND_API_KEY;
+    
+    if (!RESEND_API_KEY) {
+        console.warn('Resend API key not configured');
+        return;
+    }
+
+    const emailData = {
+        from: 'orders@qotore.uk',
+        to: order.customer_email,
+        subject: `Order Update #${order.order_number} - Now Being Prepared`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); color: white; padding: 2rem; text-align: center; border-radius: 12px 12px 0 0;">
+                    <h1>📦 Order Update</h1>
+                    <p>Your order is now being prepared!</p>
+                </div>
+                
+                <div style="padding: 2rem; background: white; border: 1px solid #eee; border-radius: 0 0 12px 12px;">
+                    <h2>Order #${order.order_number}</h2>
+                    <p>Great news! Your order has been reviewed and is now being prepared for delivery.</p>
+                    
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <p><strong>Status:</strong> Being Prepared</p>
+                        <p><strong>Next Step:</strong> We'll prepare your fragrances with care and arrange delivery</p>
+                    </div>
+                    
+                    <p>We'll contact you soon with delivery details.</p>
+                    
+                    <div style="text-align: center; margin: 2rem 0;">
+                        <p><strong>Need help? Contact us:</strong></p>
+                        <p>📱 WhatsApp: +968 9222 5949</p>
+                        <p>✉️ Email: orders@qotore.uk</p>
+                    </div>
+                    
+                    <p style="text-align: center; color: #8B4513;"><strong>Thank you for choosing Qotore!</strong></p>
+                </div>
+            </div>
+        `,
+        text: `
+Order Update #${order.order_number}
+
+Your order is now being prepared!
+
+Status: Being Prepared
+Next Step: We'll prepare your fragrances with care and arrange delivery
+
+We'll contact you soon with delivery details.
+
+Need help? Contact us:
+WhatsApp: +968 9222 5949
+Email: orders@qotore.uk
+
+Thank you for choosing Qotore!
+        `
+    };
+
+    const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Email sending failed: ${error}`);
+    }
+
+    console.log(`Status update email sent to ${order.customer_email}`);
+}
+
+// Handle CORS preflight
 export async function onRequestOptions() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders
-  });
+    return new Response(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '86400'
+        }
+    });
 }
 
-// Export function to generate review URL (for use in email template)
-export function generateReviewUrl(baseUrl, orderId) {
-  const timestamp = Date.now();
-  const token = generateReviewToken(orderId, timestamp);
-  return `${baseUrl}/api/review-order?order=${orderId}&token=${token}`;
+// Test endpoint
+export async function onRequestGet(context) {
+    return new Response(JSON.stringify({
+        message: 'Order Review API is working!',
+        endpoints: {
+            post: 'POST /api/review-order - Mark order as reviewed',
+            parameters: {
+                order_id: 'Order ID (integer)',
+                review_token: 'Security token for verification'
+            }
+        },
+        features: [
+            '12-hour review window from order creation',
+            'Secure token validation',
+            'Status change from pending to reviewed',
+            'Automatic customer notification email',
+            'Prevents duplicate reviews'
+        ],
+        security: [
+            'Token generated from order_id + created_at + secret',
+            'Time-based expiration (12 hours)',
+            'Status validation (only pending orders)',
+            'Unique token per order'
+        ]
+    }), {
+        headers: corsHeaders
+    });
 }

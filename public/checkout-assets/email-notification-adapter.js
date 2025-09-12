@@ -33,7 +33,7 @@ class EmailNotificationAdapter {
             type: 'admin_new_order',
             to: this.adminEmail,
             from: 'noreply@qotore.uk',
-            subject: `🛒 New Order #${orderData.order_number} - ${this.formatPrice(orderData.total_amount)} OMR`,
+            subject: `(!) New Order #${orderData.order_number} - ${this.formatPrice(orderData.total_amount)} OMR`,
             data: {
                 order: orderData,
                 timestamp: new Date().toISOString(),
@@ -63,12 +63,31 @@ class EmailNotificationAdapter {
 
     async sendEmail(emailData) {
         try {
+            let emailContent;
+            
+            // Generate email content based on type
+            if (emailData.type === 'admin_new_order') {
+                emailContent = this.getAdminEmailTemplate(emailData.data.order, emailData.data.reviewUrl);
+            } else if (emailData.type === 'customer_order_confirmation') {
+                emailContent = this.getCustomerEmailTemplate(emailData.data.order, emailData.language);
+            } else {
+                throw new Error(`Unknown email type: ${emailData.type}`);
+            }
+
+            const payload = {
+                from: emailData.from,
+                to: emailData.to,
+                subject: emailData.subject,
+                html: emailContent.html,
+                text: emailContent.text
+            };
+
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(emailData)
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
