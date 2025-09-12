@@ -33,7 +33,7 @@ class EmailNotificationAdapter {
             type: 'admin_new_order',
             to: this.adminEmail,
             from: 'noreply@qotore.uk',
-            subject: `(!) New Order #${orderData.order_number} - ${this.formatPrice(orderData.total_amount)} OMR`,
+            subject: `🛒 New Order #${orderData.order_number} - ${this.formatPrice(orderData.total_amount)} OMR`,
             data: {
                 order: orderData,
                 timestamp: new Date().toISOString(),
@@ -455,8 +455,8 @@ ${t.nextSteps}
 3. ${t.nextStep3}
 
 ${t.needHelp}
-${t.whatsapp}: +968 9222 5949
-${t.email}: orders@qotore.uk
+${t.whatsapp}: ${this.supportWhatsApp}
+${t.email}: ${this.supportEmail}
 
 ${t.thankYou}
 
