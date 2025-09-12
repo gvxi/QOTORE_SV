@@ -175,12 +175,17 @@ function loadCart() {
 
         cart = parsed
             .map(item => {
-                // Already normalized (Option A)
+                // ✅ Already normalized (Option A)
                 if (item.fragrance && item.variant && typeof item.quantity === 'number') {
+                    // Ensure variant has price_cents
+                    if (!item.variant.price_cents && item.variant.price) {
+                        item.variant.price_cents = Math.round(item.variant.price * 1000);
+                        item.variant.price_display = item.variant.price.toFixed(3) + " OMR";
+                    }
                     return item;
                 }
 
-                // Flat format (Option B) → transform
+                // ✅ Flat format (Option B) → transform to normalized
                 if (item.fragranceId && item.variant) {
                     return {
                         fragrance: {
@@ -191,7 +196,11 @@ function loadCart() {
                         },
                         variant: {
                             ...item.variant,
-                            id: item.variantId || item.variant.id
+                            id: item.variantId || item.variant.id,
+                            price_cents: item.variant.price_cents
+                                ?? (item.variant.price ? Math.round(item.variant.price * 1000) : 0),
+                            price_display: item.variant.price_display
+                                ?? (item.variant.price ? item.variant.price.toFixed(3) + " OMR" : "0.000 OMR")
                         },
                         quantity: item.quantity || 1
                     };
