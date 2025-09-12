@@ -3,458 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="page_title">Cart & Checkout - Qotore</title>
+    <title>Checkout - Qotore</title>
+    <meta name="description" content="Complete your order at Qotore - Premium fragrances delivered to your door">
     
-    <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     
-    <!-- PWA Theme -->
-    <meta name="theme-color" content="#8B4513">
-    <meta name="msapplication-TileColor" content="#8B4513">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Qotore">
-    
-    <!-- Meta Tags -->
-    <meta property="og:title" content="Qotore - Cart & Checkout">
-    <meta property="og:description" content="Complete your fragrance order">
-    <meta property="og:image" content="/icons/icon-512x512.png">
-    <meta property="og:url" content="/checkout">
-    <meta property="og:type" content="website">
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="/checkout-assets/checkout-styles.css">
-    <style>
-        /* Additional styles for enhanced checkout */
-        .auth-required-message {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            border: 1px solid #ffeaa7;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem auto;
-            max-width: 500px;
-            text-align: center;
-            color: #856404;
-        }
-        
-        .auth-required-message h3 {
-            margin: 0 0 1rem 0;
-            color: #8B4513;
-        }
-        
-        .auth-required-message p {
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-        
-        .login-btn {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-        
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
-        }
-        
-        .location-fields {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        .delivery-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .delivery-option {
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            background: white;
-        }
-        
-        .delivery-option:hover {
-            border-color: #8B4513;
-            transform: translateY(-2px);
-        }
-        
-        .delivery-option.selected {
-            border-color: #8B4513;
-            background: linear-gradient(135deg, #f8f4f0 0%, #f2ede6 100%);
-        }
-        
-        .delivery-option-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .delivery-option-title {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.25rem;
-        }
-        
-        .delivery-option-description {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-        
-        .invoice-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .invoice-btn {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .invoice-btn:hover {
-            background: #5a6268;
-            transform: translateY(-1px);
-        }
-        
-        .print-btn {
-            background: #17a2b8;
-        }
-        
-        .print-btn:hover {
-            background: #138496;
-        }
-        
-        .cancel-timer {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            border: 1px solid #f5c6cb;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            margin-top: 1rem;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #721c24;
-        }
-        
-        .timer-expired {
-            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
-            color: #0c5460;
-            border-color: #bee5eb;
-        }
-        
-        .whatsapp-contact {
-            background: #25D366;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-        
-        .whatsapp-contact:hover {
-            background: #20B954;
-            color: white;
-        }
-        
-        .profile-incomplete-message {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            border: 1px solid #f5c6cb;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem auto;
-            max-width: 500px;
-            text-align: center;
-            color: #721c24;
-        }
-        
-        .complete-profile-btn {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-        
-        .complete-profile-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
-        }
-        
-        @media (max-width: 768px) {
-            .location-fields,
-            .delivery-options {
-                grid-template-columns: 1fr;
-            }
-            
-            .invoice-actions {
-                flex-direction: column;
-            }
-        }
-        
-        /* Print styles */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            
-            .invoice-content,
-            .invoice-content * {
-                visibility: visible;
-            }
-            
-            .invoice-content {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-            
-            .invoice-actions,
-            .no-print {
-                display: none !important;
-            }
-        }
-        
-        .loading-state {
-            text-align: center;
-            padding: 3rem 1rem;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #8B4513;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    <link rel="stylesheet" href="checkout-styles.css">
 </head>
 <body>
-    <!-- Loading Splash Screen -->
+    <!-- Loading Splash -->
     <div id="loadingSplash" class="loading-splash">
-        <img src="/icons/icon-32x32.png" alt="Qotore" class="loading-logo">
-        <div class="loading-spinner"></div>
+        <div class="loading-content">
+            <svg class="loading-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                <path d="M50 20C35.64 20 24 31.64 24 46s11.64 26 26 26 26-11.64 26-26S64.36 20 50 20zm0 40c-7.73 0-14-6.27-14-14s6.27-14 14-14 14 6.27 14 14-6.27 14-14 14z" fill="currentColor"/>
+            </svg>
+            <div class="loading-spinner"></div>
+            <p data-translate="loading">Loading...</p>
+        </div>
     </div>
 
     <!-- Header -->
     <header class="header">
         <div class="header-content">
             <a href="/" class="logo">
-                <img src="/icons/icon-32x32-dark.png" alt="Qotore" class="logo-icon">
+                <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="2"/>
+                    <path d="M50 20C35.64 20 24 31.64 24 46s11.64 26 26 26 26-11.64 26-26S64.36 20 50 20zm0 40c-7.73 0-14-6.27-14-14s6.27-14 14-14 14 6.27 14 14-6.27 14-14 14z" fill="currentColor"/>
+                </svg>
                 <span data-translate="qotore">Qotore</span>
             </a>
-            <a href="/" class="back-btn">
-                <span>←</span>
-                <span data-translate="continue_shopping">Continue Shopping</span>
-            </a>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='/'">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9,22 9,12 15,12 15,22"/>
+                    </svg>
+                    <span data-translate="home">Home</span>
+                </button>
+                
+                <div class="user-section" id="userSection">
+                    <!-- User info will be populated here -->
+                </div>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Authentication Required Message -->
-        <div id="authRequired" class="auth-required-message" style="display: none;">
-            <h3 data-translate="login_required">Login Required</h3>
-            <p data-translate="login_to_checkout">Please login to your account to proceed with checkout and manage your orders.</p>
-            <a href="/user/login.html" class="login-btn" data-translate="login_now">Login Now</a>
+        <!-- Page Title -->
+        <div class="page-title">
+            <h1 data-translate="checkout_title">Complete Your Order</h1>
+            <p data-translate="checkout_subtitle">Review your items and delivery information</p>
         </div>
 
-        <!-- Profile Incomplete Message -->
-        <div id="profileIncomplete" class="profile-incomplete-message" style="display: none;">
-            <h3 data-translate="complete_profile_required">Complete Your Profile</h3>
-            <p data-translate="profile_completion_message">Please complete your profile with delivery information before placing orders.</p>
-            <a href="/user/v1/profile.html" class="complete-profile-btn" data-translate="complete_profile_now">Complete Profile</a>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingState" class="loading-state" style="display: none;">
-            <div class="loading-spinner"></div>
-            <p data-translate="loading_checkout">Loading checkout...</p>
-        </div>
-
-        <!-- Cart Section -->
-        <section id="cartSection" class="cart-section">
-            <div class="cart-header">
-                <h2 data-translate="your_cart">Your Cart</h2>
-                <p data-translate="review_fragrances">Review your fragrances</p>
-            </div>
+        <!-- Cart & Order Container -->
+        <div class="checkout-container" id="checkoutContainer">
             
-            <div id="cartItems" class="cart-items">
-                <!-- Cart items will be loaded here -->
-            </div>
-            
-            <div class="cart-summary">
-                <div class="cart-total">
-                    <span data-translate="total">Total:</span>
-                    <span id="cartTotal" class="total-amount">0.000 <span data-translate="omr">OMR</span></span>
+            <!-- Not Signed In Message -->
+            <div id="notSignedInMessage" class="not-signed-in" style="display: none;">
+                <div class="status-icon">🔐</div>
+                <h2 data-translate="login_required">Login Required</h2>
+                <p data-translate="login_required_message">Please sign in to complete your order</p>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="window.location.href='/user/login.html'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                            <polyline points="10,17 15,12 10,7"/>
+                            <line x1="15" y1="12" x2="3" y2="12"/>
+                        </svg>
+                        <span data-translate="sign_in">Sign In</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9,22 9,12 15,12 15,22"/>
+                        </svg>
+                        <span data-translate="continue_shopping">Continue Shopping</span>
+                    </button>
                 </div>
             </div>
-        </section>
 
-        <!-- Sidebar Content -->
-        <section class="sidebar">
-            <div id="sidebarContent" class="sidebar-content">
-                <!-- Dynamic content will be loaded here -->
+            <!-- Profile Incomplete Message -->
+            <div id="profileIncompleteMessage" class="profile-incomplete" style="display: none;">
+                <div class="status-icon">📝</div>
+                <h2 data-translate="profile_incomplete">Complete Your Profile</h2>
+                <p data-translate="profile_incomplete_message">Please complete your profile to place orders</p>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="window.location.href='/user/register.html'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <span data-translate="complete_profile">Complete Profile</span>
+                    </button>
+                </div>
             </div>
-        </section>
+
+            <!-- Active Order Display -->
+            <div id="activeOrderDisplay" class="active-order" style="display: none;">
+                <!-- Active order will be rendered here -->
+            </div>
+
+            <!-- Empty Cart -->
+            <div id="emptyCartDisplay" class="empty-cart" style="display: none;">
+                <div class="status-icon">🛒</div>
+                <h2 data-translate="cart_empty">Your Cart is Empty</h2>
+                <p data-translate="cart_empty_message">Add some fragrances to get started</p>
+                <button class="btn btn-primary" onclick="window.location.href='/'">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="8" cy="21" r="1"/>
+                        <circle cx="19" cy="21" r="1"/>
+                        <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                    </svg>
+                    <span data-translate="browse_fragrances">Browse Fragrances</span>
+                </button>
+            </div>
+
+            <!-- Checkout Form -->
+            <div id="checkoutForm" class="checkout-form" style="display: none;">
+                <div class="checkout-sections">
+                    <!-- Cart Items Section -->
+                    <section class="cart-section">
+                        <div class="section-header">
+                            <h2>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="8" cy="21" r="1"/>
+                                    <circle cx="19" cy="21" r="1"/>
+                                    <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                                </svg>
+                                <span data-translate="your_items">Your Items</span>
+                            </h2>
+                        </div>
+                        <div class="cart-items" id="cartItems">
+                            <!-- Cart items will be populated here -->
+                        </div>
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span data-translate="subtotal">Subtotal:</span>
+                                <span id="subtotalAmount">0.000 OMR</span>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span data-translate="total">Total:</span>
+                                <span id="totalAmount">0.000 OMR</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Delivery Information Section -->
+                    <section class="delivery-section">
+                        <div class="section-header">
+                            <h2>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m21 16-4 4-4-4"/>
+                                    <path d="M17 20V4h4"/>
+                                    <path d="m3 8 4-4 4 4"/>
+                                    <path d="M7 4v16"/>
+                                </svg>
+                                <span data-translate="delivery_information">Delivery Information</span>
+                            </h2>
+                        </div>
+                        
+                        <form id="deliveryForm" class="delivery-form">
+                            <div class="form-group">
+                                <label for="wilayat" data-translate="wilayat">Wilayat</label>
+                                <select id="wilayat" name="wilayat" required>
+                                    <option value="" data-translate="select_wilayat">Select your Wilayat</option>
+                                    <option value="Muscat">Muscat</option>
+                                    <option value="Seeb">Seeb</option>
+                                    <option value="Bawshar">Bawshar</option>
+                                    <option value="Amerat">Amerat</option>
+                                    <option value="Quriyat">Quriyat</option>
+                                    <option value="Muttrah">Muttrah</option>
+                                    <option value="As Suwayq">As Suwayq</option>
+                                    <option value="Nizwa">Nizwa</option>
+                                    <option value="Sohar">Sohar</option>
+                                    <option value="Salalah">Salalah</option>
+                                    <option value="Sur">Sur</option>
+                                    <option value="Ibra">Ibra</option>
+                                    <option value="Rustaq">Rustaq</option>
+                                    <option value="Bahla">Bahla</option>
+                                    <option value="Ibri">Ibri</option>
+                                    <option value="Saham">Saham</option>
+                                    <option value="Barka">Barka</option>
+                                    <option value="Nakhl">Nakhl</option>
+                                    <option value="Wadi al Maawil">Wadi al Maawil</option>
+                                    <option value="Bidbid">Bidbid</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="city" data-translate="city">City/Area</label>
+                                <input type="text" id="city" name="city" 
+                                       data-translate-placeholder="city_placeholder" 
+                                       placeholder="Enter your city or area" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label data-translate="delivery_type">Delivery Type</label>
+                                <div class="delivery-options">
+                                    <label class="delivery-option">
+                                        <input type="radio" name="delivery_type" value="home" checked>
+                                        <div class="option-content">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                                <polyline points="9,22 9,12 15,12 15,22"/>
+                                            </svg>
+                                            <span data-translate="home_delivery">Home Delivery</span>
+                                        </div>
+                                    </label>
+                                    <label class="delivery-option">
+                                        <input type="radio" name="delivery_type" value="service">
+                                        <div class="option-content">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect width="20" height="8" x="2" y="14" rx="2"/>
+                                                <path d="M6 14V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10"/>
+                                                <path d="M12 7h.01"/>
+                                            </svg>
+                                            <span data-translate="delivery_service">Delivery Service</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="notes" data-translate="notes">Notes (Optional)</label>
+                                <textarea id="notes" name="notes" rows="3" 
+                                         data-translate-placeholder="notes_placeholder"
+                                         placeholder="Special instructions, landmarks, or additional information..."></textarea>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Order Actions -->
+                    <section class="order-actions">
+                        <button id="placeOrderBtn" class="btn btn-primary btn-large">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"/>
+                                <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                                <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                                <path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3"/>
+                                <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3"/>
+                            </svg>
+                            <span data-translate="place_order">Place Order</span>
+                        </button>
+                    </section>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <!-- Customer Information Modal -->
-    <div id="customerInfoModal" class="modal" style="display: none;">
-        <div class="modal-content">
+    <!-- Invoice Modal -->
+    <div id="invoiceModal" class="modal">
+        <div class="modal-content invoice-modal">
             <div class="modal-header">
-                <h3 data-translate="customer_information">Customer Information</h3>
-                <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
+                <h2 data-translate="order_invoice">Order Invoice</h2>
+                <button class="modal-close" onclick="closeInvoiceModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
-            <form id="customerForm" class="customer-form">
-                <div class="form-group">
-                    <label for="firstName" data-translate="first_name">First Name</label>
-                    <input type="text" id="firstName" name="firstName" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="lastName" data-translate="last_name">Last Name</label>
-                    <input type="text" id="lastName" name="lastName">
-                </div>
-                
-                <div class="form-group">
-                    <label for="phone" data-translate="phone_number">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" placeholder="968XXXXXXXX" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email" data-translate="email_address">Email Address</label>
-                    <input type="email" id="email" name="email" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label data-translate="delivery_information">Delivery Information</label>
-                    <div class="location-fields">
-                        <div class="form-group">
-                            <label for="wilaya" data-translate="region_wilayat">Region/Wilayat</label>
-                            <select id="wilaya" name="wilaya" required>
-                                <option value="" data-translate="select_wilaya">Select Wilayat</option>
-                                <option value="muscat" data-translate="muscat">Muscat</option>
-                                <option value="dhofar" data-translate="dhofar">Dhofar</option>
-                                <option value="musandam" data-translate="musandam">Musandam</option>
-                                <option value="al_buraimi" data-translate="al_buraimi">Al Buraimi</option>
-                                <option value="ad_dakhiliyah" data-translate="ad_dakhiliyah">Ad Dakhiliyah</option>
-                                <option value="al_batinah_north" data-translate="al_batinah_north">Al Batinah North</option>
-                                <option value="al_batinah_south" data-translate="al_batinah_south">Al Batinah South</option>
-                                <option value="ash_sharqiyah_north" data-translate="ash_sharqiyah_north">Ash Sharqiyah North</option>
-                                <option value="ash_sharqiyah_south" data-translate="ash_sharqiyah_south">Ash Sharqiyah South</option>
-                                <option value="al_wusta" data-translate="al_wusta">Al Wusta</option>
-                                <option value="adh_dhahirah" data-translate="adh_dhahirah">Adh Dhahirah</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="city" data-translate="city">City</label>
-                            <input type="text" id="city" name="city" data-translate-placeholder="enter_city" placeholder="Enter your city" required>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="address" data-translate="delivery_address">Delivery Address</label>
-                    <textarea id="address" name="address" rows="3" required placeholder="Building name, street, area"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label data-translate="delivery_option">Delivery Option</label>
-                    <div class="delivery-options">
-                        <div class="delivery-option" data-value="home" onclick="selectDeliveryOption('home')">
-                            <div class="delivery-option-icon">🏠</div>
-                            <div class="delivery-option-title" data-translate="home_delivery">Home Delivery</div>
-                            <div class="delivery-option-description" data-translate="deliver_to_address">Direct to your address</div>
-                        </div>
-                        
-                        <div class="delivery-option" data-value="service" onclick="selectDeliveryOption('service')">
-                            <div class="delivery-option-icon">🚛</div>
-                            <div class="delivery-option-title" data-translate="use_delivery_service">Delivery Service</div>
-                            <div class="delivery-option-description" data-translate="pickup_location">Pick up location</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="notes" data-translate="additional_notes">Additional Notes</label>
-                    <textarea id="notes" name="notes" rows="3" data-translate-placeholder="special_instructions" placeholder="Special instructions or notes about your order"></textarea>
-                </div>
-                
-                <div class="modal-actions">
-                    <button type="button" class="cancel-btn" onclick="closeCustomerModal()" data-translate="cancel">Cancel</button>
-                    <button type="submit" class="save-btn" data-translate="save_information">Save Information</button>
-                </div>
-            </form>
+            <div class="modal-body" id="invoiceContent">
+                <!-- Invoice content will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeInvoiceModal()" data-translate="close">Close</button>
+                <button class="btn btn-primary" onclick="printInvoice()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6,9 6,2 18,2 18,9"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                        <rect width="12" height="8" x="6" y="14"/>
+                    </svg>
+                    <span data-translate="print">Print</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Invoice Modal -->
-    <div id="invoiceModal" class="modal" style="display: none;">
-        <div class="modal-content invoice-modal">
-            <div class="modal-header no-print">
-                <h3 data-translate="order_invoice">Order Invoice</h3>
-                <button class="modal-close" onclick="closeInvoiceModal()">&times;</button>
-            </div>
-            <div id="invoiceContent" class="invoice-content">
-                <!-- Invoice content will be loaded here -->
-            </div>
-            <div class="invoice-actions no-print">
-                <button class="invoice-btn print-btn" onclick="printInvoice()">
-                    <span>🖨️</span>
-                    <span data-translate="print_invoice">Print Invoice</span>
-                </button>
-                <button class="invoice-btn" onclick="closeInvoiceModal()" data-translate="close">Close</button>
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content success-modal">
+            <div class="modal-body">
+                <div class="success-icon">✅</div>
+                <h2 data-translate="order_placed">Order Placed Successfully!</h2>
+                <p data-translate="order_confirmation">We've received your order and will contact you soon with confirmation details.</p>
+                <div class="success-actions">
+                    <button class="btn btn-primary" onclick="window.location.href='/user/v1/orders.html'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                        <span data-translate="view_orders">View My Orders</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9,22 9,12 15,12 15,22"/>
+                        </svg>
+                        <span data-translate="continue_shopping">Continue Shopping</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/checkout-assets/enhanced-checkout-script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2?v=1.0"></script>
+    <script src="checkout-translations.js"></script>
+    <script src="checkout-script.js"></script>
 </body>
 </html>
